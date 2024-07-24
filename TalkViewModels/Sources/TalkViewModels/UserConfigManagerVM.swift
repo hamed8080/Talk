@@ -19,10 +19,14 @@ public final class UserConfigManagerVM: ObservableObject, Equatable {
     @Published public var currentUserConfig: UserConfig?
     public static let instance = UserConfigManagerVM()
     private var queue = DispatchQueue(label: "USER_CONFIG_MANAGER_SERIAL_QUEUE")
+    private var bundle: Bundle = .main
 
-    private init() {
+    public func setup(bundle: Bundle) {
+        self.bundle = bundle
         setup()
     }
+
+    private init() { }
 
     private func setup() {
         queue.sync {
@@ -55,12 +59,12 @@ public final class UserConfigManagerVM: ObservableObject, Equatable {
 
     public func setCurrentUserAndSwitch(_ userConfig: UserConfig) {
         UserDefaults.standard.setValue(userConfig.data, forKey: UserDefaults.keys.userConfigData.rawValue)
-        ChatManager.switchToUser(userId: userConfig.user.id ?? -1)
+        ChatManager.switchToUser(userId: userConfig.user.id ?? -1, bundle: bundle)
     }
 
     public func createChatObjectAndConnect(userId: Int?, config: ChatConfig, delegate: ChatDelegate?) {
         ChatManager.activeInstance?.dispose()
-        ChatManager.instance.createOrReplaceUserInstance(userId: userId, config: config)
+        ChatManager.instance.createOrReplaceUserInstance(userId: userId, config: config, bundle: bundle)
         ChatManager.activeInstance?.delegate = delegate
         ChatManager.activeInstance?.connect()
     }

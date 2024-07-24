@@ -17,7 +17,8 @@ final class ChatDelegateImplementation: ChatDelegate {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
     private(set) static var sharedInstance = ChatDelegateImplementation()
 
-    func createChatObject() {
+    func createChatObject(bundle: Bundle) {
+        UserConfigManagerVM.instance.setup(bundle: bundle)
         if let userConfig = UserConfigManagerVM.instance.currentUserConfig, let userId = userConfig.id {
             UserConfigManagerVM.instance.createChatObjectAndConnect(userId: userId, config: userConfig.config, delegate: self)
             TokenManager.shared.initSetIsLogin()

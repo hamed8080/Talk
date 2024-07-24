@@ -435,3 +435,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "ارسال موقعیت انتخاب شده";
+
+/* ExportMessages */
+"ExportMessages.message" = "پیام";
+"ExportMessages.userName" = "نام کاربری";
+"ExportMessages.name" = "نام";
+"ExportMessages.hour" = "ساعت";
+"ExportMessages.date" = "تاریخ";
+"ExportMessages.undefined" = "تعریف نشده";

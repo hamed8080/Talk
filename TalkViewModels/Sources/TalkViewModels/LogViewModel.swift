@@ -80,10 +80,10 @@ public final class LogViewModel: ObservableObject {
         }
     }
 
-    public func deleteLogs() {
+    public func deleteLogs(bundle: Bundle) {
         logs.forEach { _ in
-            Logger.clear(prefix: "CHAT_SDK")
-            Logger.clear(prefix: "ASYNC_SDK")
+            Logger.clear(prefix: "CHAT_SDK", bundle: bundle)
+            Logger.clear(prefix: "ASYNC_SDK", bundle: bundle)
             clearLogs()
         }
     }

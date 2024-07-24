@@ -442,3 +442,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Send selected location";
+
+/* ExportMessages */
+"ExportMessages.message" = "Message";
+"ExportMessages.userName" = "User Name";
+"ExportMessages.name" = "Name";
+"ExportMessages.hour" = "Hour";
+"ExportMessages.date" = "Date";
+"ExportMessages.undefined" = "Undefined";

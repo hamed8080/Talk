@@ -8,13 +8,13 @@
 import SwiftUI
 
 public extension UIFont {
-    static func register() {
-        registerFont(name: "IRANSansX-Bold")
-        registerFont(name: "IRANSansX-Regular")
+    static func register(bundle: Bundle) {
+        registerFont(name: "IRANSansX-Bold", bundle: bundle)
+        registerFont(name: "IRANSansX-Regular", bundle: bundle)
     }
 
-    private static func registerFont(name: String) {
-        guard let fontURL = Bundle.module.url(forResource: name, withExtension: "ttf") else { return }
+    private static func registerFont(name: String, bundle: Bundle) {
+        guard let fontURL = bundle.url(forResource: name, withExtension: "ttf") else { return }
         var error: Unmanaged<CFError>?
         CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
     }

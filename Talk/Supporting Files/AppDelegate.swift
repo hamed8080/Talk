@@ -23,8 +23,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        ChatDelegateImplementation.sharedInstance.createChatObject()
-        UIFont.register()
+        let bundle = Bundle.getBundle()
+        ChatDelegateImplementation.sharedInstance.createChatObject(bundle: bundle)
+        UIFont.register(bundle: bundle)
         return true
     }
 
@@ -44,10 +45,5 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func setFirstOpenningLanguage() {
         if UserDefaults.standard.bool(forKey: "setFirstOpenningLanguaged") == true { return }
-        if let language = Language.languages.first(where: {$0.identifier == "fa_IR"}) {
-            UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
-            UserDefaults.standard.set(true, forKey: "setFirstOpenningLanguaged")
-            UserDefaults.standard.synchronize()
-        }
     }
 }
