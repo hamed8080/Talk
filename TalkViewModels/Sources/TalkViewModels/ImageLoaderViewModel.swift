@@ -220,7 +220,7 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     private func isPodURL() -> Bool {
         let url = getURL()
-        return url?.host() == "core.pod.ir"
+        return url?.host() == AppRoutes.core
     }
 
     @HistoryActor

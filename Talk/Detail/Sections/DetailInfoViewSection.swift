@@ -91,7 +91,7 @@ struct DetailInfoViewSection: View {
         HStack {
             let threadName = viewModel.participantDetailViewModel?.participant.contactName ?? thread.computedTitle
             Text(threadName)
-                .font(.iransansBody)
+                .font(.fBody)
                 .foregroundStyle(Color.App.textPrimary)
 
             if thread.isTalk == true {
@@ -117,7 +117,7 @@ struct DetailInfoViewSection: View {
             let localized = String(localized: .init("Contacts.lastVisited"), bundle: Language.preferedBundle)
             let formatted = String(format: localized, notSeenString)
             Text(formatted)
-                .font(.iransansCaption3)
+                .font(.fCaption3)
         }
     }
 }

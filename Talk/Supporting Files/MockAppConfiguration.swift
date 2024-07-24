@@ -5,6 +5,7 @@
 //  Created by hamed on 1/19/24.
 //
 
+#if DEBUG
 import Foundation
 import Chat
 import ChatModels
@@ -266,3 +267,4 @@ In this new line we are going to test if it can break the line.
 
     }
 }
+#endif

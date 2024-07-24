@@ -77,7 +77,7 @@ struct NormalLastMessageContainer: View {
     private var addOrRemoveParticipantsView: some View {
         if let addOrRemoveParticipant = addOrRemoveParticipant {
             Text(addOrRemoveParticipant)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .fontWeight(.medium)
                 .lineLimit(1)
                 .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
@@ -88,7 +88,7 @@ struct NormalLastMessageContainer: View {
     private var praticipantNameView: some View {
         if let participantName = participantName {
             Text(participantName)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .fontWeight(.medium)
                 .lineLimit(1)
                 .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
@@ -110,7 +110,7 @@ struct NormalLastMessageContainer: View {
         if let createConversationString = createConversationString {
             Text(createConversationString)
                 .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .fontWeight(.regular)
         }
     }
@@ -119,7 +119,7 @@ struct NormalLastMessageContainer: View {
     private var fiftyFirstTextView: some View {
         if let fiftyFirstCharacter = fiftyFirstCharacter {
             Text(verbatim: fiftyFirstCharacter)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .fontWeight(.regular)
                 .lineLimit(1)
                 .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
@@ -130,7 +130,7 @@ struct NormalLastMessageContainer: View {
     private var fileNameLastMessageTextView: some View {
         if let sentFileString = sentFileString {
             Text(sentFileString)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .fontWeight(.regular)
                 .lineLimit(thread.group == false ? 2 : 1)
                 .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)

@@ -83,7 +83,7 @@ public struct TabViewButtonsContainer: View {
 
     private func titleView(tab: Tab, index: Int?) -> some View {
         Text(tab.title)
-            .font(index == selectedTabIndex ? .iransansBoldCaption : .iransansCaption)
+            .font(index == selectedTabIndex ? .fBoldCaption : .fCaption)
             .fixedSize()
             .foregroundStyle(index == selectedTabIndex ? Color.App.textPrimary : Color.App.textSecondary)
     }

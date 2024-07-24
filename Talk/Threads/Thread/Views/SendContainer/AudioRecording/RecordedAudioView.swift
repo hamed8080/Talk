@@ -65,7 +65,7 @@ public final class RecordedAudioView: UIStackView {
         btnDelete.tintColor = Color.App.textPrimaryUIColor
 
         lblTimer.textColor = Color.App.textPrimaryUIColor
-        lblTimer.font = .uiiransansCaption2
+        lblTimer.font = .fCaption2
         lblTimer.accessibilityIdentifier = "lblTimerRecordedAudioView"
 
         waveImageView.translatesAutoresizingMaskIntoConstraints = false

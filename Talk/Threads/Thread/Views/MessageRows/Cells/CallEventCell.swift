@@ -36,11 +36,11 @@ final class CallEventCell: UITableViewCell {
     
     private func configureView() {
         typeLabel.translatesAutoresizingMaskIntoConstraints = false
-        typeLabel.font = UIFont.uiiransansBody
+        typeLabel.font = UIFont.fBody
         typeLabel.accessibilityIdentifier = "typeLabelCallEventCell"
 
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.font = UIFont.uiiransansBody
+        dateLabel.font = UIFont.fBody
         dateLabel.accessibilityIdentifier = "dateLabelCallEventCell"
 
         stack.translatesAutoresizingMaskIntoConstraints = false

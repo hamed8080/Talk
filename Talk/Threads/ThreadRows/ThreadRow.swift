@@ -46,13 +46,13 @@ struct ThreadRow: View {
                     if searchVM.isInSearchMode {
                         Text(searchVM.attributdTitle(for: thread.titleRTLString))
                             .lineLimit(1)
-                            .font(.iransansSubheadline)
+                            .font(.fSubheadline)
                             .fontWeight(.semibold)
                     } else {
                         let title = thread.titleRTLString
                         Text(title)
                             .lineLimit(1)
-                            .font(.iransansSubheadline)
+                            .font(.fSubheadline)
                             .fontWeight(.semibold)
                             .animation(.easeInOut, value: title)
                     }
@@ -171,7 +171,7 @@ struct ThreadMentionSign: View {
     var body: some View {
         if thread.mentioned == true {
             Text("@")
-                .font(.iransansCaption)
+                .font(.fCaption)
                 .padding(6)
                 .frame(height: 24)
                 .frame(minWidth: 24)
@@ -205,7 +205,7 @@ struct ThreadUnreadCount: View {
         ZStack {
             if !unreadCountString.isEmpty {
                 Text(unreadCountString)
-                    .font(.iransansBoldCaption2)
+                    .font(.fBoldCaption2)
                     .padding(thread.isCircleUnreadCount ? 4 : 6)
                     .frame(height: 24)
                     .frame(minWidth: 24)
@@ -240,7 +240,7 @@ struct ThreadTimeText: View {
             if !timeString.isEmpty {
                 Text(timeString)
                     .lineLimit(1)
-                    .font(.iransansCaption2)
+                    .font(.fCaption2)
                     .fontWeight(.medium)
                     .foregroundColor(isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
             }

@@ -13,11 +13,11 @@ struct DraftView: View {
 
     var body: some View {
         Text("Thread.draft")
-            .font(.iransansBody)
+            .font(.fBody)
             .foregroundColor(Color.App.red)
         Text(draft)
             .lineLimit(1)
-            .font(.iransansBody)
+            .font(.fBody)
             .foregroundColor(Color.App.textSecondary)
     }
 }

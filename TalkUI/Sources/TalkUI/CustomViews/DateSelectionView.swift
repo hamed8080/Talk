@@ -27,7 +27,7 @@ public struct DateSelectionView: View {
                 VStack {
                     Text("ExportChat.startTitle")
                         .foregroundColor(Color.App.color1)
-                        .font(.iransansBoldTitle)
+                        .font(.fBoldTitle)
 
                     DatePicker("", selection: $startDate)
                         .datePickerStyle(.graphical)
@@ -38,7 +38,7 @@ public struct DateSelectionView: View {
                         Label("General.next", systemImage: "arrow.forward")
                             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
                     }
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .buttonStyle(.bordered)
                     .frame(maxWidth: 428)
                 }
@@ -46,7 +46,7 @@ public struct DateSelectionView: View {
                 VStack {
                     Text("ExportChat.endTitle")
                         .foregroundColor(Color.App.color1)
-                        .font(.iransansBoldTitle)
+                        .font(.fBoldTitle)
                     DatePicker("", selection: $endDate)
                         .datePickerStyle(.graphical)
                     HStack {
@@ -56,7 +56,7 @@ public struct DateSelectionView: View {
                             Label("General.back", systemImage: "arrow.backward")
                                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
                         }
-                        .font(.iransansSubheadline)
+                        .font(.fSubheadline)
                         .buttonStyle(.bordered)
 
                         Button {
@@ -66,7 +66,7 @@ public struct DateSelectionView: View {
                             Label("ExportChat.export", systemImage: "tray.and.arrow.down")
                                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
                         }
-                        .font(.iransansSubheadline)
+                        .font(.fSubheadline)
                         .buttonStyle(.bordered)
                     }
                     .frame(maxWidth: 428)

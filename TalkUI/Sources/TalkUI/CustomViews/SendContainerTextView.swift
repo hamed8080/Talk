@@ -44,7 +44,7 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
 
         placeholderLabel.text = "Thread.SendContainer.typeMessageHere".bundleLocalized()
         placeholderLabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.7)
-        placeholderLabel.font = UIFont.uiiransansBody
+        placeholderLabel.font = UIFont.fBody
         placeholderLabel.textAlignment = Language.isRTL ? .right : .left
         placeholderLabel.isUserInteractionEnabled = false
         addSubview(placeholderLabel)

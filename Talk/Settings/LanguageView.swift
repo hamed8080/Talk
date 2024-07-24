@@ -29,7 +29,7 @@ struct LanguageView: View {
                             changeLanguage(language: language)
                         }
                         Text(language.text)
-                            .font(.iransansBoldBody)
+                            .font(.fBoldBody)
                             .padding()
                         Spacer()
                     }

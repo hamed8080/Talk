@@ -20,7 +20,7 @@ public struct ImageLoaderView: View {
 
     public init(imageLoader: ImageLoaderViewModel,
                 contentMode: ContentMode = .fill,
-                textFont: Font = .iransansBody
+                textFont: Font = .fBody
     ) {
         self.textFont = textFont
         self.contentMode = contentMode

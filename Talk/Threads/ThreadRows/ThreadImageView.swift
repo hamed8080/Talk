@@ -24,10 +24,10 @@ struct ThreadImageView: View {
             } else if let image = computedImageURL {
                 ImageLoaderView(
                     imageLoader: threadsVM.avatars(for: image, metaData: thread.metadata, userName: splitedTitle),
-                    textFont: .iransansBoldBody
+                    textFont: .fBoldBody
                 )
                 .id("\(computedImageURL ?? "")\(thread.id ?? 0)")
-                .font(.iransansBoldBody)
+                .font(.fBoldBody)
                 .foregroundColor(.white)
                 .frame(width: 54, height: 54)
                 .background(Color(uiColor: materialBackground))
@@ -35,7 +35,7 @@ struct ThreadImageView: View {
             } else {
                 Text(verbatim: splitedTitle)
                     .id("\(computedImageURL ?? "")\(thread.id ?? 0)")
-                    .font(.iransansBoldSubheadline)
+                    .font(.fBoldSubheadline)
                     .foregroundColor(.white)
                     .frame(width: 54, height: 54)
                     .background(Color(uiColor: materialBackground))

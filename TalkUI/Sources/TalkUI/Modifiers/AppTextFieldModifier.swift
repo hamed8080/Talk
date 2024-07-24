@@ -20,7 +20,7 @@ public struct AppTextFieldModifier: ViewModifier {
     public func body(content: Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(topPlaceholder)
-                .font(.iransansCaption)
+                .font(.fCaption)
                 .padding(.horizontal, 20)
                 .offset(y: 8)
             content
@@ -40,7 +40,7 @@ public struct AppTextFieldModifier: ViewModifier {
 
             if let error {
                 Text(error)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                     .padding(.horizontal, 20)
                     .offset(y: -8)
                     .foregroundColor(Color.App.red)

@@ -38,7 +38,7 @@ import OSLog
 //                .background(.ultraThinMaterial)
 //                .clipShape(RoundedRectangle(cornerRadius:(8)))
 //                .offset(x: 8, y: 8)
-//                .font(.iransansCaption)
+//                .font(.fCaption)
 //        }
 //        .overlay(alignment: .center) {
 //            Circle()

@@ -19,7 +19,7 @@ struct OTPTimerView: View {
                 let formatted = String(format: localized, viewModel.timerString)
                 Text(formatted)
                     .foregroundStyle(Color.App.textSecondary)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                     .padding(EdgeInsets(top: 20, leading: AppState.isInSlimMode ? 12 : 6, bottom: 0, trailing: 0))
             } else {
                 Button {
@@ -36,7 +36,7 @@ struct OTPTimerView: View {
                 }
                 .foregroundStyle(Color.App.textPrimary)
                 .padding(.top, 20)
-                .font(.iransansCaption)
+                .font(.fCaption)
 
             }
             Spacer()

@@ -17,13 +17,13 @@ struct LogoutDialogView: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("Settings.logoutFromAccount")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubtitle)
+                .font(.fBoldSubtitle)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             Text("Settings.areYouSureToLogout")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansSubheadline)
+                .font(.fSubheadline)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -35,7 +35,7 @@ struct LogoutDialogView: View {
                 } label: {
                     Text("Settings.logout")
                         .foregroundStyle(Color.App.accent)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -45,7 +45,7 @@ struct LogoutDialogView: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

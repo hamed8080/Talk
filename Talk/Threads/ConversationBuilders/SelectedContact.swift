@@ -48,7 +48,7 @@ struct SelectedContact: View {
    @ViewBuilder var userImage: some View {
         if !isSelectedToDelete {
             let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: contact.firstName)
-            ImageLoaderView(imageLoader: .init(config: config), textFont: .iransansBoldCaption2)
+            ImageLoaderView(imageLoader: .init(config: config), textFont: .fBoldCaption2)
                 .id("\(contact.image ?? "")\(contact.id ?? 0)")
                 .foregroundColor(Color.App.textPrimary)
                 .frame(width: 22, height: 22)
@@ -60,7 +60,7 @@ struct SelectedContact: View {
     var userName: some View {
         Text(verbatim: "\(contact.firstName ?? "") \(contact.lastName ?? "")")
             .lineLimit(1)
-            .font(.iransansSubheadline)
+            .font(.fSubheadline)
             .foregroundColor(isSelectedToDelete ? Color.App.white : Color.App.textPrimary)
     }
 }

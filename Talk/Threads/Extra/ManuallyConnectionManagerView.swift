@@ -22,7 +22,7 @@ struct ManuallyConnectionManagerView: View {
             TextField("token".bundleLocalized(), text: $token)
                 .focused($isFocused)
                 .keyboardType(.phonePad)
-                .font(.iransansBody)
+                .font(.fBody)
                 .padding()
                 .applyAppTextfieldStyle(topPlaceholder: "token", isFocused: isFocused) {
                     isFocused.toggle()

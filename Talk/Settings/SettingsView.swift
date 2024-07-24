@@ -67,7 +67,7 @@ struct SettingsView: View {
         .listStyle(.plain)
         .background(Color.App.bgPrimary.ignoresSafeArea())
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.iransansSubheadline)
+        .font(.fSubheadline)
         .safeAreaInset(edge: .top, spacing: 0) {
             ToolbarView(
                 title: "Tab.settings",
@@ -143,10 +143,10 @@ struct UserInformationSection: View {
             VStack(alignment: .leading) {
                 Text("Settings.userName")
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                 TextField("", text: $userName)
                     .foregroundColor(Color.App.textPrimary)
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .disabled(true)
             }
             .listRowBackground(Color.App.bgPrimary)
@@ -157,10 +157,10 @@ struct UserInformationSection: View {
             VStack(alignment: .leading) {
                 Text("Settings.phoneNumber")
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                 TextField("", text: $phone)
                     .foregroundColor(Color.App.textPrimary)
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .disabled(true)
             }
             .listRowBackground(Color.App.bgPrimary)
@@ -171,10 +171,10 @@ struct UserInformationSection: View {
             VStack(alignment: .leading) {
                 Text("Settings.bio")
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                 Text(bio)
                     .foregroundColor(Color.App.textPrimary)
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .disabled(true)
                     .lineLimit(20)
                     .fixedSize(horizontal: false, vertical: true)
@@ -225,7 +225,7 @@ struct PreferenceView: View {
                     Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
                     Text("Contacts.Sync.subtitle")
                         .foregroundColor(.gray)
-                        .font(.iransansCaption3)
+                        .font(.fCaption3)
                 }
             }
             .listRowBackground(Color.App.bgPrimary)
@@ -313,7 +313,7 @@ struct SettingLanguageSection: View {
         let selectedLanguage = Language.languages.first(where: {$0.language == Locale.preferredLanguages[0]})?.text ?? ""
         let view = Text(selectedLanguage)
             .foregroundStyle(Color.App.accent)
-            .font(.iransansBoldBody)
+            .font(.fBoldBody)
         return AnyView(view)
     }
 }
@@ -456,7 +456,7 @@ struct UserProfileView: View {
 
             Text(verbatim: user?.name ?? "")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansSubheadline)
+                .font(.fSubheadline)
             Spacer()
 
             Button {
@@ -509,7 +509,7 @@ struct VersionNumberView: View {
             Spacer()
         }
         .foregroundStyle(Color.App.textSecondary)
-        .font(.iransansCaption2)
+        .font(.fCaption2)
         .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
         .listRowBackground(Color.App.bgSecondary)
         .listRowSeparatorTint(Color.App.dividerPrimary)

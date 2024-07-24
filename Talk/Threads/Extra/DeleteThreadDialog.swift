@@ -17,7 +17,7 @@ struct DeleteThreadDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("Thread.Delete.footer")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansSubheadline)
+                .font(.fSubheadline)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -29,7 +29,7 @@ struct DeleteThreadDialog: View {
                 } label: {
                     Text("General.delete")
                         .foregroundStyle(Color.App.accent)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -39,7 +39,7 @@ struct DeleteThreadDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

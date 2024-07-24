@@ -26,7 +26,7 @@ struct ConversationCallMessageType: View {
                             .fontWeight(.bold)
                     }
                 }
-                .font(.iransansFootnote)
+                .font(.fFootnote)
                 .foregroundColor(color == .dark ? .white.opacity(0.7) : .black.opacity(0.7))
                 .padding(2)
             }

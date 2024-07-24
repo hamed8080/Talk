@@ -5,7 +5,20 @@ import Chat
 import Async
 
 public extension Config {
+
+    static func mainConfig() -> Config {
+        let config = Config(socketAddresss: AppRoutes.socketAddress,
+                            ssoHost: AppRoutes.ssoHost,
+                            platformHost: AppRoutes.platformHost,
+                            fileServer: AppRoutes.podspace,
+                            peerName: AppRoutes.peerName,
+                            debugToken: nil,
+                            server: "main")
+        return config
+    }
+
     static func getConfig(_ server: ServerTypes = .integration) -> Config? {
+        #if DEBUG
         guard let path = Bundle.main.path(forResource: "Config", ofType: ".json") else { return nil }
         if let data = try? Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe) {
             let configs = try? JSONDecoder().decode([Config].self, from: data)
@@ -14,6 +27,8 @@ public extension Config {
         } else {
             return nil
         }
+        #endif
+        return mainConfig()
     }
 
     static func config(token: String, selectedServerType: ServerTypes) -> ChatConfig {
@@ -26,14 +41,14 @@ public extension Config {
             .targetFPS(15)
             .build()
         let asyncLoggerConfig = LoggerConfig(prefix: "ASYNC_SDK",
-                                             logServerURL: "http://10.56.34.61:8080/1m-http-server-test-chat",
+                                             logServerURL: AppRoutes.chatLogger,
                                              logServerMethod: "PUT",
                                              persistLogsOnServer: true,
                                              isDebuggingLogEnabled: true,
                                              sendLogInterval: 5 * 60,
                                              logServerRequestheaders: ["Authorization": "Basic Y2hhdDpjaGF0MTIz", "Content-Type": "application/json"])
         let chatLoggerConfig = LoggerConfig(prefix: "CHAT_SDK",
-                                            logServerURL: "http://10.56.34.61:8080/1m-http-server-test-chat",
+                                            logServerURL: AppRoutes.chatLogger,
                                             logServerMethod: "PUT",
                                             persistLogsOnServer: true,
                                             isDebuggingLogEnabled: true,
@@ -59,6 +74,8 @@ public extension Config {
             .appGroup(AppGroup.group)
             .loggerConfig(chatLoggerConfig)
             .mapApiKey("8b77db18704aa646ee5aaea13e7370f4f88b9e8c")
+            .mapServer(AppRoutes.map)
+            .podSpaceFileServerAddress(AppRoutes.podspace)
             .typeCodes([.init(typeCode: "default", ownerId: nil)])
             .build()
         return chatConfig

@@ -25,7 +25,7 @@ final class GroupParticipantNameView: UILabel {
 
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
-        font = UIFont.uiiransansBoldBody
+        font = UIFont.fBoldBody
         numberOfLines = 1
         backgroundColor = Color.App.bgChatUserUIColor!
         isOpaque = true

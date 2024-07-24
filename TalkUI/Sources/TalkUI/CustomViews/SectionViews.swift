@@ -23,7 +23,7 @@ public struct SectionTitleView: View {
                            endPoint: .bottomTrailing)
             .mask {
                 Text(title)
-                    .font(.iransansBoldTitle)
+                    .font(.fBoldTitle)
             }
         }
         .listRowBackground(Color.clear)

@@ -50,7 +50,7 @@ public final class MoveToBottomButton: UIButton {
 
         lblUnreadCount.translatesAutoresizingMaskIntoConstraints = false
         lblUnreadCount.label.textColor = Color.App.whiteUIColor
-        lblUnreadCount.label.font = .uiiransansBoldCaption
+        lblUnreadCount.label.font = .fBoldCaption
         lblUnreadCount.layer.backgroundColor = Color.App.accentUIColor?.cgColor
         lblUnreadCount.layer.cornerRadius = 12
         lblUnreadCount.label.textAlignment = .center

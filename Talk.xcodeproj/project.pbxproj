@@ -49,8 +49,6 @@
 		051ED3242B4D75BC00D963A0 /* LeaveThreadDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 051ED3222B4D75BC00D963A0 /* LeaveThreadDialog.swift */; };
 		052191562B2F262300CC99D1 /* MutualThreadRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052191552B2F262300CC99D1 /* MutualThreadRow.swift */; };
 		052191572B2F262300CC99D1 /* MutualThreadRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052191552B2F262300CC99D1 /* MutualThreadRow.swift */; };
-		0521F85F2B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */; };
-		0521F8602B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */; };
 		0524744A2C3A600F006F3ECB /* ChatBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052474492C3A600F006F3ECB /* ChatBackgroundView.swift */; };
 		0524744B2C3A600F006F3ECB /* ChatBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052474492C3A600F006F3ECB /* ChatBackgroundView.swift */; };
 		0525516A2C24BC7D003171D2 /* CustomConversationNavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052551692C24BC7D003171D2 /* CustomConversationNavigationBar.swift */; };
@@ -301,6 +299,8 @@
 		05745AF12AF2628000102193 /* UserActionMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AEF2AF2626B00102193 /* UserActionMenu.swift */; };
 		05745AF32AF2B1B100102193 /* SettingProfileButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AF22AF2B1B100102193 /* SettingProfileButton.swift */; };
 		05745AF42AF2B1B100102193 /* SettingProfileButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AF22AF2B1B100102193 /* SettingProfileButton.swift */; };
+		0575F1D42C51028900DB65A9 /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */; };
+		0575F1D52C51028900DB65A9 /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */; };
 		057A18DF2B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */; };
 		057A18E02B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */; };
 		05840A742C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */; };
@@ -445,7 +445,6 @@
 		051D1BFE2BA0369100676CBD /* SelectMessageRadio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectMessageRadio.swift; sourceTree = "<group>"; };
 		051ED3222B4D75BC00D963A0 /* LeaveThreadDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveThreadDialog.swift; sourceTree = "<group>"; };
 		052191552B2F262300CC99D1 /* MutualThreadRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutualThreadRow.swift; sourceTree = "<group>"; };
-		0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAppConfiguration.swift; sourceTree = "<group>"; };
 		052474492C3A600F006F3ECB /* ChatBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBackgroundView.swift; sourceTree = "<group>"; };
 		052551692C24BC7D003171D2 /* CustomConversationNavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomConversationNavigationBar.swift; sourceTree = "<group>"; };
 		052557062BE9487700DFCE54 /* EditContactInParticipantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditContactInParticipantDetailView.swift; sourceTree = "<group>"; };
@@ -582,6 +581,7 @@
 		05729A552B8DACDA00D62D69 /* DeleteParticipantDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteParticipantDialog.swift; sourceTree = "<group>"; };
 		05745AEF2AF2626B00102193 /* UserActionMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserActionMenu.swift; sourceTree = "<group>"; };
 		05745AF22AF2B1B100102193 /* SettingProfileButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingProfileButton.swift; sourceTree = "<group>"; };
+		0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockAppConfiguration.swift; sourceTree = "<group>"; };
 		057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageParticipantsSeen.swift; sourceTree = "<group>"; };
 		05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutableMessageStatusView.swift; sourceTree = "<group>"; };
 		058ACC2B2BA32CE60076BDA5 /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
@@ -851,7 +851,6 @@
 				0570CBCB2AAEE98E001832E9 /* Supporting Files */,
 				0570CB672AAEE98C001832E9 /* Threads */,
 				0570CB632AAEE98C001832E9 /* ChatDelegateImplementation.swift */,
-				0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */,
 				0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */,
 				0570CC962AAEE9B2001832E9 /* Info-Test.plist */,
 				0570CC952AAEE9B2001832E9 /* Info.plist */,
@@ -1083,6 +1082,7 @@
 		0570CBCB2AAEE98E001832E9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */,
 				0570CBC42AAEE98E001832E9 /* Localizable.strings */,
 				0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */,
 				0570CBD22AAEE98E001832E9 /* Config.json */,
@@ -1435,7 +1435,6 @@
 				0570CC3B2AAEE98F001832E9 /* TagParticipantRow.swift in Sources */,
 				0506DE1F2AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0652AE183EA0025B3B7 /* ConversationBuilder.swift in Sources */,
-				0521F85F2B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */,
 				05E8F50D2C4D3D6600E535C0 /* CancelAudioRecordingButton.swift in Sources */,
 				0570CC4F2AAEE98F001832E9 /* FileView.swift in Sources */,
 				0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */,
@@ -1507,6 +1506,7 @@
 				0570CC572AAEE98F001832E9 /* MusicView.swift in Sources */,
 				052CA3D62BA411B800E38E19 /* MessageFileView.swift in Sources */,
 				05A0CD712B19314100F13EE5 /* DeleteContactView.swift in Sources */,
+				0575F1D42C51028900DB65A9 /* MockAppConfiguration.swift in Sources */,
 				055444532B67D3FA00E16A2F /* ThreadTabDetailStickyHeaderSection.swift in Sources */,
 				050B291A2AB40DC20072706C /* NothingHasBeenSelectedView.swift in Sources */,
 				0570CBFF2AAEE98F001832E9 /* JoinToPublicThreadView.swift in Sources */,
@@ -1631,7 +1631,6 @@
 				0570CC3C2AAEE98F001832E9 /* TagParticipantRow.swift in Sources */,
 				0506DE202AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0662AE187D80025B3B7 /* ConversationBuilder.swift in Sources */,
-				0521F8602B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */,
 				05E8F50E2C4D3D6600E535C0 /* CancelAudioRecordingButton.swift in Sources */,
 				0570CC502AAEE98F001832E9 /* FileView.swift in Sources */,
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
@@ -1703,6 +1702,7 @@
 				0570CC582AAEE98F001832E9 /* MusicView.swift in Sources */,
 				052CA3D72BA411B800E38E19 /* MessageFileView.swift in Sources */,
 				05A0CD722B19314100F13EE5 /* DeleteContactView.swift in Sources */,
+				0575F1D52C51028900DB65A9 /* MockAppConfiguration.swift in Sources */,
 				055444542B67D3FA00E16A2F /* ThreadTabDetailStickyHeaderSection.swift in Sources */,
 				050B291B2AB40DC20072706C /* NothingHasBeenSelectedView.swift in Sources */,
 				0570CC002AAEE98F001832E9 /* JoinToPublicThreadView.swift in Sources */,
@@ -1990,6 +1990,10 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_SOURCE_FILE_NAMES[arch=*]" = (
+					Config.json,
+					MockData.json,
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Talk/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Talk;
@@ -2057,6 +2061,10 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_SOURCE_FILE_NAMES[arch=*]" = (
+					Config.json,
+					MockData.json,
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Talk/Info-Test.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Talk-Test";

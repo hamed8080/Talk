@@ -30,7 +30,7 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       disablePerformanceAntipatternChecker = "YES"
@@ -86,12 +86,12 @@
             isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "talk.pod.ir.async.debug"
+            key = "talk.pod.async.debug"
             value = "1"
             isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "talk.pod.ir.chat.threadStore.debug"
+            key = "talk.pod.chat.threadStore.debug"
             value = "1"
             isEnabled = "YES">
          </EnvironmentVariable>

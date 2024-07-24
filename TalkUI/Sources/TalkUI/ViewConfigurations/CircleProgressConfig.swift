@@ -10,13 +10,13 @@ import SwiftUI
 
 public struct CircleProgressConfig {
 
-    public static let normal: CircleProgressConfig = .init(progressFont: .iransansSubheadline,
+    public static let normal: CircleProgressConfig = .init(progressFont: .fSubheadline,
                                                            fontWeight: .heavy,
                                                            forgroundColor: .indigo,
                                                            circleLineWidth: 4,
                                                            dimPathColor: Color.App.white.opacity(0.5))
 
-    public static let small: CircleProgressConfig = .init(progressFont: .iransansCaption3,
+    public static let small: CircleProgressConfig = .init(progressFont: .fCaption3,
                                                           fontWeight: .heavy,
                                                           forgroundColor: .indigo,
                                                           circleLineWidth: 1.0,

@@ -58,7 +58,7 @@ struct SearchInSelectConversationOrContact: View {
                 .frame(height: 48)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
-                .font(.iransansSubheadline)
+                .font(.fSubheadline)
         }
         .background(.ultraThinMaterial)
     }

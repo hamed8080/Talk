@@ -63,14 +63,14 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
 
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.uiiransansBoldCaption2
+        fileSizeLabel.font = UIFont.fBoldCaption2
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = Color.App.textPrimaryUIColor
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageVideoView"
         addSubview(fileSizeLabel)
 
         fileNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileNameLabel.font = UIFont.uiiransansBoldCaption2
+        fileNameLabel.font = UIFont.fBoldCaption2
         fileNameLabel.textAlignment = .left
         fileNameLabel.textColor = Color.App.textPrimaryUIColor
         fileNameLabel.numberOfLines = 1
@@ -79,7 +79,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         addSubview(fileNameLabel)
 
         fileTypeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileTypeLabel.font = UIFont.uiiransansBoldCaption2
+        fileTypeLabel.font = UIFont.fBoldCaption2
         fileTypeLabel.textAlignment = .left
         fileTypeLabel.textColor = Color.App.textSecondaryUIColor
         fileTypeLabel.accessibilityIdentifier = "fileTypeLabelMessageVideoView"

@@ -214,13 +214,10 @@ public final class LoginViewModel: ObservableObject {
 
     public func startNewPKCESession() {
         let bundleIdentifier = Bundle.main.bundleIdentifier!
-        let auth0domain = "accounts.pod.ir"
-        let authorizeURL = "https://\(auth0domain)/oauth2/authorize"
-        let tokenURL = "https://\(auth0domain)/oauth2/token"
         let clientId = "88413l69cd4051a039cf115ee4e073"
         let redirectUri = "talk://login"
-        let parameters = OAuth2PKCEParameters(authorizeUrl: authorizeURL,
-                                              tokenUrl: tokenURL,
+        let parameters = OAuth2PKCEParameters(authorizeUrl: AppRoutes.ssoAuthorizeURL,
+                                              tokenUrl: AppRoutes.ssoTokenURL,
                                               clientId: clientId,
                                               redirectUri: redirectUri,
                                               callbackURLScheme: bundleIdentifier)

@@ -32,7 +32,7 @@ struct SearchFiltersMessagesDialog: View {
                 } label: {
                     Text("General.submit")
                         .foregroundStyle(Color.App.accent)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -44,7 +44,7 @@ struct SearchFiltersMessagesDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

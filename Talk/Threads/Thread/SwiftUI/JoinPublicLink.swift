@@ -25,7 +25,7 @@ struct JoinPublicLink: View {
             //                HStack {
             //                    Text("Thread.join")
             //                        .foregroundStyle(Color.App.textPrimary)
-            //                        .font(.iransansBoldBody)
+            //                        .font(.fBoldBody)
             //                        .multilineTextAlignment(.center)
             //                }
             //                .buttonStyle(.plain)
@@ -54,7 +54,7 @@ struct JoinToPublicConversationDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("Thread.Join.question")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubheadline)
+                .font(.fBoldSubheadline)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -67,7 +67,7 @@ struct JoinToPublicConversationDialog: View {
                 } label: {
                     Text("Thread.join")
                         .foregroundStyle(Color.App.accent)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -77,7 +77,7 @@ struct JoinToPublicConversationDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

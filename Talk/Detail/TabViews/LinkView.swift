@@ -85,13 +85,13 @@ struct LinkRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let smallText = smallText {
                     Text(smallText)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .foregroundStyle(Color.App.textPrimary)
                         .lineLimit(1)
                 }
                 ForEach(links, id: \.self) { link in
                     Text(verbatim: link)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .foregroundStyle(Color.App.accent)
                 }
             }

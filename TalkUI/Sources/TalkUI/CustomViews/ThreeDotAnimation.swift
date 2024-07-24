@@ -19,7 +19,7 @@ struct ThreeDotAnimation: View {
                     .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .scale).combined(with: .opacity))
                     .fixedSize()
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.iransansFootnote)
+                    .font(.fFootnote)
                     .padding(.horizontal, 3)
             }
             Spacer()

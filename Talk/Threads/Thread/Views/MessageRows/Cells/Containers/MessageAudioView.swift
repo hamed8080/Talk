@@ -60,7 +60,7 @@ final class MessageAudioView: UIView {
         addSubview(progressButton)
 
         fileNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileNameLabel.font = UIFont.uiiransansBoldCaption2
+        fileNameLabel.font = UIFont.fBoldCaption2
         fileNameLabel.textAlignment = .left
         fileNameLabel.textColor = Color.App.textPrimaryUIColor
         fileNameLabel.numberOfLines = 1
@@ -71,7 +71,7 @@ final class MessageAudioView: UIView {
         addSubview(fileNameLabel)
 
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.uiiransansBoldCaption2
+        fileSizeLabel.font = UIFont.fBoldCaption2
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = Color.App.textPrimaryUIColor
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageAudioView"
@@ -80,7 +80,7 @@ final class MessageAudioView: UIView {
         addSubview(fileSizeLabel)
 
         fileTypeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileTypeLabel.font = UIFont.uiiransansBoldCaption2
+        fileTypeLabel.font = UIFont.fBoldCaption2
         fileTypeLabel.textAlignment = .left
         fileTypeLabel.textColor = Color.App.textSecondaryUIColor
         fileTypeLabel.numberOfLines = 1
@@ -107,7 +107,7 @@ final class MessageAudioView: UIView {
 
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = Color.App.textPrimaryUIColor
-        timeLabel.font = UIFont.uiiransansBoldCaption
+        timeLabel.font = UIFont.fBoldCaption
         timeLabel.numberOfLines = 1
         timeLabel.textAlignment = .left
         timeLabel.accessibilityIdentifier = "timeLabelMessageAudioView"

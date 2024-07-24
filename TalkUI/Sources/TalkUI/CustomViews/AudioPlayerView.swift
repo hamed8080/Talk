@@ -127,7 +127,7 @@ public struct AudioPlayerView: View {
 
     private var messageTitleView: some View {
         Text(verbatim: audioPlayerVM.title)
-            .font(.iransansCaption)
+            .font(.fCaption)
             .foregroundColor(Color.App.textPrimary)
             .opacity(titleIsPressing ? 0.5 : 1.0)
             .animation(.easeInOut, value: titleIsPressing)
@@ -139,7 +139,7 @@ public struct AudioPlayerView: View {
         if !audioPlayerVM.isClosed {
             Text(verbatim: audioPlayerVM.currentTime.timerString(locale: Language.preferredLocale) ?? "")
                 .foregroundColor(.gray)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .disabled(true)
         }
     }
