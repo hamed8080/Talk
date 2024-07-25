@@ -1963,6 +1963,7 @@
 					MockData.json,
 					ChatSDKModel.xcdatamodeld,
 					Logger.xcdatamodeld,
+					MockAppConfiguration.swift,
 				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Talk/Info.plist;
@@ -2036,6 +2037,7 @@
 					MockData.json,
 					ChatSDKModel.xcdatamodeld,
 					Logger.xcdatamodeld,
+					MockAppConfiguration.swift,
 				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Talk/Info-Test.plist";

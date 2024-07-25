@@ -9,7 +9,7 @@ import SwiftUI
 
 private struct UITextViewWrapper: UIViewRepresentable {
     typealias UIViewType = UITextView
-    private let font = UIFont(name: "IRANSansX", size: 16)
+    private let font = UIFont.fSubheadline
 
     @Binding var text: String
     var textColor: UIColor

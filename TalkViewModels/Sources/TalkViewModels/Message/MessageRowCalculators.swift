@@ -112,7 +112,7 @@ class MessageRowCalculators {
     }
 
     class func messageContainerTextWidth(text: String, replyWidth: CGFloat, sizes: MessageRowSizes) -> CGFloat {
-        let font = UIFont(name: "IRANSansX", size: 14) ?? .systemFont(ofSize: 14)
+        let font = UIFont.fBody ?? .systemFont(ofSize: 14)
         let textWidth = text.widthOfString(usingFont: font) + replyWidth
         let minimumWidth: CGFloat = 128
         let maxOriginal = max(minimumWidth, textWidth + sizes.paddings.paddingEdgeInset.left + sizes.paddings.paddingEdgeInset.right)
@@ -121,14 +121,14 @@ class MessageRowCalculators {
 
     class func replySenderWidthCalculation(replyInfo: ReplyInfo) -> CGFloat {
         let senderNameText = replyInfo.participant?.contactName ?? replyInfo.participant?.name ?? ""
-        let senderFont = UIFont(name: "IRANSansX-Bold", size: 12) ?? .systemFont(ofSize: 12)
+        let senderFont = UIFont.fBoldCaption2 ?? .systemFont(ofSize: 12)
         let senderNameWidth = senderNameText.widthOfString(usingFont: senderFont)
         return senderNameWidth
     }
 
     class func replyStaticTextWidth() -> CGFloat {
         let staticText = "Message.replyTo".bundleLocalized()
-        let font = UIFont(name: "IRANSansX-Bold", size: 12) ?? .systemFont(ofSize: 12)
+        let font = UIFont.fBoldCaption2 ?? .systemFont(ofSize: 12)
         let width = staticText.widthOfString(usingFont: font) + 12
         return width
     }
@@ -175,7 +175,7 @@ class MessageRowCalculators {
         let doerRange = NSString(string: string).range(of: doer)
         attr.addAttributes([
             NSAttributedString.Key.foregroundColor: UIColor(named: "accent") ?? .orange,
-            NSAttributedString.Key.font: UIFont(name: "IRANSansX", size: 14) ?? .systemFont(ofSize: 14)
+            NSAttributedString.Key.font: UIFont.fBody ?? .systemFont(ofSize: 14)
         ], range: doerRange)
         return attr
     }

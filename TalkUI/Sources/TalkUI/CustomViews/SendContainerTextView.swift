@@ -33,7 +33,7 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
         textContainerInset = .init(top: 12, left: 0, bottom: 0, right: 0)
         delegate = self
         isEditable = true
-        font = UIFont(name: "IRANSansX", size: 16)
+        font = UIFont.fSubheadline
         isSelectable = true
         isUserInteractionEnabled = true
         isScrollEnabled = true

@@ -10,9 +10,6 @@ import UIKit
 
 public extension NSMutableAttributedString {
 
-    private static let userMentionFont = UIFont(name: "IRANSansX-Bold", size: 14)
-    private static let bodyFont = UIFont(name: "IRANSansX", size: 16)
-
     func addDefaultTextColor(_ color: UIColor) {
         let allRange = NSRange(string.startIndex..., in: string)
         let style = NSMutableParagraphStyle()
@@ -23,7 +20,7 @@ public extension NSMutableAttributedString {
         addAttributes([
             NSAttributedString.Key.paragraphStyle: style,
             NSAttributedString.Key.foregroundColor : color,
-            NSAttributedString.Key.font: NSMutableAttributedString.bodyFont ?? .systemFont(ofSize: 14)
+            NSAttributedString.Key.font: UIFont.fSubheadline ?? .systemFont(ofSize: 14)
         ], range: allRange)
     }
 
@@ -61,7 +58,7 @@ public extension NSMutableAttributedString {
                         addAttributes([
                             NSAttributedString.Key.link: link,
                             NSAttributedString.Key.foregroundColor: color,
-                            NSAttributedString.Key.font: NSMutableAttributedString.userMentionFont ?? .systemFont(ofSize: 14, weight: .bold)
+                            NSAttributedString.Key.font: UIFont.fBoldBody ?? .systemFont(ofSize: 14, weight: .bold)
                         ], range: range)
                     }
                 }

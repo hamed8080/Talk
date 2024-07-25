@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import TalkModels
+import TalkExtensions
 
 public class ActionMenuItem: UIView {
     private let label = UILabel()
@@ -35,7 +36,7 @@ public class ActionMenuItem: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = model.title
         label.textColor = model.color
-        label.font = UIFont(name: "IRANSansX", size: 16)
+        label.font = UIFont.fSubheadline
         addSubview(label)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
