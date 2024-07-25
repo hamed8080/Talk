@@ -75,6 +75,7 @@ public extension Config {
             .loggerConfig(chatLoggerConfig)
             .mapApiKey("8b77db18704aa646ee5aaea13e7370f4f88b9e8c")
             .mapServer(AppRoutes.map)
+            .baseMapLink(AppRoutes.neshanMap)
             .podSpaceFileServerAddress(AppRoutes.podspace)
             .typeCodes([.init(typeCode: "default", ownerId: nil)])
             .build()

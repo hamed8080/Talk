@@ -162,7 +162,7 @@ public extension HistoryMessageProtocol {
 
     var mapCoordinate: Coordinate? {
         guard
-            let array = fileMetaData?.mapLink?.replacingOccurrences(of: Routes.baseMapLink.rawValue, with: "").split(separator: ","),
+            let array = fileMetaData?.mapLink?.replacingOccurrences(of: AppRoutes.neshanMap, with: "").split(separator: ","),
             let lat = Double(String(array[0])),
             let lng = Double(String(array[1]))
         else { return nil }
@@ -176,7 +176,7 @@ public extension HistoryMessageProtocol {
 
     var neshanURL: URL? {
         guard let coordinate = mapCoordinate else { return nil }
-        return URL(string: "https://neshan.org/maps/@\(coordinate.lat),\(coordinate.lng),18.1z,0p")
+        return URL(string: "\(AppRoutes.neshanMap)/@\(coordinate.lat),\(coordinate.lng),18.1z,0p")
     }
 
     var appleMapsURL: URL? {

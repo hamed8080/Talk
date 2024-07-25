@@ -5,7 +5,8 @@ public final class AppRoutes {
     public static let joinLink = "https://talk.pod.ir/join?tn="
     public static let pckeToken = "https://accounts.pod.ir/oauth2/token"
     public static let panel = "https://panel.pod.ir/Users/Info"
-    
+    public static let neshanMap = "https://neshan.org/maps"
+
     public static let socketAddress = "wss://msg.pod.ir/ws"
     public static let ssoHost = "https://accounts.pod.ir"
     public static let platformHost = "https://api.pod.ir/srv/core"
