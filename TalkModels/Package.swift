@@ -19,12 +19,14 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Chat"),
+        .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5")
     ],
     targets: [
         .target(
             name: "TalkModels",
             dependencies: [
                 .product(name: "Chat", package: "Chat"),
+                .product(name: "ZipArchive", package: "ZipArchive"),
             ]
         ),
         .testTarget(

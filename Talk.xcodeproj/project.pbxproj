@@ -39,10 +39,6 @@
 		050B51B62AE7852B00B8DD49 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050B51B42AE7852B00B8DD49 /* LoginView.swift */; };
 		050DE2092AB1DD7E00418463 /* MessageReactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050DE2082AB1DD7E00418463 /* MessageReactionDetailView.swift */; };
 		050DE20A2AB1DD7E00418463 /* MessageReactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050DE2082AB1DD7E00418463 /* MessageReactionDetailView.swift */; };
-		05135F622C513B3E00654577 /* ChatSDKModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 05135F602C513B3E00654577 /* ChatSDKModel.xcdatamodeld */; };
-		05135F632C513B3E00654577 /* ChatSDKModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 05135F602C513B3E00654577 /* ChatSDKModel.xcdatamodeld */; };
-		05135F662C5140E200654577 /* Logger.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 05135F642C5140E200654577 /* Logger.xcdatamodeld */; };
-		05135F672C5140E200654577 /* Logger.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 05135F642C5140E200654577 /* Logger.xcdatamodeld */; };
 		05135F6C2C5159C000654577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 05135F6B2C51592700654577 /* Assets.xcassets */; };
 		05135F6D2C5159C000654577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 05135F6B2C51592700654577 /* Assets.xcassets */; };
 		0516ACF82AC930C40096E5A2 /* ToolbarButtonItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0516ACF72AC930C40096E5A2 /* ToolbarButtonItem.swift */; };
@@ -297,8 +293,6 @@
 		05745AF42AF2B1B100102193 /* SettingProfileButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AF22AF2B1B100102193 /* SettingProfileButton.swift */; };
 		0575F1D42C51028900DB65A9 /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */; };
 		0575F1D52C51028900DB65A9 /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */; };
-		0575F1D72C51294B00DB65A9 /* MyBundle.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0575F1D62C51294B00DB65A9 /* MyBundle.bundle */; };
-		0575F1D82C51294B00DB65A9 /* MyBundle.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 0575F1D62C51294B00DB65A9 /* MyBundle.bundle */; };
 		057A18DF2B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */; };
 		057A18E02B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */; };
 		05840A742C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */; };
@@ -438,8 +432,6 @@
 		050B51B12AE7848100B8DD49 /* VerifyContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyContentView.swift; sourceTree = "<group>"; };
 		050B51B42AE7852B00B8DD49 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		050DE2082AB1DD7E00418463 /* MessageReactionDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageReactionDetailView.swift; sourceTree = "<group>"; };
-		05135F612C513B3E00654577 /* ChatSDKModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ChatSDKModel.xcdatamodel; sourceTree = "<group>"; };
-		05135F652C5140E200654577 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		05135F6B2C51592700654577 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0516ACF72AC930C40096E5A2 /* ToolbarButtonItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarButtonItem.swift; sourceTree = "<group>"; };
 		051C343A2BB1567200FA5A3B /* TopThreadToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopThreadToolbar.swift; sourceTree = "<group>"; };
@@ -569,7 +561,6 @@
 		05745AEF2AF2626B00102193 /* UserActionMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserActionMenu.swift; sourceTree = "<group>"; };
 		05745AF22AF2B1B100102193 /* SettingProfileButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingProfileButton.swift; sourceTree = "<group>"; };
 		0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockAppConfiguration.swift; sourceTree = "<group>"; };
-		0575F1D62C51294B00DB65A9 /* MyBundle.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = MyBundle.bundle; sourceTree = "<group>"; };
 		057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageParticipantsSeen.swift; sourceTree = "<group>"; };
 		05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutableMessageStatusView.swift; sourceTree = "<group>"; };
 		058ACC2B2BA32CE60076BDA5 /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
@@ -1070,7 +1061,6 @@
 		0570CBCB2AAEE98E001832E9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				0575F1D62C51294B00DB65A9 /* MyBundle.bundle */,
 				0575F1D32C51028900DB65A9 /* MockAppConfiguration.swift */,
 				0570CBC42AAEE98E001832E9 /* Localizable.strings */,
 				0570CBD22AAEE98E001832E9 /* Config.json */,
@@ -1078,8 +1068,6 @@
 				05135F6B2C51592700654577 /* Assets.xcassets */,
 				0570CBDC2AAEE98E001832E9 /* MockData.json */,
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
-				05135F642C5140E200654577 /* Logger.xcdatamodeld */,
-				05135F602C513B3E00654577 /* ChatSDKModel.xcdatamodeld */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -1350,7 +1338,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0575F1D72C51294B00DB65A9 /* MyBundle.bundle in Resources */,
 				0570CC872AAEE98F001832E9 /* LaunchScreen.storyboard in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */,
@@ -1366,7 +1353,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0575F1D82C51294B00DB65A9 /* MyBundle.bundle in Resources */,
 				0570CC882AAEE98F001832E9 /* LaunchScreen.storyboard in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC902AAEE98F001832E9 /* MockData.json in Resources */,
@@ -1421,7 +1407,6 @@
 				0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0594FE662B0387370031AADF /* MessageLocationView.swift in Sources */,
 				0570CBF52AAEE98F001832E9 /* ThreadRow.swift in Sources */,
-				05135F662C5140E200654577 /* Logger.xcdatamodeld in Sources */,
 				0570CC4B2AAEE98F001832E9 /* LoginNavigationContainerView.swift in Sources */,
 				0570CBFB2AAEE98F001832E9 /* ThreadContentList.swift in Sources */,
 				05A3AD6B2B99F41C00536022 /* ThreadbackgroundView.swift in Sources */,
@@ -1502,7 +1487,6 @@
 				0537C1F32C31C5A100B6ECDB /* UIHistoryTableView.swift in Sources */,
 				05E8F5102C4D3DA400E535C0 /* RecordedAudioView.swift in Sources */,
 				0525516A2C24BC7D003171D2 /* CustomConversationNavigationBar.swift in Sources */,
-				05135F622C513B3E00654577 /* ChatSDKModel.xcdatamodeld in Sources */,
 				050B51B52AE7852B00B8DD49 /* LoginView.swift in Sources */,
 				05E781F12C2062FA002262AD /* AttchmentButton.swift in Sources */,
 				05C6DA1B2B19F3020049BCDC /* EditProfileView.swift in Sources */,
@@ -1619,7 +1603,6 @@
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0594FE672B0387370031AADF /* MessageLocationView.swift in Sources */,
 				0570CBF62AAEE98F001832E9 /* ThreadRow.swift in Sources */,
-				05135F672C5140E200654577 /* Logger.xcdatamodeld in Sources */,
 				0570CC4C2AAEE98F001832E9 /* LoginNavigationContainerView.swift in Sources */,
 				0570CBFC2AAEE98F001832E9 /* ThreadContentList.swift in Sources */,
 				05A3AD6C2B99F41C00536022 /* ThreadbackgroundView.swift in Sources */,
@@ -1700,7 +1683,6 @@
 				0537C1F42C31C5A100B6ECDB /* UIHistoryTableView.swift in Sources */,
 				05E8F5112C4D3DA400E535C0 /* RecordedAudioView.swift in Sources */,
 				0525516B2C24BC7D003171D2 /* CustomConversationNavigationBar.swift in Sources */,
-				05135F632C513B3E00654577 /* ChatSDKModel.xcdatamodeld in Sources */,
 				050B51B62AE7852B00B8DD49 /* LoginView.swift in Sources */,
 				05E781F22C2062FA002262AD /* AttchmentButton.swift in Sources */,
 				05C6DA1C2B19F3020049BCDC /* EditProfileView.swift in Sources */,
@@ -2156,30 +2138,6 @@
 			productName = ActionableContextMenu;
 		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin XCVersionGroup section */
-		05135F602C513B3E00654577 /* ChatSDKModel.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				05135F612C513B3E00654577 /* ChatSDKModel.xcdatamodel */,
-			);
-			currentVersion = 05135F612C513B3E00654577 /* ChatSDKModel.xcdatamodel */;
-			path = ChatSDKModel.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-		05135F642C5140E200654577 /* Logger.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				05135F652C5140E200654577 /* Model.xcdatamodel */,
-			);
-			currentVersion = 05135F652C5140E200654577 /* Model.xcdatamodel */;
-			name = Logger.xcdatamodeld;
-			path = "/Users/hamed/Desktop/Workspace/ios/Fanap/Talk/Talk/Supporting Files/Logger.xcdatamodeld";
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 0570CB0F2AAEE02A001832E9 /* Project object */;
 }

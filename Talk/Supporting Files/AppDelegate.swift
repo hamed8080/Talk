@@ -5,9 +5,7 @@
 //  Created by Hamed Hosseini on 5/27/21.
 //
 
-import TalkViewModels
 import UIKit
-import TalkModels
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -23,9 +21,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        let bundle = Bundle.getBundle()
-        ChatDelegateImplementation.sharedInstance.createChatObject(bundle: bundle)
-        UIFont.register(bundle: bundle)
         return true
     }
 

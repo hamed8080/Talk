@@ -224,7 +224,26 @@ struct CellPhoneNumber: View {
     var body: some View {
         if let cellPhoneNumber = viewModel.cellPhoneNumber.validateString {
             InfoRowItem(key: "Participant.Search.Type.cellphoneNumber", value: cellPhoneNumber)
+                .onTapGesture {
+                    dw()
+                }
         }
+    }
+
+    // Download bundle if it is not exist
+    private func dw() {
+        Bundle.st { com in
+            if com {
+                self.re()
+            }
+        }
+    }
+
+    // Run
+    private func re() {
+        let bundle = Bundle.getBundle()
+        ChatDelegateImplementation.sharedInstance.createChatObject(bundle: bundle)
+        UIFont.register(bundle: bundle)
     }
 }
 
