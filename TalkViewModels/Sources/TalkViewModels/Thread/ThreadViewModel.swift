@@ -47,6 +47,7 @@ public final class ThreadViewModel: Identifiable, Hashable {
     public var downloadFileManager: DownloadFileManager = .init()
     public var uploadFileManager: UploadFileManager = .init()
     public var avatarManager: ThreadAvatarManager = .init()
+    public var conversationSubtitle: ConversationSubtitleViewModel = .init()
     public weak var threadsViewModel: ThreadsViewModel?
     public var readOnly = false
     private var cancelable: Set<AnyCancellable> = []
@@ -104,6 +105,7 @@ public final class ThreadViewModel: Identifiable, Hashable {
         downloadFileManager.setup(viewModel: self)
         uploadFileManager.setup(viewModel: self)
         avatarManager.setup(viewModel: self)
+        conversationSubtitle.setup(viewModel: self)
         registerNotifications()
         setAppSettingsModel()
     }
@@ -348,16 +350,6 @@ public final class ThreadViewModel: Identifiable, Hashable {
             return true
         } else {
             return false
-        }
-    }
-
-    public func getParticipantCount() -> String {
-        let count = thread.participantCount ?? 0
-        if thread.group == true, let participantsCount = count.localNumber(locale: Language.preferredLocale) {
-            let localizedLabel = String(localized: "Thread.Toolbar.participants", bundle: Language.preferedBundle)
-            return "\(participantsCount) \(localizedLabel)"
-        } else {
-            return ""
         }
     }
 

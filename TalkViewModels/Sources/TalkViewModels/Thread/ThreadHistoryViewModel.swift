@@ -50,6 +50,10 @@ public final class ThreadHistoryViewModel {
     private let keys = RequestKeys()
     private var highlightTask: Task<Void, Never>?
     private var prevhighlightedMessageId: Int?
+    @MainActor
+    public var isUpdating = false
+    private var lastScrollTime: Date = .distantPast
+    private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
 
     // MARK: Computed Properties
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1) }
@@ -396,6 +400,7 @@ extension ThreadHistoryViewModel {
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
 
         await waitingToFinishDecelerating()
+        await waitingToFinishUpdating()
         appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
         viewModel?.scrollVM.disableExcessiveLoading()
@@ -447,6 +452,7 @@ extension ThreadHistoryViewModel {
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
 
         await waitingToFinishDecelerating()
+        await waitingToFinishUpdating()
         appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
         viewModel?.scrollVM.disableExcessiveLoading()
@@ -965,6 +971,7 @@ extension ThreadHistoryViewModel {
     }
 
     public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) {
+        if isInProcessingScroll() { return }
         Task { @HistoryActor in
             guard let scrollVM = viewModel?.scrollVM else { return }
             if contentOffset.y > scrollVM.lastContentOffsetY {
@@ -983,6 +990,15 @@ extension ThreadHistoryViewModel {
             }
             scrollVM.lastContentOffsetY = contentOffset.y
         }
+    }
+
+    private func isInProcessingScroll() -> Bool {
+        let now = Date()
+        if now.timeIntervalSince(lastScrollTime) < debounceInterval {
+            return true
+        }
+        lastScrollTime = now
+        return false
     }
 }
 
@@ -1287,6 +1303,10 @@ extension ThreadHistoryViewModel {
                 try? await Task.sleep(for: .nanoseconds(500000))
             }
         }
+    }
+
+    func waitingToFinishUpdating() async {
+        while await isUpdating{}
     }
 }
 

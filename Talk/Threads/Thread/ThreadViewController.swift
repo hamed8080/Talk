@@ -704,6 +704,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
+        viewModel?.historyVM.isUpdating = true
         tableView.performBatchUpdates {
             for indexPath in indexPaths {
                 let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
@@ -711,8 +712,8 @@ extension ThreadViewController: HistoryScrollDelegate {
                     cell.reactionsUpdated(viewModel: viewModel)
                 }
             }
-        } completion: { completed in
-
+        } completion: { [weak self] completed in
+            self?.viewModel?.historyVM.isUpdating = false
         }
     }
 }

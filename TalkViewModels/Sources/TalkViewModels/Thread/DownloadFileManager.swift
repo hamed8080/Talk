@@ -104,7 +104,7 @@ public final class DownloadFileManager {
         let isFileType = message.isFileType
         let isUploading = message is UploadFileWithLocationMessage
         if isFileType && !isUploading, let message = message as? Message {
-            let downloadFileVM = DownloadFileViewModel(message: message)
+            let downloadFileVM = DownloadFileViewModel(message: message, queue: queue)
             let types = types(message: message)
             appendToQueue(downloadFileVM)
             observeOnViewModelChange(downloadFileVM, message, types)

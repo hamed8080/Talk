@@ -18,6 +18,7 @@ let package = Package(
             targets: ["TalkModels"]),
     ],
     dependencies: [
+//        .package(url: "https://pubgi.sandpod.ir/chat/ios/chat.git", from: "2.1.2"),
         .package(path: "../../Chat"),
         .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5")
     ],
@@ -25,6 +26,7 @@ let package = Package(
         .target(
             name: "TalkModels",
             dependencies: [
+//                .product(name: "Chat", package: "chat"),
                 .product(name: "Chat", package: "Chat"),
                 .product(name: "ZipArchive", package: "ZipArchive"),
             ]
@@ -33,6 +35,7 @@ let package = Package(
             name: "TalkModelsTests",
             dependencies: [
                 "TalkModels",
+//                .product(name: "Chat", package: "chat"),
                 .product(name: "Chat", package: "Chat"),
             ],
             resources: [

@@ -32,8 +32,10 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     public var isInCache: Bool = false
     private var objectId = UUID().uuidString
     private let THUMBNAIL_KEY: String
+    private let queue: DispatchQueue
 
-    public init(message: Message) {
+    public init(message: Message, queue: DispatchQueue) {
+        self.queue = queue
         THUMBNAIL_KEY = "THUMBNAIL-\(objectId)"
         self.message = message
         setObservers()
@@ -57,7 +59,9 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         NotificationCenter.download.publisher(for: .download)
             .compactMap { $0.object as? DownloadEventTypes }
             .sink { [weak self] value in
-                self?.onDownloadEvent(value)
+                self?.queue.async { [weak self] in
+                    self?.onDownloadEvent(value)
+                }
             }
             .store(in: &cancellableSet)
 
@@ -79,7 +83,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         }
     }
 
-    private func onDownloadEvent(_ event: DownloadEventTypes){
+    private func onDownloadEvent(_ event: DownloadEventTypes) {
         switch event {
         case .resumed(let uniqueId):
             onResumed(uniqueId)

@@ -48,12 +48,9 @@ public class CustomConversationNavigationBar: UIView {
         titlebutton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        let subtitle = viewModel?.getParticipantCount()
-        subtitleLabel.text = subtitle
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
         subtitleLabel.font = UIFont.fFootnote
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
-        subtitleLabel.setIsHidden(subtitle == nil || subtitle?.isEmpty == true)
 
         let isSelfThread = viewModel?.thread.type == .selfThread
         if isSelfThread {
@@ -171,7 +168,7 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func updateSubtitleTo(_ subtitle: String?) {
-        let hide = subtitle == nil || subtitle?.isEmpty == true
+        let hide = subtitle == nil
         subtitleLabel.setIsHidden(hide)
         self.subtitleLabel.text = subtitle
         self.centerYTitleConstraint.constant = hide ? 0 : -8
@@ -227,20 +224,9 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     private func registerObservers() {
-        AppState.shared.$connectionStatus
-            .sink { [weak self] newValue in
-                if newValue != .connected {
-                    self?.updateSubtitleTo(newValue.stringValue.bundleLocalized())
-                } else {
-                    self?.updateSubtitleTo(self?.viewModel?.getParticipantCount())
-                }
-            }
-            .store(in: &cancellableSet)
-
-
         // Initial image from avatarVMS inside the thread
         let image = viewModel?.thread.image
-        if let image = image, let imageViewModel = viewModel?.threadsViewModel?.avatars(for: image, metaData: nil, userName: nil) {
+        if let image = image, let _ = viewModel?.threadsViewModel?.avatars(for: image, metaData: nil, userName: nil) {
             fetchImageOnUpdateInfo()
         } else {
             Task {

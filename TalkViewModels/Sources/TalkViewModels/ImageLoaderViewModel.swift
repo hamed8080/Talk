@@ -46,14 +46,15 @@ public final class ImageLoaderViewModel: ObservableObject {
         self.config = config
         NotificationCenter.download.publisher(for: .download)
             .compactMap { $0.object as? DownloadEventTypes }
-            .sink{ event in
-                Task { @HistoryActor [weak self] in
+            .sink{ [weak self] event in
+                Task { [weak self] in
                     await self?.onDownloadEvent(event)
                 }
             }
             .store(in: &cancelable)
     }
 
+    @HistoryActor
     private func onDownloadEvent(_ event: DownloadEventTypes) async {
         switch event {
         case .image(let chatResponse, let url):

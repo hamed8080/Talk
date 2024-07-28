@@ -38,8 +38,6 @@ public final class ThreadEventViewModel: ObservableObject {
 
     private func setActiveThreadSubtitle() {
         let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
-        let participantsCount = activeThread?.getParticipantCount()
-        let subtitle = isShowingEvent ? smt?.stringEvent?.bundleLocalized() : participantsCount
-        activeThread?.delegate?.updateSubtitleTo(subtitle)
+        activeThread?.conversationSubtitle.setEvent(smt: smt)
     }
 }
