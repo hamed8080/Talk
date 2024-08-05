@@ -128,12 +128,6 @@ changePackage() {
     fi
 }
 
-setup() {
-    makeSDKDirectory
-    cd "$sdk"
-    downloadSubmodules
-}
-
 makeSDKDirectory() {
     # Create SDK folder if it is not exist.
     if [[ -d "$sdk" ]]; then
@@ -151,3 +145,13 @@ downloadSubmodules() {
         git clone "$baseURL/$path"
     done
 }
+
+setup() {
+    makeSDKDirectory
+    cd "$sdk"
+    downloadSubmodules
+}
+
+if [ "$1" == "setup" ]; then
+    setup
+fi
