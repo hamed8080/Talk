@@ -81,6 +81,8 @@ final class AvatarView: UIImageView {
     }
 
     private func hiddenView(_ viewModel: MessageRowViewModel) -> Bool {
+        let isChannel = viewModel.threadVM?.thread.type?.isChannelType == true
+        if isChannel { return true }
         let isInSelectMode = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == true
         return isInSelectMode || (viewModel.threadVM?.thread.group ?? false) == false
     }

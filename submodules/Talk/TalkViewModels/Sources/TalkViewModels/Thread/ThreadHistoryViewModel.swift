@@ -448,6 +448,7 @@ extension ThreadHistoryViewModel {
         doRequest(req, prepend)
     }
 
+    @HistoryActor
     private func onMoreBottom(_ response: HistoryResponse) async {
         let bottomVMBeforeJoin = sections.last?.vms.last
         let messages = response.result ?? []
@@ -855,7 +856,7 @@ extension ThreadHistoryViewModel {
             insertIntoProperSection(vm)
         }
         sort()
-        log("End of the appendMes sagesAndSort: \(Date().millisecondsSince1970)")
+        log("End of the appendMessagesAndSort: \(Date().millisecondsSince1970)")
         lastItemIdInSections = sections.last?.vms.last?.id ?? 0
         return
     }
@@ -863,7 +864,7 @@ extension ThreadHistoryViewModel {
     fileprivate func updateMessage(_ message: MessageType, _ indexPath: IndexPath?) -> MessageRowViewModel? {
         guard let indexPath = indexPath else { return nil }
         let vm = sections[indexPath.section].vms[indexPath.row]
-        let isUploading = vm.message is UploadProtocol || vm.fileState.isUploading
+        let isUploading = vm.message is  UploadProtocol || vm.fileState.isUploading
         if isUploading {
             /// We have to update animateObjectWillChange because after onNewMessage we will not call it, so upload file not work properly.
             vm.swapUploadMessageWith(message)
@@ -964,6 +965,7 @@ extension ThreadHistoryViewModel {
 
 // MARK: Appear/Disappear/Display/End Display
 extension ThreadHistoryViewModel {
+    @HistoryActor
     public func willDisplay(_ indexPath: IndexPath) async {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         visibleTracker.append(message: message)
@@ -974,6 +976,7 @@ extension ThreadHistoryViewModel {
         await seenVM?.onAppear(message)
     }
 
+    @HistoryActor
     public func didEndDisplay(_ indexPath: IndexPath) async {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message disappeared id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")

@@ -17,7 +17,7 @@ import Combine
 public final class MapPickerViewController: UIViewController {
     // Views
     private let mapView = MKMapView()
-    private let btnClose = UIButton(type: .system)
+    private let btnClose = UIImageButton(imagePadding: .init(all: 4))
     private let btnSubmit = SubmitBottomButtonUIView(text: "General.add")
     private let toastView = ToastUIView(message: AppErrorTypes.location_access_denied.localized, disableWidthConstraint: true)
 
@@ -48,22 +48,17 @@ public final class MapPickerViewController: UIViewController {
 
         btnClose.translatesAutoresizingMaskIntoConstraints = false
         let image = UIImage(systemName: "xmark")
-        btnClose.setImage(image, for: .normal)
-        btnClose.imageView?.contentMode = .scaleAspectFit
-        btnClose.contentHorizontalAlignment = .fill
-        btnClose.contentVerticalAlignment = .fill
+        btnClose.imageView.contentMode = .scaleAspectFit
+        btnClose.imageView.image = image
         btnClose.tintColor = Color.App.accentUIColor
         btnClose.layer.masksToBounds = true
-        btnClose.layer.cornerRadius = 12
+        btnClose.layer.cornerRadius = 14
         btnClose.backgroundColor = Color.App.bgSendInputUIColor
         btnClose.accessibilityIdentifier = "btnCloseMapPickerViewController"
-        if #available(iOS 15.0, *) {
-            btnClose.imageEdgeInsets = .init(all: 4)
-        } else {
-            btnClose.imageEdgeInsets = .init(all: 4)
-        }
 
-        btnClose.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        let tapGesture = UITapGestureRecognizer()
+        tapGesture.addTarget(self, action: #selector(closeTapped))
+        btnClose.addGestureRecognizer(tapGesture)
         view.addSubview(btnClose)
 
         btnSubmit.translatesAutoresizingMaskIntoConstraints = false
@@ -87,8 +82,8 @@ public final class MapPickerViewController: UIViewController {
             toastView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             toastView.heightAnchor.constraint(equalToConstant: 96),
             btnClose.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            btnClose.widthAnchor.constraint(equalToConstant: 24),
-            btnClose.heightAnchor.constraint(equalToConstant: 24),
+            btnClose.widthAnchor.constraint(equalToConstant: 28),
+            btnClose.heightAnchor.constraint(equalToConstant: 28),
             btnClose.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
             mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -130,7 +125,7 @@ public final class MapPickerViewController: UIViewController {
         }
     }
 
-    @objc private func closeTapped(_ sender: UIButton) {
+    @objc private func closeTapped(_ sender: UIImageButton) {
         dismiss(animated: true)
     }
     

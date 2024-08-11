@@ -241,8 +241,6 @@
 		0570CC5C2AAEE98F001832E9 /* LinkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB12AAEE98D001832E9 /* LinkView.swift */; };
 		0570CC5D2AAEE98F001832E9 /* MemberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB22AAEE98D001832E9 /* MemberView.swift */; };
 		0570CC5E2AAEE98F001832E9 /* MemberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB22AAEE98D001832E9 /* MemberView.swift */; };
-		0570CC612AAEE98F001832E9 /* ThreadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB42AAEE98D001832E9 /* ThreadDetailView.swift */; };
-		0570CC622AAEE98F001832E9 /* ThreadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB42AAEE98D001832E9 /* ThreadDetailView.swift */; };
 		0570CC652AAEE98F001832E9 /* ContactRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB72AAEE98E001832E9 /* ContactRow.swift */; };
 		0570CC662AAEE98F001832E9 /* ContactRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB72AAEE98E001832E9 /* ContactRow.swift */; };
 		0570CC672AAEE98F001832E9 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBB82AAEE98E001832E9 /* SyncView.swift */; };
@@ -312,6 +310,8 @@
 		05903B5E2BBD08100098F382 /* AttachmentFilesTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05903B5C2BBD08100098F382 /* AttachmentFilesTableView.swift */; };
 		05903B602BBD09300098F382 /* AttachmentFileCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05903B5F2BBD09300098F382 /* AttachmentFileCell.swift */; };
 		05903B612BBD09300098F382 /* AttachmentFileCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05903B5F2BBD09300098F382 /* AttachmentFileCell.swift */; };
+		05932B182C60C54E0066C505 /* ThreadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05932B172C60C54E0066C505 /* ThreadDetailView.swift */; };
+		05932B192C60C54E0066C505 /* ThreadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05932B172C60C54E0066C505 /* ThreadDetailView.swift */; };
 		0594FE572B0347B50031AADF /* AutomaticDownloadSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594FE562B0347B50031AADF /* AutomaticDownloadSettings.swift */; };
 		0594FE592B034B050031AADF /* SettingNotificationSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594FE582B034B050031AADF /* SettingNotificationSection.swift */; };
 		0594FE5A2B034B050031AADF /* SettingNotificationSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594FE582B034B050031AADF /* SettingNotificationSection.swift */; };
@@ -561,7 +561,6 @@
 		0570CBB02AAEE98D001832E9 /* MutualThreadsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutualThreadsView.swift; sourceTree = "<group>"; };
 		0570CBB12AAEE98D001832E9 /* LinkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkView.swift; sourceTree = "<group>"; };
 		0570CBB22AAEE98D001832E9 /* MemberView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MemberView.swift; sourceTree = "<group>"; };
-		0570CBB42AAEE98D001832E9 /* ThreadDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadDetailView.swift; sourceTree = "<group>"; };
 		0570CBB72AAEE98E001832E9 /* ContactRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactRow.swift; sourceTree = "<group>"; };
 		0570CBB82AAEE98E001832E9 /* SyncView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
 		0570CBB92AAEE98E001832E9 /* AddOrEditContactView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddOrEditContactView.swift; sourceTree = "<group>"; };
@@ -601,6 +600,7 @@
 		058ACC2B2BA32CE60076BDA5 /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		05903B5C2BBD08100098F382 /* AttachmentFilesTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentFilesTableView.swift; sourceTree = "<group>"; };
 		05903B5F2BBD09300098F382 /* AttachmentFileCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentFileCell.swift; sourceTree = "<group>"; };
+		05932B172C60C54E0066C505 /* ThreadDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadDetailView.swift; sourceTree = "<group>"; };
 		0594FE562B0347B50031AADF /* AutomaticDownloadSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDownloadSettings.swift; sourceTree = "<group>"; };
 		0594FE582B034B050031AADF /* SettingNotificationSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingNotificationSection.swift; sourceTree = "<group>"; };
 		0594FE5F2B0386580031AADF /* GroupParticipantNameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupParticipantNameView.swift; sourceTree = "<group>"; };
@@ -1042,7 +1042,7 @@
 				052557092BE949B800DFCE54 /* Sections */,
 				05A6A2C82B40167700DA0363 /* Search */,
 				0570CBAA2AAEE98D001832E9 /* TabViews */,
-				0570CBB42AAEE98D001832E9 /* ThreadDetailView.swift */,
+				05932B172C60C54E0066C505 /* ThreadDetailView.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
@@ -1556,6 +1556,7 @@
 				0570CC472AAEE98F001832E9 /* LogRow.swift in Sources */,
 				0537C1F32C31C5A100B6ECDB /* UIHistoryTableView.swift in Sources */,
 				05E8F5102C4D3DA400E535C0 /* RecordedAudioView.swift in Sources */,
+				05932B182C60C54E0066C505 /* ThreadDetailView.swift in Sources */,
 				0525516A2C24BC7D003171D2 /* CustomConversationNavigationBar.swift in Sources */,
 				050B51B52AE7852B00B8DD49 /* LoginView.swift in Sources */,
 				05E781F12C2062FA002262AD /* AttchmentButton.swift in Sources */,
@@ -1585,8 +1586,6 @@
 				0509BE7D2C4E7256005C35B7 /* SwiftUIReactionCountRowWrapper.swift in Sources */,
 				052557072BE9487700DFCE54 /* EditContactInParticipantDetailView.swift in Sources */,
 				0570CC172AAEE98F001832E9 /* ReplyInfoView.swift in Sources */,
-				0570CC612AAEE98F001832E9 /* ThreadDetailView.swift in Sources */,
-				0570CC612AAEE98F001832E9 /* ThreadDetailView.swift in Sources */,
 				05A3AD6F2B99F4F100536022 /* EmptyThreadView.swift in Sources */,
 				050260782B15C408005F3E64 /* ManuallyConnectionManagerView.swift in Sources */,
 				0570CBED2AAEE98F001832E9 /* SecondaryMessageView.swift in Sources */,
@@ -1760,6 +1759,7 @@
 				0570CC482AAEE98F001832E9 /* LogRow.swift in Sources */,
 				0537C1F42C31C5A100B6ECDB /* UIHistoryTableView.swift in Sources */,
 				05E8F5112C4D3DA400E535C0 /* RecordedAudioView.swift in Sources */,
+				05932B192C60C54E0066C505 /* ThreadDetailView.swift in Sources */,
 				0525516B2C24BC7D003171D2 /* CustomConversationNavigationBar.swift in Sources */,
 				050B51B62AE7852B00B8DD49 /* LoginView.swift in Sources */,
 				05E781F22C2062FA002262AD /* AttchmentButton.swift in Sources */,
@@ -1789,8 +1789,6 @@
 				0509BE7E2C4E7256005C35B7 /* SwiftUIReactionCountRowWrapper.swift in Sources */,
 				052557082BE9487700DFCE54 /* EditContactInParticipantDetailView.swift in Sources */,
 				0570CC182AAEE98F001832E9 /* ReplyInfoView.swift in Sources */,
-				0570CC622AAEE98F001832E9 /* ThreadDetailView.swift in Sources */,
-				0570CC622AAEE98F001832E9 /* ThreadDetailView.swift in Sources */,
 				05A3AD702B99F4F100536022 /* EmptyThreadView.swift in Sources */,
 				050260792B15C408005F3E64 /* ManuallyConnectionManagerView.swift in Sources */,
 				0570CBEE2AAEE98F001832E9 /* SecondaryMessageView.swift in Sources */,
@@ -1999,6 +1997,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -2033,6 +2032,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -2066,6 +2066,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.3.53;
@@ -2100,6 +2101,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1.3.53;

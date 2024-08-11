@@ -100,7 +100,8 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     private func attachOrDetachAvatar(viewModel: MessageRowViewModel) {
-        if let avatar = avatar, !viewModel.calMessage.state.isInSelectMode, viewModel.threadVM?.thread.group == true {
+        let thread = viewModel.threadVM?.thread
+        if let avatar = avatar, !viewModel.calMessage.state.isInSelectMode, thread?.group == true, thread?.type?.isChannelType == false {
             avatar.updateSelectionMode()
             self.avatar?.translatesAutoresizingMaskIntoConstraints = false
             self.avatar?.accessibilityIdentifier = "avatarContainerMessageBaseCell"
@@ -119,7 +120,9 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     private func setMessageContainerConstraints(viewModel: MessageRowViewModel) {
-        messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
+        if viewModel.threadVM?.thread.type?.isChannelType == false {
+            messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
+        }
         messageStackLeadingToRadioTrailingConstraint.isActive = viewModel.calMessage.state.isInSelectMode
         messageStackLeadingToContainerLeadingConstarint.isActive = canSnapToContainer(viewModel: viewModel)
         if canSnapToContainer(viewModel: viewModel) {

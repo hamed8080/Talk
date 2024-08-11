@@ -425,6 +425,7 @@ class MessageRowCalculators {
     }
 
     class func isLastMessageOfTheUserInsideAppending(_ message: MessageType, appended: [any HistoryMessageProtocol], viewModel: ThreadViewModel?) async -> Bool {
+        if viewModel?.thread.type?.isChannelType == true { return false }
         let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
         let nextIndex = index + 1
         let isNextExist = appended.indices.contains(nextIndex)
@@ -436,6 +437,7 @@ class MessageRowCalculators {
     }
 
     class func isFirstMessageOfTheUserInsideAppending(_ message: MessageType, appended: [any HistoryMessageProtocol], viewModel: ThreadViewModel?) async -> Bool {
+        if viewModel?.thread.type?.isChannelType == true { return false }
         let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
         let prevIndex = index - 1
         let isPrevExist = appended.indices.contains(prevIndex)

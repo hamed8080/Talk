@@ -209,16 +209,14 @@ final class FooterView: UIStackView {
     }
 
     private func attachOrDetachReactions(viewModel: MessageRowViewModel, animation: Bool) {
-        if viewModel.reactionsModel.rows.isEmpty {
+        let isEmpty = viewModel.reactionsModel.rows.isEmpty
+        let edited = viewModel.message.edited == true
+        let attached = reactionView.superview == nil
+        if isEmpty || (edited && attached) {
             reactionView.removeFromSuperview()// reset
-        } else if reactionView.superview == nil {
-            addArrangedSubview(reactionView)
-            fadeAnimateReactions(animation)
-        } else if viewModel.message.edited == true {
-            reactionView.removeFromSuperview()
-            addArrangedSubview(reactionView)
-            fadeAnimateReactions(animation)
         }
+        addArrangedSubview(reactionView)
+        fadeAnimateReactions(animation)
         reactionView.set(viewModel)
         heightConstraint.constant = viewModel.reactionsModel.rows.isEmpty ? heightWithoutReaction : heightWithReaction
     }

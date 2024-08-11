@@ -18,6 +18,6 @@ public extension EnvironmentValues {
     }
 
     static var isTalkTest: Bool {
-        (Bundle.main.bundleIdentifier?.contains("talk-test") ?? false) && isDebug
+        (Bundle.main.bundleIdentifier?.contains("talk-test") ?? false)
     }
 }

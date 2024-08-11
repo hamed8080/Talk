@@ -26,18 +26,23 @@ extension MessageContainerStackView {
         let menu = CustomMenu()
         menu.contexMenuContainer = (viewModel.threadVM?.delegate as? ThreadViewController)?.contextMenuContainer
 
-        let replyAction = ActionMenuItem(model: .reply) { [weak self] in
-            self?.onReplyAction(model)
-            onMenuClickedDismiss()
-        }
-        menu.addItem(replyAction)
 
-        if threadVM?.thread.group == true, !viewModel.calMessage.isMe {
-            let replyPrivatelyAction = ActionMenuItem(model: .replyPrivately) { [weak self] in
-                self?.onReplyPrivatelyAction(model)
+        let isChannel = threadVM?.thread.type?.isChannelType == true
+        let admin = threadVM?.thread.admin == true
+        if (isChannel && admin) || (!isChannel) {
+            let replyAction = ActionMenuItem(model: .reply) { [weak self] in
+                self?.onReplyAction(model)
                 onMenuClickedDismiss()
             }
-            menu.addItem(replyPrivatelyAction)
+            menu.addItem(replyAction)
+            
+            if threadVM?.thread.group == true, !viewModel.calMessage.isMe {
+                let replyPrivatelyAction = ActionMenuItem(model: .replyPrivately) { [weak self] in
+                    self?.onReplyPrivatelyAction(model)
+                    onMenuClickedDismiss()
+                }
+                menu.addItem(replyPrivatelyAction)
+            }
         }
 
         let forwardAction = ActionMenuItem(model: .forward) { [weak self] in
@@ -199,7 +204,15 @@ private extension MessageContainerStackView {
         guard let message = model.message as? Message else { return }
         model.threadVM?.clearCacheFile(message: message)
         if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
-            //            model.threadVM?.delegate?.reconfig(at: indexPath)
+            Task.detached {
+                try? await Task.sleep(for: .milliseconds(500))
+                if let threadVM = model.threadVM {
+                    let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
+                    await newVM.performaCalculation()
+                    model.threadVM?.historyVM.sections[indexPath.section].vms[indexPath.row] = newVM
+                    model.threadVM?.delegate?.reloadData(at: indexPath)
+                }
+            }
         }
     }
 
