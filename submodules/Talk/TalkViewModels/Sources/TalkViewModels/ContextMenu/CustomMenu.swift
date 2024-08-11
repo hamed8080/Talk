@@ -57,6 +57,6 @@ public class CustomMenu: UIStackView {
     }
 
     public func height() -> CGFloat {
-        CGFloat(subviews.count) * ActionMenuItem.height
+        CGFloat(arrangedSubviews.count) * ActionMenuItem.height
     }
 }
