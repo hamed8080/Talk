@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import TalkViewModels
+import Chat
 
 fileprivate struct Constants {
     static let space: CGFloat = 8
@@ -190,7 +191,7 @@ extension MessageContainerStackView {
         reactionsView.frame = .init(x: sizes.reactionX,
                                     y: messageContainer.frame.origin.y - (Constants.reactionHeight + 8),
                                     width: Constants.reactionWidth,
-                                    height: Constants.reactionHeight)
+                                    height: reactionViewInitialHeight())
         reactionsView.setup(viewModel)
         reactionsView.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
 
@@ -200,6 +201,15 @@ extension MessageContainerStackView {
 
         addAnimation(reactionsView)
         return reactionsView
+    }
+
+    private func reactionViewInitialHeight() -> CGFloat {
+        return Constants.reactionHeight + (allowedReactions().count < 4 ? 4.0 : 0.0)
+    }
+
+    private func allowedReactions() -> [Sticker] {
+        if viewModel?.threadVM?.thread.reactionStatus == .enable { return Sticker.allCases.filter({ $0 != .unknown}) }
+        return viewModel?.threadVM?.reactionViewModel.allowedReactions ?? []
     }
 
     private func getRightY(_ sizes: Constants.Sizes, _ messageContainer: MessageContainerStackView, _ menu: CustomMenu) -> CGFloat {

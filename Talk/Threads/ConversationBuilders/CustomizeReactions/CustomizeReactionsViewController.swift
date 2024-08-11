@@ -253,7 +253,7 @@ final class CustomizeReactionsViewController: UIViewController {
     private func isValidToChange() -> Bool {
         let selectedCount = sections.first?.rows.count ?? 0
         let unSelectedCount = sections.last?.rows.count ?? 0
-        let isBetween = selectedCount >= 1 && unSelectedCount > 1
+        let isBetween = selectedCount >= 1 && unSelectedCount >= 1
         return isBetween
     }
 

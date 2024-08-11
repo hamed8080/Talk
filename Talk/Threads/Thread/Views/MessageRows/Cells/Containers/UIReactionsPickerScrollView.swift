@@ -25,7 +25,7 @@ class UIReactionsPickerScrollView: UIView {
     private var dataSource: UICollectionViewDiffableDataSource<Section, ExpandORStickerRow>!
     private var isInExapndMode = false
     private var rows: [ExpandORStickerRow] = []
-    private let numberOfReactionsInRow: CGFloat = 5
+    private var numberOfReactionsInRow: CGFloat { isInExapndMode ? 6 : 5 }
 
     enum Section {
         case main
@@ -35,10 +35,6 @@ class UIReactionsPickerScrollView: UIView {
         self.size = size
         super.init(frame: .zero)
         configure()
-    }
-
-    private var expandHeight: CGFloat {
-        return size * 4
     }
 
     required init(coder: NSCoder) {
@@ -141,25 +137,21 @@ class UIReactionsPickerScrollView: UIView {
 
         if isInExapndMode {
             UIView.animate(withDuration: 0.25, delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.1) {
-                self.frame.size.height = self.expandHeight
+                self.frame.size.height = self.expandHeight()
             }
-
             rows.removeAll()
-
-            let stickers = allowedReactions().filter({$0 != .unknown}).compactMap({ ExpandORStickerRow(sticker: $0, isMyReaction: isMyReaction($0), expandButton: false)})
-            rows.append(contentsOf: stickers)
-            
-            snapshot.appendItems(rows)
-        } else {
-            let stickers = allowedReactions().filter({$0 != .unknown}).prefix(Int(numberOfReactionsInRow)).compactMap({ ExpandORStickerRow(sticker: $0, isMyReaction: isMyReaction($0), expandButton: false)})
-            rows.append(contentsOf: stickers)
-
-            let expandButtonRow = ExpandORStickerRow(sticker: nil, isMyReaction: false, expandButton: canShowMoreButton())
-            rows.append(expandButtonRow)
-
-            snapshot.appendItems(rows)
         }
 
+        let stickers = allowedReactions()
+            .prefix(prefixCount())
+            .compactMap({ ExpandORStickerRow(sticker: $0, isMyReaction: isMyReaction($0), expandButton: false)})
+        rows.append(contentsOf: stickers)
+
+        if !isInExapndMode, canShowMoreButton(), !isNumberOfAllowedEqualToNumberOfItemsInARow() {
+            let expandButtonRow = ExpandORStickerRow(sticker: nil, isMyReaction: false, expandButton: true)
+            rows.append(expandButtonRow)
+        }
+        snapshot.appendItems(rows)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 
@@ -172,9 +164,24 @@ class UIReactionsPickerScrollView: UIView {
 
     }
 
+    private func expandHeight() -> CGFloat {
+        return ceil((CGFloat(allowedReactions().count) / numberOfReactionsInRow)) * size
+    }
+
+    private func prefixCount() -> Int {
+        if isInExapndMode { return allowedReactions().count }
+        // When number of items in first row equal to number of items in a row +1, and +1 means the expand button, so we use a real sticker instead of more button.
+        let numberOfItems = isNumberOfAllowedEqualToNumberOfItemsInARow() ? numberOfReactionsInRow + 1 : numberOfReactionsInRow
+        return Int(numberOfItems)
+    }
+
     private func allowedReactions() -> [Sticker] {
-        if viewModel?.threadVM?.thread.reactionStatus == .enable { return Sticker.allCases }
+        if viewModel?.threadVM?.thread.reactionStatus == .enable { return Sticker.allCases.filter({ $0 != .unknown}) }
         return viewModel?.threadVM?.reactionViewModel.allowedReactions ?? []
+    }
+
+    private func isNumberOfAllowedEqualToNumberOfItemsInARow() -> Bool {
+        CGFloat(allowedReactions().count) == numberOfReactionsInRow + 1
     }
 
     private func canShowMoreButton() -> Bool {
