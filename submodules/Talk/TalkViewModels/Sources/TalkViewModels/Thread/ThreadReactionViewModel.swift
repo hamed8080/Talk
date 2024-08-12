@@ -49,7 +49,9 @@ public final class ThreadReactionViewModel {
     }
 
     public func getAllowedReactions() {
-        if threadVM?.thread.reactionStatus == .custom {
+        let thread = threadVM?.thread
+        let isClosed = thread?.closedThread == true
+        if thread?.reactionStatus == .custom, !isClosed {
             let req = ConversationAllowedReactionsRequest(conversationId: threadId)
             ChatManager.activeInstance?.reaction.allowedReactions(req)
         }
