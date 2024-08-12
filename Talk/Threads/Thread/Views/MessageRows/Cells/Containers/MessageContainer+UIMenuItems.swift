@@ -135,7 +135,6 @@ private extension MessageContainerStackView {
     func onReplyAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
         model.threadVM?.replyMessage = message
-        model.threadVM?.sendContainerViewModel.setFocusOnTextView(focus: true)
         model.threadVM?.delegate?.openReplyMode(message)
     }
 

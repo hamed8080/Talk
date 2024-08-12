@@ -19,7 +19,6 @@ public final class SendContainerViewModel {
     public var isInEditMessageMode: Bool = false
     /// We will need this for UserDefault purposes because ViewModel.thread is nil when the view appears.
     public private(set) var showPickerButtons: Bool = false
-    public private(set) var focusOnTextInput: Bool = false
     public private(set) var isVideoRecordingSelected = false
     private var editMessage: Message?
     public var height: CGFloat = 0
@@ -93,10 +92,6 @@ public final class SendContainerViewModel {
 
     public func showPickerButtons(_ show: Bool) {
         showPickerButtons = show
-    }
-
-    public func setFocusOnTextView(focus: Bool = false) {
-        focusOnTextInput = focus
     }
 
     public func toggleVideorecording() {

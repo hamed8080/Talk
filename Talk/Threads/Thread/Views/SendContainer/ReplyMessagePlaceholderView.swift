@@ -104,7 +104,6 @@ public final class ReplyMessagePlaceholderView: UIStackView {
     private func close() {
         viewModel?.scrollVM.disableExcessiveLoading()
         viewModel?.replyMessage = nil
-        viewModel?.sendContainerViewModel.setFocusOnTextView(focus: false)
         viewModel?.selectedMessagesViewModel.clearSelection()
         viewModel?.delegate?.openReplyMode(nil) // close the UI
     }

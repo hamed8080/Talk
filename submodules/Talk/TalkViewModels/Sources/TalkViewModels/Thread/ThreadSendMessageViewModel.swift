@@ -108,7 +108,6 @@ public final class ThreadSendMessageViewModel {
         }
         attVM.clear()
         viewModel?.replyMessage = nil
-        sendVM.setFocusOnTextView(focus: false)
     }
 
     public func sendSingleReplyAttachment(_ attachmentFile: AttachmentFile?, _ replyMessageId: Int) {
