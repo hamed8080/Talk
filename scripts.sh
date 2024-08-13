@@ -152,6 +152,6 @@ setup() {
     downloadSubmodules
 }
 
-if [ "$1" == "setup" ]; then
+if [ -n "$1" ] && [ "$1" == "setup" ]; then
     setup
 fi
