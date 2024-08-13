@@ -4,21 +4,25 @@ root=$(pwd)
 sdk="$root/submodules/SDK"
 appModules="$root/submodules/Talk"
 baseURL="https://pubgi.sandpod.ir/chat/ios"
-declare -a PACKEGE_PATHS=("Chat" "Async" "Logger" "Additive" "AdditiveUI" "ChatModels" "ChatDTO" "ChatCore" "ChatCache" "ChatTransceiver" "ChatExtensions" "Mocks")
-declare -a PACKEGE_URLS=("chat" "async" "logger" "additive" "additive-ui" "chat-models" "chat-dto" "chat-core" "chat-cache" "chat-transceiver" "chat-extensions" "mocks")
+export PACKAGE_PATHS=("Chat" "Async" "Logger" "Additive" "AdditiveUI" "ChatModels" "ChatDTO" "ChatCore" "ChatCache" "ChatTransceiver" "ChatExtensions" "Mocks")
+export PACKAGE_URLS=("chat" "async" "logger" "additive" "additive-ui" "chat-models" "chat-dto" "chat-core" "chat-cache" "chat-transceiver" "chat-extensions" "mocks")
 
 executeInAll() {
     local cmd="$1"
     shift
     local args=("$@")
 
-    for packagePath in "${PACKEGE_PATHS[@]}"; do
+    echo "base url: ${baseURL}"
+    echo "Packages are: ${PACKAGE_PATHS}"
+
+    for packagePath in "${PACKAGE_PATHS[@]}"; do
+        echo "path is: ${sdk}/${packagePath}"
         cd "$sdk/$packagePath" || continue
         printDirectory
         eval "$cmd" "${args[@]}"
     done
 
-    # Talk is another directory than sdk packages so we have to run it's commanads outside of the sdk directory
+    # # Talk is inside another directory than the SDK packages, so we have to run it's commanads outside of the sdk directory
     cd "$root"
     printDirectory
     eval "$cmd" "${args[@]}"
@@ -140,7 +144,7 @@ makeSDKDirectory() {
 
 downloadSubmodules() {
     # Clone one by one and
-    for path in "${PACKEGE_URLS[@]}"; do
+    for path in "${PACKAGE_URLS[@]}"; do
         echo "clone $path"
         git clone "$baseURL/$path"
     done
