@@ -192,6 +192,9 @@
 "Thread.pin" = "Nåla";
 "Thread.mute" = "Ljuddämpa";
 "Thread.unmute" = "Avslå ljuddämpning";
+"Thread.closeThread" = "Stäng grupp";
+"Thread.groupCloesdByAdmin" = "Den här gruppen har stängts av administratören.";
+"Thread.closeThreadWarningSubtitle" = "Genom att stänga gruppen kan ingen ha någon aktivitet i den, men de kan ändå se dess historia.";
 "Thread.addToFolder" = "Lägg till i mapp";
 "Thread.clearHistory" = "Rensa historik";
 "Thread.spam" = "Skräppost";

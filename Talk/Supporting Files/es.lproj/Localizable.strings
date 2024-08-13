@@ -194,6 +194,9 @@
 "Thread.pin" = "Anclar";
 "Thread.mute" = "Silenciar";
 "Thread.unmute" = "Desactivar silencio";
+"Thread.closeThread" = "Cerrar grupo";
+"Thread.groupCloesdByAdmin" = "Este grupo ha sido cerrado por el administrador.";
+"Thread.closeThreadWarningSubtitle" = "Al cerrar el grupo, nadie podrá tener ninguna actividad dentro del mismo, pero sí podrán ver su historial.";
 "Thread.addToFolder" = "Agregar a carpeta";
 "Thread.clearHistory" = "Borrar historial";
 "Thread.spam" = "Spam";

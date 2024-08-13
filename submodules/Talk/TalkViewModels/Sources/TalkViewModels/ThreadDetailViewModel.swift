@@ -65,6 +65,8 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
                 thread?.description = response.result?.description
                 animateObjectWillChange()
             }
+        case .closed(let response):
+            onClosed(response)
         default:
             break
         }
@@ -209,6 +211,13 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
         }
         .store(in: &cancelable)
         self.animateObjectWillChange()
+    }
+
+    private func onClosed(_ response: ChatResponse<Int>) {
+        if thread?.id == response.result {
+            thread?.closed = true
+            animateObjectWillChange()
+        }
     }
 
     deinit {

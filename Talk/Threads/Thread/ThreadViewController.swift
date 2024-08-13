@@ -426,6 +426,10 @@ extension ThreadViewController: ThreadViewDelegate {
     func onUpdatePinMessage() {
         topThreadToolbar.updatePinMessage()
     }
+
+    func onConversationClosed() {
+        sendContainer.onConversationClosed()
+    }
 }
 
 extension ThreadViewController: BottomToolbarDelegate {

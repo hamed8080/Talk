@@ -192,6 +192,9 @@
 "Thread.pin" = "تثبيت";
 "Thread.mute" = "كتم";
 "Thread.unmute" = "إلغاء الكتم";
+"Thread.closeThread" = "إغلاق المجموعة";
+"Thread.groupCloesdByAdmin" = "لقد تم إغلاق هذه المجموعة من قبل المشرف.";
+"Thread.closeThreadWarningSubtitle" = "من خلال إغلاق المجموعة، لن يتمكن أي شخص من القيام بأي نشاط بداخلها، ولكن يمكنهم رؤية تاريخها.";
 "Thread.addToFolder" = "إضافة إلى المجلد";
 "Thread.clearHistory" = "مسح التاريخ";
 "Thread.spam" = "رسائل غير مرغوب فيها";

@@ -22,6 +22,13 @@ struct DetailTabContainer: View {
             .onAppear {
                 makeTabs()
             }
+            .onChange(of: viewModel.thread?.closed) { newValue in
+                if newValue == true {
+                    withAnimation {
+                        makeTabs()
+                    }
+                }
+            }
     }
 
     private var tabButtons: TabViewButtonsContainer {
@@ -44,6 +51,9 @@ struct DetailTabContainer: View {
                 tabs.removeAll(where: {$0.title == "Thread.Tabs.members"})
             }
             if thread.group == true, thread.type?.isChannelType == true, (thread.admin == false || thread.admin == nil) {
+                tabs.removeAll(where: {$0.title == "Thread.Tabs.members"})
+            }
+            if thread.closed == true {
                 tabs.removeAll(where: {$0.title == "Thread.Tabs.members"})
             }
             //        if thread.group == true || thread.type == .selfThread || !EnvironmentValues.isTalkTest {

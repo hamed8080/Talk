@@ -193,6 +193,9 @@
 "Thread.pin" = "Anheften";
 "Thread.mute" = "Stummschalten";
 "Thread.unmute" = "Stummschaltung aufheben";
+"Thread.closeThread" = "Gruppe schließen";
+"Thread.groupCloesdByAdmin" = "Diese Gruppe wurde vom Administrator geschlossen.";
+"Thread.closeThreadWarningSubtitle" = "Durch Schließen der Gruppe kann niemand mehr darin aktiv sein, aber den Verlauf einsehen.";
 "Thread.addToFolder" = "Zu Ordner hinzufügen";
 "Thread.clearHistory" = "Verlauf löschen";
 "Thread.spam" = "Spam";

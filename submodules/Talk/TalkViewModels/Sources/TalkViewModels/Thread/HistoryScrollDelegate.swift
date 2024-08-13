@@ -75,6 +75,7 @@ public protocol BottomToolbarDelegate {
     func focusOnTextView(focus: Bool)
     func showForwardPlaceholder(show: Bool)
     func showReplyPrivatelyPlaceholder(show: Bool)
+    func onConversationClosed()
 }
 
 public protocol LoadingDelegate {
