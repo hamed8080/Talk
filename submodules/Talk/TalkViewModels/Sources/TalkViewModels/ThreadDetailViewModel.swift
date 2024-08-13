@@ -30,6 +30,7 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
     public var participantDetailViewModel: ParticipantDetailViewModel?
     public var editConversationViewModel: EditConversationViewModel?
     private let p2pPartnerFinder = FindPartnerParticipantViewModel()
+    public let mutualGroupsVM = MutualGroupViewModel()
 
     public init() {}
 
@@ -191,6 +192,7 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
         p2pPartnerFinder.findPartnerBy(threadId: threadId) { [weak self] partner in
             if let self = self, let partner = partner {
                 setupP2PParticipant(partner)
+                mutualGroupsVM.setPartner(partner)
             }
         }
     }

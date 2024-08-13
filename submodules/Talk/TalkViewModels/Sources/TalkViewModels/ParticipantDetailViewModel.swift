@@ -30,7 +30,7 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
     public var bio: String? { participant.chatProfileVO?.bio }
     public var showInfoGroupBox: Bool { bio != nil || cellPhoneNumber != nil }
     public var url: String? { participant.image }
-    public var mutualThreads: ContiguousArray<Conversation> = []
+
     public var partnerContact: Contact?
     public var searchText: String = ""
     @Published public var dismiss = false
@@ -52,29 +52,13 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
     }
 
     public func setup() {
-        setPartnerContact()
-        fetchMutualThreads()
-        NotificationCenter.thread.publisher(for: .thread)
-            .compactMap { $0.object as? ThreadEventTypes }
-            .sink { [weak self] value in
-                self?.onThreadEvent(value)
-            }
-            .store(in: &cancelable)
+        setPartnerContact()        
         NotificationCenter.contact.publisher(for: .contact)
             .compactMap { $0.object as? ContactEventTypes }
             .sink { [weak self] value in
                 self?.onContactEvent(value)
             }
             .store(in: &cancelable)
-    }
-
-    private func onThreadEvent(_ event: ThreadEventTypes) {
-        switch event {
-        case .mutual(let chatResponse):
-            onMutual(chatResponse)
-        default:
-            break
-        }
     }
 
     private func onContactEvent(_ event: ContactEventTypes) {
@@ -129,22 +113,6 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
     private func onUNBlock(_ response: ChatResponse<BlockedContactResponse>) {
         if response.result != nil {
             participant.blocked = false
-            animateObjectWillChange()
-        }
-    }
-
-    /// Disable for now as a result of a error in server chat.
-    public func fetchMutualThreads() {
-//        guard AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue, let userId = participant.id else { return }
-//        let invitee = Invitee(id: "\(userId)", idType: .coreUserId)
-//        let req = MutualGroupsRequest(toBeUser: invitee)
-//        RequestsManager.shared.append(value: req)
-//        ChatManager.activeInstance?.conversation.mutual(req)
-    }
-
-    private func onMutual(_ response: ChatResponse<[Conversation]>) {
-        if let threads = response.result {
-            mutualThreads = .init(threads)
             animateObjectWillChange()
         }
     }
