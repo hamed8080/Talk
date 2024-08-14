@@ -284,6 +284,13 @@
 "EditGroup.groupName" = "Gruppenname";
 "EditGroup.groupDescription" = "Gruppenbeschreibung (optional)";
 "EditGroup.admins" = "Admins";
+"EditGroup.enableReactions" = "Reaktionen aktivieren";
+"EditGroup.customizedReactions" = "Reaktionen anpassen";
+
+/* Customize reactions */
+"CustomizeReactions.nothingSelected" = "Es wurde nichts ausgewählt";
+"CustomizeReactions.emojis" = "Emojis";
+"CustomizeReactions.selectedReactions" = "Ausgewählte Reaktionen";
 
 /* Export Chat */
 "ExportChat.startTitle" = "Startdatum";

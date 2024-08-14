@@ -51,6 +51,7 @@ public extension Conversation {
         participants = newThread.participants ?? participants
         pinMessage = newThread.pinMessage ?? pinMessage
         isArchive = newThread.isArchive ?? isArchive
+        reactionStatus = newThread.reactionStatus
     }
 
     var isCircleUnreadCount: Bool {

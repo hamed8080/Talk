@@ -18,11 +18,13 @@ public final class ThreadReactionViewModel {
     private var chatReaction: ReactionProtocol? { ChatManager.activeInstance?.reaction }
     private var hasEverDisonnected = false
     private var inQueueToGetReactions: [Int] = []
+    public var allowedReactions: [Sticker] = []
     public init() {}
 
     public func setup(viewModel: ThreadViewModel) {
         self.threadVM = viewModel
         registerObservers()
+        getAllowedReactions()
     }
 
     private func registerObservers() {
@@ -44,6 +46,21 @@ public final class ThreadReactionViewModel {
                 }
             }
             .store(in: &cancelable)
+    }
+
+    public func getAllowedReactions() {
+        let thread = threadVM?.thread
+        let isClosed = thread?.closedThread == true
+        if thread?.reactionStatus == .custom, !isClosed {
+            let req = ConversationAllowedReactionsRequest(conversationId: threadId)
+            ChatManager.activeInstance?.reaction.allowedReactions(req)
+        }
+    }
+
+    private func onAllowedReactions(_ response: ChatResponse<AllowedReactionsResponse>) {
+        if response.result?.conversationId == threadId, let allowedReactions = response.result?.allowedReactions {
+            self.allowedReactions = allowedReactions
+        }
     }
 
     /// Add/Remove/Replace
@@ -92,6 +109,8 @@ public final class ThreadReactionViewModel {
             scrollToLastMessageIfLastMessageReacionChanged(chatResponse)
         case .delete(let chatResponse):
             scrollToLastMessageIfLastMessageReacionChanged(chatResponse)
+        case .allowedReactions(let chatResponse):
+            onAllowedReactions(chatResponse)
         default:
             break
         }

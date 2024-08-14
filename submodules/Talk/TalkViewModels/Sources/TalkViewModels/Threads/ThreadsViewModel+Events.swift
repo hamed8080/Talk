@@ -71,6 +71,14 @@ extension ThreadsViewModel {
                 }
             }
             .store(in: &cancelable)
+        NotificationCenter.reaction.publisher(for: .reaction)
+            .compactMap { $0.object as? ReactionEventTypes }
+            .sink { [weak self] reactionMessageEvent in
+                Task { [weak self] in
+                    self?.onReactionEvent(reactionMessageEvent)
+                }
+            }
+            .store(in: &cancelable)
     }
 
     @MainActor
@@ -187,6 +195,22 @@ extension ThreadsViewModel {
             onUNPinMessage(response)
         default:
             break
+        }
+    }
+
+    private func onReactionEvent(_ event: ReactionEventTypes) {
+        if case let .customizeReactions(response) = event {
+            if let index = threads.firstIndex(where: {$0.id == response.subjectId}) {
+                threads[index].reactionStatus = response.result?.reactionStatus
+                animateObjectWillChange()
+
+                // Update Active view model
+                let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
+                if let activeVM = activeVM, activeVM.threadId == response.subjectId {
+                    activeVM.thread.reactionStatus = response.result?.reactionStatus
+                    activeVM.reactionViewModel.allowedReactions = response.result?.allowedReactions ?? []
+                }
+            }
         }
     }
 }

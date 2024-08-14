@@ -285,6 +285,13 @@
 "EditGroup.groupName" = "Nombre del grupo";
 "EditGroup.groupDescription" = "Descripción del grupo (opcional)";
 "EditGroup.admins" = "Administradoras";
+"EditGroup.enableReactions" = "Habilitar reacciones";
+"EditGroup.customizedReactions" = "Personalizar reacciones";
+
+/* Customize reactions */
+"CustomizeReactions.nothingSelected" = "No se ha seleccionado nada";
+"CustomizeReactions.emojis" = "Mga emojis";
+"CustomizeReactions.selectedReactions" = "Reacciones seleccionadas";
 
 /* Exportar chat */
 "ExportChat.startTitle" = "Fecha de inicio";

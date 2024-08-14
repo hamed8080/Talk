@@ -284,6 +284,13 @@
 "EditGroup.groupName" = "اسم گروه";
 "EditGroup.groupDescription" = "توضیحات (اختیاری)";
 "EditGroup.admins" = "مدیران";
+"EditGroup.enableReactions" = "فعال سازی واکنش";
+"EditGroup.customizedReactions" = "واکنش های سفارشی";
+
+/* Customize reactions */
+"CustomizeReactions.nothingSelected" = "موردی انتخاب نشده است";
+"CustomizeReactions.emojis" = "اموجی ها";
+"CustomizeReactions.selectedReactions" = "ریکشن های انتخاب شده";
 
 /* Export Chat */
 "ExportChat.startTitle" = "تاریخ شروع";

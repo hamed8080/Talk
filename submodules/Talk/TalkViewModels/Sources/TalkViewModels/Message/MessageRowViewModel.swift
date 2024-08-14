@@ -242,6 +242,7 @@ public extension MessageRowViewModel {
     }
 
     func canReact() -> Bool {
+        if threadVM?.thread.reactionStatus == .disable { return false }
         // Two weeks
         return Date().millisecondsSince1970 < Int64(message.time ?? 0) + (1_209_600_000)
     }

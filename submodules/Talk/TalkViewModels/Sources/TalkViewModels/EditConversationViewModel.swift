@@ -34,10 +34,12 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
     public var dismiss: Bool = false
     public var thread: Conversation { threadVM?.thread ?? .init() }
     @Published public var adminCounts: Int = 0
+    @Published public var isReactionsEnabled: Bool = true
     private var objectId = UUID().uuidString
     private let EDIT_GROUP_KEY: String
     private let CHANGE_TO_PUBLIC_KEY: String
     private let EDIT_GROUP_ADMINS_KEY: String
+    private var didInitialize = false
 
     public init(threadVM: ThreadViewModel?) {
         EDIT_GROUP_KEY = "EDIT-GROUP-\(objectId)"
@@ -48,6 +50,11 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         threadDescription = thread.description ?? ""
         isPublic = thread.type?.isPrivate == false
         registerObservers()
+        isReactionsEnabled = threadVM?.thread.reactionStatus == .enable || threadVM?.thread.reactionStatus == .custom
+        Task {
+            try? await Task.sleep(for: .milliseconds(1000))
+            didInitialize = true
+        }
     }
 
     private func registerObservers() {
@@ -69,6 +76,19 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
                 self?.onUploadEvent(value)
             }
             .store(in: &cancelable)
+
+        $isReactionsEnabled
+            .sink { [weak self] newValue in
+                if self?.didInitialize == true {
+                    self?.onReactionSwitchChanged(newValue)
+                }
+            }
+            .store(in: &cancelable)
+    }
+
+    private func onReactionSwitchChanged(_ isEnabled: Bool) {
+        let req = ConversationCustomizeReactionsRequest(conversationId: thread.id ?? -1, reactionStatus: isEnabled ? .enable : .disable)
+        ChatManager.activeInstance?.reaction.customizeReactions(req)
     }
 
     private func onUploadEvent(_ event: UploadEventTypes) {

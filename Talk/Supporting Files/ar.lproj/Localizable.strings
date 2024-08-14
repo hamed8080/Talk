@@ -283,6 +283,13 @@
 "EditGroup.groupName" = "اسم المجموعة";
 "EditGroup.groupDescription" = "وصف المجموعة (اختياري)";
 "EditGroup.admins" = "المشرفين";
+"EditGroup.enableReactions" = "تمكين ردود الفعل";
+"EditGroup.customizedReactions" = "تخصيص ردود الفعل";
+
+/* Customize reactions */
+"CustomizeReactions.nothingSelected" = "لم يتم تحديد أي شيء";
+"CustomizeReactions.emojis" = "الرموز التعبيرية";
+"CustomizeReactions.selectedReactions" = "ردود الفعل المختارة";
 
 /* Export Chat */
 "ExportChat.startTitle" = "تاريخ البدء";

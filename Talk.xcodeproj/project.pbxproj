@@ -326,6 +326,22 @@
 		0594FE672B0387370031AADF /* MessageLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594FE652B0387370031AADF /* MessageLocationView.swift */; };
 		0594FE692B0387920031AADF /* UnsentMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594FE682B0387920031AADF /* UnsentMessageView.swift */; };
 		0594FE6A2B0387920031AADF /* UnsentMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594FE682B0387920031AADF /* UnsentMessageView.swift */; };
+		059548332C5A60C800F10C1E /* CustomizeReactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548322C5A60C800F10C1E /* CustomizeReactionsViewController.swift */; };
+		059548342C5A60C800F10C1E /* CustomizeReactionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548322C5A60C800F10C1E /* CustomizeReactionsViewController.swift */; };
+		059548362C5A611500F10C1E /* CustomizeReactionSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548352C5A611500F10C1E /* CustomizeReactionSection.swift */; };
+		059548372C5A611500F10C1E /* CustomizeReactionSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548352C5A611500F10C1E /* CustomizeReactionSection.swift */; };
+		059548392C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548382C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift */; };
+		0595483A2C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548382C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift */; };
+		0595483C2C5A63F300F10C1E /* BackgroundLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0595483B2C5A63F300F10C1E /* BackgroundLabelView.swift */; };
+		0595483D2C5A63F300F10C1E /* BackgroundLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0595483B2C5A63F300F10C1E /* BackgroundLabelView.swift */; };
+		0595483F2C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0595483E2C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift */; };
+		059548402C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0595483E2C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift */; };
+		059548422C5A644200F10C1E /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548412C5A644200F10C1E /* Item.swift */; };
+		059548432C5A644200F10C1E /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548412C5A644200F10C1E /* Item.swift */; };
+		059548452C5A647800F10C1E /* CustomizeSectionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548442C5A647800F10C1E /* CustomizeSectionType.swift */; };
+		059548462C5A647800F10C1E /* CustomizeSectionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548442C5A647800F10C1E /* CustomizeSectionType.swift */; };
+		059548482C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548472C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift */; };
+		059548492C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059548472C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift */; };
 		05A0CD712B19314100F13EE5 /* DeleteContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A0CD702B1930C900F13EE5 /* DeleteContactView.swift */; };
 		05A0CD722B19314100F13EE5 /* DeleteContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A0CD702B1930C900F13EE5 /* DeleteContactView.swift */; };
 		05A218432BEA31AA002CE1C8 /* DetailAddOrEditContactSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A218422BEA31AA002CE1C8 /* DetailAddOrEditContactSheetView.swift */; };
@@ -416,6 +432,8 @@
 		05F420212BAFF6FD003ABCB7 /* ThreadBottomToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F4201F2BAFF6FD003ABCB7 /* ThreadBottomToolbar.swift */; };
 		05F86DDB2BD54B3100A1133E /* EmptyResultViewInTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F86DDA2BD54B3100A1133E /* EmptyResultViewInTabs.swift */; };
 		05F86DDC2BD54B3100A1133E /* EmptyResultViewInTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F86DDA2BD54B3100A1133E /* EmptyResultViewInTabs.swift */; };
+		05F90D562C595C3000BB9498 /* CustomizeReactionsViewUIKitWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F90D552C595C3000BB9498 /* CustomizeReactionsViewUIKitWrapper.swift */; };
+		05F90D572C595C9900BB9498 /* CustomizeReactionsViewUIKitWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F90D552C595C3000BB9498 /* CustomizeReactionsViewUIKitWrapper.swift */; };
 		05F9ECC12ABAD540000C6725 /* AppOverlayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F9ECC02ABAD540000C6725 /* AppOverlayFactory.swift */; };
 		05F9ECC22ABAD540000C6725 /* AppOverlayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F9ECC02ABAD540000C6725 /* AppOverlayFactory.swift */; };
 		05FB7D6A2B8EE85D00C14ABE /* SearchFiltersMessagesDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FB7D692B8EE85D00C14ABE /* SearchFiltersMessagesDialog.swift */; };
@@ -594,6 +612,14 @@
 		0594FE622B0386F00031AADF /* TextMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMessageView.swift; sourceTree = "<group>"; };
 		0594FE652B0387370031AADF /* MessageLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageLocationView.swift; sourceTree = "<group>"; };
 		0594FE682B0387920031AADF /* UnsentMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsentMessageView.swift; sourceTree = "<group>"; };
+		059548322C5A60C800F10C1E /* CustomizeReactionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeReactionsViewController.swift; sourceTree = "<group>"; };
+		059548352C5A611500F10C1E /* CustomizeReactionSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeReactionSection.swift; sourceTree = "<group>"; };
+		059548382C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeReactionUICollectionViewCell.swift; sourceTree = "<group>"; };
+		0595483B2C5A63F300F10C1E /* BackgroundLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLabelView.swift; sourceTree = "<group>"; };
+		0595483E2C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeReactionSectionHeader.swift; sourceTree = "<group>"; };
+		059548412C5A644200F10C1E /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		059548442C5A647800F10C1E /* CustomizeSectionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeSectionType.swift; sourceTree = "<group>"; };
+		059548472C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeReactionsToolbar.swift; sourceTree = "<group>"; };
 		05A0CD702B1930C900F13EE5 /* DeleteContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteContactView.swift; sourceTree = "<group>"; };
 		05A218422BEA31AA002CE1C8 /* DetailAddOrEditContactSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailAddOrEditContactSheetView.swift; sourceTree = "<group>"; };
 		05A3AD6A2B99F41C00536022 /* ThreadbackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadbackgroundView.swift; sourceTree = "<group>"; };
@@ -639,6 +665,7 @@
 		05EEADC12C188AA2000562EE /* AudioRecordingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioRecordingView.swift; sourceTree = "<group>"; };
 		05F4201F2BAFF6FD003ABCB7 /* ThreadBottomToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadBottomToolbar.swift; sourceTree = "<group>"; };
 		05F86DDA2BD54B3100A1133E /* EmptyResultViewInTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyResultViewInTabs.swift; sourceTree = "<group>"; };
+		05F90D552C595C3000BB9498 /* CustomizeReactionsViewUIKitWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeReactionsViewUIKitWrapper.swift; sourceTree = "<group>"; };
 		05F9ECC02ABAD540000C6725 /* AppOverlayFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppOverlayFactory.swift; sourceTree = "<group>"; };
 		05FB7D692B8EE85D00C14ABE /* SearchFiltersMessagesDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFiltersMessagesDialog.swift; sourceTree = "<group>"; };
 		05FE15F02ADA5591009AC44A /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
@@ -1105,6 +1132,22 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		05788B962C5A2CCC00B3BCF5 /* CustomizeReactions */ = {
+			isa = PBXGroup;
+			children = (
+				059548322C5A60C800F10C1E /* CustomizeReactionsViewController.swift */,
+				059548352C5A611500F10C1E /* CustomizeReactionSection.swift */,
+				059548382C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift */,
+				0595483B2C5A63F300F10C1E /* BackgroundLabelView.swift */,
+				0595483E2C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift */,
+				059548412C5A644200F10C1E /* Item.swift */,
+				059548442C5A647800F10C1E /* CustomizeSectionType.swift */,
+				05F90D552C595C3000BB9498 /* CustomizeReactionsViewUIKitWrapper.swift */,
+				059548472C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift */,
+			);
+			path = CustomizeReactions;
+			sourceTree = "<group>";
+		};
 		05903B5B2BBD07FD0098F382 /* Attchments */ = {
 			isa = PBXGroup;
 			children = (
@@ -1210,6 +1253,7 @@
 		05DCC0632AE183D00025B3B7 /* ConversationBuilders */ = {
 			isa = PBXGroup;
 			children = (
+				05788B962C5A2CCC00B3BCF5 /* CustomizeReactions */,
 				0505D5AB2AE2CEC900A5B081 /* EditGroup.swift */,
 				05FF13322AF8CD8200F120DF /* SelectedContact.swift */,
 				05DCC0642AE183EA0025B3B7 /* ConversationBuilder.swift */,
@@ -1401,6 +1445,7 @@
 			files = (
 				0570CBE32AAEE98F001832E9 /* HomeContentView.swift in Sources */,
 				050B29182AB40DC20072706C /* ToolbarView.swift in Sources */,
+				059548332C5A60C800F10C1E /* CustomizeReactionsViewController.swift in Sources */,
 				051D1BFF2BA0369100676CBD /* SelectMessageRadio.swift in Sources */,
 				0594FE692B0387920031AADF /* UnsentMessageView.swift in Sources */,
 				05729A562B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */,
@@ -1436,6 +1481,7 @@
 				0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0594FE662B0387370031AADF /* MessageLocationView.swift in Sources */,
 				0570CBF52AAEE98F001832E9 /* ThreadRow.swift in Sources */,
+				059548452C5A647800F10C1E /* CustomizeSectionType.swift in Sources */,
 				0570CC4B2AAEE98F001832E9 /* LoginNavigationContainerView.swift in Sources */,
 				0570CBFB2AAEE98F001832E9 /* ThreadContentList.swift in Sources */,
 				05A3AD6B2B99F41C00536022 /* ThreadbackgroundView.swift in Sources */,
@@ -1458,6 +1504,7 @@
 				05E9C08D2B1EFBCE00E782BD /* ThreadListRowBackground.swift in Sources */,
 				05B617652C294BB00059FE0A /* UIReactionsPickerScrollView.swift in Sources */,
 				0560C3622AB77B0B009F6A58 /* TabButtonItem.swift in Sources */,
+				0595483F2C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift in Sources */,
 				05CC0B032B7DFE30009AFBC4 /* ThreadHistoryShimmerView.swift in Sources */,
 				0570CC132AAEE98F001832E9 /* AvatarView.swift in Sources */,
 				05C099C32AD1135D007AAC6C /* ToastView.swift in Sources */,
@@ -1485,6 +1532,7 @@
 				05593BA52AFF560A00316E39 /* ThreadSearchView.swift in Sources */,
 				0570CC532AAEE98F001832E9 /* PictureView.swift in Sources */,
 				0570CC192AAEE98F001832E9 /* ParticipantsEventCell.swift in Sources */,
+				059548422C5A644200F10C1E /* Item.swift in Sources */,
 				05D893052B862BEE00D8F7AF /* LoadTestsView.swift in Sources */,
 				05466B0A2AEEA3F7005CC176 /* ArchivesView.swift in Sources */,
 				0594FE632B0386F00031AADF /* TextMessageView.swift in Sources */,
@@ -1504,8 +1552,10 @@
 				052CA3D62BA411B800E38E19 /* MessageFileView.swift in Sources */,
 				05A0CD712B19314100F13EE5 /* DeleteContactView.swift in Sources */,
 				055444532B67D3FA00E16A2F /* ThreadTabDetailStickyHeaderSection.swift in Sources */,
+				059548392C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift in Sources */,
 				050B291A2AB40DC20072706C /* NothingHasBeenSelectedView.swift in Sources */,
 				0570CBFF2AAEE98F001832E9 /* JoinToPublicThreadView.swift in Sources */,
+				05F90D562C595C3000BB9498 /* CustomizeReactionsViewUIKitWrapper.swift in Sources */,
 				052557302BE9513500DFCE54 /* DetailSectionContainer.swift in Sources */,
 				0509BE802C4E7292005C35B7 /* MoreReactionButtonRow.swift in Sources */,
 				05C27F9C2AF4BC460008FE2E /* ReplyMessagePlaceholderView.swift in Sources */,
@@ -1521,18 +1571,21 @@
 				05E781F12C2062FA002262AD /* AttchmentButton.swift in Sources */,
 				05C6DA1B2B19F3020049BCDC /* EditProfileView.swift in Sources */,
 				05EA77A62BBC651F00FFB9C2 /* CameraCapturer.swift in Sources */,
+				059548482C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift in Sources */,
 				05551C262AF4C631000F98B6 /* CloseButtonView.swift in Sources */,
 				0570CC672AAEE98F001832E9 /* SyncView.swift in Sources */,
 				052557112BE94A7000DFCE54 /* DetailThreadDescriptionSection.swift in Sources */,
 				054ED7EF2BEB739000F9EDB3 /* OTPNumbers.swift in Sources */,
 				0570CC0F2AAEE98F001832E9 /* FooterView.swift in Sources */,
 				05C27F982AF4AFF60008FE2E /* ConversationPlusContextMenu.swift in Sources */,
+				0595483C2C5A63F300F10C1E /* BackgroundLabelView.swift in Sources */,
 				05E781EE2C2060CA002262AD /* GallleryViewController.swift in Sources */,
 				05745AF32AF2B1B100102193 /* SettingProfileButton.swift in Sources */,
 				052CA3DE2BA4162600E38E19 /* ThreadEventView.swift in Sources */,
 				0570CBF12AAEE98F001832E9 /* ThreadLastMessageView.swift in Sources */,
 				05C27F9F2AF4BC910008FE2E /* MuteChannelBarView.swift in Sources */,
 				050DE2092AB1DD7E00418463 /* MessageReactionDetailView.swift in Sources */,
+				059548362C5A611500F10C1E /* CustomizeReactionSection.swift in Sources */,
 				0570CBE72AAEE98F001832E9 /* ParticipantRow.swift in Sources */,
 				0570CC692AAEE98F001832E9 /* AddOrEditContactView.swift in Sources */,
 				05E781F42C2064C4002262AD /* DocumnetPickerViewController.swift in Sources */,
@@ -1598,6 +1651,7 @@
 			files = (
 				0570CBE42AAEE98F001832E9 /* HomeContentView.swift in Sources */,
 				050B29192AB40DC20072706C /* ToolbarView.swift in Sources */,
+				059548342C5A60C800F10C1E /* CustomizeReactionsViewController.swift in Sources */,
 				051D1C002BA0369100676CBD /* SelectMessageRadio.swift in Sources */,
 				0594FE6A2B0387920031AADF /* UnsentMessageView.swift in Sources */,
 				05729A572B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */,
@@ -1633,6 +1687,7 @@
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0594FE672B0387370031AADF /* MessageLocationView.swift in Sources */,
 				0570CBF62AAEE98F001832E9 /* ThreadRow.swift in Sources */,
+				059548462C5A647800F10C1E /* CustomizeSectionType.swift in Sources */,
 				0570CC4C2AAEE98F001832E9 /* LoginNavigationContainerView.swift in Sources */,
 				0570CBFC2AAEE98F001832E9 /* ThreadContentList.swift in Sources */,
 				05A3AD6C2B99F41C00536022 /* ThreadbackgroundView.swift in Sources */,
@@ -1655,6 +1710,7 @@
 				05E9C08E2B1EFBCE00E782BD /* ThreadListRowBackground.swift in Sources */,
 				05B617662C294BB00059FE0A /* UIReactionsPickerScrollView.swift in Sources */,
 				05CC0B042B7DFE30009AFBC4 /* ThreadHistoryShimmerView.swift in Sources */,
+				059548402C5A641A00F10C1E /* CustomizeReactionSectionHeader.swift in Sources */,
 				0570CC142AAEE98F001832E9 /* AvatarView.swift in Sources */,
 				05C099C42AD1143C007AAC6C /* ToastView.swift in Sources */,
 				0570CC162AAEE98F001832E9 /* UnreadBubbleCell.swift in Sources */,
@@ -1682,6 +1738,7 @@
 				05840A752C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */,
 				05593BA62AFF560A00316E39 /* ThreadSearchView.swift in Sources */,
 				0570CC542AAEE98F001832E9 /* PictureView.swift in Sources */,
+				059548432C5A644200F10C1E /* Item.swift in Sources */,
 				0570CC1A2AAEE98F001832E9 /* ParticipantsEventCell.swift in Sources */,
 				05D893062B862BF100D8F7AF /* LoadTestsView.swift in Sources */,
 				05466B0B2AEEA3F7005CC176 /* ArchivesView.swift in Sources */,
@@ -1701,6 +1758,7 @@
 				052CA3D72BA411B800E38E19 /* MessageFileView.swift in Sources */,
 				05A0CD722B19314100F13EE5 /* DeleteContactView.swift in Sources */,
 				055444542B67D3FA00E16A2F /* ThreadTabDetailStickyHeaderSection.swift in Sources */,
+				0595483A2C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift in Sources */,
 				050B291B2AB40DC20072706C /* NothingHasBeenSelectedView.swift in Sources */,
 				0570CC002AAEE98F001832E9 /* JoinToPublicThreadView.swift in Sources */,
 				052557312BE9513500DFCE54 /* DetailSectionContainer.swift in Sources */,
@@ -1719,18 +1777,21 @@
 				05C6DA1C2B19F3020049BCDC /* EditProfileView.swift in Sources */,
 				05EA77A72BBC651F00FFB9C2 /* CameraCapturer.swift in Sources */,
 				05551C272AF4C631000F98B6 /* CloseButtonView.swift in Sources */,
+				059548492C5A66FB00F10C1E /* CustomizeReactionsToolbar.swift in Sources */,
 				0570CC682AAEE98F001832E9 /* SyncView.swift in Sources */,
 				052557122BE94A7000DFCE54 /* DetailThreadDescriptionSection.swift in Sources */,
 				054ED7F02BEB739000F9EDB3 /* OTPNumbers.swift in Sources */,
 				0570CC102AAEE98F001832E9 /* FooterView.swift in Sources */,
 				05C27F992AF4AFF60008FE2E /* ConversationPlusContextMenu.swift in Sources */,
 				05E781EF2C2060CA002262AD /* GallleryViewController.swift in Sources */,
+				0595483D2C5A63F300F10C1E /* BackgroundLabelView.swift in Sources */,
 				05745AF42AF2B1B100102193 /* SettingProfileButton.swift in Sources */,
 				052CA3DF2BA4162600E38E19 /* ThreadEventView.swift in Sources */,
 				0570CBF22AAEE98F001832E9 /* ThreadLastMessageView.swift in Sources */,
 				05C27FA02AF4BC910008FE2E /* MuteChannelBarView.swift in Sources */,
 				050DE20A2AB1DD7E00418463 /* MessageReactionDetailView.swift in Sources */,
 				0570CBE82AAEE98F001832E9 /* ParticipantRow.swift in Sources */,
+				059548372C5A611500F10C1E /* CustomizeReactionSection.swift in Sources */,
 				0570CC6A2AAEE98F001832E9 /* AddOrEditContactView.swift in Sources */,
 				05E781F52C2064C4002262AD /* DocumnetPickerViewController.swift in Sources */,
 				052CA3D52BA411B800E38E19 /* JoinPublicLink.swift in Sources */,
@@ -1773,6 +1834,7 @@
 				05B617632C2948900059FE0A /* MessageContainer+ContextMenu.swift in Sources */,
 				0570CC3E2AAEE98F001832E9 /* ManageTagView.swift in Sources */,
 				052C940A2C11901F0061A6CF /* MyselfMessageCell.swift in Sources */,
+				05F90D572C595C9900BB9498 /* CustomizeReactionsViewUIKitWrapper.swift in Sources */,
 				05EC8A312ACBED930016361F /* FooterReactionsCountView.swift in Sources */,
 				052CA3E52BA4166300E38E19 /* ThreadPinMessageView.swift in Sources */,
 				05C27FA32AF4BCD30008FE2E /* EditMessagePlaceholderView.swift in Sources */,

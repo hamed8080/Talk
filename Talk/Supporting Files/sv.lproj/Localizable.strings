@@ -283,6 +283,13 @@
 "EditGroup.groupName" = "Gruppnamn";
 "EditGroup.groupDescription" = "Gruppbeskrivning (valfritt)";
 "EditGroup.admins" = "Administratörer";
+"EditGroup.enableReactions" = "Aktivera reaktioner";
+"EditGroup.customizedReactions" = "Anpassa reaktioner";
+
+/* Customize reactions */
+"CustomizeReactions.nothingSelected" = "Inget har valts ut";
+"CustomizeReactions.emojis" = "Emojis";
+"CustomizeReactions.selectedReactions" = "Utvalda reaktioner";
 
 /* Export Chat */
 "ExportChat.startTitle" = "Startdatum";
