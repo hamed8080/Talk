@@ -78,6 +78,8 @@ struct ThreadRow: View {
                         .environmentObject(viewModel.threadEventModels.first{$0.threadId == thread.id} ?? .init(threadId: thread.id ?? 0))
                     Spacer()
                     if isInForwardMode == nil {
+                        ThreadClosed(thread: thread)
+                            .id(thread.closed)
                         ThreadMentionSign(thread: thread)
                             .id(thread.mentioned)
                         ThreadUnreadCount(thread: thread, isSelected: isSelected)
@@ -178,6 +180,20 @@ struct ThreadMentionSign: View {
                 .foregroundStyle(Color.App.textPrimary)
                 .background(Color.App.accent)
                 .clipShape(RoundedRectangle(cornerRadius:(12)))
+        }
+    }
+}
+
+struct ThreadClosed: View {
+    let thread: Conversation
+
+    var body: some View {
+        if thread.closed == true {
+            Image("lock")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 24, height: 24)
+                .foregroundStyle(Color.App.textSecondary)
         }
     }
 }

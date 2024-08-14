@@ -27,7 +27,9 @@ public final class NavigationModel: ObservableObject {
     }
 
     public func popLastPathTracking() {
-        pathsTracking.removeLast()
+        if !pathsTracking.isEmpty {
+            pathsTracking.removeLast()
+        }
     }
 
     public func popLastPath() {

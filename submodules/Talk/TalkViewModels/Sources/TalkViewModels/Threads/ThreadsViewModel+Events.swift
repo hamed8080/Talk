@@ -149,6 +149,8 @@ extension ThreadsViewModel {
             onJoinedToPublicConversatin(response)
         case .left(let response):
             onLeftThread(response)
+        case .closed(let response):
+            onClosed(response)
         default:
             break
         }

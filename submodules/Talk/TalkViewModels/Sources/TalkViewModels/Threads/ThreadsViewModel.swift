@@ -321,6 +321,12 @@ public final class ThreadsViewModel: ObservableObject {
         ChatManager.activeInstance?.conversation.leave(req)
     }
 
+    public func close(_ thread: Conversation) {
+        guard let threadId = thread.id else { return }
+        let req = GeneralSubjectIdRequest(subjectId: threadId)
+        ChatManager.activeInstance?.conversation.close(req)
+    }
+
     public func clearHistory(_ thread: Conversation) {
         guard let threadId = thread.id else { return }
         ChatManager.activeInstance?.message.clear(.init(subjectId: threadId))
@@ -470,6 +476,18 @@ public final class ThreadsViewModel: ObservableObject {
             removeThread(.init(id: conversationId))
         } else if let participant = participant {
             threadVM?.participantsViewModel.removeParticipant(participant)
+        }
+    }
+
+    func onClosed(_ response: ChatResponse<Int>) {
+        guard let threadId = response.result else { return }
+        if let index = threads.firstIndex(where: { $0.id == threadId}) {
+            threads[index].closed = true
+            animateObjectWillChange()
+
+            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
+            activeThread?.thread = threads[index]
+            activeThread?.delegate?.onConversationClosed()
         }
     }
 

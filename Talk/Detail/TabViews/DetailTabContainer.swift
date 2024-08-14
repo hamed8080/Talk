@@ -22,6 +22,13 @@ struct DetailTabContainer: View {
             .onAppear {
                 makeTabs()
             }
+            .onChange(of: viewModel.thread?.closed) { newValue in
+                if newValue == true {
+                    withAnimation {
+                        makeTabs()
+                    }
+                }
+            }
     }
 
     private var tabButtons: TabViewButtonsContainer {
@@ -51,6 +58,13 @@ struct DetailTabContainer: View {
                 let view = AnyView(MutualThreadsView().ignoresSafeArea(.all).environmentObject(viewModel.mutualGroupsVM))
                 tabs.append(.init(title: "Thread.Tabs.mutualgroup", view: view))
             }
+
+            if thread.closed == true {
+                tabs.removeAll(where: {$0.title == "Thread.Tabs.members"})
+            }
+            //        if thread.group == true || thread.type == .selfThread || !EnvironmentValues.isTalkTest {
+            //            tabs.removeAll(where: {$0.title == "Thread.Tabs.mutualgroup"})
+            //        }
             //        self.tabs = tabs
 
             self.tabs = tabs

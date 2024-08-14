@@ -16,7 +16,7 @@ public extension Conversation {
         admin = newThread.admin ?? admin
         canEditInfo = newThread.canEditInfo ?? canEditInfo
         canSpam = newThread.canSpam
-        closedThread = newThread.closedThread
+        closed = newThread.closed
         description = newThread.description ?? description
         group = newThread.group ?? group
         id = newThread.id ?? id

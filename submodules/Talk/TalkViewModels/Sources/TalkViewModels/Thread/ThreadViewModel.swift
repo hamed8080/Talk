@@ -353,6 +353,10 @@ public final class ThreadViewModel: Identifiable, Hashable {
         }
     }
 
+    public func onConversationClosed() {
+        delegate?.onConversationClosed()
+    }
+
     deinit {
         log("deinit called in class ThreadViewModel: \(self.thread.title ?? "")")
     }

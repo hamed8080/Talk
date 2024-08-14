@@ -83,6 +83,8 @@ struct DetailTopButtonsSection: View {
         }
         .padding([.leading, .trailing])
         .buttonStyle(.plain)
+        .disabled(viewModel.thread?.closed == true)
+        .opacity(viewModel.thread?.closed == true ? 0.5 : 1.0)
     }
 }
 

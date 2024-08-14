@@ -193,6 +193,9 @@
 "Thread.pin" = "چسباندن به بالا";
 "Thread.mute" = "قطع اعلانات";
 "Thread.unmute" = "برقراری اعلانات";
+"Thread.closeThread" = "بستن گروه";
+"Thread.groupCloesdByAdmin" = "این گروه توسط مدیر بسته شده است.";
+"Thread.closeThreadWarningSubtitle" = "امکان فعالیت در گروه وجود ندارد ولی تاریخچه گروه همچنان در دسترس خواهد بود.";
 "Thread.addToFolder" = "اضافه کردن به پوشه";
 "Thread.clearHistory" = "حذف تاریخچه";
 "Thread.spam" = "اعلام به عنوان مزاحم";

@@ -63,6 +63,7 @@ extension MessageContainerStackView {
     }
 
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
+        if viewModel?.threadVM?.thread.closed == true { return }
         if sender.state == .began, let indexPath = indexpath(), let contentView = makeContextMenuView(indexPath) {
             delegate?.showContextMenu(indexPath, contentView: contentView)
             UIView.animate(withDuration: Constants.animateToHideOriginalMessageDuration) {
