@@ -141,6 +141,7 @@ extension ThreadHistoryViewModel {
         if hasUnreadMessage(), let toTime = thread.lastSeenMessageTime {
             Task {
                 await moreTop(prepend: keys.MORE_TOP_FIRST_SCENARIO_KEY, toTime.advanced(by: 1))
+                showTopLoading(false) // We do not need to show two loadings at the same time.
             }
         }
     }
@@ -998,24 +999,31 @@ extension ThreadHistoryViewModel {
         Task { @HistoryActor in
             if isInProcessingScroll() {
                 viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
+                if contentOffset.y < 0 {
+                    await doScrollAction(contentOffset, contentSize)
+                }
                 return
             }
-            guard let scrollVM = viewModel?.scrollVM else { return }
-            if contentOffset.y > scrollVM.lastContentOffsetY {
-                // scroll down
-                scrollVM.scrollingUP = false
-                if contentOffset.y > contentSize.height - threshold, let message = sections.last?.vms.last?.message {
-                    await loadMoreBottom(message: message)
-                }
-            } else {
-                // scroll up
-                print("scrollViewDidScroll \(contentOffset.y)")
-                scrollVM.scrollingUP = true
-                if contentOffset.y < threshold, let message = sections.first?.vms.first?.message {
-                    await loadMoreTop(message: message)
-                }
-            }
+            await doScrollAction(contentOffset, contentSize)
             viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
+        }
+    }
+
+    @HistoryActor
+    private func doScrollAction(_ contentOffset: CGPoint , _ contentSize: CGSize) async {
+        guard let scrollVM = viewModel?.scrollVM else { return }
+        if contentOffset.y > scrollVM.lastContentOffsetY {
+            // scroll down
+            scrollVM.scrollingUP = false
+            if contentOffset.y > contentSize.height - threshold, let message = sections.last?.vms.last?.message {
+                await loadMoreBottom(message: message)
+            }
+        } else {
+            // scroll up
+            scrollVM.scrollingUP = true
+            if contentOffset.y < threshold, let message = sections.first?.vms.first?.message {
+                await loadMoreTop(message: message)
+            }
         }
     }
 
@@ -1132,13 +1140,7 @@ extension ThreadHistoryViewModel {
     }
 
     private func canLoadMoreTop() -> Bool {
-        return hasNextTop && !mainTopLoading() && viewModel?.scrollVM.isProgramaticallyScroll == false
-    }
-
-    private func mainTopLoading() -> Bool {
-        DispatchQueue.main.sync {
-            return topLoading
-        }
+        return hasNextTop && !topLoading && viewModel?.scrollVM.isProgramaticallyScroll == false
     }
 
     private func canLoadMoreBottom() -> Bool {
