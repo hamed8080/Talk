@@ -1,0 +1,76 @@
+//
+//  MutualGroupViewModel.swift
+//  TalkViewModels
+//
+//  Created by Hamed Hosseini on 5/27/21.
+//
+
+import Foundation
+import Chat
+import Combine
+import TalkModels
+
+public final class MutualGroupViewModel: ObservableObject {
+    @Published public private(set) var mutualThreads: ContiguousArray<Conversation> = []
+    private var partner: Participant?
+    private var cancelable: AnyCancellable?
+    @MainActor public private(set) var lazyList = LazyListViewModel()
+
+    public init() {
+        cancelable = NotificationCenter.thread.publisher(for: .thread)
+            .compactMap { $0.object as? ThreadEventTypes }
+            .sink { [weak self] value in
+                self?.onThreadEvent(value)
+            }
+    }
+
+    public func setPartner(_ partner: Participant?) {
+        Task {
+            self.partner = partner
+            if let userName = partner?.username {
+                await fetchMutualThreads(username: userName)
+            }
+        }
+    }
+
+    public func loadMoreMutualGroups() async {
+        if let username = partner?.username, await lazyList.canLoadMore() {
+            await lazyList.prepareForLoadMore()
+            await fetchMutualThreads(username: username)
+        }
+    }
+
+    public func fetchMutualThreads(username: String) async {
+        guard AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue else { return }
+        await lazyList.setLoading(true)
+        let invitee = Invitee(id: "\(username)", idType: .username)
+        let req = await MutualGroupsRequest(toBeUser: invitee, count: lazyList.count, offset: lazyList.offset)
+        RequestsManager.shared.append(value: req)
+        ChatManager.activeInstance?.conversation.mutual(req)
+    }
+
+    private func onThreadEvent(_ event: ThreadEventTypes) {
+        switch event {
+        case .mutual(let chatResponse):
+            onMutual(chatResponse)
+        default:
+            break
+        }
+    }
+
+    private func onMutual(_ response: ChatResponse<[Conversation]>) {
+        if let threads = response.result {
+            Task { @MainActor in
+                lazyList.setLoading(false)
+                lazyList.setHasNext(response.hasNext)
+
+                var uniqueThreads: [Conversation] = []
+                for (i, thread) in threads.enumerated() {
+                    if !self.mutualThreads.contains(where: {$0.id == thread.id}) {
+                        mutualThreads.append(thread)
+                    }
+                }
+            }
+        }
+    }
+}
