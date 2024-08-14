@@ -231,7 +231,7 @@
 "Thread.fastMessageFooter" = "ساخت یک گفتگو بدون وارد کردن فرد مورد نظر در لیست مخاطبین";
 "Thread.enterFastMessageType" = "%@ را اینجا وارد کنید...";
 "Thread.Tabs.members" = "اعضا";
-"Thread.Tabs.mutualgroup" = "گروه های مشترک";
+"Thread.Tabs.mutualgroup" = "گروه ها";
 "Thread.Tabs.photos" = "تصاویر";
 "Thread.Tabs.videos" = "ویدیوها";
 "Thread.Tabs.file" = "فایل ها";
