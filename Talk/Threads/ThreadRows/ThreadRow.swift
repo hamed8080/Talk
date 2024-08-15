@@ -79,7 +79,6 @@ struct ThreadRow: View {
                     Spacer()
                     if isInForwardMode == nil {
                         ThreadClosed(thread: thread)
-                            .id(thread.closed)
                         ThreadMentionSign(thread: thread)
                             .id(thread.mentioned)
                         ThreadUnreadCount(thread: thread, isSelected: isSelected)
