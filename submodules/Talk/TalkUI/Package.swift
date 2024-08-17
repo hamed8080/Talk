@@ -3,7 +3,7 @@
 
 import PackageDescription
 
-let useLocalDependency = true
+let useLocalDependency = false
 
 let local: [Package.Dependency] = [
     .package(path: "../../SDK/AdditiveUI"),
@@ -13,7 +13,7 @@ let local: [Package.Dependency] = [
 ]
 
 let remote: [Package.Dependency] = [
-    .package(url: "https://pubgi.sandpod.ir/chat/ios/additive-ui", from: "1.2.2"),
+    .package(url: "https://pubgi.sandpod.ir/chat/ios/additive-ui", from: "1.2.3"),
     .package(path: "../TalkModels"),
     .package(path: "../TalkExtensions"),
     .package(path: "../TalkViewModels"),
