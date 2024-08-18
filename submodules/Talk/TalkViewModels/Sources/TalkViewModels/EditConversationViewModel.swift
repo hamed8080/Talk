@@ -39,7 +39,7 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
     private let EDIT_GROUP_KEY: String
     private let CHANGE_TO_PUBLIC_KEY: String
     private let EDIT_GROUP_ADMINS_KEY: String
-    private var didInitialize = false
+    private var enableReactionEvent = false
 
     public init(threadVM: ThreadViewModel?) {
         EDIT_GROUP_KEY = "EDIT-GROUP-\(objectId)"
@@ -51,10 +51,7 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         isPublic = thread.type?.isPrivate == false
         registerObservers()
         isReactionsEnabled = threadVM?.thread.reactionStatus == .enable || threadVM?.thread.reactionStatus == .custom
-        Task {
-            try? await Task.sleep(for: .milliseconds(1000))
-            didInitialize = true
-        }
+        delayEnableReactionEventForASecond()
     }
 
     private func registerObservers() {
@@ -77,9 +74,16 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
             }
             .store(in: &cancelable)
 
+        NotificationCenter.reaction.publisher(for: .reaction)
+            .compactMap { $0.object as? ReactionEventTypes }
+            .sink { [weak self] value in
+                self?.onReactionEvent(value)
+            }
+            .store(in: &cancelable)
+
         $isReactionsEnabled
             .sink { [weak self] newValue in
-                if self?.didInitialize == true {
+                if self?.enableReactionEvent == true {
                     self?.onReactionSwitchChanged(newValue)
                 }
             }
@@ -162,6 +166,20 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         }
     }
 
+    private func onReactionEvent(_ event: ReactionEventTypes) {
+        switch event {
+        case .customizeReactions(let chatResponse):
+            // Update the UI specfically if it was updated by another admin and the switch should be updated.
+            if chatResponse.subjectId == thread.id {
+                delayEnableReactionEventForASecond()
+                isReactionsEnabled = chatResponse.result?.reactionStatus != .disable
+                animateObjectWillChange()
+            }
+        default:
+            break
+        }
+    }
+
     private func onParticipantsEvent(_ event: ParticipantEventTypes) {
         switch event {
         case .participants(let response):
@@ -213,6 +231,14 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         if response.subjectId == threadVM?.threadId {
             AppState.shared.objectsContainer.navVM.popAllPaths()
             animateObjectWillChange()
+        }
+    }
+
+    private func delayEnableReactionEventForASecond() {
+        enableReactionEvent = false
+        Task {
+            try? await Task.sleep(for: .milliseconds(1000))
+            enableReactionEvent = true
         }
     }
 
