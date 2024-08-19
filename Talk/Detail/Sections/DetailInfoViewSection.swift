@@ -10,6 +10,7 @@ import TalkViewModels
 import TalkModels
 import TalkUI
 import Chat
+import TalkExtensions
 
 struct DetailInfoViewSection: View {
     @EnvironmentObject var appOverlayVM: AppOverlayViewModel
@@ -70,7 +71,7 @@ struct DetailInfoViewSection: View {
             .font(.system(size: 16).weight(.heavy))
             .foregroundColor(.white)
             .frame(width: 64, height: 64)
-//            .background(String.getMaterialColorByCharCode(str: viewModel.thread?.title ?? viewModel.participantDetailViewModel?.participant.name ?? ""))
+            .background(Color(uiColor: String.getMaterialColorByCharCode(str: viewModel.thread?.title ?? viewModel.participantDetailViewModel?.participant.name ?? "")))
             .clipShape(RoundedRectangle(cornerRadius:(28)))
             .overlay {
                 if thread.type == .selfThread {

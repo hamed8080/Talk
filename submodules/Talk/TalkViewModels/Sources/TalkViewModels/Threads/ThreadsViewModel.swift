@@ -374,15 +374,28 @@ public final class ThreadsViewModel: ObservableObject {
             let replacedEmoji = title.replacingOccurrences(of: NSRegularExpression.emojiRegEx, with: "\\\\u{$1}", options: .regularExpression)
             /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
             /// So to update the UI properly we have to set it to link.
+            var arrItem = threads[index]
             if let metadatImagelink = thread.metaData?.file?.link {
-                threads[index].image = metadatImagelink
+                arrItem.image = metadatImagelink
             }
-            threads[index].title = replacedEmoji
-            threads[index].updateValues(thread)
+            arrItem.title = replacedEmoji
+            arrItem.closed = thread.closed
+            arrItem.time = thread.time
+            arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
+            arrItem.description = thread.description
+
+            threads[index] = arrItem
+
+            // Update active thread if it is open
             let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
-            activeThread?.thread = threads[index]
+            activeThread?.thread = arrItem
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
             activeThread?.delegate?.refetchImageOnUpdateInfo()
+
+            // Update active thread detail view if it is open
+            if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
+                AppState.shared.objectsContainer.threadDetailVM.updateThreadInfo(arrItem)
+            }
             animateObjectWillChange()
         }
     }

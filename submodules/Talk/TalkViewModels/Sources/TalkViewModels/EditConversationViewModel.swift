@@ -91,6 +91,7 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
     }
 
     private func onReactionSwitchChanged(_ isEnabled: Bool) {
+        isLoading = true
         let req = ConversationCustomizeReactionsRequest(conversationId: thread.id ?? -1, reactionStatus: isEnabled ? .enable : .disable)
         ChatManager.activeInstance?.reaction.customizeReactions(req)
     }
@@ -171,6 +172,7 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         case .customizeReactions(let chatResponse):
             // Update the UI specfically if it was updated by another admin and the switch should be updated.
             if chatResponse.subjectId == thread.id {
+                isLoading = false
                 delayEnableReactionEventForASecond()
                 isReactionsEnabled = chatResponse.result?.reactionStatus != .disable
                 animateObjectWillChange()

@@ -180,7 +180,8 @@ public class CustomConversationNavigationBar: UIView {
     public func updateImageTo(_ image: UIImage?) {
         UIView.transition(with: threadImageButton.imageView, duration: 0.2, options: .transitionCrossDissolve) {
             self.threadImageButton.imageView.image = image
-            if image == nil {
+            let isEmpty = image == nil || image?.size.width ?? 0 == 0
+            if isEmpty {
                 Task { [weak self] in
                     await self?.setSplitedText()
                 }
