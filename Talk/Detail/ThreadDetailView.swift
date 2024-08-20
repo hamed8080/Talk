@@ -40,6 +40,7 @@ struct ThreadDetailView: View {
     private func prepareToDismiss() {
         AppState.shared.objectsContainer.navVM.remove()
         AppState.shared.objectsContainer.threadDetailVM.clear()
+        AppState.shared.appStateNavigationModel.userToCreateThread = nil
         dismiss()
     }
 

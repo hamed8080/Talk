@@ -52,6 +52,8 @@ public final class ThreadsViewModel: ObservableObject {
     func onCreate(_ response: ChatResponse<Conversation>) async {
         lazyList.setLoading(false)
         if let thread = response.result {
+            var thread = thread
+            thread.reactionStatus = thread.reactionStatus ?? .enable
             await appendThreads(threads: [thread])
             await asyncAnimateObjectWillChange()
         }
@@ -125,7 +127,10 @@ public final class ThreadsViewModel: ObservableObject {
             threads.removeAll()
             isSilentClear = false
         }
-        let threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil})
+        var threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil})
+        threads?.enumerated().forEach { index, thread in
+            threads?[index].reactionStatus = thread.reactionStatus ?? .enable
+        }
         let pinThreads = response.result?.filter({$0.pin == true})
         let hasAnyResults = response.result?.count ?? 0 > 0
 
@@ -161,6 +166,10 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func onNotActiveThreads(_ response: ChatResponse<[Conversation]>) async {
         if let threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil}) {
+            var threads = threads
+            threads.enumerated().forEach { (index, thread) in
+                threads[index].reactionStatus = thread.reactionStatus ?? .enable
+            }
             await appendThreads(threads: threads)
             await asyncAnimateObjectWillChange()
         }
@@ -216,6 +225,8 @@ public final class ThreadsViewModel: ObservableObject {
     func onAddPrticipant(_ response: ChatResponse<Conversation>) async {
         if response.result?.participants?.first(where: {$0.id == AppState.shared.user?.id}) != nil, let newConversation = response.result {
             /// It means an admin added a user to the conversation, and if the added user is in the app at the moment, should see this new conversation in its conversation list.
+            var newConversation = newConversation
+            newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
             await appendThreads(threads: [newConversation])
         }
         await insertIntoParticipantViewModel(response)

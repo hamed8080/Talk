@@ -50,6 +50,7 @@ struct SearchMessageRow: View {
         Task { @MainActor in
             if let time = message.time, let messageId = message.id {
                 AppState.shared.objectsContainer.threadDetailVM.clear()
+                AppState.shared.appStateNavigationModel.userToCreateThread = nil
                 AppState.shared.objectsContainer.navVM.remove()
                 AppState.shared.objectsContainer.navVM.popLastPath() /// For click on item search
                 await threadVM?.historyVM.moveToTime(time, messageId)
