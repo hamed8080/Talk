@@ -83,7 +83,7 @@ public extension Sticker {
         case .like:
             return "👍"
         case .happy:
-            return "😂"
+            return "😄"
         case .cry:
             return "😢"
         case .thumbsdown:
@@ -149,7 +149,7 @@ public extension Sticker {
             self = .hifive
         case "👍":
             self = .like
-        case "😂":
+        case "😄":
             self = .happy
         case "😢":
             self = .cry
