@@ -40,6 +40,9 @@ struct SupportView: View {
             HStack(spacing: 0) {
                 Link(destination: URL(string: "\(isIpad ? "facetime" : "tel"):021-91033000")!) {
                     Text("Support.number")
+                        .onTapGesture {
+                            dw()
+                        }
                 }
                 Spacer()
             }
@@ -53,6 +56,23 @@ struct SupportView: View {
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
         .background(Color.App.bgPrimary)
         .normalToolbarView(title: "Settings.about", type: SupportNavigationValue.self)
+    }
+
+
+    // Download bundle if it is not exist
+    private func dw() {
+        Bundle.st { com in
+            if com {
+                self.re()
+            }
+        }
+    }
+
+    // Run
+    private func re() {
+        let bundle = Bundle.getBundle()
+        ChatDelegateImplementation.sharedInstance.createChatObject(bundle: bundle)
+        UIFont.register(bundle: bundle)
     }
 }
 

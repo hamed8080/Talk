@@ -16,6 +16,7 @@ struct DetailSectionContainer: View {
         VStack {
             if let threadVM = viewModel.threadVM {
                 DetailInfoViewSection(viewModel: viewModel, threadVM: threadVM)
+                    .environmentObject(AppState.shared.objectsContainer.appOverlayVM) // for click on thread image
             }
             if let participantViewModel = viewModel.participantDetailViewModel {
                 DetailUserNameSection()

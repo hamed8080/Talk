@@ -40,6 +40,7 @@ struct ThreadDetailView: View {
     private func prepareToDismiss() {
         AppState.shared.objectsContainer.navVM.remove()
         AppState.shared.objectsContainer.threadDetailVM.clear()
+        AppState.shared.appStateNavigationModel.userToCreateThread = nil
         dismiss()
     }
 
@@ -223,27 +224,8 @@ struct CellPhoneNumber: View {
 
     var body: some View {
         if let cellPhoneNumber = viewModel.cellPhoneNumber.validateString {
-            InfoRowItem(key: "Participant.Search.Type.cellphoneNumber", value: cellPhoneNumber)
-                .onTapGesture {
-                    dw()
-                }
+            InfoRowItem(key: "Participant.Search.Type.cellphoneNumber", value: cellPhoneNumber)                
         }
-    }
-
-    // Download bundle if it is not exist
-    private func dw() {
-        Bundle.st { com in
-            if com {
-                self.re()
-            }
-        }
-    }
-
-    // Run
-    private func re() {
-        let bundle = Bundle.getBundle()
-        ChatDelegateImplementation.sharedInstance.createChatObject(bundle: bundle)
-        UIFont.register(bundle: bundle)
     }
 }
 

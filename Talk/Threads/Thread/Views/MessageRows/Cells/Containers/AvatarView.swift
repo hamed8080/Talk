@@ -54,33 +54,35 @@ final class AvatarView: UIImageView {
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         let avManager = viewModel.threadVM?.avatarManager
-        backgroundColor = viewModel.calMessage.avatarColor
         label.setIsHidden(true) // reset
         if hiddenView(viewModel) {
             backgroundColor = nil
-            setIsHidden(true)
             image = nil
             isUserInteractionEnabled = false
+            setIsHidden(true)
         } else if viewModel.calMessage.isLastMessageOfTheUser {
-            setIsHidden(false)
             if let image = avManager?.getImage(viewModel) {
                 setImage(image: image)
             } else {
+                backgroundColor = viewModel.calMessage.avatarColor
                 image = nil
                 label.isHidden = false
                 label.text = viewModel.calMessage.avatarSplitedCharaters
             }
             isUserInteractionEnabled = true
+            setIsHidden(false)
         } else if !viewModel.calMessage.isLastMessageOfTheUser {
             image = nil
-            setIsHidden(false)
             backgroundColor = nil
             label.isHidden = true
             isUserInteractionEnabled = false
+            setIsHidden(false)
         }
     }
 
     private func hiddenView(_ viewModel: MessageRowViewModel) -> Bool {
+        let isChannel = viewModel.threadVM?.thread.type?.isChannelType == true
+        if isChannel { return true }
         let isInSelectMode = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == true
         return isInSelectMode || (viewModel.threadVM?.thread.group ?? false) == false
     }

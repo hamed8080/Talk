@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import TalkViewModels
+import Chat
 
 fileprivate struct Constants {
     static let space: CGFloat = 8
@@ -63,6 +64,7 @@ extension MessageContainerStackView {
     }
 
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
+        if viewModel?.threadVM?.thread.closed == true { return }
         if sender.state == .began, let indexPath = indexpath(), let contentView = makeContextMenuView(indexPath) {
             delegate?.showContextMenu(indexPath, contentView: contentView)
             UIView.animate(withDuration: Constants.animateToHideOriginalMessageDuration) {
@@ -190,8 +192,8 @@ extension MessageContainerStackView {
         reactionsView.frame = .init(x: sizes.reactionX,
                                     y: messageContainer.frame.origin.y - (Constants.reactionHeight + 8),
                                     width: Constants.reactionWidth,
-                                    height: Constants.reactionHeight)
-        reactionsView.viewModel = viewModel
+                                    height: reactionViewInitialHeight())
+        reactionsView.setup(viewModel)
         reactionsView.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
 
         let canReact = viewModel.canReact()
@@ -200,6 +202,15 @@ extension MessageContainerStackView {
 
         addAnimation(reactionsView)
         return reactionsView
+    }
+
+    private func reactionViewInitialHeight() -> CGFloat {
+        return Constants.reactionHeight + (allowedReactions().count < 4 ? 4.0 : 0.0)
+    }
+
+    private func allowedReactions() -> [Sticker] {
+        if viewModel?.threadVM?.thread.reactionStatus == .enable { return Sticker.allCases.filter({ $0 != .unknown}) }
+        return viewModel?.threadVM?.reactionViewModel.allowedReactions ?? []
     }
 
     private func getRightY(_ sizes: Constants.Sizes, _ messageContainer: MessageContainerStackView, _ menu: CustomMenu) -> CGFloat {

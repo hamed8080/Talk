@@ -8,6 +8,7 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import TalkExtensions
 
 public struct ToastView<ContentView: View>: View {
     let title: String?

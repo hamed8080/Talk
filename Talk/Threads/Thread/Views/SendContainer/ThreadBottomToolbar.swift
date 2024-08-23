@@ -25,6 +25,7 @@ public final class ThreadBottomToolbar: UIStackView {
     private let mentionTableView: MentionTableView
     public let selectionView: SelectionView
     private let muteBarView: MuteChannelBarView
+    private let closedBarView: ClosedBarView
     public var onUpdateHeight: ((CGFloat) -> Void)?
 
     public init(viewModel: ThreadViewModel?) {
@@ -39,6 +40,7 @@ public final class ThreadBottomToolbar: UIStackView {
         self.editMessagePlaceholderView = EditMessagePlaceholderView(viewModel: viewModel)
         self.selectionView = SelectionView(viewModel: viewModel)
         self.muteBarView = MuteChannelBarView(viewModel: viewModel)
+        self.closedBarView = ClosedBarView(viewModel: viewModel)
         self.mentionTableView = MentionTableView(viewModel: viewModel)
         super.init(frame: .zero)
         configureViews()
@@ -69,11 +71,14 @@ public final class ThreadBottomToolbar: UIStackView {
         forwardPlaceholderView.set() // Show forward placeholder on open the thread
         replyPrivatelyPlaceholderView.stack = self
         replyPrivatelyPlaceholderView.set()
-        if viewModel?.sendContainerViewModel.canShowMuteChannelBar() == true {
+        if viewModel?.thread.closed == true {
+            addArrangedSubview(closedBarView)
+        } else if viewModel?.sendContainerViewModel.canShowMuteChannelBar() == true {
             addArrangedSubview(muteBarView)
         } else {
             addArrangedSubview(mainSendButtons)
         }
+
         NSLayoutConstraint.activate([
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -156,6 +161,14 @@ public final class ThreadBottomToolbar: UIStackView {
         viewModel?.attachmentsViewModel.clear()
         showMainButtons(!show)
         audioRecordingView.show(show, stack: self) // Reset to show RecordingView again
+    }
+
+    public func onConversationClosed() {
+        for view in arrangedSubviews {
+            view.removeFromSuperview()
+        }
+        addArrangedSubview(closedBarView)
+        closedBarView.closed()
     }
 
     public override func layoutSubviews() {

@@ -35,7 +35,6 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     private static let playIcon: UIImage = UIImage(systemName: "play.fill")!
 
     // Constraints
-    private var widthConstraint: NSLayoutConstraint!
     private var fileNameLabelTrailingConstarint: NSLayoutConstraint!
 
     // Sizes
@@ -104,7 +103,8 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         progressButton.translatesAutoresizingMaskIntoConstraints = false
         progressButton.accessibilityIdentifier = "progressButtonMessageVideoView"
         addSubview(progressButton)
-        widthConstraint = widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
+        let widthConstraint = widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
+        widthConstraint.priority = .defaultHigh
 
         fileNameLabelTrailingConstarint = fileNameLabel.trailingAnchor.constraint(equalTo: progressButton.leadingAnchor, constant: -margin)
 
@@ -139,7 +139,6 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
-        widthConstraint.constant = viewModel.calMessage.sizes.width ?? minWidth
         self.viewModel = viewModel
         if let url = viewModel.calMessage.fileURL {
             prepareUIForPlayback(url: url)
@@ -153,6 +152,14 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
 
         // To stick to the leading if we downloaded/uploaded
         fileNameLabelTrailingConstarint.constant = canShowProgress ? -margin : progressButtonSize
+    }
+
+    func updateWidthConstarints() {
+        guard let superview = superview else { return }
+        NSLayoutConstraint.activate([
+            leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: margin),
+            trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -margin)
+        ])
     }
 
     private func prepareUIForPlayback(url: URL) {

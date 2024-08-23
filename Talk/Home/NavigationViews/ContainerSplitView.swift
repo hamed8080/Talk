@@ -131,6 +131,7 @@ struct NavigationTypeView: View {
             LoadTestsView()
         case .threadDetail(let model):
             ThreadDetailView()
+                .id(model.viewModel.thread?.id)
                 .environmentObject(model.viewModel)
         }
     }

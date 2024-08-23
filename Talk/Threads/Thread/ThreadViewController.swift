@@ -426,6 +426,10 @@ extension ThreadViewController: ThreadViewDelegate {
     func onUpdatePinMessage() {
         topThreadToolbar.updatePinMessage()
     }
+
+    func onConversationClosed() {
+        sendContainer.onConversationClosed()
+    }
 }
 
 extension ThreadViewController: BottomToolbarDelegate {
@@ -465,12 +469,18 @@ extension ThreadViewController: BottomToolbarDelegate {
 
     func openEditMode(_ message: (any HistoryMessageProtocol)?) {
         sendContainer.openEditMode(message)
-        focusOnTextView(focus: message != nil)
+        // We only check if we select a message to edit. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
+        if message != nil {
+            focusOnTextView(focus: true)
+        }
     }
 
     func openReplyMode(_ message: (any HistoryMessageProtocol)?) {
+        // We only check if we select a message to reply. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
+        if message != nil {
+            focusOnTextView(focus: true)
+        }
         viewModel?.replyMessage = message as? Message
-        focusOnTextView(focus: message != nil)
         sendContainer.openReplyMode(message)
         viewModel?.scrollVM.disableExcessiveLoading()
         scrollTo(uniqueId: message?.uniqueId ?? "", position: hasExternalKeyboard ? .none : .middle)
@@ -703,6 +713,7 @@ extension ThreadViewController: HistoryScrollDelegate {
             tableView.endUpdates()
         }
     }
+    
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
         viewModel?.historyVM.isUpdating = true
         tableView.performBatchUpdates {

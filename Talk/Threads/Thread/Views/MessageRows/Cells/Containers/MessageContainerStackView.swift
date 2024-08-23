@@ -166,6 +166,8 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isVideo {
             messageVideoView.set(viewModel)
             addArrangedSubview(messageVideoView)
+            // This line should be called below addArrangedSubview to give the video view chance to get superView.
+            messageVideoView.updateWidthConstarints()
         } else {
             messageVideoView.removeFromSuperview()
         }

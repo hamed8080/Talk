@@ -100,7 +100,8 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     private func attachOrDetachAvatar(viewModel: MessageRowViewModel) {
-        if let avatar = avatar, !viewModel.calMessage.state.isInSelectMode, viewModel.threadVM?.thread.group == true {
+        let thread = viewModel.threadVM?.thread
+        if let avatar = avatar, !viewModel.calMessage.state.isInSelectMode, thread?.group == true, thread?.type?.isChannelType == false {
             avatar.updateSelectionMode()
             self.avatar?.translatesAutoresizingMaskIntoConstraints = false
             self.avatar?.accessibilityIdentifier = "avatarContainerMessageBaseCell"
@@ -113,13 +114,18 @@ public class MessageBaseCell: UITableViewCell {
         avatar?.set(viewModel)
     }
 
-    private func attachOrDetachMessageContainer(viewModel: MessageRowViewModel) {
-        messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
-        messageStackLeadingToRadioTrailingConstraint.isActive = viewModel.calMessage.state.isInSelectMode
-        messageStackLeadingToContainerLeadingConstarint.isActive = canSnapToContainer(viewModel: viewModel)
+    private func setMessageContainer(viewModel: MessageRowViewModel) {
         messageContainer.set(viewModel)
         messageContainer.cell = self
-        if viewModel.calMessage.isMe && !viewModel.calMessage.state.isInSelectMode {
+    }
+
+    private func setMessageContainerConstraints(viewModel: MessageRowViewModel) {
+        if viewModel.threadVM?.thread.type?.isChannelType == false {
+            messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
+        }
+        messageStackLeadingToRadioTrailingConstraint.isActive = viewModel.calMessage.state.isInSelectMode
+        messageStackLeadingToContainerLeadingConstarint.isActive = canSnapToContainer(viewModel: viewModel)
+        if canSnapToContainer(viewModel: viewModel) {
             containerWidthConstraint.constant = 0
         } else {
             containerWidthConstraint.constant = 53
@@ -127,7 +133,9 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     private func canSnapToAvatar(viewModel: MessageRowViewModel) -> Bool {
-        !viewModel.calMessage.state.isInSelectMode && viewModel.threadVM?.thread.group == true && avatar != nil && !viewModel.calMessage.state.isInSelectMode
+        let isInSelectionMode = viewModel.calMessage.state.isInSelectMode
+        let isGroup = viewModel.threadVM?.thread.group == true
+        return !isInSelectionMode && isGroup && avatar != nil
     }
 
     private func canSnapToContainer(viewModel: MessageRowViewModel) -> Bool {
@@ -139,7 +147,8 @@ public class MessageBaseCell: UITableViewCell {
         messageContainerBottomConstraint.constant = viewModel.calMessage.isLastMessageOfTheUser ? -6 : -1
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
-        attachOrDetachMessageContainer(viewModel: viewModel)
+        setMessageContainer(viewModel: viewModel)
+        setMessageContainerConstraints(viewModel: viewModel)
         setSelectedBackground()
     }
 
@@ -169,12 +178,13 @@ public class MessageBaseCell: UITableViewCell {
             if let viewModel = viewModel {
                 attachOrDetachAvatar(viewModel: viewModel)
                 attachOrDetachRadio(viewModel: viewModel)
-                attachOrDetachMessageContainer(viewModel: viewModel)
+                setMessageContainerConstraints(viewModel: viewModel)
             }
             messageContainer.isUserInteractionEnabled = !isInSelectionMode
             if !isInSelectionMode {
                 deselect()
             }
+            self.layoutIfNeeded()
         }
     }
 

@@ -62,6 +62,11 @@ final class ForwardInfoView: UIView {
         participantLabel.textAlignment = isMe ? .right : .left
         participantLabel.setContentHuggingPriority(.defaultLow, for: .vertical)
         participantLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        participantLabel.layer.cornerRadius = 6
+        participantLabel.layer.masksToBounds = true
+        participantLabel.isUserInteractionEnabled = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onTappedParticpant))
+        participantLabel.addGestureRecognizer(tapGesture)
         addSubview(participantLabel)
 
         bar.translatesAutoresizingMaskIntoConstraints = false
@@ -102,7 +107,17 @@ final class ForwardInfoView: UIView {
         participantLabel.setIsHidden(viewModel.message.forwardInfo?.participant?.name == nil)
     }
 
-    @IBAction func onForwardTapped(_ sender: UIGestureRecognizer) {
+    @objc private func onForwardTapped(_ sender: UIGestureRecognizer) {
         print("on forward tapped")
+    }
+
+    @objc private func onTappedParticpant(_ sender: UIGestureRecognizer) {
+        if let participant = viewModel?.message.forwardInfo?.participant {
+            participantLabel.backgroundColor = Color.App.textPlaceholderUIColor?.withAlphaComponent(0.8)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                AppState.shared.openThread(participant: participant)
+                self.participantLabel.backgroundColor = .clear
+            }
+        }
     }
 }

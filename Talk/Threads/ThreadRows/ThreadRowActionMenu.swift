@@ -56,6 +56,8 @@ struct ThreadRowActionMenu: View {
             }
         }
 
+        Divider()
+
         if isDetailView, thread.group == true {
             ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red) {
                 onLeaveConversationTapped()
@@ -69,6 +71,13 @@ struct ThreadRowActionMenu: View {
                 onDeleteConversationTapped()
             }
             .foregroundStyle(Color.App.red)
+        }
+
+        if isDetailView, thread.group == true, thread.type?.isChannelType == false, thread.admin == true {
+            Divider()
+            ContextMenuButton(title: "Thread.closeThread", image: "lock") {
+                onCloseConversationTapped()
+            }
         }
     }
 
@@ -130,6 +139,11 @@ struct ThreadRowActionMenu: View {
 
     private func onDeleteConversationTapped() {
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
+        showPopover = false
+    }
+
+    private func onCloseConversationTapped() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread))
         showPopover = false
     }
 
