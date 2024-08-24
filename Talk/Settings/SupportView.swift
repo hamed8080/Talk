@@ -61,16 +61,21 @@ struct SupportView: View {
 
     // Download bundle if it is not exist
     private func dw() {
-        Bundle.st { com in
-            if com {
-                self.re()
+        Task {
+            do {
+                let result = try await Bundle.manager.st()
+                if result == true {
+                    self.re()
+                }
+            } catch {
+                print(error)
             }
         }
     }
 
     // Run
     private func re() {
-        let bundle = Bundle.getBundle()
+        let bundle = Bundle.appBundle
         ChatDelegateImplementation.sharedInstance.createChatObject(bundle: bundle)
         UIFont.register(bundle: bundle)
     }

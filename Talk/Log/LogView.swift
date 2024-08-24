@@ -133,7 +133,7 @@ struct LogView: View {
     @ViewBuilder
     private var trashButton: some View {
         Button {
-            viewModel.deleteLogs(bundle: Bundle.getBundle())
+            viewModel.deleteLogs(bundle: Bundle.appBundle)
         } label: {
             Label {
                 Text("General.delete".bundleLocalized())
