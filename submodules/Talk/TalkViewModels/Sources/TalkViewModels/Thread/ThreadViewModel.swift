@@ -108,6 +108,7 @@ public final class ThreadViewModel: Identifiable, Hashable {
         conversationSubtitle.setup(viewModel: self)
         registerNotifications()
         setAppSettingsModel()
+        threadsViewModel?.getNotActiveThreads(thread)
     }
 
     public func updateConversation(_ conversation: Conversation) {

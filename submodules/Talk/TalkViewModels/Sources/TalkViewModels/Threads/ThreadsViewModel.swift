@@ -170,6 +170,11 @@ public final class ThreadsViewModel: ObservableObject {
             threads.enumerated().forEach { (index, thread) in
                 threads[index].reactionStatus = thread.reactionStatus ?? .enable
             }
+
+            let presendtedId = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.thread.id
+            if let thread = response.result?.first(where: {$0.id == presendtedId}) {
+                AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.thread = thread
+            }
             await appendThreads(threads: threads)
             await asyncAnimateObjectWillChange()
         }
