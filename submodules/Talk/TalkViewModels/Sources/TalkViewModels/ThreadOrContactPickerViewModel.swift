@@ -124,7 +124,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         if !response.cache, response.pop(prepend: GET_THREADS_IN_SELECT_THREAD_KEY) != nil {
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(response.hasNext)
-            conversations.append(contentsOf: response.result ?? [])
+            let filtered = (response.result ?? []).filter({$0.closed == false || $0.closed == nil})
+            conversations.append(contentsOf: filtered)
             animateObjectWillChange()
         }
     }

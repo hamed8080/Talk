@@ -112,7 +112,8 @@ final class ForwardInfoView: UIView {
     }
 
     @objc private func onTappedParticpant(_ sender: UIGestureRecognizer) {
-        if let participant = viewModel?.message.forwardInfo?.participant {
+        let isMe = viewModel?.message.forwardInfo?.participant?.id == AppState.shared.user?.id
+        if let participant = viewModel?.message.forwardInfo?.participant, !isMe {
             participantLabel.backgroundColor = Color.App.textPlaceholderUIColor?.withAlphaComponent(0.8)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 AppState.shared.openThread(participant: participant)
