@@ -127,9 +127,9 @@ public final class ThreadsViewModel: ObservableObject {
             threads.removeAll()
             isSilentClear = false
         }
-        var threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil})
-        threads?.enumerated().forEach { index, thread in
-            threads?[index].reactionStatus = thread.reactionStatus ?? .enable
+        var threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil}) ?? []
+        threads.enumerated().forEach { index, thread in
+            threads[index].reactionStatus = thread.reactionStatus ?? .enable
         }
         let pinThreads = response.result?.filter({$0.pin == true})
         let hasAnyResults = response.result?.count ?? 0 > 0
@@ -139,8 +139,8 @@ public final class ThreadsViewModel: ObservableObject {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: serverSortedPinIds)
         }
-        await appendThreads(threads: threads ?? [])
-        updatePresentedViewModels(response.result ?? [])
+        await appendThreads(threads: threads)
+        updatePresentedViewModels(threads)
         await MainActor.run {
             if hasAnyResults {
                 lazyList.setHasNext(response.hasNext)
