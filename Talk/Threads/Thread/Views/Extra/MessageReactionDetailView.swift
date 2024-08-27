@@ -128,7 +128,7 @@ struct ReactionParticipantRow: View {
                 Text(reaction.participant?.name ?? "")
                     .padding(.leading, 4)
                     .lineLimit(1)
-                    .font(.iransansSubtitle)
+                    .font(.iransansBody)
                 if let time = reaction.time {
                     Text(time.date.localFormattedTime ?? "")
                         .padding(.leading, 4)
