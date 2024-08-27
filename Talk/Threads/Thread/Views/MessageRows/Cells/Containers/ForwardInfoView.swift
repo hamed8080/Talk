@@ -103,8 +103,11 @@ final class ForwardInfoView: UIView {
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         setIsHidden(false)
-        participantLabel.text = viewModel.message.forwardInfo?.participant?.name ?? viewModel.message.participant?.name
-        participantLabel.setIsHidden(viewModel.message.forwardInfo?.participant?.name == nil)
+
+        let fi = viewModel.message.forwardInfo
+        let title = fi?.participant?.name ?? fi?.conversation?.title
+        participantLabel.text = title
+        participantLabel.setIsHidden(title == nil)
     }
 
     @objc private func onForwardTapped(_ sender: UIGestureRecognizer) {

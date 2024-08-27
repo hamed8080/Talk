@@ -168,10 +168,17 @@ public final class ThreadReactionViewModel {
             self?.threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
         }
 
-        if wasAtBottom {
+        let isLastMdessageReactionUpdated = isLastMdessageReactionUpdated(reactions)
+
+        if wasAtBottom, isLastMdessageReactionUpdated {
             try? await Task.sleep(for: .seconds(0.2))
             await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }
+    }
+
+    private func isLastMdessageReactionUpdated(_ reactions: [ReactionInMemoryCopy]) -> Bool {
+        guard let messageId = reactions.first?.messageId, let lastMessageId = threadVM?.thread.lastMessageVO?.id else { return false }
+        return lastMessageId == messageId
     }
 
     internal func clearReactionsOnReconnect() {
