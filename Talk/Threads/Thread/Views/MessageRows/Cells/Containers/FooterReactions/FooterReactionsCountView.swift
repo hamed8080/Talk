@@ -38,13 +38,11 @@ final class FooterReactionsCountView: UIStackView {
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         accessibilityIdentifier = "stackReactionCountScrollView"
 
-        for _ in (0..<maxReactionsToShow) {
-            let rowViewPlaceHolder = ReactionCountRowView(frame: .zero, isMe: isMe)
-            addArrangedSubview(rowViewPlaceHolder)
+        for _ in 0..<maxReactionsToShow {
+            addArrangedSubview(ReactionCountRowView(frame: .zero, isMe: isMe))
         }
 
-        let moreButton = MoreReactionButtonRow(frame: .zero, isMe: isMe)
-        addArrangedSubview(moreButton)
+        addArrangedSubview(MoreReactionButtonRow(frame: .zero, isMe: isMe))
 
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: height),
@@ -53,33 +51,29 @@ final class FooterReactionsCountView: UIStackView {
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        var rows = viewModel.reactionsModel.rows
-        if rows.count > maxReactionsToShow {
-            var arr = rows.prefix(upTo: 4)
-            arr.append(.init(reactionId: FooterReactionsCountView.moreButtonId,
-                              edgeInset: .zero,
-                              sticker: nil,
-                              emoji: "",
-                              countText: "",
-                              isMyReaction: false,
-                              hasReaction: false,
-                              selectedEmojiTabId: "General.all"))
-            rows = Array(arr)
-        }
+        let rows = viewModel.reactionsModel.rows.count > maxReactionsToShow ? Array(viewModel.reactionsModel.rows.prefix(4)) : viewModel.reactionsModel.rows
 
-        subviews.forEach { reaction in
-            reaction.setIsHidden(true)
-        }
-        for (index ,row) in rows.enumerated() {
-            if subviews.indices.contains(where: {$0 == index}), let rowView = subviews[index] as? ReactionCountRowView {
+        // Show item only if index is equal to index or it is type of more reaction button.
+        arrangedSubviews.enumerated().forEach { index, view in
+            if index < rows.count, let rowView = view as? ReactionCountRowView {
                 rowView.setIsHidden(false)
+                rowView.setValue(row: rows[index])
                 rowView.viewModel = viewModel
-                rowView.setValue(row: row)
-            } else if let rowView = subviews[index] as? MoreReactionButtonRow {
-                rowView.setIsHidden(false)
-                rowView.row = row
-                rowView.viewModel = viewModel
+            } else {
+                view.setIsHidden(true)
             }
+        }
+        if viewModel.reactionsModel.rows.count > maxReactionsToShow, let moreButton = arrangedSubviews[maxReactionsToShow] as? MoreReactionButtonRow {
+            moreButton.setIsHidden(false)
+            moreButton.row = .init(reactionId: FooterReactionsCountView.moreButtonId,
+                                   edgeInset: .zero,
+                                   sticker: nil,
+                                   emoji: "",
+                                   countText: "",
+                                   isMyReaction: false,
+                                   hasReaction: false,
+                                   selectedEmojiTabId: "General.all")
+            moreButton.viewModel = viewModel
         }
     }
 }
