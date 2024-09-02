@@ -30,14 +30,13 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     public var fileURL: URL? { message?.fileURL }
     public var url: URL? { message?.url }
     public var isInCache: Bool = false
-    private var objectId = UUID().uuidString
-    private let THUMBNAIL_KEY: String
     private let queue: DispatchQueue
+    private var thumbnailVM: ThumbnailDownloadManagerViewModel?
 
     public init(message: Message, queue: DispatchQueue) {
         self.queue = queue
-        THUMBNAIL_KEY = "THUMBNAIL-\(objectId)"
         self.message = message
+        thumbnailVM = .init()
         setObservers()
     }
 
@@ -71,15 +70,15 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
                 self?.onGalleryDownload(result)
             }
             .store(in: &cancellableSet)
+
+        thumbnailVM?.onDownload = { [weak self] data in
+            self?.setThumbnail(data: data)
+        }
     }
 
     private func onGalleryDownload(_ result: (request: ImageRequest, data: Data)) {
         if result.request.hashCode == fileHashCode {
-            state = .completed
-            downloadPercent = 100
-            data = result.data
-            thumbnailData = nil
-            animateObjectWillChange()
+            setData(data: result.data)
         }
     }
 
@@ -137,63 +136,55 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
     public func downloadBlurImage(quality: Float = 0.02, size: ImageSize = .SMALL) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            state = .thumbnailDownloaing
-            let req = ImageRequest(hashCode: fileHashCode, quality: quality, size: size, thumbnail: true, conversationId: message?.threadId ?? message?.conversation?.id)
-            uniqueId = req.uniqueId
-            RequestsManager.shared.append(prepend: THUMBNAIL_KEY, value: req, autoCancel: false)
-            ChatManager.activeInstance?.file.get(req)
-            animateObjectWillChange()
-        }
+        guard let threadId = message?.threadId ?? message?.conversation?.id else { return }
+        let hashCode = fileHashCode
+        state = .thumbnailDownloaing
+        let req = ImageRequest(hashCode: hashCode, quality: quality, size: size, thumbnail: true, conversationId: threadId)
+        thumbnailVM?.downloadBlurImage(req: req)
     }
 
     private func onResponse(_ response: ChatResponse<Data>, _ url: URL?) {
         if response.uniqueId != uniqueId { return }
-        if !response.cache, response.pop(prepend: THUMBNAIL_KEY) != nil, let data = response.result {
-            //State is not completed and blur view can show the thumbnail
-            state = .thumbnail
-            autoreleasepool {
-                self.thumbnailData = data
-                animateObjectWillChange()
-            }
-            return
-        }
 
         if response.cache, let data = response.result {
-            _ = response.pop(prepend: THUMBNAIL_KEY)
-            autoreleasepool {
-                state = .completed
-                downloadPercent = 100
-                self.data = data
-                thumbnailData = nil
-                isInCache = true
-                animateObjectWillChange()
-            }
-        }
-        if RequestsManager.shared.contains(key: uniqueId), let data = response.result {
-            autoreleasepool {
-                state = .completed
-                downloadPercent = 100
-                self.data = data
-                thumbnailData = nil
-                isInCache = true
-                animateObjectWillChange()
-            }
+            setData(data: data)
         }
 
-        /// When the user clicks on the side of an image not directly hit the download button, it triggers gallery view, and therefore after the user is back to the view the image and file should update properly.
-        if !response.cache, RequestsManager.shared.contains(key: uniqueId), url?.absoluteString == fileURL?.absoluteString {
-            autoreleasepool {
-                RequestsManager.shared.remove(key: uniqueId)
-                state = .completed
-                downloadPercent = 100
-                self.data = response.result
-                thumbnailData = nil
-                isInCache = true
-                animateObjectWillChange()
-            }
+        if RequestsManager.shared.contains(key: uniqueId), let data = response.result {
+            setData(data: data)
         }
+
+        if isGalleryURL(response, url: url) {
+            RequestsManager.shared.remove(key: uniqueId)
+            setData(data: response.result)
+        }
+    }
+
+    private func setData(data: Data?) {
+        autoreleasepool {
+            state = .completed
+            downloadPercent = 100
+            self.data = data
+            thumbnailData = nil
+            thumbnailVM?.removeKey()
+            thumbnailVM = nil
+            isInCache = true
+            animateObjectWillChange()
+        }
+    }
+
+    private func setThumbnail(data: Data?) {
+        //State is not completed and blur view can show the thumbnail
+        state = .thumbnail
+        autoreleasepool {
+            self.thumbnailData = data
+            animateObjectWillChange()
+        }
+    }
+
+    /// When the user clicks on the side of an image not directly hit the download button, it triggers gallery view, and therefore after the user is back to the view the image and file should update properly.
+    private func isGalleryURL(_ response: ChatResponse<Data>, url: URL?) -> Bool {
+        !response.cache && RequestsManager.shared.contains(key: uniqueId) && url?.absoluteString == fileURL?.absoluteString
     }
 
     private func onSuspend(_ uniqueId: String) {
@@ -225,12 +216,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .resume)
     }
 
-    public func cancelObservers(){
-        cancellableSet.forEach { cancellable in
-            cancellable.cancel()
-        }
-    }
-    
     private func isSameUnqiueId(_ uniqueId: String) -> Bool {
         RequestsManager.shared.contains(key: self.uniqueId) && uniqueId == self.uniqueId
     }

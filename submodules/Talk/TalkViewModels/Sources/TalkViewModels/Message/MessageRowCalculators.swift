@@ -173,6 +173,8 @@ class MessageRowCalculators {
         let isMeDoer = "General.you".bundleLocalized()
         let doer = calculatedMessage.isMe ? isMeDoer : (message.participant?.name ?? "")
         let doerRange = NSString(string: string).range(of: doer)
+        let allRange = NSRange(string.startIndex..., in: string)
+        attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: allRange)
         attr.addAttributes([
             NSAttributedString.Key.foregroundColor: UIColor(named: "accent") ?? .orange,
             NSAttributedString.Key.font: UIFont(name: "IRANSansX", size: 14) ?? .systemFont(ofSize: 14)
