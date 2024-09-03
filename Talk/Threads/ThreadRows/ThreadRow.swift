@@ -72,19 +72,8 @@ struct ThreadRow: View {
                     ThreadTimeText(thread: thread, isSelected: isSelected)
                         .id(thread.time)
                 }
-                HStack {
-                    SecondaryMessageView(isSelected: isSelected, thread: thread)
-                        .id(thread.lastMessageVO?.id)
-                        .environmentObject(viewModel.threadEventModels.first{$0.threadId == thread.id} ?? .init(threadId: thread.id ?? 0))
-                    Spacer()
-                    if isInForwardMode == nil {
-                        ThreadClosed(thread: thread)
-                        ThreadMentionSign(thread: thread)
-                            .id(thread.mentioned)
-                        ThreadUnreadCount(thread: thread, isSelected: isSelected)
-                            .id(thread.unreadCount)
-                    }
-                }
+                ThreadRowBottomContainer(thread: thread, isSelected: isSelected, isInForwardMode: isInForwardMode)
+                    .environmentObject(viewModel)
             }
             .contentShape(Rectangle())
         }
@@ -129,6 +118,30 @@ struct ThreadRow: View {
 
     private var status: (icon: UIImage, fgColor: Color)? {
         thread.messageStatusIcon(currentUserId: AppState.shared.user?.id)
+    }
+}
+
+struct ThreadRowBottomContainer: View {
+    let thread: Conversation
+    @EnvironmentObject var viewModel: ThreadsViewModel
+    let isSelected: Bool
+    let isInForwardMode: Bool?
+
+    var body: some View {
+        HStack {
+            SecondaryMessageView(isSelected: isSelected, thread: thread)
+                .id(thread.lastMessageVO?.id)
+                .environmentObject(viewModel.threadEventModels.first{$0.threadId == thread.id} ?? .init(threadId: thread.id ?? 0))
+            Spacer()
+            if isInForwardMode == nil {
+                ThreadClosed(thread: thread)
+                    .id(thread.closed == true)
+                ThreadMentionSign(thread: thread)
+                    .id(thread.mentioned == true)
+                ThreadUnreadCount(thread: thread, isSelected: isSelected)
+                    .id(thread.unreadCount ?? 0)
+            }
+        }
     }
 }
 
@@ -230,18 +243,16 @@ struct ThreadUnreadCount: View {
             }
         }
         .animation(.easeInOut, value: unreadCountString)
-//        .onReceive(thread.objectWillChange) { newValue in
-//            Task {
-//                await updateCountAsync()
-//            }
-//        }
         .task {
             await updateCountAsync()
         }
     }
 
     private func updateCountAsync() async {
-        unreadCountString = thread.unreadCountString ?? ""
+        let unreadCountString = thread.unreadCountString ?? ""
+        await MainActor.run {
+            self.unreadCountString = unreadCountString
+        }
     }
 }
 
