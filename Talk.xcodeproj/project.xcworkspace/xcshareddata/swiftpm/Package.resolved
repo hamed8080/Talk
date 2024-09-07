@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat.git",
       "state" : {
-        "revision" : "b6d69944b7e11f59c591da64feb6a4ef05d0401f",
-        "version" : "2.2.0"
+        "revision" : "99d66dfc167759ad3a9396f50cc1613abbc5059a",
+        "version" : "2.2.1"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-extensions",
       "state" : {
-        "revision" : "5c7c1fe8f1b03a34e59afb7d0c2bdd62800786af",
-        "version" : "2.2.0"
+        "revision" : "270fcf03a24679de87a2700d6e7a5f2c81c2e806",
+        "version" : "2.2.1"
       }
     },
     {
@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-transceiver",
       "state" : {
-        "revision" : "6fa98247fa7934614c53ccf3d2fe2d2efd703a5b",
-        "version" : "2.2.0"
+        "revision" : "d0d01ca5219e93d30610ec45f060f4920750ea9c",
+        "version" : "2.2.1"
       }
     },
     {

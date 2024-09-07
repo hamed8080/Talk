@@ -269,8 +269,6 @@
 		0570CC7C2AAEE98F001832E9 /* LaunchScreen.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */; };
 		0570CC812AAEE98F001832E9 /* Config.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD22AAEE98E001832E9 /* Config.json */; };
 		0570CC822AAEE98F001832E9 /* Config.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD22AAEE98E001832E9 /* Config.json */; };
-		0570CC832AAEE98F001832E9 /* (null) in Resources */ = {isa = PBXBuildFile; };
-		0570CC842AAEE98F001832E9 /* (null) in Resources */ = {isa = PBXBuildFile; };
 		0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD42AAEE98E001832E9 /* Assets.xcassets */; };
 		0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD42AAEE98E001832E9 /* Assets.xcassets */; };
 		0570CC872AAEE98F001832E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD62AAEE98E001832E9 /* LaunchScreen.storyboard */; };
@@ -283,8 +281,6 @@
 		0570CC8E2AAEE98F001832E9 /* Ringtone.aif in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBDB2AAEE98E001832E9 /* Ringtone.aif */; };
 		0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBDC2AAEE98E001832E9 /* MockData.json */; };
 		0570CC902AAEE98F001832E9 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBDC2AAEE98E001832E9 /* MockData.json */; };
-		0570CC912AAEE98F001832E9 /* (null) in Resources */ = {isa = PBXBuildFile; };
-		0570CC922AAEE98F001832E9 /* (null) in Resources */ = {isa = PBXBuildFile; };
 		0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
 		0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
 		0570CCB82AAEEE78001832E9 /* TalkExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 0570CCB72AAEEE78001832E9 /* TalkExtensions */; };
@@ -1408,9 +1404,7 @@
 				0570CC812AAEE98F001832E9 /* Config.json in Resources */,
 				0570CC892AAEE98F001832E9 /* sent_message.mp3 in Resources */,
 				0570CC7B2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
-				0570CC832AAEE98F001832E9 /* (null) in Resources */,
 				0570CC8D2AAEE98F001832E9 /* Ringtone.aif in Resources */,
-				0570CC912AAEE98F001832E9 /* (null) in Resources */,
 				0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */,
 				0570CC792AAEE98F001832E9 /* Localizable.strings in Resources */,
 				0570CC8B2AAEE98F001832E9 /* new_message.mp3 in Resources */,
@@ -1427,9 +1421,7 @@
 				0570CC822AAEE98F001832E9 /* Config.json in Resources */,
 				0570CC8A2AAEE98F001832E9 /* sent_message.mp3 in Resources */,
 				0570CC7C2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
-				0570CC842AAEE98F001832E9 /* (null) in Resources */,
 				0570CC8E2AAEE98F001832E9 /* Ringtone.aif in Resources */,
-				0570CC922AAEE98F001832E9 /* (null) in Resources */,
 				0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */,
 				0570CC7A2AAEE98F001832E9 /* Localizable.strings in Resources */,
 				0570CC8C2AAEE98F001832E9 /* new_message.mp3 in Resources */,

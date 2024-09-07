@@ -8,7 +8,6 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
-import PhotosUI
 import TalkModels
 import Chat
 
