@@ -104,17 +104,8 @@ struct LinkRowView: View {
         }.task {
             smallText = String(message.message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
             let string = message.message ?? ""
-            if let linkRegex = NSRegularExpression.urlRegEx {
-                let allRange = NSRange(string.startIndex..., in: string)
-                linkRegex.enumerateMatches(in: string, range: allRange) { (result, flag, _) in
-                    if let range = result?.range, let linkRange = Range(range, in: string) {
-                        let link = string[linkRange]
-                        if link == message.message ?? "" {
-                            smallText = nil
-                        }
-                        links.append(String(link))
-                    }
-                }
+            string.links().forEach { link in
+                links.append(link)
             }
         }
     }

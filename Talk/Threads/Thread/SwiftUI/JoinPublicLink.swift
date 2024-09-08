@@ -60,7 +60,8 @@ struct JoinToPublicConversationDialog: View {
 
             HStack(spacing: 16) {
                 Button {
-                    if let publicName = message.message?.replacingOccurrences(of: AppRoutes.joinLink, with: "").replacingOccurrences(of: "\u{200f}", with: "")  {
+                    let publicLink = message.message?.links().first(where: {$0.contains(AppRoutes.joinLink)})
+                    if let publicName = publicLink?.replacingOccurrences(of: AppRoutes.joinLink, with: "").replacingOccurrences(of: "\u{200f}", with: "")  {
                         AppState.shared.objectsContainer.threadsVM.joinPublicGroup(publicName)
                     }
                     appOverlayVM.dialogView = nil

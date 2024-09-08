@@ -20,11 +20,8 @@ public extension NSMutableAttributedString {
         style.lineSpacing = 1
         style.paragraphSpacing = 1
         style.lineBreakMode = .byWordWrapping
-        addAttributes([
-            NSAttributedString.Key.paragraphStyle: style,
-            NSAttributedString.Key.foregroundColor : color,
-            NSAttributedString.Key.font: NSMutableAttributedString.bodyFont ?? .systemFont(ofSize: 14)
-        ], range: allRange)
+        let attributes = defalutTextAttributes(style: style, color: color)
+        addAttributes(attributes, range: allRange)
     }
 
     func addLinkColor(_ color: UIColor = .blue) {
@@ -35,16 +32,10 @@ public extension NSMutableAttributedString {
                     let urlString = string[urlRange]
                     let sanitizedURL = String(urlString).trimmingCharacters(in: .whitespacesAndNewlines)
                     let encodedValue = sanitizedURL.data(using: .utf8)?.base64EncodedString()
-                    let link = NSURL(string: "openURL:url?encodedValue=\(encodedValue ?? "")")
-                    var attributedList: [NSAttributedString.Key : Any] = [
-                        NSAttributedString.Key.foregroundColor: color,
-                        NSAttributedString.Key.underlineColor: color,
-                        NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue
-                    ]
-                    if let link = link {
-                        attributedList[NSAttributedString.Key.link] = link
+                    if let link = NSURL(string: "openURL:url?encodedValue=\(encodedValue ?? "")") {
+                        let attributedList = linkColorAttributes(color: color, link: link)
+                        addAttributes(attributedList, range: range)
                     }
-                    addAttributes(attributedList, range: range)
                 }
             }
         }
@@ -58,14 +49,29 @@ public extension NSMutableAttributedString {
                     let userName = string[userNameRange]
                     let sanitizedUserName = String(userName).trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "@", with: "")
                     if let link = NSURL(string: "showUser:User?userName=\(sanitizedUserName)") {
-                        addAttributes([
-                            NSAttributedString.Key.link: link,
-                            NSAttributedString.Key.foregroundColor: color,
-                            NSAttributedString.Key.font: NSMutableAttributedString.userMentionFont ?? .systemFont(ofSize: 14, weight: .bold)
-                        ], range: range)
+                        addAttributes(userColorAttributes(link: link, color: color), range: range)
                     }
                 }
             }
         }
+    }
+
+    private func defalutTextAttributes(style: NSMutableParagraphStyle, color: UIColor) -> [NSAttributedString.Key: Any] {
+        [NSAttributedString.Key.paragraphStyle: style,
+        NSAttributedString.Key.foregroundColor : color,
+        NSAttributedString.Key.font: NSMutableAttributedString.bodyFont ?? .systemFont(ofSize: 14)]
+    }
+
+    private func userColorAttributes(link: NSURL, color: UIColor) -> [NSAttributedString.Key: Any] {
+        [NSAttributedString.Key.link: link,
+         NSAttributedString.Key.foregroundColor: color,
+         NSAttributedString.Key.font: NSMutableAttributedString.userMentionFont ?? .systemFont(ofSize: 14, weight: .bold)]
+    }
+
+    private func linkColorAttributes(color: UIColor, link: NSURL) -> [NSAttributedString.Key: Any] {
+        [NSAttributedString.Key.foregroundColor: color,
+         NSAttributedString.Key.underlineColor: color,
+         NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
+         NSAttributedString.Key.link: link]
     }
 }

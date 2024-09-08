@@ -160,3 +160,20 @@ public extension String {
         return NSLocalizedString(self, bundle: Language.preferedBundle, comment: "")
     }
 }
+
+
+public extension String {
+    func links() -> [String] {
+        var links: [String] = []
+        if let linkRegex = NSRegularExpression.urlRegEx {
+            let allRange = NSRange(startIndex..., in: self)
+            linkRegex.enumerateMatches(in: self, range: allRange) { (result, flag, _) in
+                if let range = result?.range, let linkRange = Range(range, in: self) {
+                    let link = self[linkRange]
+                    links.append(String(link))
+                }
+            }
+        }
+        return links
+    }
+}
