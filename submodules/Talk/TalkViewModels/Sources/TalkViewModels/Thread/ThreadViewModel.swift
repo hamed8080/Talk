@@ -120,14 +120,14 @@ public final class ThreadViewModel: Identifiable, Hashable {
     public func sendStartTyping(_ newValue: String) {
         if threadId == LocalId.emptyThread.rawValue, threadId != 0 { return }
         if newValue.isEmpty == false {
-            ChatManager.activeInstance?.system.snedStartTyping(threadId: threadId)
+            ChatManager.activeInstance?.system.sendStartTyping(threadId: threadId)
         } else {
             ChatManager.activeInstance?.system.sendStopTyping()
         }
     }
 
     public func sendSignal(_ signalMessage: SignalMessageType) {
-        ChatManager.activeInstance?.system.sendSignalMessage(req: .init(signalType: signalMessage, threadId: threadId))
+        ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: threadId))
     }
 
     public func clearCacheFile(message: Message) {
