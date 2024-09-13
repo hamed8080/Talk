@@ -6,17 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/additive",
       "state" : {
-        "revision" : "b720028de3dcc7eef166471154aeefae47e64ba5",
-        "version" : "1.2.3"
-      }
-    },
-    {
-      "identity" : "additive-ui",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/additive-ui",
-      "state" : {
-        "revision" : "24b1062f29d14ccd42a5733087b32735457cc35d",
-        "version" : "1.2.3"
+        "revision" : "08eb3964a0b6b76e1ebe76c2fe2910c88c0c9005",
+        "version" : "1.2.4"
       }
     },
     {
@@ -24,17 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/async",
       "state" : {
-        "revision" : "13719c34b75b4a405e9cb08398f033523b021881",
-        "version" : "2.2.0"
-      }
-    },
-    {
-      "identity" : "chat",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/chat.git",
-      "state" : {
-        "revision" : "dbaddd8522bbb163bebe5291e704b6abb80668d0",
-        "version" : "2.2.2"
+        "revision" : "fe0bcb99b48a9044835fb818bd82abea8543ad0b",
+        "version" : "2.2.1"
       }
     },
     {
@@ -42,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-cache",
       "state" : {
-        "revision" : "4fffd5292fbfc48f8f5d868adf5911eda9fabc08",
-        "version" : "2.2.0"
+        "revision" : "789b5b0d7c29dd31a483c8901288cc877f28f236",
+        "version" : "2.2.1"
       }
     },
     {
@@ -51,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-core",
       "state" : {
-        "revision" : "43ad71b0a5c882fe0854895a9636a7e747f6d145",
-        "version" : "2.2.0"
+        "revision" : "369f8024ffca6777a8b16e9401aad3e5cd9b5aa9",
+        "version" : "2.2.1"
       }
     },
     {
@@ -60,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-dto",
       "state" : {
-        "revision" : "bc742d8e71773aa4908f4544bbde4cabd643a204",
-        "version" : "2.2.0"
+        "revision" : "c26d0f950a0ba53891e31bf3bf856313b15ea629",
+        "version" : "2.2.1"
       }
     },
     {
@@ -69,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-extensions",
       "state" : {
-        "revision" : "270fcf03a24679de87a2700d6e7a5f2c81c2e806",
-        "version" : "2.2.1"
+        "revision" : "393381a28a667d8afbb7d543ae6e69bdd5a6701b",
+        "version" : "2.2.2"
       }
     },
     {
@@ -78,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-models",
       "state" : {
-        "revision" : "83f4a61ec8819067185bca66775d5a350c1cd97b",
-        "version" : "2.2.0"
+        "revision" : "abaa673db846eaf4461b3aafda0732f4d1f54077",
+        "version" : "2.2.1"
       }
     },
     {
@@ -87,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-transceiver",
       "state" : {
-        "revision" : "d0d01ca5219e93d30610ec45f060f4920750ea9c",
-        "version" : "2.2.1"
+        "revision" : "eb6b1d8c7dd9b66380d4799a87a5eacf745778b0",
+        "version" : "2.2.2"
       }
     },
     {
@@ -105,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/logger",
       "state" : {
-        "revision" : "abd73d1cedcbc70a2cd66e997376ea036eee69c9",
-        "version" : "1.2.3"
+        "revision" : "1fe5c0a2083b1c5ebbb515a717ed6be76a387b7f",
+        "version" : "1.2.4"
       }
     },
     {
@@ -114,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/mocks",
       "state" : {
-        "revision" : "7ae7a47e5962b02b3c6e64207d6f8a6c0400700f",
-        "version" : "1.2.4"
+        "revision" : "c3e8ea900b99f91891d3df28fa5b71f1d884639d",
+        "version" : "1.2.5"
       }
     },
     {
