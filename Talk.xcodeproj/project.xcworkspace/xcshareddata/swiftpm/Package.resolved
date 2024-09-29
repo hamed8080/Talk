@@ -11,12 +11,30 @@
       }
     },
     {
+      "identity" : "additive-ui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://pubgi.sandpod.ir/chat/ios/additive-ui",
+      "state" : {
+        "revision" : "24b1062f29d14ccd42a5733087b32735457cc35d",
+        "version" : "1.2.3"
+      }
+    },
+    {
       "identity" : "async",
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/async",
       "state" : {
         "revision" : "fe0bcb99b48a9044835fb818bd82abea8543ad0b",
         "version" : "2.2.1"
+      }
+    },
+    {
+      "identity" : "chat",
+      "kind" : "remoteSourceControl",
+      "location" : "https://pubgi.sandpod.ir/chat/ios/chat.git",
+      "state" : {
+        "revision" : "d5d3dc13114656bc1f919ccb0c3456b7f809e8b9",
+        "version" : "2.2.3"
       }
     },
     {

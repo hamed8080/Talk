@@ -15,8 +15,6 @@ struct RequestKeys {
     public let MORE_BOTTOM_FIRST_SCENARIO_KEY: String
     public let MORE_TOP_SECOND_SCENARIO_KEY: String
     public let MORE_BOTTOM_FIFTH_SCENARIO_KEY: String
-    public let TO_TIME_KEY: String
-    public let FROM_TIME_KEY: String
     public let FETCH_BY_OFFSET_KEY: String
 
     init() {
@@ -27,8 +25,6 @@ struct RequestKeys {
         MORE_BOTTOM_FIRST_SCENARIO_KEY = "MORE-BOTTOM-FIRST-SCENARIO-\(objectId)"
         MORE_TOP_SECOND_SCENARIO_KEY = "MORE-TOP-SECOND-SCENARIO-\(objectId)"
         MORE_BOTTOM_FIFTH_SCENARIO_KEY = "MORE-BOTTOM-FIFTH-SCENARIO-\(objectId)"
-        TO_TIME_KEY = "TO-TIME-\(objectId)"
-        FROM_TIME_KEY = "FROM-TIME-\(objectId)"
         FETCH_BY_OFFSET_KEY = "FETCH-BY-OFFSET-\(objectId)"
         self.objectId = objectId
     }

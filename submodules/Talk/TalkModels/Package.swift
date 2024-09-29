@@ -4,7 +4,7 @@
 import PackageDescription
 import Foundation
 
-let useLocalDependency = false
+let useLocalDependency = true
 
 let local: [Package.Dependency] = [
     .package(path: "../../SDK/Chat"),
