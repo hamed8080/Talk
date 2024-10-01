@@ -14,6 +14,13 @@ struct DetailCellPhoneNumberSection: View {
     var body: some View {
         if let cellPhoneNumber = viewModel.cellPhoneNumber.validateString {
             SectionRowContainer(key: "Participant.Search.Type.cellphoneNumber", value: cellPhoneNumber)
+                .onTapGesture {
+                    UIPasteboard.general.string = cellPhoneNumber
+                    let icon = Image(systemName: "phone")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.App.textPrimary)
+                    AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.copied", messageColor: Color.App.textPrimary)
+                }
         }
     }
 }

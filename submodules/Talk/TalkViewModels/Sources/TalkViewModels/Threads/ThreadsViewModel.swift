@@ -38,6 +38,9 @@ public final class ThreadsViewModel: ObservableObject {
     internal let GET_NOT_ACTIVE_THREADS_KEY: String
     internal let LEAVE_KEY: String
 
+    // MARK: Computed properties
+    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+
     public init() {
         GET_THREADS_KEY = "GET-THREADS-\(objectId)"
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
@@ -75,7 +78,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     private func updateActiveConversationOnNewMessage(_ response: ChatResponse<Message>, _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
-        let activeViewModel = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
+        let activeViewModel = navVM.presentedThreadViewModel?.viewModel
         if response.subjectId == activeViewModel?.threadId, let message = response.result {
             activeViewModel?.updateUnreadCount(updatedConversation.unreadCount)
             Task {
@@ -92,9 +95,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
-        if firstSuccessResponse == false, status == .connected {
-           await refresh()
-        } else if status == .connected, firstSuccessResponse == true {
+        if status == .connected {
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
             await refresh()
@@ -160,7 +161,7 @@ public final class ThreadsViewModel: ObservableObject {
     /// So the ThreadViewModel which contains this thread object have different refrence than what's inside the array
     private func updatePresentedViewModels(_ conversations: [Conversation]) {
         conversations.forEach { conversation in
-            AppState.shared.objectsContainer.navVM.updateConversationInViewModel(conversation)
+            navVM.updateConversationInViewModel(conversation)
         }
     }
 
@@ -171,9 +172,9 @@ public final class ThreadsViewModel: ObservableObject {
                 threads[index].reactionStatus = thread.reactionStatus ?? .enable
             }
 
-            let presendtedId = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.thread.id
+            let presendtedId = navVM.presentedThreadViewModel?.viewModel.thread.id
             if let thread = response.result?.first(where: {$0.id == presendtedId}) {
-                AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.thread = thread
+                navVM.presentedThreadViewModel?.viewModel.thread = thread
             }
             await appendThreads(threads: threads)
             await asyncAnimateObjectWillChange()
@@ -182,7 +183,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func refresh() async {
         cache = false
-        await silenClear()
+        await silentClear()
         await getThreads()
         cache = true
     }
@@ -240,7 +241,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     @MainActor
     private func insertIntoParticipantViewModel(_ response: ChatResponse<Conversation>) async {
-        if let threadVM = AppState.shared.objectsContainer.navVM.viewModel(for: response.result?.id ?? -1) {
+        if let threadVM = navVM.viewModel(for: response.result?.id ?? -1) {
             let addedParticipants = response.result?.participants ?? []
             threadVM.participantsViewModel.onAdded(addedParticipants)
 //            threadVM.animateObjectWillChange()
@@ -290,11 +291,10 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     @MainActor
-    public func silenClear() async {
+    public func silentClear() async {
         if firstSuccessResponse {
             isSilentClear = true
         }
-        isInCacheMode = false
         lazyList.reset()
         animateObjectWillChange()
     }
@@ -403,7 +403,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index] = arrItem
 
             // Update active thread if it is open
-            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
+            let activeThread = navVM.viewModel(for: threadId)
             activeThread?.thread = arrItem
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
             activeThread?.delegate?.refetchImageOnUpdateInfo()
@@ -485,20 +485,23 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onJoinedToPublicConversatin(_ response: ChatResponse<Conversation>) {
+    /// There is a chance another user join to this public group, so we have to check if the thread is already exists.
+    public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) {
         if let conversation = response.result {
-            threads.append(conversation)
-            sort()
-            if conversation.participants?.first?.id == AppState.shared.user?.id {
-                AppState.shared.showThread(conversation)
+            if !threads.contains(where: {$0.id == conversation.id}) {
+                threads.append(conversation)
+                if conversation.participants?.first?.id == AppState.shared.user?.id {
+                    AppState.shared.showThread(conversation)
+                }
             }
+            sort()
             animateObjectWillChange()
         }
     }
 
     func onLeftThread(_ response: ChatResponse<User>) {
         let isMe = response.result?.id == AppState.shared.user?.id
-        let threadVM = AppState.shared.objectsContainer.navVM.viewModel(for: response.subjectId ?? -1)
+        let threadVM = navVM.viewModel(for: response.subjectId ?? -1)
         let deletedUserId = response.result?.id
         let participant = threadVM?.participantsViewModel.participants.first(where: {$0.id == deletedUserId})
         if isMe, let conversationId = response.subjectId {
@@ -514,7 +517,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].closed = true
             animateObjectWillChange()
 
-            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
+            let activeThread = navVM.viewModel(for: threadId)
             activeThread?.thread = threads[index]
             activeThread?.delegate?.onConversationClosed()
         }

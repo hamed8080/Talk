@@ -19,9 +19,9 @@ struct DetailSectionContainer: View {
                     .environmentObject(AppState.shared.objectsContainer.appOverlayVM) // for click on thread image
             }
             if let participantViewModel = viewModel.participantDetailViewModel {
-                DetailUserNameSection()
-                    .environmentObject(participantViewModel)
                 DetailCellPhoneNumberSection()
+                    .environmentObject(participantViewModel)
+                DetailUserNameSection()
                     .environmentObject(participantViewModel)
             }
             DetailPublicLinkSection()
