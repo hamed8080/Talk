@@ -36,6 +36,11 @@ extension ThreadsViewModel: MuteThreadProtocol {
         if let index = firstIndex(threadId) {
             threads[index].mute = mute
             sort()
+            let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+            if activeVM?.viewModel.threadId == threadId {
+                activeVM?.viewModel.thread.mute = mute
+                activeVM?.viewModel.delegate?.muteChanged()
+            }
             animateObjectWillChange()
         }
     }

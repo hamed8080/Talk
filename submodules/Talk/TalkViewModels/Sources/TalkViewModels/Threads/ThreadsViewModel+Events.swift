@@ -154,7 +154,7 @@ extension ThreadsViewModel {
         case .lastSeenMessageUpdated(let response):
             onLastSeenMessageUpdated(response)
         case .joined(let response):
-            onJoinedToPublicConversatin(response)
+            onJoinedToPublicConversation(response)
         case .left(let response):
             onLeftThread(response)
         case .closed(let response):

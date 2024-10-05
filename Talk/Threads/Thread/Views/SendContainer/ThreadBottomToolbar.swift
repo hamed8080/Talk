@@ -175,4 +175,8 @@ public final class ThreadBottomToolbar: UIStackView {
         super.layoutSubviews()
         updateHeightWithDelay()
     }
+
+    public func muteChanged() {
+        muteBarView.set()
+    }
 }

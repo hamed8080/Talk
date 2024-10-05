@@ -22,7 +22,7 @@ public final class FindPartnerParticipantViewModel {
 
     public func findPartnerBy(threadId: Int, completion: CompletionHandler? = nil) {
         self.completion = completion
-        let req = ThreadParticipantRequest(threadId: threadId, offset: 0, count: 2)
+        let req = ThreadParticipantRequest(threadId: threadId, offset: 0, count: 20)
         RequestsManager.shared.append(prepend: id, value: req)
         ChatManager.activeInstance?.conversation.participant.get(req)
     }

@@ -2,56 +2,11 @@
   "originHash" : "495b90470d07c23fa5ab47816c2ba7cff2178df5094a93eb3826b2fd1defc6e5",
   "pins" : [
     {
-      "identity" : "additive",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/additive",
-      "state" : {
-        "revision" : "08eb3964a0b6b76e1ebe76c2fe2910c88c0c9005",
-        "version" : "1.2.4"
-      }
-    },
-    {
-      "identity" : "additive-ui",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/additive-ui",
-      "state" : {
-        "revision" : "24b1062f29d14ccd42a5733087b32735457cc35d",
-        "version" : "1.2.3"
-      }
-    },
-    {
       "identity" : "async",
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/async",
       "state" : {
         "revision" : "fe0bcb99b48a9044835fb818bd82abea8543ad0b",
-        "version" : "2.2.1"
-      }
-    },
-    {
-      "identity" : "chat",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/chat.git",
-      "state" : {
-        "revision" : "d5d3dc13114656bc1f919ccb0c3456b7f809e8b9",
-        "version" : "2.2.3"
-      }
-    },
-    {
-      "identity" : "chat-cache",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/chat-cache",
-      "state" : {
-        "revision" : "789b5b0d7c29dd31a483c8901288cc877f28f236",
-        "version" : "2.2.1"
-      }
-    },
-    {
-      "identity" : "chat-core",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/chat-core",
-      "state" : {
-        "revision" : "369f8024ffca6777a8b16e9401aad3e5cd9b5aa9",
         "version" : "2.2.1"
       }
     },
@@ -65,30 +20,12 @@
       }
     },
     {
-      "identity" : "chat-extensions",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/chat-extensions",
-      "state" : {
-        "revision" : "393381a28a667d8afbb7d543ae6e69bdd5a6701b",
-        "version" : "2.2.2"
-      }
-    },
-    {
       "identity" : "chat-models",
       "kind" : "remoteSourceControl",
       "location" : "https://pubgi.sandpod.ir/chat/ios/chat-models",
       "state" : {
         "revision" : "abaa673db846eaf4461b3aafda0732f4d1f54077",
         "version" : "2.2.1"
-      }
-    },
-    {
-      "identity" : "chat-transceiver",
-      "kind" : "remoteSourceControl",
-      "location" : "https://pubgi.sandpod.ir/chat/ios/chat-transceiver",
-      "state" : {
-        "revision" : "eb6b1d8c7dd9b66380d4799a87a5eacf745778b0",
-        "version" : "2.2.2"
       }
     },
     {

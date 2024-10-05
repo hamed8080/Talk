@@ -76,6 +76,7 @@ public protocol BottomToolbarDelegate {
     func showForwardPlaceholder(show: Bool)
     func showReplyPrivatelyPlaceholder(show: Bool)
     func onConversationClosed()
+    func muteChanged()
 }
 
 public protocol LoadingDelegate {

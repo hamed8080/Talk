@@ -178,13 +178,18 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func updateImageTo(_ image: UIImage?) {
-        UIView.transition(with: threadImageButton.imageView, duration: 0.2, options: .transitionCrossDissolve) {
-            self.threadImageButton.imageView.image = image
+        UIView.transition(with: threadImageButton.imageView, duration: 0.2, options: .transitionCrossDissolve) { [weak self] in
+            guard let self = self else { return }
+            threadImageButton.imageView.image = image
             let isEmpty = image == nil || image?.size.width ?? 0 == 0
             if isEmpty {
                 Task { [weak self] in
                     await self?.setSplitedText()
+                    let isImageReady = self?.imageLoader?.isImageReady == true
+                    self?.hideImageUserNameSplitedLable(isHidden: isImageReady)
                 }
+            } else {
+                hideImageUserNameSplitedLable(isHidden: true)
             }
         }
     }
@@ -253,5 +258,9 @@ public class CustomConversationNavigationBar: UIView {
         super.traitCollectionDidChange(previousTraitCollection)
         let showFullScreenButton = traitCollection.horizontalSizeClass == .regular && traitCollection.userInterfaceIdiom == .pad
         fullScreenButton.setIsHidden(!showFullScreenButton)
+    }
+
+    private func hideImageUserNameSplitedLable(isHidden: Bool) {
+        threadTitleSupplementary.setIsHidden(isHidden)
     }
 }

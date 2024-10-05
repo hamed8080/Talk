@@ -180,6 +180,7 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
         if !response.cache, response.pop(prepend: P2P_PARTNER_CONTACT_KEY) != nil, let contact = response.result?.first {
             self.partnerContact = contact
             participant.contactId = contact.id
+            participant.cellphoneNumber = participant.cellphoneNumber ?? contact.cellphoneNumber
             animateObjectWillChange()
         }
     }

@@ -164,13 +164,14 @@ public final class ThreadReactionViewModel {
 
         // Update UI of each message
         let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
-        await MainActor.run { [weak self, indexPaths] in
-            self?.threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
+        if !indexPaths.isEmpty {
+            await MainActor.run { [weak self, indexPaths] in
+                self?.threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
+            }
         }
 
-        let isLastMdessageReactionUpdated = isLastMdessageReactionUpdated(reactions)
-
-        if wasAtBottom, isLastMdessageReactionUpdated {
+        let isLastMessageReactionUpdated = isLastMdessageReactionUpdated(reactions)
+        if wasAtBottom, isLastMessageReactionUpdated {
             try? await Task.sleep(for: .seconds(0.2))
             await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }

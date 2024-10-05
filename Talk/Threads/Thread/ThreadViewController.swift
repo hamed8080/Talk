@@ -497,6 +497,10 @@ extension ThreadViewController: BottomToolbarDelegate {
     func showReplyPrivatelyPlaceholder(show: Bool) {
         sendContainer.showReplyPrivatelyPlaceholder(show: show)
     }
+
+    func muteChanged() {
+        sendContainer.muteChanged()
+    }
 }
 
 // MARK: Sheets Delegate
