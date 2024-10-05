@@ -30,12 +30,7 @@ struct ThreadContentList: View {
                     }
                 }
             }
-            /// The if below is for shimmer
-            ListLoadingView(isLoading: .constant(threadsVM.lazyList.isLoading && threadsVM.firstSuccessResponse == true))
-                .id(UUID())
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .listRowInsets(.zero)
+            loadingView
         }
         .listStyle(.plain)
         .environment(\.defaultMinListRowHeight, 0)
@@ -54,6 +49,15 @@ struct ThreadContentList: View {
                 await threadsVM.refresh()
             }
         }
+    }
+
+
+    private var loadingView: some View {
+        ListLoadingView(isLoading: .constant(threadsVM.lazyList.isLoading && threadsVM.firstSuccessResponse == true))
+            .id(UUID())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(.zero)
     }
 }
 

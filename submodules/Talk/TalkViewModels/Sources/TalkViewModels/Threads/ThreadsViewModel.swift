@@ -124,9 +124,13 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func onThreads(_ response: ChatResponse<[Conversation]>) async {
+        var wasSilentClear = isSilentClear
         if isSilentClear {
             threads.removeAll()
             isSilentClear = false
+            // We have got to wait to update the UI with removed items then append and refresh the UI with new elements, unless we will end up with wrong scroll position after update
+            animateObjectWillChange()
+            await try? Task.sleep(for: .milliseconds(200))
         }
         var threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil}) ?? []
         threads.enumerated().forEach { index, thread in
@@ -136,7 +140,7 @@ public final class ThreadsViewModel: ObservableObject {
         let hasAnyResults = response.result?.count ?? 0 > 0
 
         /// It only sets sorted pins once because if we have 5 pins, they are in the first response. So when the user scrolls down the list will not be destroyed every time.
-        if let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty {
+        if let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty || wasSilentClear {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: serverSortedPinIds)
         }
