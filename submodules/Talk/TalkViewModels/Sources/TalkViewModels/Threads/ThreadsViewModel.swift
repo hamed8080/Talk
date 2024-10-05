@@ -78,11 +78,13 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     private func updateActiveConversationOnNewMessage(_ response: ChatResponse<Message>, _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
-        let activeViewModel = navVM.presentedThreadViewModel?.viewModel
-        if response.subjectId == activeViewModel?.threadId, let message = response.result {
-            activeViewModel?.updateUnreadCount(updatedConversation.unreadCount)
+        let activeVM = navVM.presentedThreadViewModel?.viewModel
+        let newMSG = response.result
+        let isMeJoinedPublic = newMSG?.messageType == .participantJoin && newMSG?.participant?.id == AppState.shared.user?.id
+        if response.subjectId == activeVM?.threadId, let message = newMSG, !isMeJoinedPublic {
+            activeVM?.updateUnreadCount(updatedConversation.unreadCount)
             Task {
-                await activeViewModel?.historyVM.onNewMessage(message, oldConversation, updatedConversation)
+                await activeVM?.historyVM.onNewMessage(message, oldConversation, updatedConversation)
             }
         }
     }
