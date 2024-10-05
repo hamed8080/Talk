@@ -140,9 +140,13 @@ public final class ThreadsViewModel: ObservableObject {
         let hasAnyResults = response.result?.count ?? 0 > 0
 
         /// It only sets sorted pins once because if we have 5 pins, they are in the first response. So when the user scrolls down the list will not be destroyed every time.
-        if let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty || wasSilentClear {
+        if !response.cache, let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty || wasSilentClear {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: serverSortedPinIds)
+            userDefaultSortedPins = serverSortedPins
+        } else if response.cache {
+            serverSortedPins.removeAll()
+            serverSortedPins.append(contentsOf: userDefaultSortedPins)
         }
         await appendThreads(threads: threads)
         updatePresentedViewModels(threads)
@@ -399,8 +403,8 @@ public final class ThreadsViewModel: ObservableObject {
                 arrItem.image = metadatImagelink
             }
             arrItem.title = replacedEmoji
-            arrItem.closed = thread.closed
-            arrItem.time = thread.time
+            arrItem.closed = thread.closed ?? arrItem.closed
+            arrItem.time = thread.time ?? arrItem.time
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
             arrItem.description = thread.description
 
@@ -572,6 +576,15 @@ public final class ThreadsViewModel: ObservableObject {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             threads[threadIndex].pinMessage = nil
             animateObjectWillChange()
+        }
+    }
+
+    private var userDefaultSortedPins: [Int] {
+        get {
+            UserDefaults.standard.value(forKey: "SERVER_PINS") as? [Int] ?? []
+        }
+        set {
+            UserDefaults.standard.setValue(newValue, forKey: "SERVER_PINS")
         }
     }
 
