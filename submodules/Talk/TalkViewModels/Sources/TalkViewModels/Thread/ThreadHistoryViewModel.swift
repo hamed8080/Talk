@@ -946,6 +946,7 @@ extension ThreadHistoryViewModel {
 
     private func appenedUnreadMessagesBannerIfNeeed() async {
         guard
+            thread.unreadCount ?? 0 > 0, // in self thread it's essential to check the value always, if not we will always get unread banner.
             let tuples = sections.message(for: thread.lastSeenMessageId),
             let viewModel = viewModel
         else { return }
