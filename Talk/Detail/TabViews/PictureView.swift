@@ -35,14 +35,7 @@ struct PictureView: View {
         .environmentObject(viewModel)
         .background(frameReader)
         .overlay(alignment: .top) {
-            if !viewModel.isLoading && viewModel.messages.count == 0 && (!viewModel.hasNext || detailViewModel.threadVM?.isSimulatedThared == true) {
-                HStack {
-                    Spacer()
-                    EmptyResultViewInTabs()
-                        .padding(.top, 9)
-                    Spacer()
-                }
-            }
+            emptyTabView
         }
         .onAppear {
             onLoad() //it is essential to kick of onload
@@ -83,6 +76,22 @@ struct PictureView: View {
             }
         }
     }
+
+    @ViewBuilder
+    private var emptyTabView: some View {
+        if isEmptyTab {
+            HStack {
+                Spacer()
+                EmptyResultViewInTabs()
+                    .padding(.top, 9)
+                Spacer()
+            }
+        }
+    }
+
+    private var isEmptyTab: Bool {
+        !viewModel.isLoading && viewModel.messages.count == 0 && (!viewModel.hasNext || detailViewModel.threadVM?.isSimulatedThared == true)
+    }
 }
 
 struct MessageListPictureView: View {
@@ -106,36 +115,45 @@ struct MessageListPictureView: View {
 }
 
 struct PictureRowView: View {
-    let message: Message
     @EnvironmentObject var downloadVM: DownloadFileViewModel
-    var threadVM: ThreadViewModel? { viewModel.threadVM }
     @EnvironmentObject var viewModel: ThreadDetailViewModel
-    let itemWidth: CGFloat
     @EnvironmentObject var contextVM: ContextMenuModel
+
+    let message: Message
+    let itemWidth: CGFloat
+    var threadVM: ThreadViewModel? { viewModel.threadVM }
 
     var body: some View {
         DownloadPictureButtonView(itemWidth: itemWidth)
             .frame(width: itemWidth, height: itemWidth)
             .clipped()
             .onTapGesture {
-                if !contextVM.isPresented {
-                    AppState.shared.objectsContainer.appOverlayVM.galleryMessage = message
-                }
+                onTapped()
             }
             .customContextMenu(id: message.id, self: self.environmentObject(downloadVM)) {
-                VStack {
-                    ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
-                        Task {
-                            await threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
-                            viewModel.dismiss = true
-                        }
-                    }
-                }
-                .foregroundColor(.primary)
-                .frame(width: 196)
-                .background(MixMaterialBackground())
-                .clipShape(RoundedRectangle(cornerRadius:((12))))
+                contextMenuView
             }
+    }
+
+    private func onTapped() {
+        if !contextVM.isPresented {
+            AppState.shared.objectsContainer.appOverlayVM.galleryMessage = message
+        }
+    }
+
+    private var contextMenuView: some View {
+        VStack {
+            ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
+                Task {
+                    await threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
+                    viewModel.dismiss = true
+                }
+            }
+        }
+        .foregroundColor(.primary)
+        .frame(width: 196)
+        .background(MixMaterialBackground())
+        .clipShape(RoundedRectangle(cornerRadius:((12))))
     }
 }
 
@@ -147,49 +165,67 @@ struct DownloadPictureButtonView: View {
     var body: some View {
         switch viewModel.state {
         case .completed:
-            if let fileURL = viewModel.fileURL, let scaledImage = fileURL.imageScale(width: 128)?.image {
-                Image(cgImage: scaledImage)
+            scaledImageView
+        case .undefined, .thumbnail:
+            thumbnailView
+        default:
+            emptyImageView
+        }
+    }
+
+    @ViewBuilder
+    private var scaledImageView: some View {
+        if let fileURL = viewModel.fileURL, let scaledImage = fileURL.imageScale(width: 128)?.image {
+            Image(cgImage: scaledImage)
+                .resizable()
+                .frame(width: itemWidth, height: itemWidth)
+                .scaledToFit()
+                .clipped()
+                .transition(.opacity)
+                .contentShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private var thumbnailView: some View {
+        ZStack {
+            if let data = viewModel.thumbnailData, let image = UIImage(data: data) {
+                Image(uiImage: image)
                     .resizable()
+                    .scaledToFill()
                     .frame(width: itemWidth, height: itemWidth)
-                    .scaledToFit()
                     .clipped()
-                    .transition(.opacity)
+                    .zIndex(0)
+                    .background(Color.App.dividerSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius:(8)))
                     .contentShape(RoundedRectangle(cornerRadius: 8))
             }
-        case .undefined, .thumbnail:
-            ZStack {
-                if let data = viewModel.thumbnailData, let image = UIImage(data: data) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: itemWidth, height: itemWidth)
-                        .clipped()
-                        .zIndex(0)
-                        .background(Color.App.dividerSecondary)
-                        .clipShape(RoundedRectangle(cornerRadius:(8)))
-                        .contentShape(RoundedRectangle(cornerRadius: 8))
-                }
-            }
+        }
+        .frame(width: itemWidth, height: itemWidth)
+        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .transition(.opacity)
+        .task {
+            await prepareThumbnail()
+        }
+    }
+
+    private var emptyImageView: some View {
+        Rectangle()
+            .fill(Color.App.bgSecondary)
             .frame(width: itemWidth, height: itemWidth)
+            .clipShape(RoundedRectangle(cornerRadius:(8)))
             .contentShape(RoundedRectangle(cornerRadius: 8))
             .transition(.opacity)
-            .onAppear {
-                if viewModel.isInCache {
-                    viewModel.state = .completed
-                    viewModel.animateObjectWillChange()
-                } else {
-                    if message?.isImage == true, !viewModel.isInCache, viewModel.thumbnailData == nil {
-                        viewModel.downloadBlurImage(quality: 1.0, size: .MEDIUM)
-                    }
-                }
+    }
+
+    private func prepareThumbnail() async {
+        await viewModel.setup()
+        if viewModel.isInCache {
+            viewModel.state = .completed
+            viewModel.animateObjectWillChange()
+        } else {
+            if message?.isImage == true, !viewModel.isInCache, viewModel.thumbnailData == nil {
+                viewModel.downloadBlurImage(quality: 1.0, size: .MEDIUM)
             }
-        default:
-            Rectangle()
-                .fill(Color.App.bgSecondary)
-                .frame(width: itemWidth, height: itemWidth)
-                .clipShape(RoundedRectangle(cornerRadius:(8)))
-                .contentShape(RoundedRectangle(cornerRadius: 8))
-                .transition(.opacity)
         }
     }
 }
