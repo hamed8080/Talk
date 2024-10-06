@@ -151,7 +151,8 @@ extension ThreadHistoryViewModel {
     @HistoryActor
     private func onMoreTopFirstScenario(_ response: HistoryResponse) async {
         await onMoreTop(response)
-        /* 
+        delegate?.onScenario()
+        /*
          It'd be better to go to the last message in the sections, instead of finding the item.
          If the last message has been deleted, we can not find the message.
          Consequently, the scroll to the last message won't work.
@@ -227,6 +228,7 @@ extension ThreadHistoryViewModel {
         appendSort(viewModels)
         delegate?.reload()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
+        delegate?.onScenario()
 
         /// 4- Set whether it has more messages at the bottom or not.
         await setHasMoreBottom(response)
@@ -251,7 +253,6 @@ extension ThreadHistoryViewModel {
             log("The message id to move to is not exist in the list")
         }
 
-        await setIsAtBottom(newValue: false)
         showCenterLoading(true)
         showTopLoading(false)
 
@@ -268,6 +269,7 @@ extension ThreadHistoryViewModel {
 
     private func onMoveToTime(_ response: HistoryResponse, messageId: Int, highlight: Bool) async {
         let messages = response.result ?? []
+        delegate?.onScenario()
         // Update the UI and fetch reactions the rows at top part.
         delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
         await onMoreTop(response, isMiddleFetcher: true)
@@ -304,6 +306,7 @@ extension ThreadHistoryViewModel {
         appendSort(viewModels)
         isFetchedServerFirstResponse = true
         delegate?.reload()
+        delegate?.onScenario()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
         await highlightVM.showHighlighted(sortedMessages.last?.uniqueId ?? "", sortedMessages.last?.id ?? -1, highlight: false)
         for vm in viewModels {

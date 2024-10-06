@@ -251,6 +251,12 @@ extension ThreadViewController {
 
 // MARK: ThreadViewDelegate
 extension ThreadViewController: ThreadViewDelegate {
+    func onScenario() {
+        DispatchQueue.main.async { [weak self] in
+            self?.moveToBottom.showIfHasAnyUnreadCount()
+        }
+    }
+    
     func onUnreadCountChanged() {
         DispatchQueue.main.async { [weak self] in
             self?.moveToBottom.updateUnreadCount()

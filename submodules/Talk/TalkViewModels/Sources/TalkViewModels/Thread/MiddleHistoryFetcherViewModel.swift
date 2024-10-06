@@ -50,6 +50,7 @@ final class MiddleHistoryFetcherViewModel {
         self.time = time
         self.messageId = messageId
         self.highlight = highlight
+        messages.removeAll()
         topPart()
     }
 
@@ -60,7 +61,6 @@ final class MiddleHistoryFetcherViewModel {
     }
 
     func onTopPart(_ response: ResponseType) {
-        messages.removeAll()
         messages.append(contentsOf: response.result ?? [])
         fetchBottomPart()
     }

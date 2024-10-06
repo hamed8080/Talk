@@ -20,7 +20,7 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
     weak var viewModel: MessageRowViewModel?
 
     // Sizes
-    private let totlaWidth: CGFloat = 42
+    private let totalWidth: CGFloat = 42
     private let emojiWidth: CGFloat = 20
     private let margin: CGFloat = 8
 
@@ -43,10 +43,12 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
         reactionEmojiCount.font = UIFont.uiiransansBody
         reactionEmojiCount.textAlignment = .center
         reactionEmojiCount.accessibilityIdentifier = "reactionEmoji"
+        reactionEmojiCount.setContentCompressionResistancePriority(.required, for: .horizontal)
         addSubview(reactionEmojiCount)
 
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(greaterThanOrEqualToConstant: totlaWidth),
+            widthAnchor.constraint(greaterThanOrEqualToConstant: totalWidth),
+            heightAnchor.constraint(equalToConstant: 28),
             reactionEmojiCount.heightAnchor.constraint(equalToConstant: emojiWidth),
             reactionEmojiCount.topAnchor.constraint(equalTo: topAnchor, constant: 6),
             reactionEmojiCount.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),

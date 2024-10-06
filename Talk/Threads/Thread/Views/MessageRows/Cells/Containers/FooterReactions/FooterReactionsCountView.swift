@@ -15,7 +15,6 @@ import TalkModels
 final class FooterReactionsCountView: UIStackView {
     // Sizes
     private let maxReactionsToShow: Int = 4
-    private let height: CGFloat = 28
     private let margin: CGFloat = 28
     private weak var viewModel: MessageRowViewModel?
     static let moreButtonId = -2
@@ -43,10 +42,6 @@ final class FooterReactionsCountView: UIStackView {
         }
 
         addArrangedSubview(MoreReactionButtonRow(frame: .zero, isMe: isMe))
-
-        NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: height),
-        ])
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
