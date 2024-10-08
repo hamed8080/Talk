@@ -11,7 +11,7 @@ import Chat
 import Combine
 
 final class MiddleHistoryFetcherViewModel {
-    private let historyVM: ThreadHistoryViewModel
+    private weak var historyVM: ThreadHistoryViewModel?
     private let TO_TIME_KEY: String
     private let FROM_TIME_KEY: String
     private var messageId: Int = -1
@@ -102,7 +102,7 @@ final class MiddleHistoryFetcherViewModel {
                           offset: offset,
                           order: fromTime != nil ? "asc" : "desc",
                           toTime: toTime,
-                          readOnly: historyVM.viewModel?.readOnly == true)
+                          readOnly: historyVM?.viewModel?.readOnly == true)
     }
 
     private func onMessageEvent(_ event: MessageEventTypes?) async {

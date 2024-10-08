@@ -259,7 +259,7 @@ extension ThreadHistoryViewModel {
         removeAllSections()
         delegate?.reload()
 
-        middleFetcher?.completion = { response in
+        middleFetcher?.completion = { [weak self] response in
             Task { @HistoryActor [weak self] in
                 await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
             }
