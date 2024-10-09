@@ -11,32 +11,8 @@
 - [x] Demonstration of Microservice architecture.
 - [x] Calling with WebRTC(In progress).
 
-## Building And Running
-open the terminal:
-
-```bash
-cd talk
-chmod +x scripts.sh
-./scripts.sh setup
-```
-
-## Switching to develop mode
-Talk uses Chat SDK and Chat SDK is a modular SDK, to put submodules in development mode run:
-```bash
-cd talk
-./scripts.sh pkg local
-```
-
-to get back into the remote mode run:
-```bash
-cd talk
-./scripts.sh pkg remote
-```
-
-The best way to work with this script is that you add it as a source to your bash file:
-```bash
-source path_to/scripts.sh
-```
+## Switch to develop mode
+To switch to develop mode, go to "Talk/submodules/Talk/TalkModels/package.swift" and set useLocalDependency to true.
 
 ## Registerarion
 &ast; Phone number registeration is required for running the app.
