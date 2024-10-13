@@ -50,6 +50,7 @@ public final class ThreadHistoryViewModel {
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
     private var middleFetcher: MiddleHistoryFetcherViewModel?
+    private var firstMessageOfTheDayVM: FirstMessageOfTheDayViewModel?
 
     @MainActor
     public var isUpdating = false
@@ -273,6 +274,7 @@ extension ThreadHistoryViewModel {
         // Update the UI and fetch reactions the rows at top part.
         delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
         await onMoreTop(response, isMiddleFetcher: true)
+        await setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
         let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
         await highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
         showCenterLoading(false)
@@ -339,6 +341,18 @@ extension ThreadHistoryViewModel {
             await moveToTime(time, id, highlight: true)
             AppState.shared.appStateNavigationModel = .init()
         }
+    }
+
+    // MARK: Scenario 11
+    public func moveToTimeByDate(time: UInt) {
+        firstMessageOfTheDayVM = FirstMessageOfTheDayViewModel(historyVM: self)
+        firstMessageOfTheDayVM?.completion = { [weak self] message in
+            guard let message = message else { return }
+            Task { @HistoryActor [weak self] in
+                await self?.moveToTime(message.time ?? 0, message.id ?? -1)
+            }
+        }
+        firstMessageOfTheDayVM?.startOfDate(time: time, highlight: true)
     }
 
     // MARK: On Cache History Response

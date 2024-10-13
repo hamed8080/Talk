@@ -53,7 +53,12 @@ public class AppOverlayViewModel: ObservableObject {
         case .error(error: _):
             return .opacity
         case .dialog:
-            return .asymmetric(insertion: .scale.animation(.interpolatingSpring(mass: 1.0, stiffness: 0.1, damping: 0.9, initialVelocity: 0.5).speed(20)), removal: .opacity)
+            return .asymmetric(
+                insertion: .scale.combined(with: .opacity)
+                    .animation(.interpolatingSpring(mass: 1.0, stiffness: 0.2, damping: 0.9, initialVelocity: 0.4).speed(20)),
+                removal: .scale.combined(with: .opacity)
+                    .animation(.easeInOut(duration: 0.15))
+            )
         default:
             return .opacity
         }

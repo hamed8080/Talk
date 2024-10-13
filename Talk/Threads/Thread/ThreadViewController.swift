@@ -525,6 +525,10 @@ extension ThreadViewController {
         hostVC.modalPresentationStyle = .formSheet
         present(hostVC, animated: true)
     }
+
+    func openMoveToDatePicker() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DatePickerDialogWrapper(viewModel: viewModel))
+    }
 }
 
 // MARK: Scrolling to
