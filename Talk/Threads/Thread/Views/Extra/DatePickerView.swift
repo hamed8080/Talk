@@ -110,3 +110,44 @@ struct DatePickerDialogWrapper: View {
         .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
     }
 }
+
+class UIDatePickerController: UIViewController {
+    public var completion: ((Date) -> Void)?
+
+    override var overrideUserInterfaceStyle: UIUserInterfaceStyle {
+        get { AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light }
+        set { super.overrideUserInterfaceStyle = newValue }
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setup()
+    }
+
+    private func setup() {
+        let picker = DatePickerView()
+        picker.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(picker)
+
+        view.backgroundColor = Color.App.bgPrimaryUIColor
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        picker.completion = { [weak self] selectedDate in
+            guard let self = self else { return }
+            dismiss(animated: true)
+            completion?(selectedDate)
+        }
+
+        picker.canceled = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+
+        NSLayoutConstraint.activate([
+            picker.topAnchor.constraint(equalTo: view.topAnchor),
+            picker.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            picker.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            picker.heightAnchor.constraint(equalToConstant: 420),
+        ])
+    }
+}
