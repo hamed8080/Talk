@@ -17,48 +17,17 @@ struct AddParticipantsToThreadView: View {
 
     var body: some View {
         List {
-            if contactsVM.searchedContacts.count > 0 {
-                ForEach(contactsVM.searchedContacts) { contact in
-                    ContactRowContainer(contact: .constant(contact), isSearchRow: true)
-                }
-            } else {
-                ForEach(contactsVM.contacts) { contact in
-                    ContactRowContainer(contact: .constant(contact), isSearchRow: false)
-                        .onAppear {
-                            Task {
-                                if contactsVM.contacts.last == contact {
-                                    await contactsVM.loadMore()
-                                }
-                            }
-                        }
-                }
-            }
+            searchedContacts
+            normalContacts
         }
         .listStyle(.plain)
         .animation(.easeInOut, value: contactsVM.contacts.count)
         .animation(.easeInOut, value: contactsVM.searchedContacts.count)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            SubmitBottomButton(text: "General.add", enableButton: .constant(contactsVM.selectedContacts.count > 0), isLoading: .constant(false)) {
-                onCompleted(contactsVM.selectedContacts)
-                contactsVM.deselectContacts() // to clear for the next time
-            }
+            submitButton
         }
         .safeAreaInset(edge: .top, spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                TextField("General.searchHere".bundleLocalized(), text: $contactsVM.searchContactString)
-                    .frame(height: 48)
-                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                Spacer()
-                Text("General.add")
-                    .frame(height: 30)
-                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .background(Color.App.dividerSecondary)
-                    .foregroundStyle(Color.App.textSecondary)
-            }
-            .frame(height: 78)
-            .background(.ultraThinMaterial)
+            topView
         }
         .onAppear {
             /// We use ContactRowContainer view because it is essential to force the ineer contactRow View to show radio buttons.
@@ -68,6 +37,54 @@ struct AddParticipantsToThreadView: View {
             contactsVM.searchContactString = ""
             contactsVM.isInSelectionMode = false
         }
+    }
+
+    @ViewBuilder private var searchedContacts: some View {
+        if !contactsVM.searchedContacts.isEmpty {
+            ForEach(contactsVM.searchedContacts) { contact in
+                ContactRowContainer(contact: .constant(contact), isSearchRow: true)
+            }
+        }
+    }
+
+    @ViewBuilder private var normalContacts: some View {
+        if contactsVM.searchedContacts.isEmpty {
+            ForEach(contactsVM.contacts) { contact in
+                ContactRowContainer(contact: .constant(contact), isSearchRow: false)
+                    .onAppear {
+                        Task {
+                            if contactsVM.contacts.last == contact {
+                                await contactsVM.loadMore()
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    private var submitButton: some View {
+        SubmitBottomButton(text: "General.add", enableButton: .constant(contactsVM.selectedContacts.count > 0), isLoading: .constant(false)) {
+            onCompleted(contactsVM.selectedContacts)
+            contactsVM.deselectContacts() // to clear for the next time
+        }
+    }
+
+    private var topView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TextField("General.searchHere".bundleLocalized(), text: $contactsVM.searchContactString)
+                .frame(height: 48)
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            Spacer()
+            Text("General.add")
+                .frame(height: 30)
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .background(Color.App.dividerSecondary)
+                .foregroundStyle(Color.App.textSecondary)
+        }
+        .frame(height: 78)
+        .background(.ultraThinMaterial)
     }
 }
 

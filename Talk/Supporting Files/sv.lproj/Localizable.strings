@@ -444,3 +444,8 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Skicka vald plats";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Visa meddelanden";
+"AdminLimitHistoryTimeDialog.title" = "Visa endast meddelanden från en specifik vald tid.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Välj datum";

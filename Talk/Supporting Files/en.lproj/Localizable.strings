@@ -452,3 +452,8 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Send selected location";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Display messages";
+"AdminLimitHistoryTimeDialog.title" = "Only display messages from a specific selected time.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Choose date";

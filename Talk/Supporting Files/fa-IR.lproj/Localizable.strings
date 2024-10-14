@@ -445,3 +445,8 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "ارسال موقعیت انتخاب شده";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "مشاهده پیام ها";
+"AdminLimitHistoryTimeDialog.title" = "برای نمایش پیام ها به اعضای جدید تاریخ مورد نظر را انتخاب کنید.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "انتخاب تاریخ";
