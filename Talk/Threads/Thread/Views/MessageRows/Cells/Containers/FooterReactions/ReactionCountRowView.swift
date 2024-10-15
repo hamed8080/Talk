@@ -67,6 +67,7 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
     }
 
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configuration: UIContextMenuConfiguration, highlightPreviewForItemWithIdentifier identifier: any NSCopying) -> UITargetedPreview? {
+        guard let row = row else { return nil }
         return ReactionRowContextMenuCofiguration.targetedView(view: self, row: row, viewModel: viewModel)
     }
 
