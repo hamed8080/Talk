@@ -274,7 +274,13 @@ extension ThreadHistoryViewModel {
         // Update the UI and fetch reactions the rows at top part.
         delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
         await onMoreTop(response, isMiddleFetcher: true)
-        await setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
+        // If messageId is equal to thread.lastMessageVO?.id it means we are going to open up the thread at the bottom of it so there is
+        if messageId == thread.lastMessageVO?.id {
+            hasNextBottom = false
+            await setIsAtBottom(newValue: true)
+        } else {
+            await setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
+        }
         let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
         await highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
         showCenterLoading(false)
