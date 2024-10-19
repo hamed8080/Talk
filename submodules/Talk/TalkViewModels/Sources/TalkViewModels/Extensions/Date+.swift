@@ -21,6 +21,10 @@ public extension Date {
         timeOrDate(local: Language.preferredLocale)
     }
 
+    var yearDateMonthName: String? {
+        dayMonthNameYear(local: Language.preferredLocale)
+    }
+
     var fileDateString: String {
         let date = Date()
         let calendar = Calendar.current

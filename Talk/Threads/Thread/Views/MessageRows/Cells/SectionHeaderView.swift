@@ -29,7 +29,7 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         backgroundView?.backgroundColor = .clear
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.label.font = UIFont.uiiransansCaption
+        label.label.font = UIFont.uiiransansBoldCaption
         label.label.textColor = .white
         label.layer.cornerRadius = 14
         label.layer.masksToBounds = true
