@@ -527,11 +527,13 @@ extension ThreadViewController {
     }
 
     func openMoveToDatePicker() {
-        let vc = UIDatePickerController()
-        vc.completion = { [weak self] date in
-            self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
-        }
-        present(vc, animated: true)
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+            DatePickerWrapper(hideControls: false) { [weak self] date in
+                self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
+                AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+            }
+            .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
+        )
     }
 }
 
