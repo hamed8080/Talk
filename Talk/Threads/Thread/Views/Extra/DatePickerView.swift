@@ -12,6 +12,12 @@ import TalkViewModels
 import TalkModels
 
 class DatePickerView: UIView {
+    var hideControls: Bool = false {
+        didSet {
+            submitButton.isHidden = hideControls
+            cancelButton.isHidden = hideControls
+        }
+    }
     var completion: ((Date) -> Void)?
     var canceled: (() -> Void)?
 
@@ -30,7 +36,13 @@ class DatePickerView: UIView {
         datePicker.datePickerMode = .date
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         datePicker.locale = Language.preferredLocale
-        datePicker.calendar = Calendar(identifier: Language.isRTL ? .persian : .gregorian)
+        let cal = Calendar(identifier: Language.isRTL ? .persian : .gregorian)
+        datePicker.calendar = cal
+        datePicker.timeZone = .gmt
+        datePicker.minimumDate = cal.date(byAdding: .year, value: -100, to: Date())
+        datePicker.maximumDate = Date()
+        datePicker.setDate(Date(), animated: false)
+        datePicker.tintColor = Color.App.accentUIColor
         return datePicker
     }()
 
@@ -150,4 +162,21 @@ class UIDatePickerController: UIViewController {
             picker.heightAnchor.constraint(equalToConstant: 420),
         ])
     }
+}
+
+struct DatePickerWrapper: UIViewRepresentable {
+    public var completion: ((Date) -> Void)?
+    @Environment(\.dismiss) var dismiss
+
+    func makeUIView(context: Context) -> some UIView {
+        let picker = DatePickerView()
+        picker.hideControls = true
+        picker.completion = completion
+        picker.canceled = {
+            AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+        }
+        return picker
+    }
+
+    func updateUIView(_ uiView: UIViewType, context: Context) {}
 }

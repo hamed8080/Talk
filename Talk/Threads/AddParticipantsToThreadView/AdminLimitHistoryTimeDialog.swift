@@ -9,10 +9,13 @@ import SwiftUI
 import Chat
 import TalkViewModels
 import TalkUI
+import TalkModels
 
 struct AdminLimitHistoryTimeDialog: View {
     let threadId: Int?
     let completion: (UInt?) -> Void
+    @State private var isLimitTimeOn = false
+    @State private var limitHistorySelectedDate: Date? = nil
     @EnvironmentObject var container: ObjectsContainer
 
     var body: some View {
@@ -25,66 +28,87 @@ struct AdminLimitHistoryTimeDialog: View {
 
             Text("AdminLimitHistoryTimeDialog.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBody)
+                .font(.iransansCaption3)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-
-            VStack {
-                Text("AdminLimitHistoryTimeDialog.chooseDate")
-                    .foregroundStyle(Color.App.textPrimary)
-                    .font(.iransansCaption2)
-                    .multilineTextAlignment(.leading)
-                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                datePickerContainer
-            }
-            HStack {
-                Button {
-                    container.appOverlayVM.dialogView = nil
-                } label: {
-                    Text("General.cancel".bundleLocalized())
-                        .foregroundStyle(Color.App.textSecondary.opacity(0.8))
-                        .font(.iransansBody)
-                        .frame(minWidth: 48, minHeight: 48)
-                        .fontWeight(.medium)
-                }
-
-                Button {
-                    container.threadsVM.delete(threadId)
-                    container.appOverlayVM.dialogView = nil
-                } label: {
-                    Text("General.submit".bundleLocalized())
-                        .foregroundStyle(Color.App.textPrimary)
-                        .font(.iransansBody)
-                        .frame(minWidth: 48, minHeight: 48)
-                        .fontWeight(.medium)
-                }
-            }
+            toggleLimitHistory
+            actionButtons
         }
         .frame(maxWidth: 320)
         .padding(EdgeInsets(top: 16, leading: 16, bottom: 6, trailing: 16))
         .background(MixMaterialBackground())
     }
 
-    private var datePickerContainer: some View {
-        Button {
+    private var actionButtons: some View {
+        HStack {
+            Button {
+                container.appOverlayVM.dialogView = nil
+            } label: {
+                Text("General.cancel".bundleLocalized())
+                    .foregroundStyle(Color.App.textSecondary.opacity(0.8))
+                    .font(.iransansBody)
+                    .frame(minWidth: 48, minHeight: 48)
+                    .fontWeight(.medium)
+            }
 
-        } label: {
-            HStack {
-                Text("۱۴ شهریور ۱۴۰۲")
+            Button {
+                container.threadsVM.delete(threadId)
+                container.appOverlayVM.dialogView = nil
+                if let limitHistorySelectedDate = limitHistorySelectedDate {
+                    completion(UInt(limitHistorySelectedDate.millisecondsSince1970))
+                } else {
+                    completion(nil)
+                }
+            } label: {
+                Text("General.submit".bundleLocalized())
                     .foregroundStyle(Color.App.textPrimary)
-
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .frame(width: 16, height: 16)
-                    .foregroundStyle(Color.App.textPrimary.opacity(0.2))
+                    .font(.iransansBody)
+                    .frame(minWidth: 48, minHeight: 48)
+                    .fontWeight(.medium)
             }
         }
+    }
+
+    @ViewBuilder
+    private var toggleLimitHistory: some View {
+        VStack {
+            HStack {
+                HStack {
+                    Image(systemName: "calendar")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .clipped()
+                        .font(.iransansBody)
+                        .foregroundStyle(Color.App.textSecondary)
+
+                    Text("AdminLimitHistoryTimeDialog.chooseDate".bundleLocalized())
+                }
+                Spacer()
+                Toggle("", isOn: $isLimitTimeOn)
+                    .tint(Color.App.accent)
+                    .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
+                    .offset(x: 8)
+                    .labelsHidden()
+            }
+            limitTimePicker
+        }
+        .animation(.easeInOut.speed(2), value: isLimitTimeOn)
+        .padding(.init(top: 0, leading: 8, bottom: 0, trailing: 8))
+        .listSectionSeparator(.hidden)
+        .listRowBackground(Color.App.bgSecondary)
+        .listRowSeparatorTint(Color.App.dividerPrimary)
         .font(.iransansBody)
-        .frame(minHeight: 32)
-        .padding(8)
-        .fontWeight(.medium)
-        .background(Color.App.bgPrimary)
-        .cornerRadius(8, corners: .allCorners)
+    }
+
+    @ViewBuilder
+    private var limitTimePicker: some View {
+        DatePickerWrapper() { date in
+            limitHistorySelectedDate = date
+        }
+        .frame(maxHeight: 420)
+        .disabled(!isLimitTimeOn)
+        .opacity(isLimitTimeOn ? 1.0 : 0.3)
     }
 }
 

@@ -165,13 +165,16 @@ struct AddParticipantButton: View {
 
     public func addParticipantsToThread(_ contacts: ContiguousArray<Contact>) {
         if conversation?.type?.isPrivate == true, conversation?.group == true {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(AdminLimitHistoryTimeDialog(threadId: conversation?.id ?? -1) { historyTime in
-                if let historyTime = historyTime {
-                    add(contacts, historyTime)
-                } else {
-                    add(contacts)
+            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+                AdminLimitHistoryTimeDialog(threadId: conversation?.id ?? -1) { historyTime in
+                    if let historyTime = historyTime {
+                        add(contacts, historyTime)
+                    } else {
+                        add(contacts)
+                    }
                 }
-            })
+                    .environmentObject(AppState.shared.objectsContainer)
+            )
         } else {
             add(contacts)
         }

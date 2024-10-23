@@ -448,5 +448,5 @@
 
 /* AdminLimitHistoryTimeDialog */
 "AdminLimitHistoryTimeDialog.header" = "مشاهده پیام ها";
-"AdminLimitHistoryTimeDialog.title" = "برای نمایش پیام ها به اعضای جدید تاریخ مورد نظر را انتخاب کنید.";
-"AdminLimitHistoryTimeDialog.chooseDate" = "انتخاب تاریخ";
+"AdminLimitHistoryTimeDialog.title" = "در صورتی که میخواهید نمایش پیام ها را محدود کنید یک تاریخ انتخاب کنید. درغیر این‌صورت کاربر جدید همه پیام‌ها را مشاهده می‌کند.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "نمایش پیام ها از تاریخ";
