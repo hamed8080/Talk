@@ -103,6 +103,7 @@ final class MessageAudioView: UIView {
         playerProgress.setContentCompressionResistancePriority(.required, for: .vertical)
         playerProgress.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         playerProgress.isOpaque = true
+        playerProgress.semanticContentAttribute = .forceLeftToRight
         addSubview(playerProgress)
 
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -191,7 +192,13 @@ final class MessageAudioView: UIView {
 
     var isSameFile: Bool {
         if audioVM.fileURL == nil { return true } // It means it has never played a audio.
-        return viewModel?.calMessage.fileURL != nil && audioVM.fileURL?.absoluteString == viewModel?.calMessage.fileURL?.absoluteString
+        if isSameFileConverted { return true }
+        let furl = viewModel?.calMessage.fileURL
+        return furl != nil && audioVM.fileURL?.absoluteString == furl?.absoluteString
+    }
+
+    var isSameFileConverted: Bool {
+        message?.convertedFileURL != nil && audioVM.fileURL?.absoluteString == message?.convertedFileURL?.absoluteString
     }
 
     var progress: CGFloat {
@@ -217,7 +224,7 @@ final class MessageAudioView: UIView {
         .store(in: &cancellableSet)
 
         audioVM.$isClosed.sink { [weak self] closed in
-            if closed {
+            if closed, self?.isSameFile == true {
                 self?.playerProgress.progress = 0.0
             }
         }

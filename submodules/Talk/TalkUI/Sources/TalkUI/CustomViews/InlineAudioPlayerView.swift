@@ -17,7 +17,13 @@ public struct InlineAudioPlayerView: View {
     public var title: String?
     public var subtitle: String
     @EnvironmentObject var viewModel: AVAudioPlayerViewModel
-    var isSameFile: Bool { viewModel.fileURL?.absoluteString == fileURL.absoluteString }
+    var isSameFile: Bool {
+        if isSameFileConverted { return true }
+        return viewModel.fileURL?.absoluteString == fileURL.absoluteString
+    }
+    var isSameFileConverted: Bool {
+        message?.convertedFileURL != nil && viewModel.fileURL?.absoluteString == message?.convertedFileURL?.absoluteString
+    }
     @State var failed = false
 
     public init(message: Message?, fileURL: URL, ext: String?, title: String? = nil, subtitle: String) {
@@ -49,7 +55,13 @@ public struct InlineAudioPlayerView: View {
         .clipShape(RoundedRectangle(cornerRadius: 42 / 2))
         .onTapGesture {
             do {
-                try viewModel.setup(message: message, fileURL: fileURL, ext: ext, title: title, subtitle: subtitle)
+                let convrtedURL = message?.convertedFileURL
+                let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
+                try viewModel.setup(message: message,
+                                    fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
+                                    ext: convertedExist ? "mp4" : ext,
+                                    title: title,
+                                    subtitle: subtitle)
                 viewModel.toggle()
             } catch {
                 failed = true

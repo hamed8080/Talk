@@ -138,7 +138,15 @@ struct DownloadedVoicePlayer: View {
     let message: Message
     let fileURL: URL
     @EnvironmentObject var viewModel: AVAudioPlayerViewModel
-    var isSameFile: Bool { viewModel.fileURL?.absoluteString == fileURL.absoluteString }
+    var isSameFile: Bool { 
+        if isSameFileConverted { return true }
+        return viewModel.fileURL?.absoluteString == fileURL.absoluteString
+    }
+
+    var isSameFileConverted: Bool {
+        message.convertedFileURL != nil && viewModel.fileURL?.absoluteString == message.convertedFileURL?.absoluteString
+    }
+
     @State var failed = false
     
     var icon: String {
@@ -152,22 +160,16 @@ struct DownloadedVoicePlayer: View {
     var body: some View {
         Button {
             do {
+                let convrtedURL = message.convertedFileURL
+                let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
                 try viewModel.setup(message: message,
-                                    fileURL: fileURL,
-                                    ext: message.fileMetaData?.file?.mimeType?.ext,
+                                    fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
+                                    ext: convertedExist ? "mp4" : message.fileMetaData?.file?.mimeType?.ext,
                                     title: message.fileMetaData?.name,
                                     subtitle: message.fileMetaData?.file?.originalName ?? "")
                 viewModel.toggle()
             } catch {
                 failed = true
-#if canImport(MobileVLCKit)
-                viewModel.setupWithVLC(message: message,
-                                       fileURL: fileURL,
-                                       ext: message.fileMetaData?.file?.mimeType?.ext,
-                                       title: message.fileMetaData?.name,
-                                       subtitle: message.fileMetaData?.file?.originalName ?? "")
-                viewModel.playWithVLC()
-#endif
             }
         } label: {
             ZStack {
