@@ -452,3 +452,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Send selected location";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "All Chats";
+"ConversationsTabs.archive" = "Archive";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "The archive list is empty.";
+"ArchivedTab.guide" = "For unarchiving the Chat you have to go to the Archive tab. An archived Chat won't receive any notification.";

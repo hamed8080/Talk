@@ -446,3 +446,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Enviar ubicación seleccionada";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "Todos los chats";
+"ConversationsTabs.archive" = "Archivo";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "La lista de archivos está vacía.";
+"ArchivedTab.guide" = "Para desarchivar un chat, debes ir a la pestaña Archivo. Un chat archivado no recibirá ninguna notificación.";

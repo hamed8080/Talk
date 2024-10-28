@@ -32,6 +32,12 @@ struct ThreadRowActionMenu: View {
             }
         }
 
+        if !isDetailView {
+            ContextMenuButton(title: archiveTitle, image: archiveImage) {
+                onArchiveUnArchiveTapped()
+            }
+        }
+
         if EnvironmentValues.isTalkTest {
             ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock") {
                 onClearHistoryTapped()
@@ -43,10 +49,6 @@ struct ThreadRowActionMenu: View {
             
             ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug") {
                 onSpamTapped()
-            }
-
-            ContextMenuButton(title: archiveTitle, image: archiveImage) {
-                onArchiveUnArchiveTapped()
             }
             
             if canAddParticipant {
@@ -119,7 +121,11 @@ struct ThreadRowActionMenu: View {
     private func onArchiveUnArchiveTapped() {
         showPopover = false
         delayActionOnHidePopover {
+            let isUnarchived = thread.isArchive == false || thread.isArchive == nil
             AppState.shared.objectsContainer.archivesVM.toggleArchive(thread)
+            if isUnarchived {
+                showArchivePopupIfNeeded()
+            }
         }
     }
 
@@ -192,5 +198,15 @@ struct ThreadRowActionMenu: View {
     private var muteUnmuteTitle: String {
         let key = (thread.mute ?? false) ? "Thread.unmute" : "Thread.mute"
         return key.bundleLocalized()
+    }
+
+    private func showArchivePopupIfNeeded() {
+        if AppState.shared.objectsContainer.archivesVM.hasShownToastGuide { return }
+        let leadingView = Image(systemName: "tray.and.arrow.up")
+        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: leadingView,
+                                                            message: "ArchivedTab.guide".bundleLocalized(),
+                                                            messageColor: Color.App.textPrimary,
+                                                            duration: .slow)
+        AppState.shared.objectsContainer.archivesVM.hasShownToastGuide = true
     }
 }

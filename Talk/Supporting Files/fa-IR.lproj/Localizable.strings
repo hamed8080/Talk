@@ -79,7 +79,7 @@
 /* Tabs */
 "Tab.chats" = "گفتگو ها";
 "Tab.contacts" = "مخاطبین";
-"Tab.archives" = "آرشیو";
+"Tab.archives" = "بایگانی";
 "Tab.folders" = "پوشه ها";
 "Tab.settings" = "تنظیمات";
 
@@ -199,8 +199,8 @@
 "Thread.addToFolder" = "اضافه کردن به پوشه";
 "Thread.clearHistory" = "حذف تاریخچه";
 "Thread.spam" = "اعلام به عنوان مزاحم";
-"Thread.archive" = "آرشیو کردن";
-"Thread.unarchive" = "از آرشیو خارج کردن";
+"Thread.archive" = "بایگانی کردن";
+"Thread.unarchive" = "خروج از بایگانی";
 "Thread.invite" = "افزودن اعضا";
 "Thread.switchToPublic" = "تغییر به گروهی";
 "Thread.selectToStartConversation" = "یک گفتگو را انتخاب کنید.";
@@ -445,3 +445,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "ارسال موقعیت انتخاب شده";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "همه گفتگوها";
+"ConversationsTabs.archive" = "بایگانی";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "لیست بایگانی خالی است.";
+"ArchivedTab.guide" = "دسترسی به گفتگوی بایگانی شده برای بررسی یا فعال کردن مجدد ، از سربرگ \"بایگانی\" امکان پذیر هست و تمامی اعلانات روی این گفتگو غیر فعال خواهد شد .";

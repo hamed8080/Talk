@@ -24,6 +24,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     private var objectId = UUID().uuidString
     private let GET_ARCHIVES_KEY: String
+    public var hasShownToastGuide = false
 
     public init() {
         GET_ARCHIVES_KEY = "GET-ARCHIVES-\(objectId)"
@@ -31,6 +32,12 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             .compactMap { $0.object as? ThreadEventTypes }
             .sink{ [weak self] event in
                 self?.onThreadEvent(event)
+            }
+            .store(in: &cancelable)
+        NotificationCenter.message.publisher(for: .message)
+            .compactMap { $0.object as? MessageEventTypes }
+            .sink{ [weak self] event in
+                self?.onMessageEvent(event)
             }
             .store(in: &cancelable)
         NotificationCenter.onRequestTimer.publisher(for: .onRequestTimer)
@@ -47,7 +54,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         offset = count + offset
     }
 
-    public func onThreadEvent(_ event: ThreadEventTypes?) {
+    private func onThreadEvent(_ event: ThreadEventTypes?) {
         switch event {
         case .threads(let response):
             onArchives(response)
@@ -55,6 +62,19 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             onArchive(response)
         case .unArchive(let response):
             onUNArchive(response)
+        case .lastMessageDeleted(let response):
+            onLastMessageDeleted(response)
+        case .lastMessageEdited(let response):
+            onLastMessageEdited(response)
+        default:
+            break
+        }
+    }
+
+    private func onMessageEvent(_ event: MessageEventTypes?) {
+        switch event {
+        case .new(let chatResponse):
+            onNewMessage(chatResponse)
         default:
             break
         }
@@ -87,7 +107,11 @@ public final class ArchiveThreadsViewModel: ObservableObject {
 
     public func onArchives(_ response: ChatResponse<[Conversation]>) {
         if !response.cache, let archives = response.result, response.pop(prepend: GET_ARCHIVES_KEY) != nil {
-            self.archives.append(contentsOf: archives.filter({$0.isArchive == true}))
+            archives.forEach{ archive in
+                if !self.archives.contains(where: {$0.id == archive.id}) {
+                    self.archives.append(archive)
+                }
+            }
         }
         isLoading = false
         animateObjectWillChange()
@@ -116,6 +140,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             animateObjectWillChange()
         }
     }
+
     private func setHasNextOnResponse(_ response: ChatResponse<[Conversation]>) {
         if !response.cache, response.result?.count ?? 0 > 0 {
             hasNext = response.hasNext
@@ -125,6 +150,35 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func onCancelTimer(key: String) {
         if isLoading {
             isLoading = false
+            animateObjectWillChange()
+        }
+    }
+
+    private func onNewMessage(_ response: ChatResponse<Message>) {
+        if let message = response.result, let index = archives.firstIndex(where: {$0.id == message.conversation?.id}) {
+            let old = archives[index]
+            let updated = old.updateOnNewMessage(response, meId: AppState.shared.user?.id)
+            archives[index] = updated
+            animateObjectWillChange()
+        }
+    }
+
+    private func onLastMessageDeleted(_ response: ChatResponse<Conversation>) {
+        if let conversation = response.result, let index = archives.firstIndex(where: {$0.id == conversation.id}) {
+            var current = archives[index]
+            current.lastMessageVO = conversation.lastMessageVO
+            current.lastMessage = conversation.lastMessage
+            archives[index] = current
+            animateObjectWillChange()
+        }
+    }
+
+    private func onLastMessageEdited(_ response: ChatResponse<Conversation>) {
+        if let conversation = response.result, let index = archives.firstIndex(where: {$0.id == conversation.id}) {
+            var current = archives[index]
+            current.lastMessageVO = conversation.lastMessageVO
+            current.lastMessage = conversation.lastMessage
+            archives[index] = current
             animateObjectWillChange()
         }
     }

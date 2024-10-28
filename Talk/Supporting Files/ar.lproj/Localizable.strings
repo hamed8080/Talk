@@ -444,3 +444,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "إرسال الموقع المحدد";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "جميع المحادثات";
+"ConversationsTabs.archive" = "كل الأرشيف";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "قائمة الأرشيف فارغة.";
+"ArchivedTab.guide" = "لإلغاء أرشفة الدردشة، عليك الانتقال إلى علامة التبويب \"الأرشيف\". لن تتلقى الدردشة المؤرشفة أي إشعار.";

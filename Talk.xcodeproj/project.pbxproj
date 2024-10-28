@@ -289,6 +289,8 @@
 		0570CCBE2AAEEE78001832E9 /* TalkViewModels in Frameworks */ = {isa = PBXBuildFile; productRef = 0570CCBD2AAEEE78001832E9 /* TalkViewModels */; };
 		05729A562B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05729A552B8DACDA00D62D69 /* DeleteParticipantDialog.swift */; };
 		05729A572B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05729A552B8DACDA00D62D69 /* DeleteParticipantDialog.swift */; };
+		0572C78D2CCF4D6C00EE8655 /* ConversationTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572C78C2CCF4D6C00EE8655 /* ConversationTabsView.swift */; };
+		0572C78E2CCF4D6C00EE8655 /* ConversationTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572C78C2CCF4D6C00EE8655 /* ConversationTabsView.swift */; };
 		05745AF02AF2626B00102193 /* UserActionMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AEF2AF2626B00102193 /* UserActionMenu.swift */; };
 		05745AF12AF2628000102193 /* UserActionMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AEF2AF2626B00102193 /* UserActionMenu.swift */; };
 		05745AF32AF2B1B100102193 /* SettingProfileButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AF22AF2B1B100102193 /* SettingProfileButton.swift */; };
@@ -596,6 +598,7 @@
 		0570CC952AAEE9B2001832E9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0570CC962AAEE9B2001832E9 /* Info-Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-Test.plist"; sourceTree = "<group>"; };
 		05729A552B8DACDA00D62D69 /* DeleteParticipantDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteParticipantDialog.swift; sourceTree = "<group>"; };
+		0572C78C2CCF4D6C00EE8655 /* ConversationTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTabsView.swift; sourceTree = "<group>"; };
 		05745AEF2AF2626B00102193 /* UserActionMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserActionMenu.swift; sourceTree = "<group>"; };
 		05745AF22AF2B1B100102193 /* SettingProfileButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingProfileButton.swift; sourceTree = "<group>"; };
 		057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageParticipantsSeen.swift; sourceTree = "<group>"; };
@@ -1216,6 +1219,7 @@
 				05DAA42E2B29BE74007427DC /* ThreadListSearchBarFilterView.swift */,
 				05593BA72AFF916400316E39 /* ConversationTopSafeAreaInset.swift */,
 				05C27F972AF4AFF60008FE2E /* ConversationPlusContextMenu.swift */,
+				0572C78C2CCF4D6C00EE8655 /* ConversationTabsView.swift */,
 			);
 			path = Toolbars;
 			sourceTree = "<group>";
@@ -1549,6 +1553,7 @@
 				052CA3D62BA411B800E38E19 /* MessageFileView.swift in Sources */,
 				05A0CD712B19314100F13EE5 /* DeleteContactView.swift in Sources */,
 				055444532B67D3FA00E16A2F /* ThreadTabDetailStickyHeaderSection.swift in Sources */,
+				0572C78D2CCF4D6C00EE8655 /* ConversationTabsView.swift in Sources */,
 				059548392C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift in Sources */,
 				050B291A2AB40DC20072706C /* NothingHasBeenSelectedView.swift in Sources */,
 				0570CBFF2AAEE98F001832E9 /* JoinToPublicThreadView.swift in Sources */,
@@ -1756,6 +1761,7 @@
 				052CA3D72BA411B800E38E19 /* MessageFileView.swift in Sources */,
 				05A0CD722B19314100F13EE5 /* DeleteContactView.swift in Sources */,
 				055444542B67D3FA00E16A2F /* ThreadTabDetailStickyHeaderSection.swift in Sources */,
+				0572C78E2CCF4D6C00EE8655 /* ConversationTabsView.swift in Sources */,
 				0595483A2C5A639C00F10C1E /* CustomizeReactionUICollectionViewCell.swift in Sources */,
 				050B291B2AB40DC20072706C /* NothingHasBeenSelectedView.swift in Sources */,
 				0570CC002AAEE98F001832E9 /* JoinToPublicThreadView.swift in Sources */,

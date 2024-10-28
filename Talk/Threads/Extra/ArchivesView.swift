@@ -21,14 +21,14 @@ struct ArchivesView: View {
             }
             .listRowInsets(.init(top: 16, leading: 8, bottom: 16, trailing: 8))
             .listRowSeparatorTint(Color.App.dividerSecondary)
-            .listRowBackground(isSelected ? Color.App.accent.opacity(0.5) : thread.pin == true ? Color.App.textSecondary : Color.App.accent)
+            .listRowBackground(Color.App.bgPrimary)
             .onAppear {
                 if self.viewModel.archives.last == thread {
                     viewModel.loadMore()
                 }
             }
         }
-        .background(Color.App.accent)
+        .background(Color.App.bgPrimary)
         .listEmptyBackgroundColor(show: viewModel.archives.isEmpty)
         .overlay(alignment: .bottom) {
             ListLoadingView(isLoading: $viewModel.isLoading)
@@ -37,7 +37,7 @@ struct ArchivesView: View {
         .animation(.easeInOut, value: viewModel.isLoading)
         .listStyle(.plain)
         .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)       
-        .task {
+        .onAppear {
             viewModel.getArchivedThreads()
         }
     }

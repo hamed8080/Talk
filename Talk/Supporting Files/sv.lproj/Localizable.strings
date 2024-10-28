@@ -444,3 +444,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Skicka vald plats";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "Alla chattar";
+"ConversationsTabs.archive" = "Arkiv";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "Den arkiverade listan är tom.";
+"ArchivedTab.guide" = "För att avarkivera chatten måste du gå till Arkiv-fliken. En arkiverad chatt får inga aviseringar.";

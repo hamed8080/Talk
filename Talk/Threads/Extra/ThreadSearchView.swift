@@ -15,7 +15,6 @@ struct ThreadSearchView: View {
     var body: some View {
         if viewModel.isInSearchMode {
             List {
-
                 StickyHeaderSection(header: "Tab.chats", height: 4)
                     .listRowBackground(Color.clear)
                     .listRowInsets(.zero)

@@ -445,3 +445,11 @@
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Ausgewählten Standort senden";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "Alle Chats";
+"ConversationsTabs.archive" = "Archiv";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "Die archivierte Liste ist leer.";
+"ArchivedTab.guide" = "Um den Chat aus dem Archiv zu holen, müssen Sie auf die Registerkarte „Archiv“ gehen. Für einen archivierten Chat gibt es keine Benachrichtigung.";
