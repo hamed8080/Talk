@@ -47,12 +47,13 @@ class MessageRowCalculators {
             calculatedMessage.timeString = MessageRowCalculatedData.formatter.string(from: date)
         }
 
+        rowType.isSingleEmoji = isSingleEmoji(message)
         rowType.isImage = !rowType.isMap && message.isImage
         rowType.isVideo = message.isVideo
         rowType.isAudio = message.isAudio
         rowType.isForward = message.forwardInfo != nil
         rowType.isUnSent = message.isUnsentMessage
-        rowType.hasText = (!rowType.isPublicLink) && calculateText(message: message) != nil
+        rowType.hasText = (!rowType.isPublicLink) && !rowType.isSingleEmoji && calculateText(message: message) != nil
         rowType.cellType = getCellType(message: message, isMe: calculatedMessage.isMe)
         calculatedMessage.callTypeKey = message.callHistory?.status?.key?.bundleLocalized() ?? ""
         async let color = threadVM?.participantsColorVM.color(for: message.participant?.id ?? -1)
@@ -70,7 +71,7 @@ class MessageRowCalculators {
         sizes.replyContainerWidth = await calculateReplyContainerWidth(message: message, calculatedMessage: calculatedMessage, sizes: sizes)
         sizes.forwardContainerWidth = await calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
-        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
+//        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
         calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.markdownTitle, width: ThreadViewModel.maxAllowedWidth - 16)
 
         let originalPaddings = sizes.paddings
@@ -476,16 +477,20 @@ class MessageRowCalculators {
         return nil
     }
 
-    class func getTextLayer(markdownTitle: NSAttributedString?) -> CATextLayer? {
-        if let attributedString = markdownTitle {
-            let textLayer = CATextLayer()
-            textLayer.frame.size = getRect(markdownTitle: attributedString, width: ThreadViewModel.maxAllowedWidth)?.size ?? .zero
-            textLayer.string = attributedString
-            textLayer.backgroundColor = UIColor.clear.cgColor
-            textLayer.alignmentMode = .right
-            return textLayer
-        }
-        return nil
+//    class func getTextLayer(markdownTitle: NSAttributedString?) -> CATextLayer? {
+//        if let attributedString = markdownTitle {
+//            let textLayer = CATextLayer()
+//            textLayer.frame.size = getRect(markdownTitle: attributedString, width: ThreadViewModel.maxAllowedWidth)?.size ?? .zero
+//            textLayer.string = attributedString
+//            textLayer.backgroundColor = UIColor.clear.cgColor
+//            textLayer.alignmentMode = .right
+//            return textLayer
+//        }
+//        return nil
+//    }
+    
+    class func isSingleEmoji(_ message: MessageType) -> Bool {
+        message.message?.isEmoji == true && message.message?.isEmpty == false && message.replyInfo == nil && message.message?.count ?? 0 == 1
     }
 
     class func getRect(markdownTitle: NSAttributedString?, width: CGFloat) -> CGRect? {
