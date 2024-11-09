@@ -249,7 +249,7 @@ struct ThreadUnreadCount: View {
     }
 
     private nonisolated func updateCountAsync() async {
-        let unreadCountString = thread.unreadCountString ?? ""
+        let unreadCountString = await thread.unreadCountString ?? ""
         await MainActor.run {
             self.unreadCountString = unreadCountString
         }
