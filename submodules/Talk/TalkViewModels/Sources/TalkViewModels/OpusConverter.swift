@@ -46,7 +46,7 @@ class OpusConverter {
         createConvertDir(convertedDIR)
         removeOldFile(output)
 
-        FFmpegKit.executeAsync("-i \(path.path()) -vn -c:a aac \(output)") { session in
+        FFmpegKit.executeAsync("-i \(path.path()) -vn -c:a aac \(output.path())") { session in
             let returnCode = session?.getReturnCode()
             if ReturnCode.isSuccess(returnCode) {
                 completion(output)

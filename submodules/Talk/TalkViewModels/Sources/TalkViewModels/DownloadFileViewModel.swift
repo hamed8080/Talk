@@ -165,7 +165,10 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         guard let filePath = fileURL, !isConverting, let message = message else { return }
         Task { [weak self] in
             guard let self = self else { return }
-            if message.type == .podSpaceVoice || message.type == .voice, await OpusConverter.isOpus(path: filePath) {
+            let isVoice = message.type == .podSpaceVoice || message.type == .voice
+            print("isVoice: \(isVoice)")
+            if isVoice, await OpusConverter.isOpus(path: filePath) {
+                print("Converting the voice file")
                 isConverting = true
                 let convertedURL = await OpusConverter.convert(message)
                 print(convertedURL)
