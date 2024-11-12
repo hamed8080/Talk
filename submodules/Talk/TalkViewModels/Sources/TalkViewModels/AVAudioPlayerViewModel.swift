@@ -31,7 +31,8 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, AVAudioPl
             let audioData = try Data(contentsOf: fileURL, options: NSData.ReadingOptions.mappedIfSafe)
             try AVAudioSession.sharedInstance().setCategory(category)
             player = try AVAudioPlayer(data: audioData, fileTypeHint: ext)
-            player?.delegate = self
+            player?.enableRate = true
+            player?.delegate = self            
             duration = player?.duration ?? 0
         } catch let error as NSError {
             failed = true
@@ -97,6 +98,14 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, AVAudioPl
                 self?.close()
             }
         }
+    }
+    
+    public func setPlayback(_ speed: Float) {
+        player?.rate = Float(speed)
+    }
+    
+    public func seek(_ to : Double) {
+        player?.currentTime = to * duration
     }
 
     private func stopTimer() {

@@ -25,6 +25,8 @@ final class MessageAudioView: UIView {
                                                       margin: 2
     )
     private let maskLayer = CAShapeLayer()
+    private let playbackSpeedButton = UIButton(type: .system)
+    
 
     // Models
     private var cancellableSet = Set<AnyCancellable>()
@@ -32,11 +34,14 @@ final class MessageAudioView: UIView {
     private var message: (any HistoryMessageProtocol)? { viewModel?.message }
     private var audioVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
     private let prerenderImage = UIImage(named: "waveform")
+    private var playbackSpeed: PlaybackSpeed = .one
+    private var isSeeking: Bool = false
+    private var seekTimer: Timer? = nil
 
     // Sizes
     private let margin: CGFloat = 6
     private let verticalSpacing: CGFloat = 4
-    private let progressButtonSize: CGFloat = 36
+    private let progressButtonSize: CGFloat = 42
     private let playerProgressHeight: CGFloat = 3
 
     init(frame: CGRect, isMe: Bool) {
@@ -59,29 +64,56 @@ final class MessageAudioView: UIView {
         progressButton.isUserInteractionEnabled = true
         progressButton.accessibilityIdentifier = "progressButtonMessageAudioView"
         addSubview(progressButton)
-
-        fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.uiiransansBoldCaption2
-        fileSizeLabel.textAlignment = .left
-        fileSizeLabel.textColor = Color.App.textPrimaryUIColor
-        fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageAudioView"
-        fileSizeLabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
-        fileSizeLabel.isOpaque = true
-        addSubview(fileSizeLabel)
         
         waveImageView.translatesAutoresizingMaskIntoConstraints = false
         waveImageView.isUserInteractionEnabled = true
         waveImageView.accessibilityIdentifier = "waveImageViewMessageAudioView"
         waveImageView.layer.opacity = 0.2
+        let gesture = UIPanGestureRecognizer(target: self, action: #selector(onDragOverWaveform))
+        gesture.maximumNumberOfTouches = 1
+        waveImageView.addGestureRecognizer(gesture)
         addSubview(waveImageView)
         
         playbackWaveformImageView.translatesAutoresizingMaskIntoConstraints = false
-        playbackWaveformImageView.isUserInteractionEnabled = true
+        playbackWaveformImageView.isUserInteractionEnabled = false
         playbackWaveformImageView.accessibilityIdentifier = "playbackWaveformImageViewMessageAudioView"
         playbackWaveformImageView.tintColor = Color.App.textPrimaryUIColor
         playbackWaveformImageView.layer.mask = maskLayer
         addSubview(playbackWaveformImageView)
         bringSubviewToFront(playbackWaveformImageView)
+        
+        fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
+        fileSizeLabel.font = UIFont.uiiransansBoldCaption
+        fileSizeLabel.textAlignment = .left
+        fileSizeLabel.textColor = Color.App.textSecondaryUIColor?.withAlphaComponent(0.7)
+        fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageAudioView"
+        fileSizeLabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
+        fileSizeLabel.isOpaque = true
+        addSubview(fileSizeLabel)
+        
+        timeLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeLabel.textColor = Color.App.textPrimaryUIColor
+        timeLabel.font = UIFont.uiiransansBoldCaption
+        timeLabel.numberOfLines = 1
+        timeLabel.textAlignment = .left
+        timeLabel.accessibilityIdentifier = "timeLabelMessageAudioView"
+        timeLabel.setContentHuggingPriority(.required, for: .vertical)
+        timeLabel.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        timeLabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
+        timeLabel.isOpaque = true
+        addSubview(timeLabel)
+        
+        playbackSpeedButton.translatesAutoresizingMaskIntoConstraints = false
+        playbackSpeedButton.isUserInteractionEnabled = true
+        playbackSpeedButton.accessibilityIdentifier = "playbackSpeedButtonMessageAudioView"
+        playbackSpeedButton.tintColor = Color.App.textPrimaryUIColor
+        playbackSpeedButton.layer.cornerRadius = 12
+        playbackSpeedButton.titleLabel?.font = UIFont.uiiransansBoldSubheadline
+        playbackSpeedButton.setTitle("", for: .normal)
+        playbackSpeedButton.addTarget(self, action: #selector(onPlaybackSpeedTapped), for: .touchUpInside)
+        playbackSpeedButton.layer.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.8).cgColor
+        playbackSpeedButton.isHidden = true
+        addSubview(playbackSpeedButton)
 
         NSLayoutConstraint.activate([
             progressButton.widthAnchor.constraint(equalToConstant: progressButtonSize),
@@ -89,11 +121,11 @@ final class MessageAudioView: UIView {
             progressButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),
             progressButton.topAnchor.constraint(equalTo: topAnchor, constant: margin),
             
-            waveImageView.widthAnchor.constraint(equalToConstant: 164),
-            waveImageView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: margin),
-            waveImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            waveImageView.widthAnchor.constraint(equalToConstant: 246),
+            waveImageView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: margin * 2),
+            waveImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin * 2),
             waveImageView.topAnchor.constraint(equalTo: progressButton.topAnchor),
-            waveImageView.heightAnchor.constraint(equalToConstant: 36),
+            waveImageView.heightAnchor.constraint(equalToConstant: 42),
             
             playbackWaveformImageView.widthAnchor.constraint(equalTo: waveImageView.widthAnchor),
             playbackWaveformImageView.heightAnchor.constraint(equalTo: waveImageView.heightAnchor),
@@ -101,10 +133,20 @@ final class MessageAudioView: UIView {
             playbackWaveformImageView.topAnchor.constraint(equalTo: waveImageView.topAnchor),
             
             fileSizeLabel.leadingAnchor.constraint(equalTo: waveImageView.leadingAnchor),
-            fileSizeLabel.topAnchor.constraint(equalTo: waveImageView.bottomAnchor),
-            fileSizeLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin),
+            fileSizeLabel.topAnchor.constraint(equalTo: waveImageView.bottomAnchor, constant: margin),
+            fileSizeLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            timeLabel.leadingAnchor.constraint(equalTo: fileSizeLabel.trailingAnchor, constant: margin),
+            timeLabel.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor),
+            timeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            timeLabel.bottomAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor),
+            
+            playbackSpeedButton.widthAnchor.constraint(equalToConstant: 52),
+            playbackSpeedButton.heightAnchor.constraint(equalToConstant: 28),
+            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            playbackSpeedButton.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor, constant: -4),
         ])
-        registerOnTap()
+        registerObservers()
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
@@ -122,6 +164,50 @@ final class MessageAudioView: UIView {
                 updateProgress(viewModel: viewModel)
             }
         }
+    }
+    
+    @objc private func onPlaybackSpeedTapped(_ sender: UIGestureRecognizer) {
+        playbackSpeed = playbackSpeed.increase()
+        playbackSpeedButton.setTitle(playbackSpeed.string(), for: .normal)
+        audioVM.setPlayback(playbackSpeed.rawValue)
+    }
+    
+    @objc private func onDragOverWaveform(_ sender: UIPanGestureRecognizer) {
+        let to: Double = sender.location(in: sender.view).x / waveImageView.frame.size.width
+        let path = createPath(to)
+
+        seekTimer?.invalidate()
+        seekTimer = nil
+        isSeeking = true
+        
+        maskLayer.path = path
+        audioVM.seek(to)
+        seekTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+            self?.isSeeking = false
+        }
+    }
+    
+    private func onPlayingStateChanged(_ isPlaying: Bool) {
+        guard isSameFile else { return }
+        let image = isPlaying ? "pause.fill" : "play.fill"
+        progressButton.animate(to: 1.0, systemIconName: image)
+        progressButton.setProgressVisibility(visible: false)
+        playbackSpeedButton.setTitle(playbackSpeed.string(), for: .normal)
+        playbackSpeedButton.isHidden = !isPlaying
+    }
+    
+    private func onTimeChanged() {
+        guard isSameFile else { return }
+        if !isSeeking {
+            updateProgressWaveform(progress)
+        } else {
+            print("was seeking")
+        }
+        self.timeLabel.text = audioTimerString()
+    }
+    
+    private func onClosed(_ closed: Bool) {
+        if closed, isSameFile {}
     }
 
     public func updateProgress(viewModel: MessageRowViewModel) {
@@ -160,26 +246,20 @@ final class MessageAudioView: UIView {
         isSameFile ? min(audioVM.currentTime / audioVM.duration, 1.0) : 0
     }
 
-    func registerOnTap() {
-        audioVM.$currentTime.sink { [weak self] newValue in
-            guard let self = self, isSameFile else { return }
-            let progress = min(audioVM.currentTime / audioVM.duration, 1.0)
-            updateProgressWaveform(progress)
+    func registerObservers() {
+        audioVM.$currentTime.sink { [weak self] time in
+            print("currentTime: \(self?.audioVM.currentTime ?? 0) time:\(time)")
+            self?.onTimeChanged()
         }
         .store(in: &cancellableSet)
 
         audioVM.$isPlaying.sink { [weak self] isPlaying in
-            guard let self = self, isSameFile else { return }
-            let image = isPlaying ? "pause.fill" : "play.fill"
-            progressButton.animate(to: 1.0, systemIconName: image)
-            progressButton.setProgressVisibility(visible: false)
+            self?.onPlayingStateChanged(isPlaying)
         }
         .store(in: &cancellableSet)
 
         audioVM.$isClosed.sink { [weak self] closed in
-            if closed, self?.isSameFile == true {
-//                self?.playerProgress.progress = 0.0
-            }
+            self?.onClosed(closed)
         }
         .store(in: &cancellableSet)
     }
@@ -206,7 +286,7 @@ final class MessageAudioView: UIView {
             let image = try await waveformImageDrawer.waveformImage(
                 fromAudioAt: url,
                 with: .init(
-                    size: .init(width: 164, height: 36),
+                    size: .init(width: 164, height: 42),
                     style: .striped(
                         .init(
                             color: UIColor.gray,
@@ -229,28 +309,41 @@ final class MessageAudioView: UIView {
     }
     
     private func fileURLOrConvertedURL() -> URL? {
-        if let convertedURL = message?.convertedFileURL, FileManager.default.fileExists(atPath: convertedURL.path()) {
-            return convertedURL
-        } else {
-            if let fileURL = viewModel?.calMessage.fileURL {
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("WaveformGenerator.wav")
-                try? FileManager.default.copyItem(at: fileURL, to: tempURL)
-                return tempURL
-            } else {
-                return nil
-            }
-        }
+        convertedAudioURL() ?? tempAudioURL()
     }
     
-    private func updateProgressWaveform(_ progress: Double) {
+    private func convertedAudioURL() -> URL? {
+        if  let convertedURL = message?.convertedFileURL, FileManager.default.fileExists(atPath: convertedURL.path()) {
+            return convertedURL
+        }
+        return nil
+    }
+    
+    private func tempAudioURL() -> URL? {
+        if let fileURL = viewModel?.calMessage.fileURL {
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("WaveformGenerator.wav")
+            try? FileManager.default.copyItem(at: fileURL, to: tempURL)
+            return tempURL
+        }
+        return nil
+    }
+    
+    private func createPath(_ progress: Double) -> CGPath {
         let fullRect = playbackWaveformImageView.bounds
         let newWidth = Double(fullRect.size.width) * progress
         let newBounds = CGRect(x: 0.0, y: 0.0, width: newWidth, height: Double(fullRect.size.height))
-        let path = CGPath(rect: newBounds, transform: nil)
-        animateMaskLayer(newPath: path)
+        return CGPath(rect: newBounds, transform: nil)
+    }
+    
+    private func updateProgressWaveform(_ progress: Double) {
+        animateMaskLayer(newPath: createPath(progress))
     }
     
     private func animateMaskLayer(newPath: CGPath) {
+        
+        // Remove any previous animation to avoid stacking issues
+        maskLayer.removeAnimation(forKey: "pathAnimation")
+        
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue = maskLayer.path
         animation.toValue = newPath
@@ -262,5 +355,33 @@ final class MessageAudioView: UIView {
         // Add the animation to the mask layer directly
         maskLayer.add(animation, forKey: "pathAnimation")
         maskLayer.path = newPath
+    }
+}
+
+enum PlaybackSpeed: Float {
+    case one = 1.0
+    case oneAndHalf = 1.5
+    case twice = 2.0
+    
+    func increase() -> PlaybackSpeed {
+        switch self {
+        case .one:
+            return .oneAndHalf
+        case .oneAndHalf:
+            return .twice
+        case .twice:
+            return .one
+        }
+    }
+    
+    func string() -> String {
+        switch self {
+        case .one:
+            "x1"
+        case .oneAndHalf:
+            "x1.5"
+        case .twice:
+            "x2"
+        }
     }
 }
