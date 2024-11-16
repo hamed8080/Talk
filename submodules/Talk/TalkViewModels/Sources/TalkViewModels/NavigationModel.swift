@@ -99,6 +99,8 @@ public extension NavigationModel {
             let value = ConversationNavigationValue(viewModel: viewModel)
             append(value: value)
             selectedId = thread.id
+            // We have to update the object with animateObjectWillChange because inside the ThreadRow we use a chagne listener on this
+            animateObjectWillChange()
         }
     }
 
@@ -116,6 +118,7 @@ public extension NavigationModel {
 
     func setSelectedThreadId() {
         selectedId = threadStack.last?.viewModel.threadId
+        animateObjectWillChange()
     }
 
     func remove(threadId: Int? = nil) {
@@ -149,6 +152,7 @@ public extension NavigationModel {
         let value = ConversationDetailNavigationValue(viewModel: detailViewModel)
         append(value: value)
         selectedId = threadViewModel.threadId
+        animateObjectWillChange()
     }
 
     func removeDetail() {
