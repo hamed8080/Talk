@@ -234,6 +234,16 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         playerVC?.entersFullScreenWhenPlaybackBegins = true
         playerVC?.delegate = self
         addPlayerViewToView()
+        
+        
+        /// Add auto play if is enabled in the setting, default is true with mute audio
+        if viewModel?.threadVM?.model.isAutoPlayVideoEnabled == true {
+            playerVC?.player?.isMuted = true
+            playIcon.setIsHidden(true)
+            playerVC?.player?.play()
+        } else {
+            playIcon.setIsHidden(false)
+        }
     }
 
     private func addPlayerViewToView() {
@@ -260,6 +270,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     }
 
     func enterFullScreen(animated: Bool) {
+        playerVC?.player?.isMuted = false
         playerVC?.perform(NSSelectorFromString("enterFullScreenAnimated:completionHandler:"), with: animated, with: nil)
     }
 

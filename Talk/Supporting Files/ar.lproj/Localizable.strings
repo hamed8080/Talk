@@ -352,6 +352,7 @@
 "Setting.EditProfile.bioHintMore" = "أدخل قليلاً عن نفسك...";
 "Setting.EditProfile.enterToPodAccount" = "ادخل إلى حساب POD الخاص بك";
 "Settings.darkModeEnabled" = "الوضع الداكن";
+"Settings.isAutoPlayVideoEnabled" = "تشغيل الفيديوهات تلقائيا";
 
 /* Support */
 "Support.title" = "Talk messenger";

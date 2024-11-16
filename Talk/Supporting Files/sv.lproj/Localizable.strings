@@ -352,6 +352,7 @@
 "Setting.EditProfile.bioHintMore" = "Skriv lite om dig själv...";
 "Setting.EditProfile.enterToPodAccount" = "Logga in på ditt POD-konto";
 "Settings.darkModeEnabled" = "Mörkt läge";
+"Settings.isAutoPlayVideoEnabled" = "Spelar upp videor automatiskt";
 
 /* Support */
 "Support.title" = "Talk messenger";

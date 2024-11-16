@@ -40,8 +40,8 @@ struct SettingsView: View {
                 DarkModeSection()
                 SettingLanguageSection()
                 SettingLogSection()
+                SettingSettingSection()
                 if EnvironmentValues.isTalkTest {
-                    SettingSettingSection()
                     BlockedMessageSection()
                     // SettingCallHistorySection()
                     // SettingSavedMessagesSection()
@@ -220,16 +220,27 @@ struct PreferenceView: View {
 
     var body: some View {
         List {
-            Section("Tab.contacts") {
+            Section("") {
                 VStack(alignment: .leading, spacing: 2) {
-                    Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
-                    Text("Contacts.Sync.subtitle")
-                        .foregroundColor(.gray)
-                        .font(.iransansCaption3)
+                    Toggle("Settings.isAutoPlayVideoEnabled".bundleLocalized(), isOn: $model.isAutoPlayVideoEnabled)
+                        .tint(Color.App.accent)
                 }
             }
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparator(.hidden)
+            
+            if EnvironmentValues.isTalkTest {
+                Section("Tab.contacts") {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
+                        Text("Contacts.Sync.subtitle")
+                            .foregroundColor(.gray)
+                            .font(.iransansCaption3)
+                    }
+                }
+                .listRowBackground(Color.App.bgPrimary)
+                .listRowSeparator(.hidden)
+            }
         }
         .background(Color.App.bgPrimary)
         .listStyle(.plain)

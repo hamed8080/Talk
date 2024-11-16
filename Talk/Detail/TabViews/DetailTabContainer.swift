@@ -12,7 +12,7 @@ import Chat
 
 struct DetailTabContainer: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel
-    @State private var tabs: [Tab] = []
+    @State private var tabs: [TalkUI.Tab] = []
     @State private var selectedTabIndex = 0
 
     var body: some View {
@@ -37,7 +37,7 @@ struct DetailTabContainer: View {
 
     private func makeTabs() {
         if let thread = viewModel.thread {
-            var tabs: [Tab] = [
+            var tabs: [TalkUI.Tab] = [
                 .init(title: "Thread.Tabs.members", view: AnyView(MemberView().ignoresSafeArea(.all))),
                 .init(title: "Thread.Tabs.photos", view: AnyView(PictureView(conversation: thread, messageType: .podSpacePicture))),
                 .init(title: "Thread.Tabs.videos", view: AnyView(VideoView(conversation: thread, messageType: .podSpaceVideo))),

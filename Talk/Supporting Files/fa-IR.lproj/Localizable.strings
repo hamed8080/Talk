@@ -353,6 +353,7 @@
 "Setting.EditProfile.bioHintMore" = "در این قسمت می توانید کمی درباره خودتان بنویسید.";
 "Setting.EditProfile.enterToPodAccount" = "ورود به حساب کاربری پاد";
 "Settings.darkModeEnabled" = "حالت شب";
+"Settings.isAutoPlayVideoEnabled" = "پخش ویدیو به صورت خودکار";
 
 /* Support */
 "Support.title" = "پیام رسان تاک";
