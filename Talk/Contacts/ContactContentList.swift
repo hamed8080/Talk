@@ -24,7 +24,7 @@ struct ContactContentList: View {
             syncView
             creationButtons
             if viewModel.searchedContacts.count > 0 || !viewModel.searchContactString.isEmpty {
-                searcViews
+                searchViews
             } else {
                 normalStateContacts
             }
@@ -76,11 +76,12 @@ struct ContactContentList: View {
     }
 
     @ViewBuilder
-    private var searcViews: some View {
+    private var searchViews: some View {
         StickyHeaderSection(header: "Contacts.searched")
             .listRowInsets(.zero)
         ForEach(viewModel.searchedContacts) { contact in
             ContactRowContainer(contact: .constant(contact), isSearchRow: true)
+                .environment(\.showInviteButton, true)
         }
         .padding()
         ListLoadingView(isLoading: $viewModel.lazyList.isLoading)
@@ -94,6 +95,7 @@ struct ContactContentList: View {
     private var normalStateContacts: some View {
         ForEach(viewModel.contacts) { contact in
             ContactRowContainer(contact: .constant(contact), isSearchRow: false)
+                .environment(\.showInviteButton, true)
         }
         .padding()
         .listRowInsets(.zero)
