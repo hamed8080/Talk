@@ -6,7 +6,7 @@ import PackageDescription
 let useLocalDependency = true
 
 let local: [Package.Dependency] = [
-    .package(path: "../../SDK/AdditiveUI"),
+    .package(path: "../../SDK/Chat/submodules/AdditiveUI"),
     .package(path: "../TalkModels"),
     .package(path: "../TalkExtensions"),
     .package(path: "../TalkViewModels"),

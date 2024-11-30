@@ -100,13 +100,32 @@ final class ChatDelegateImplementation: ChatDelegate {
         if error.code == 21 {
             let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in onError with error 21", level: .error, type: .sent, userInfo: nil)
             onLog(log: log)
-            TokenManager.shared.getNewTokenWithRefreshToken()            
-            AppState.shared.connectionStatus = EnvironmentValues.isTalkTest ? .unauthorized : .connecting
+            tryRefreshToken()
         } else {
             if response.isPresentable {
                 AppState.shared.animateAndShowError(error)
             }
         }
+    }
+
+    private func tryRefreshToken() {
+        Task { @MainActor in
+            do {
+                try await TokenManager.shared.getNewTokenWithRefreshToken()
+                AppState.shared.connectionStatus = EnvironmentValues.isTalkTest ? .unauthorized : .connecting
+            } catch {
+                if let error = error as? AppErrors, error == AppErrors.revokedToken {
+                    await self.logout()
+                }
+            }
+        }
+    }
+    
+    func logout() async {
+        ChatManager.activeInstance?.user.logOut()
+        TokenManager.shared.clearToken()
+        UserConfigManagerVM.instance.logout(delegate:  self)
+        await AppState.shared.objectsContainer.reset()
     }
 
     private func canNotify(_ response: ChatResponse<Message>) -> Bool {

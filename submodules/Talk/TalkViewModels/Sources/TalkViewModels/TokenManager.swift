@@ -63,34 +63,37 @@ public final class TokenManager: ObservableObject {
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         return urlReq
     }
-
-    public func getNewTokenWithRefreshToken() {
+    
+    @MainActor
+    public func getNewTokenWithRefreshToken() async throws {
         if isInFetchingRefreshToken { return }
-        isInFetchingRefreshToken = true        
-        Task { @MainActor in
-            await getOTPNewTokenWithRefreshToken()
-            isInFetchingRefreshToken = false
-        }
+        isInFetchingRefreshToken = true
+        try await getOTPNewTokenWithRefreshToken()
+        isInFetchingRefreshToken = false
     }
 
-    public func getOTPNewTokenWithRefreshToken() async {
+    public func getOTPNewTokenWithRefreshToken() async throws {
         guard let ssoTokenModel = getSSOTokenFromUserDefaults(),
               let keyId = ssoTokenModel.keyId
         else { return }
         do {
             let refreshToken = ssoTokenModel.refreshToken ?? ""
             let urlReq = otpURLrequest(refreshToken: refreshToken, keyId: keyId)
-            let resp = try await session.data(for: urlReq)
-            let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: resp)
+            let tuple = try await session.data(for: urlReq)
+            if let resp = tuple.1 as? HTTPURLResponse, resp.statusCode >= 400 && resp.statusCode < 500 {
+                throw AppErrors.revokedToken
+                return
+            }
+            let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: tuple)
             post(log: log)
-            var ssoToken = try JSONDecoder().decode(SSOTokenResponse.self, from: resp.0)
+            var ssoToken = try JSONDecoder().decode(SSOTokenResponse.self, from: tuple.0)
             ssoToken.keyId = keyId
             await onNewRefreshToken(ssoToken)
         } catch {
             onRefreshTokenError(error: error)
         }
     }
-
+    
     private func onNewRefreshToken(_ ssoToken: SSOTokenResponse) async {
         await MainActor.run {
             saveSSOToken(ssoToken: ssoToken)
