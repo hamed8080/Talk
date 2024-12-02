@@ -70,6 +70,7 @@ extension UIHistoryTableView: UITableViewDelegate {
         guard let viewModel = viewModel else { return nil }
         if let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: String(describing: SectionHeaderView.self)) as? SectionHeaderView {
             let sectionVM = viewModel.historyVM.sections[section]
+            headerView.delegate = viewModel.delegate
             headerView.set(sectionVM)
             return headerView
         }

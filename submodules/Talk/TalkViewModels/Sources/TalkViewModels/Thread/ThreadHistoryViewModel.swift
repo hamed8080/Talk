@@ -49,7 +49,9 @@ public final class ThreadHistoryViewModel {
     private var isEmptyThread = false
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
-    
+    private var middleFetcher: MiddleHistoryFetcherViewModel?
+    private var firstMessageOfTheDayVM: FirstMessageOfTheDayViewModel?
+
     @MainActor
     public var isUpdating = false
     private var lastScrollTime: Date = .distantPast
@@ -93,6 +95,7 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     public func setup(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
+        middleFetcher = MiddleHistoryFetcherViewModel(historyVM: self)
         highlightVM.setup(self)
         visibleTracker.delegate = self
         setupNotificationObservers()
@@ -149,7 +152,8 @@ extension ThreadHistoryViewModel {
     @HistoryActor
     private func onMoreTopFirstScenario(_ response: HistoryResponse) async {
         await onMoreTop(response)
-        /* 
+        delegate?.onScenario()
+        /*
          It'd be better to go to the last message in the sections, instead of finding the item.
          If the last message has been deleted, we can not find the message.
          Consequently, the scroll to the last message won't work.
@@ -176,7 +180,7 @@ extension ThreadHistoryViewModel {
         if isLastMessageEqualToLastSeen(), let toTime = thread.lastSeenMessageTime {
             Task {
                 hasNextBottom = false
-                await moreTop(prepend: keys.MORE_TOP_SECOND_SCENARIO_KEY, toTime.advanced(by: 1))
+                await moveToTime(toTime, thread.lastMessageVO?.id ?? -1, highlight: false)
                 showTopLoading(false) // We have to hide it to prevent double loading center and top
             }
         }
@@ -200,7 +204,7 @@ extension ThreadHistoryViewModel {
         /// 1- Get the bottom part of the list of what is inside the memory.
         if canGetNewMessagesAfterConnectionEstablished(status), let lastMessageInListTime = sections.last?.vms.last?.message.time {
             showBottomLoading(true)
-            let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1))
+            let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
             doRequest(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
         }
     }
@@ -225,6 +229,7 @@ extension ThreadHistoryViewModel {
         appendSort(viewModels)
         delegate?.reload()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
+        delegate?.onScenario()
 
         /// 4- Set whether it has more messages at the bottom or not.
         await setHasMoreBottom(response)
@@ -240,7 +245,7 @@ extension ThreadHistoryViewModel {
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
         /// 1- Move to a message locally if it exists.
         if moveToBottom, !sections.isLastSeenMessageExist(thread: thread) {
-            sections.removeAll()
+            removeAllSections()
         } else if let uniqueId = canMoveToMessageLocally(messageId) {
             showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             await moveToMessageLocally(uniqueId, messageId, highlight, true)
@@ -249,48 +254,35 @@ extension ThreadHistoryViewModel {
             log("The message id to move to is not exist in the list")
         }
 
-        await setIsAtBottom(newValue: false)
         showCenterLoading(true)
         showTopLoading(false)
 
-        sections.removeAll()
+        removeAllSections()
         delegate?.reload()
-        /// 2- Fetch the top part of the message with the message itself.
-        let toTimeReq = makeRequest(toTime: time.advanced(by: 1))
-        let store = OnMoveTime(messageId: messageId, request: toTimeReq, highlight: highlight)
-        doRequest(toTimeReq, keys.TO_TIME_KEY, store)
-    }
 
-    private func onMoveToTime(_ response: HistoryResponse, request: OnMoveTime) async {
-        let messages = response.result ?? []
-        // Update the UI and fetch reactions the rows at top part.
-        await onMoreTop(response)
-        showCenterLoading(false)
-
-        let uniqueId = messages.first(where: {$0.id == request.messageId})?.uniqueId ?? ""
-        await highlightVM.showHighlighted(uniqueId, request.messageId, highlight: request.highlight, position: .middle)
-
-        let fromTimeRequest = makeRequest(fromTime: request.request.toTime)
-        let store = OnMoveTime(messageId: request.messageId, request: fromTimeRequest, highlight: request.highlight)
-        doRequest(fromTimeRequest, keys.FROM_TIME_KEY, store)
-        showBottomLoading(true)
-    }
-
-    private func onMoveFromTime(request: OnMoveTime, _ response: HistoryResponse) async {
-        let bottomVMBeforeJoin = sections.last?.vms.last
-        let messages = response.result ?? []
-        let beforeSectionCount = sections.count
-        /// 8- Append and sort the array but not call to update the view.
-        let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
-        appendSort(viewModels)
-        let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.inserted(tuple.sections, tuple.rows, .fade, nil)
-        await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
-        for vm in viewModels {
-            await vm.register()
+        middleFetcher?.completion = { [weak self] response in
+            Task { @HistoryActor [weak self] in
+                await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
+            }
         }
-        await setHasMoreBottom(response)
+        middleFetcher?.start(time: time, messageId: messageId, highlight: highlight)
+    }
+
+    private func onMoveToTime(_ response: HistoryResponse, messageId: Int, highlight: Bool) async {
+        let messages = response.result ?? []
+        delegate?.onScenario()
+        // Update the UI and fetch reactions the rows at top part.
+        delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
+        await onMoreTop(response, isMiddleFetcher: true)
+        // If messageId is equal to thread.lastMessageVO?.id it means we are going to open up the thread at the bottom of it so there is
+        if messageId == thread.lastMessageVO?.id {
+            hasNextBottom = false
+            await setIsAtBottom(newValue: true)
+        } else {
+            await setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
+        }
+        let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
+        await highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
         showCenterLoading(false)
         await fetchReactions(messages: messages)
     }
@@ -310,7 +302,7 @@ extension ThreadHistoryViewModel {
     }
 
     private func requestBottomPartByCountAndOffset() {
-        let req = makeRequest()
+        let req = makeRequest(offset: 0)
         doRequest(req, keys.FETCH_BY_OFFSET_KEY)
     }
 
@@ -322,6 +314,7 @@ extension ThreadHistoryViewModel {
         appendSort(viewModels)
         isFetchedServerFirstResponse = true
         delegate?.reload()
+        delegate?.onScenario()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
         await highlightVM.showHighlighted(sortedMessages.last?.uniqueId ?? "", sortedMessages.last?.id ?? -1, highlight: false)
         for vm in viewModels {
@@ -354,6 +347,18 @@ extension ThreadHistoryViewModel {
             await moveToTime(time, id, highlight: true)
             AppState.shared.appStateNavigationModel = .init()
         }
+    }
+
+    // MARK: Scenario 11
+    public func moveToTimeByDate(time: UInt) {
+        firstMessageOfTheDayVM = FirstMessageOfTheDayViewModel(historyVM: self)
+        firstMessageOfTheDayVM?.completion = { [weak self] message in
+            guard let message = message else { return }
+            Task { @HistoryActor [weak self] in
+                await self?.moveToTime(message.time ?? 0, message.id ?? -1)
+            }
+        }
+        firstMessageOfTheDayVM?.startOfDate(time: time, highlight: true)
     }
 
     // MARK: On Cache History Response
@@ -389,12 +394,12 @@ extension ThreadHistoryViewModel {
     private func moreTop(prepend: String, _ toTime: UInt?) async {
         if !canLoadMoreTop() { return }
         showTopLoading(true)
-        let req = makeRequest(toTime: toTime)
+        let req = makeRequest(toTime: toTime, offset: nil)
         doRequest(req, prepend)
     }
 
     @HistoryActor
-    private func onMoreTop(_ response: HistoryResponse) async {
+    private func onMoreTop(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         // If the last message of the thread deleted and we have seen all the messages we move to top of the thread which is wrong
         let wasEmpty = sections.isEmpty
         let topVMBeforeJoin = sections.first?.vms.first
@@ -427,7 +432,9 @@ extension ThreadHistoryViewModel {
             await vm.register()
         }
         showTopLoading(false)
-        await fetchReactions(messages: viewModels.compactMap({$0.message}))
+        if !isMiddleFetcher {
+            await fetchReactions(messages: viewModels.compactMap({$0.message}))
+        }
         prepareAvatars(viewModels)
     }
 
@@ -445,12 +452,12 @@ extension ThreadHistoryViewModel {
     private func moreBottom(prepend: String, _ fromTime: UInt?) async {
         if !canLoadMoreBottom() { return }
         showBottomLoading(true)
-        let req = makeRequest(fromTime: fromTime)
+        let req = makeRequest(fromTime: fromTime, offset: nil)
         doRequest(req, prepend)
     }
 
     @HistoryActor
-    private func onMoreBottom(_ response: HistoryResponse) async {
+    private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         let bottomVMBeforeJoin = sections.last?.vms.last
         let messages = response.result ?? []
         let beforeSectionCount = sections.count
@@ -474,7 +481,9 @@ extension ThreadHistoryViewModel {
         isFetchedServerFirstResponse = true
         showBottomLoading(false)
 
-        await fetchReactions(messages: viewModels.compactMap({$0.message}))
+        if !isMiddleFetcher {
+            await fetchReactions(messages: viewModels.compactMap({$0.message}))
+        }
         prepareAvatars(viewModels)
     }
 
@@ -574,7 +583,7 @@ extension ThreadHistoryViewModel {
         ChatManager.activeInstance?.message.history(req)
     }
 
-    private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int = 0) -> GetHistoryRequest {
+    private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int?) -> GetHistoryRequest {
         GetHistoryRequest(threadId: threadId,
                           count: count,
                           fromTime: fromTime,
@@ -628,7 +637,7 @@ extension ThreadHistoryViewModel {
     }
 
     private func onHistory(_ response: ChatResponse<[Message]>) async {
-        if !response.cache, response.subjectId == threadId {
+        if !response.cache, response.subjectId == threadId, middleFetcher?.isContaninsKeys(response) == false {
             log("Start on history:\(Date().millisecondsSince1970)")
             /// For the first scenario.
             if response.pop(prepend: keys.MORE_TOP_FIRST_SCENARIO_KEY) != nil {
@@ -664,17 +673,7 @@ extension ThreadHistoryViewModel {
                 await onFetchByOffset(response)
             }
 
-            /// For the sixth scenario.
-            if let request = response.pop(prepend: keys.TO_TIME_KEY) as? OnMoveTime {
-                await onMoveToTime(response, request: request)
-            }
-
-            if let request = response.pop(prepend: keys.FROM_TIME_KEY) as? OnMoveTime {
-                await onMoveFromTime(request: request, response)
-            }
-
             await setIsEmptyThread()
-
             log("End on history:\(Date().millisecondsSince1970)")
         } else if response.cache && AppState.shared.connectionStatus != .connected {
             await onHistoryCacheRsponse(response)
@@ -962,6 +961,10 @@ extension ThreadHistoryViewModel {
             try? await Task.sleep(for: .seconds(0.5))
             delegate?.scrollTo(index: indexPath, position: .middle, animate: true)
         }
+    }
+
+    private func removeAllSections() {
+        sections.removeAll()
     }
 }
 

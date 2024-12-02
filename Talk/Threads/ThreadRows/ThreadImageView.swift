@@ -56,9 +56,14 @@ struct ThreadImageView: View {
     }
 
     private func calculate() async {
-        materialBackground = String.getMaterialColorByCharCode(str: thread.title ?? "")
-        splitedTitle = String.splitedCharacter(thread.computedTitle)
-        computedImageURL = thread.computedImageURL
+        let materialBackground = String.getMaterialColorByCharCode(str: thread.title ?? "")
+        let splitedTitle = String.splitedCharacter(thread.computedTitle)
+        let computedImageURL = thread.computedImageURL
+        await MainActor.run {
+            self.materialBackground = materialBackground
+            self.splitedTitle = splitedTitle
+            self.computedImageURL = computedImageURL
+        }
     }
 }
 

@@ -16,6 +16,6 @@ public struct MessageSection: Identifiable, Hashable, Equatable {
     public init(date: Date, vms: ContiguousArray<MessageRowViewModel>) {
         self.date = date
         self.vms = vms
-        self.sectionText = date.yearCondence ?? ""
+        self.sectionText = date.yearDateMonthName ?? ""
     }
 }

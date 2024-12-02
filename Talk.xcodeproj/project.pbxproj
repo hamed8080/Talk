@@ -295,6 +295,8 @@
 		05745AF42AF2B1B100102193 /* SettingProfileButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05745AF22AF2B1B100102193 /* SettingProfileButton.swift */; };
 		057A18DF2B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */; };
 		057A18E02B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */; };
+		05807A162CBA8BCA00B6B433 /* DatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05807A152CBA8BCA00B6B433 /* DatePickerView.swift */; };
+		05807A172CBA8BCA00B6B433 /* DatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05807A152CBA8BCA00B6B433 /* DatePickerView.swift */; };
 		05840A742C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */; };
 		05840A752C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */; };
 		05853A772C5F416D00720FB3 /* TalkModels in Frameworks */ = {isa = PBXBuildFile; productRef = 05853A762C5F416D00720FB3 /* TalkModels */; };
@@ -597,6 +599,7 @@
 		05745AEF2AF2626B00102193 /* UserActionMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserActionMenu.swift; sourceTree = "<group>"; };
 		05745AF22AF2B1B100102193 /* SettingProfileButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingProfileButton.swift; sourceTree = "<group>"; };
 		057A18DE2B04C78A0007868D /* MessageParticipantsSeen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageParticipantsSeen.swift; sourceTree = "<group>"; };
+		05807A152CBA8BCA00B6B433 /* DatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerView.swift; sourceTree = "<group>"; };
 		05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutableMessageStatusView.swift; sourceTree = "<group>"; };
 		058ACC2B2BA32CE60076BDA5 /* SectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeaderView.swift; sourceTree = "<group>"; };
 		05903B5C2BBD08100098F382 /* AttachmentFilesTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentFilesTableView.swift; sourceTree = "<group>"; };
@@ -1185,6 +1188,7 @@
 				05EA77A22BBC030400FFB9C2 /* TakeButton.swift */,
 				05EA77A52BBC651F00FFB9C2 /* CameraCapturer.swift */,
 				052474492C3A600F006F3ECB /* ChatBackgroundView.swift */,
+				05807A152CBA8BCA00B6B433 /* DatePickerView.swift */,
 			);
 			path = Extra;
 			sourceTree = "<group>";
@@ -1464,6 +1468,7 @@
 				05ABE5882B1900C300255C49 /* ForwardMessagesViewPlaceholder.swift in Sources */,
 				05A218432BEA31AA002CE1C8 /* DetailAddOrEditContactSheetView.swift in Sources */,
 				05F9ECC12ABAD540000C6725 /* AppOverlayFactory.swift in Sources */,
+				05807A162CBA8BCA00B6B433 /* DatePickerView.swift in Sources */,
 				0570CC3B2AAEE98F001832E9 /* TagParticipantRow.swift in Sources */,
 				0506DE1F2AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0652AE183EA0025B3B7 /* ConversationBuilder.swift in Sources */,
@@ -1670,6 +1675,7 @@
 				05ABE5872B1900C300255C49 /* ForwardMessagesViewPlaceholder.swift in Sources */,
 				05A218442BEA31AA002CE1C8 /* DetailAddOrEditContactSheetView.swift in Sources */,
 				05F9ECC22ABAD540000C6725 /* AppOverlayFactory.swift in Sources */,
+				05807A172CBA8BCA00B6B433 /* DatePickerView.swift in Sources */,
 				0570CC3C2AAEE98F001832E9 /* TagParticipantRow.swift in Sources */,
 				0506DE202AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0662AE187D80025B3B7 /* ConversationBuilder.swift in Sources */,
@@ -2073,7 +2079,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.62;
+				CURRENT_PROJECT_VERSION = 1.3.67;
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
@@ -2090,7 +2096,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 189;
+				MARKETING_VERSION = 194;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2108,7 +2114,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.62;
+				CURRENT_PROJECT_VERSION = 1.3.67;
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
@@ -2125,7 +2131,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 189;
+				MARKETING_VERSION = 194;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

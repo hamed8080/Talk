@@ -63,6 +63,7 @@ class MoreReactionButtonRow: UIView, UIContextMenuInteractionDelegate {
     }
 
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configuration: UIContextMenuConfiguration, highlightPreviewForItemWithIdentifier identifier: any NSCopying) -> UITargetedPreview? {
-        ReactionRowContextMenuCofiguration.targetedView(view: self, row: row, viewModel: viewModel)
+        guard let row = row else { return nil }
+        return ReactionRowContextMenuCofiguration.targetedView(view: self, row: row, viewModel: viewModel)
     }
 }

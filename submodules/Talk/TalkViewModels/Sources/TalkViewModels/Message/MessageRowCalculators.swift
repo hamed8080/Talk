@@ -318,7 +318,8 @@ class MessageRowCalculators {
 
     class func calulateReactions(reactions: ReactionInMemoryCopy) async -> ReactionRowsCalculated {
         var rows: [ReactionRowsCalculated.Row] = []
-        reactions.summary.forEach { summary in
+        let summary = reactions.summary.sorted(by: {$0.count ?? 0 > $1.count ?? 0})
+        summary.forEach { summary in
             let countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
             let emoji = summary.sticker?.emoji ?? ""
             let isMyReaction = reactions.currentUserReaction?.reaction?.rawValue == summary.sticker?.rawValue
@@ -345,7 +346,7 @@ class MessageRowCalculators {
             rows.insert(myReaction, at: 0)
         }
 
-        let topPadding: CGFloat = reactions.summary.count > 0 ? 10 : 0
+        let topPadding: CGFloat = summary.count > 0 ? 10 : 0
         let myReactionSticker = reactions.currentUserReaction?.reaction
         return ReactionRowsCalculated(rows: rows, topPadding: topPadding, myReactionSticker: myReactionSticker)
     }

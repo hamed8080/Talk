@@ -251,6 +251,12 @@ extension ThreadViewController {
 
 // MARK: ThreadViewDelegate
 extension ThreadViewController: ThreadViewDelegate {
+    func onScenario() {
+        DispatchQueue.main.async { [weak self] in
+            self?.moveToBottom.showIfHasAnyUnreadCount()
+        }
+    }
+    
     func onUnreadCountChanged() {
         DispatchQueue.main.async { [weak self] in
             self?.moveToBottom.updateUnreadCount()
@@ -518,6 +524,10 @@ extension ThreadViewController {
         let hostVC = UIHostingController(rootView: view)
         hostVC.modalPresentationStyle = .formSheet
         present(hostVC, animated: true)
+    }
+
+    func openMoveToDatePicker() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DatePickerDialogWrapper(viewModel: viewModel))
     }
 }
 

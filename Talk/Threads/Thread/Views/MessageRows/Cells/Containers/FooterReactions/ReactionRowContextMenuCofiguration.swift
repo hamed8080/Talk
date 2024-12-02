@@ -11,53 +11,73 @@ import UIKit
 import TalkViewModels
 import TalkModels
 
-class ReactionRowContextMenuCofiguration {
-    static func config(interaction: UIContextMenuInteraction) -> UIContextMenuConfiguration? {
-        let config = UIContextMenuConfiguration(identifier: nil, previewProvider: nil)  { _ in
-            let closeAction = UIAction(title: "General.close".bundleLocalized(), image: UIImage(systemName: "xmark.circle")) { _ in
-                interaction.dismissMenu()
-            }
-            return UIMenu(title: "", children: [closeAction])
-        }
-        return config
+public class ReactionRowContextMenuCofiguration {
+    public static func config(interaction: UIContextMenuInteraction) -> UIContextMenuConfiguration? {
+        UIContextMenuConfiguration(actionProvider:  { _ in
+            return UIMenu(title: "", children: [closeAction(interaction)])
+        })
     }
 
-    static func targetedView(view: UIView, row: ReactionRowsCalculated.Row?, viewModel: MessageRowViewModel?) -> UITargetedPreview? {
+    public static func targetedView(view: UIView, row: ReactionRowsCalculated.Row, viewModel: MessageRowViewModel?) -> UITargetedPreview? {
+        guard let viewModel = viewModel else { return nil }
         let targetedView = UIPreviewTarget(container: view, center: view.center)
+        let isDark = view.traitCollection.userInterfaceStyle == .dark
+        let rowCountWithTabView = RowCountWithTabViewContxtMenu(viewModel, row, isDark)
+        let vc = hostVC(rootView: rowCountWithTabView)
+        return UITargetedPreview(view: vc.view, parameters: params, target: targetedView)
+    }
+}
+
+fileprivate extension ReactionRowContextMenuCofiguration {
+    private static func closeAction(_ interaction: UIContextMenuInteraction) -> UIAction {
+        UIAction(title: "General.close".bundleLocalized(), image: UIImage(systemName: "xmark.circle")) { _ in
+            interaction.dismissMenu()
+        }
+    }
+
+    private static var params: UIPreviewParameters {
         let params = UIPreviewParameters()
         params.backgroundColor = .clear
         params.shadowPath = UIBezierPath()
+        return params
+    }
 
-        guard let viewModel = viewModel else { return nil }
-        let tabView = getTabDetailView(viewModel: viewModel,
-                                       row: row,
-                                       isDark: view.traitCollection.userInterfaceStyle == .dark)
-
-        let vc = UIHostingController(rootView: tabView)
+    private static func hostVC(rootView: some View) -> UIHostingController<some View> {
+        let vc = UIHostingController(rootView: rootView)
         vc.view.frame = .init(origin: .zero, size: .init(width: 300, height: 400))
         vc.view.backgroundColor = .clear
         vc.preferredContentSize = vc.view.frame.size
+        return vc
+    }
+}
 
-        return UITargetedPreview(view: vc.view, parameters: params, target: targetedView)
+fileprivate struct RowCountWithTabViewContxtMenu: View {
+    let vm: MessageRowViewModel
+    let tabVM: ReactionTabParticipantsViewModel
+    let row: ReactionRowsCalculated.Row
+    let isDark: Bool
+    
+    init(_ vm: MessageRowViewModel, _ row: ReactionRowsCalculated.Row, _ isDark: Bool) {
+        self.vm = vm
+        let tabVM = ReactionTabParticipantsViewModel(messageId: vm.message.id ?? -1)
+        tabVM.viewModel = vm.threadVM?.reactionViewModel
+        self.tabVM = tabVM
+        self.row = row
+        self.isDark = isDark
     }
 
-    static func getTabDetailView(viewModel: MessageRowViewModel, row: ReactionRowsCalculated.Row?, isDark: Bool) -> some View {
-        let tabVm = ReactionTabParticipantsViewModel(messageId: viewModel.message.id ?? -1)
-        tabVm.viewModel = viewModel.threadVM?.reactionViewModel
+    var body: some View {
+        VStack(alignment: vm.calMessage.isMe ? .leading : .trailing) {
+            SwiftUIReactionCountRowWrapper(row: row, isMe: vm.calMessage.isMe)
+                .frame(minWidth: 0)
+                .frame(height: 32)
+                .fixedSize()
+                .environment(\.colorScheme, isDark ? .dark : .light)
+                .disabled(true)
 
-        let swiftUIReactionTabs = VStack(alignment: viewModel.calMessage.isMe ? .leading : .trailing) {
-            if let row = row {
-                SwiftUIReactionCountRowWrapper(row: row, isMe: viewModel.calMessage.isMe)
-                    .frame(width: 42, height: 32)
-                    .fixedSize()
-                    .environment(\.colorScheme, isDark ? .dark : .light)
-                    .disabled(true)
-                MessageReactionDetailView(message: viewModel.message, row: row)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
+            MessageReactionDetailView(message: vm.message, row: row)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
-            .environmentObject(tabVm)
-
-        return swiftUIReactionTabs
+        .environmentObject(tabVM)
     }
 }

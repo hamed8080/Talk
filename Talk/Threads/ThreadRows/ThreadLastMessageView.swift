@@ -68,7 +68,9 @@ struct NormalLastMessageContainer: View {
                 pinView
             }
             .task {
-                await calculateFifityFirst()
+                if !isFileType, let fiftyFirst = await calculateFifityFirst(message: lastMsgVO?.message ?? "") {
+                    fiftyFirstCharacter = fiftyFirst
+                }
             }
         }
     }
@@ -171,10 +173,9 @@ struct NormalLastMessageContainer: View {
         return !allActive
     }
 
-    private func calculateFifityFirst() async {
-        if !isFileType, let message = lastMsgVO?.message?.replacingOccurrences(of: "\n", with: " ").prefix(50) {
-            fiftyFirstCharacter = String(message)
-        }
+    private nonisolated func calculateFifityFirst(message: String) async -> String? {
+        let fiftyFirst = message.replacingOccurrences(of: "\n", with: " ").prefix(50)
+        return String(fiftyFirst)
     }
 
     private var addOrRemoveParticipant: String? {

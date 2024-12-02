@@ -3,22 +3,6 @@
 
 import PackageDescription
 
-let useLocalDependency = true
-
-let local: [Package.Dependency] = [
-    .package(path: "../../SDK/AdditiveUI"),
-    .package(path: "../TalkModels"),
-    .package(path: "../TalkExtensions"),
-    .package(path: "../TalkViewModels"),
-]
-
-let remote: [Package.Dependency] = [
-    .package(url: "https://pubgi.sandpod.ir/chat/ios/additive-ui", from: "1.2.3"),
-    .package(path: "../TalkModels"),
-    .package(path: "../TalkExtensions"),
-    .package(path: "../TalkViewModels"),
-]
-
 let package = Package(
     name: "TalkUI",
     defaultLocalization: "en",
@@ -32,12 +16,17 @@ let package = Package(
             name: "TalkUI",
             targets: ["TalkUI"]),
     ],
-    dependencies: useLocalDependency ? local : remote,
+    dependencies: [
+        .package(path: "../../SDK/Chat/submodules/AdditiveUI"),
+        .package(path: "../TalkModels"),
+        .package(path: "../TalkExtensions"),
+        .package(path: "../TalkViewModels"),
+    ],
     targets: [
         .target(
             name: "TalkUI",
             dependencies: [
-                .product(name: "AdditiveUI", package: useLocalDependency ? "AdditiveUI" : "additive-ui"),
+                .product(name: "AdditiveUI", package: "AdditiveUI"),
                 "TalkModels",
                 "TalkExtensions",
                 "TalkViewModels"
@@ -48,7 +37,7 @@ let package = Package(
             name: "TalkUITests",
             dependencies: [
                 "TalkUI",
-                .product(name: "AdditiveUI", package: useLocalDependency ? "AdditiveUI" : "additive-ui"),
+                .product(name: "AdditiveUI", package: "AdditiveUI"),
             ],
             resources: [
                 .copy("Resources/icon.png")

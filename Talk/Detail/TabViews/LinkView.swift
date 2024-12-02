@@ -102,11 +102,7 @@ struct LinkRowView: View {
         .onTapGesture {
             onTap()
         }.task {
-            smallText = String(message.message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
-            let string = message.message ?? ""
-            string.links().forEach { link in
-                links.append(link)
-            }
+            await calculateText(message: message.message)
         }
     }
 
@@ -114,6 +110,18 @@ struct LinkRowView: View {
         Task {
             await threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
             viewModel.dismiss = true
+        }
+    }
+
+    private nonisolated func calculateText(message: String?) async {
+        let smallText = String(message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
+        var links: [String] = []
+        message?.links().forEach { link in
+            links.append(link)
+        }
+        await MainActor.run { [links] in
+            self.smallText = smallText
+            self.links = links
         }
     }
 }

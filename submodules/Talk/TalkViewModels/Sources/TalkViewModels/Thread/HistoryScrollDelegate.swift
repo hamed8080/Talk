@@ -34,6 +34,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate {
     func uploadCompleted(at: IndexPath, viewModel: MessageRowViewModel)
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool)
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath])
+    func onScenario()
 }
 
 public protocol HistoryEmptyDelegate {
@@ -60,6 +61,7 @@ public protocol LastMessageAppearedDelegate {
 public protocol SheetsDelegate {
     func openForwardPicker()
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?)
+    func openMoveToDatePicker()
 }
 
 public protocol BottomToolbarDelegate {

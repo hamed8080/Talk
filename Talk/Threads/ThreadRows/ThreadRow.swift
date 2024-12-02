@@ -248,7 +248,7 @@ struct ThreadUnreadCount: View {
         }
     }
 
-    private func updateCountAsync() async {
+    private nonisolated func updateCountAsync() async {
         let unreadCountString = thread.unreadCountString ?? ""
         await MainActor.run {
             self.unreadCountString = unreadCountString
@@ -284,7 +284,10 @@ struct ThreadTimeText: View {
     }
 
     private func updateTimeAsync() async {
-        timeString = thread.time?.date.localTimeOrDate ?? ""
+        let timeString = thread.time?.date.localTimeOrDate ?? ""
+        await MainActor.run {
+            self.timeString = timeString
+        }
     }
 }
 

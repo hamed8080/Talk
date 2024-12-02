@@ -13,6 +13,7 @@ import TalkUI
 
 final class SectionHeaderView: UITableViewHeaderFooterView {
     private var label = PaddingUILabel(frame: .zero, horizontal: 32, vertical: 8)
+    public weak var delegate: ThreadViewDelegate?
 
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
@@ -24,12 +25,11 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
     }
 
     private func configureView() {
-        isUserInteractionEnabled = false
         backgroundView = UIView()
         backgroundView?.backgroundColor = .clear
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.label.font = UIFont.uiiransansCaption
+        label.label.font = UIFont.uiiransansBoldCaption
         label.label.textColor = .white
         label.layer.cornerRadius = 14
         label.layer.masksToBounds = true
@@ -37,6 +37,8 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         label.backgroundColor = .black.withAlphaComponent(0.4)
         label.accessibilityIdentifier = "labelSectionHeaderView"
 
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onTapped(_:)))
+        addGestureRecognizer(tapGesture)
         addSubview(label)
 
         NSLayoutConstraint.activate([
@@ -47,5 +49,9 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
 
     public func set(_ section: MessageSection) {
         self.label.label.text = section.sectionText
+    }
+
+    @objc private func onTapped(_ sender: UITapGestureRecognizer) {
+        delegate?.openMoveToDatePicker()
     }
 }
