@@ -54,7 +54,6 @@ final class FooterView: UIStackView {
         axis = .horizontal
         alignment = .bottom
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
-        backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         isOpaque = true
 
         reactionView.translatesAutoresizingMaskIntoConstraints = false
@@ -67,7 +66,6 @@ final class FooterView: UIStackView {
         pinImage.setContentHuggingPriority(.required, for: .horizontal)
         pinImage.setContentCompressionResistancePriority(.required, for: .horizontal)
         pinImage.setContentCompressionResistancePriority(.required, for: .horizontal)
-        pinImage.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         pinImage.isOpaque = true
 
         if isMe {
@@ -85,7 +83,6 @@ final class FooterView: UIStackView {
         timelabel.font = UIFont.uiiransansBoldCaption2
         timelabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.5)
         timelabel.accessibilityIdentifier = "timelabelFooterView"
-        timelabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         timelabel.isOpaque = true
         timelabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         timelabel.setContentHuggingPriority(.required, for: .horizontal)
@@ -96,7 +93,6 @@ final class FooterView: UIStackView {
         editedLabel.textColor = Color.App.textSecondaryUIColor
         editedLabel.text = FooterView.staticEditString
         editedLabel.accessibilityIdentifier = "editedLabelFooterView"
-        editedLabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         editedLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         editedLabel.setContentHuggingPriority(.required, for: .horizontal)
         editedLabel.isOpaque = true

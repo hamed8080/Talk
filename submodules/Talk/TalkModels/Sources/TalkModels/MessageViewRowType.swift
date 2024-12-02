@@ -12,5 +12,6 @@ public struct MessageViewRowType {
     public var isUnSent: Bool = false
     public var cellType: CellTypes = .unknown
     public var hasText: Bool = false
+    public var isSingleEmoji = false
     public init() {}
 }

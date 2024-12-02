@@ -44,7 +44,7 @@ public struct MessageRowCalculatedData {
     public var canEdit: Bool = false
     // Disk file path
     public var fileURL: URL?
-    public var textLayer: CATextLayer?
+//    public var textLayer: CATextLayer?
     public var textRect: CGRect?
 
     public var sizes = MessageRowSizes()

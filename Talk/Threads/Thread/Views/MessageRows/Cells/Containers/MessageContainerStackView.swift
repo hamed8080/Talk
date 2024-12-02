@@ -24,6 +24,7 @@ public final class MessageContainerStackView: UIStackView {
     private let groupParticipantNameView: GroupParticipantNameView
     private let replyInfoMessageRow: ReplyInfoView
     private let forwardMessageRow: ForwardInfoView
+    private let singleEmojiView: SingleEmojiView
     private let textMessageView = TextMessageView()
     private static let tailImage = UIImage(named: "tail")
     private var tailImageView = UIImageView()
@@ -48,7 +49,8 @@ public final class MessageContainerStackView: UIStackView {
         self.messageAudioView = .init(frame: frame, isMe: isMe)
         self.locationRowView = .init(frame: frame)
         self.messageImageView = .init(frame: frame)
-        self.messageVideoView = .init(frame: frame, isMe: isMe)        
+        self.messageVideoView = .init(frame: frame, isMe: isMe)
+        self.singleEmojiView = .init(frame: frame, isMe: isMe)
         super.init(frame: frame)
         configureView(isMe: isMe)
 
@@ -79,8 +81,9 @@ public final class MessageContainerStackView: UIStackView {
         messageVideoView.translatesAutoresizingMaskIntoConstraints = false
         messageAudioView.translatesAutoresizingMaskIntoConstraints = false
         locationRowView.translatesAutoresizingMaskIntoConstraints = false
+        singleEmojiView.translatesAutoresizingMaskIntoConstraints = false
         textMessageView.translatesAutoresizingMaskIntoConstraints = false
-        textMessageView.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!        
+        textMessageView.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         footerView.translatesAutoresizingMaskIntoConstraints = false
 //        unsentMessageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -177,6 +180,17 @@ public final class MessageContainerStackView: UIStackView {
             addArrangedSubview(textMessageView)
         } else {
             textMessageView.removeFromSuperview()
+        }
+        
+        if viewModel.calMessage.rowType.isSingleEmoji {
+            textMessageView.removeFromSuperview()
+            tailImageView.removeFromSuperview()
+            singleEmojiView.set(viewModel)
+            addArrangedSubview(singleEmojiView)
+            backgroundColor = nil
+        } else {
+            singleEmojiView.removeFromSuperview()
+            backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         }
 
         //        if viewModel.calMessage.rowType.isUnSent {

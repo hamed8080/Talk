@@ -101,7 +101,7 @@ struct ThreadRow: View {
         } menus: {
             ThreadRowContextMenu(thread: thread, viewModel: viewModel)
         }
-        .onReceive(AppState.shared.objectsContainer.navVM.objectWillChange) { _ in
+        .onReceive(navVM.objectWillChange) { _ in
             setSelection()
         }.onAppear {
             setSelection()
@@ -109,8 +109,8 @@ struct ThreadRow: View {
     }
 
     private func setSelection() {
-        if AppState.shared.objectsContainer.navVM.selectedId == thread.id {
-            isSelected = isInForwardMode == true ? false : (AppState.shared.objectsContainer.navVM.selectedId == thread.id)
+        if navVM.selectedId == thread.id {
+            isSelected = isInForwardMode == true ? false : (navVM.selectedId == thread.id)
         } else if isSelected == true {
             isSelected = false
         }
@@ -118,6 +118,10 @@ struct ThreadRow: View {
 
     private var status: (icon: UIImage, fgColor: Color)? {
         thread.messageStatusIcon(currentUserId: AppState.shared.user?.id)
+    }
+    
+    private var navVM: NavigationModel {
+        AppState.shared.objectsContainer.navVM
     }
 }
 
@@ -249,7 +253,7 @@ struct ThreadUnreadCount: View {
     }
 
     private nonisolated func updateCountAsync() async {
-        let unreadCountString = thread.unreadCountString ?? ""
+        let unreadCountString = await thread.unreadCountString ?? ""
         await MainActor.run {
             self.unreadCountString = unreadCountString
         }

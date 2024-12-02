@@ -473,6 +473,8 @@
 		05FE15F32ADA82D9009AC44A /* NavigationBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B4C1772ACEF1FA00FBC4DC /* NavigationBackButton.swift */; };
 		05FF13332AF8CD8200F120DF /* SelectedContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FF13322AF8CD8200F120DF /* SelectedContact.swift */; };
 		05FF13342AF8CD8200F120DF /* SelectedContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FF13322AF8CD8200F120DF /* SelectedContact.swift */; };
+		ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
+		ACF914712CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -748,6 +750,7 @@
 		05FB7D692B8EE85D00C14ABE /* SearchFiltersMessagesDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFiltersMessagesDialog.swift; sourceTree = "<group>"; };
 		05FE15F02ADA5591009AC44A /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
 		05FF13322AF8CD8200F120DF /* SelectedContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedContact.swift; sourceTree = "<group>"; };
+		ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleEmojiCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -904,6 +907,7 @@
 				051D1BFE2BA0369100676CBD /* SelectMessageRadio.swift */,
 				0594FE622B0386F00031AADF /* TextMessageView.swift */,
 				0594FE682B0387920031AADF /* UnsentMessageView.swift */,
+				ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */,
 				05B6175E2C2947C50059FE0A /* MessageContainer+UIMenuItems.swift */,
 				05B617612C2948900059FE0A /* MessageContainer+ContextMenu.swift */,
 				05B617642C294BB00059FE0A /* UIReactionsPickerScrollView.swift */,
@@ -1553,6 +1557,7 @@
 				0507DB7D2C14B25B00029E3F /* MentionParticipantImageView.swift in Sources */,
 				057A18DF2B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */,
 				052191562B2F262300CC99D1 /* MutualThreadRow.swift in Sources */,
+				ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */,
 				05682B622C21B22B007DBBE6 /* ThreadNavigationPlayer.swift in Sources */,
 				05FF13332AF8CD8200F120DF /* SelectedContact.swift in Sources */,
 				0570CC512AAEE98F001832E9 /* VideoView.swift in Sources */,
@@ -1760,6 +1765,7 @@
 				0507DB7E2C14B25B00029E3F /* MentionParticipantImageView.swift in Sources */,
 				057A18E02B04C78A0007868D /* MessageParticipantsSeen.swift in Sources */,
 				052191572B2F262300CC99D1 /* MutualThreadRow.swift in Sources */,
+				ACF914712CD75B49001A70AE /* SingleEmojiCell.swift in Sources */,
 				05682B632C21B22B007DBBE6 /* ThreadNavigationPlayer.swift in Sources */,
 				05FF13342AF8CD8200F120DF /* SelectedContact.swift in Sources */,
 				0570CC522AAEE98F001832E9 /* VideoView.swift in Sources */,
@@ -2184,7 +2190,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.67;
+				CURRENT_PROJECT_VERSION = 1.3.68;
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
@@ -2201,7 +2207,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 194;
+				MARKETING_VERSION = 195;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2219,7 +2225,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.3.67;
+				CURRENT_PROJECT_VERSION = 1.3.68;
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
@@ -2236,7 +2242,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 194;
+				MARKETING_VERSION = 195;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
