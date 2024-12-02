@@ -32,6 +32,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     public var isInCache: Bool = false
     private let queue: DispatchQueue
     private var thumbnailVM: ThumbnailDownloadManagerViewModel?
+    private var isConverting = false
 
     public init(message: Message, queue: DispatchQueue) {
         self.queue = queue
@@ -161,6 +162,26 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     private func setData(data: Data?) {
+        guard let filePath = fileURL, !isConverting, let message = message else { return }
+        Task { [weak self] in
+            guard let self = self else { return }
+            let isVoice = message.type == .podSpaceVoice || message.type == .voice
+            print("isVoice: \(isVoice)")
+            if isVoice, await OpusConverter.isOpus(path: filePath) {
+                print("Converting the voice file")
+                isConverting = true
+                let convertedURL = await OpusConverter.convert(message)
+                print(convertedURL)
+                if let convertedURL = convertedURL, let data = try? Data(contentsOf: convertedURL) {
+                    setDataSync(data: data)
+                }
+            } else {
+                setDataSync(data: data)
+            }
+        }
+    }
+
+    private func setDataSync(data: Data?) {
         autoreleasepool {
             state = .completed
             downloadPercent = 100

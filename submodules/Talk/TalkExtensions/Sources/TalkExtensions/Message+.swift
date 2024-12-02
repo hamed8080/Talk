@@ -269,6 +269,16 @@ public extension HistoryMessageProtocol {
         guard let ext = uploadFileRequest?.fileExtension else { return false }
         return MessageHistoryStatics.videoExtentions.contains(where: {$0 == ext})
     }
+
+    static var convertedDIRURL: URL? {
+        let docDIR = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        return docDIR?.appending(path: "converted")
+    }
+
+    var convertedFileURL: URL? {
+        guard let hashCode = fileMetaData?.fileHash ?? fileMetaData?.file?.hashCode else { return nil }
+        return Message.convertedDIRURL?.appending(path: "\(hashCode).mp4")
+    }
 }
 
 public extension Array where Element == Message {

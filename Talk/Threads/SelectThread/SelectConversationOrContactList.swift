@@ -17,7 +17,7 @@ struct SelectConversationOrContactList: View {
     var onSelect: (Conversation?, Contact?) -> Void
     @Environment(\.dismiss) var dismiss
     @State var selectedTabId: Int = 0
-    @State private var tabs: [Tab] = []
+    @State private var tabs: [TalkUI.Tab] = []
 
     init(onSelect: @escaping (Conversation?, Contact?) -> Void) {
         self.onSelect = onSelect
