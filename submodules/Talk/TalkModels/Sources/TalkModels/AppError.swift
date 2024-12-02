@@ -21,3 +21,7 @@ public enum AppErrorTypes: Int {
         }
     }
 }
+
+public enum AppErrors: Error, Equatable {
+    case revokedToken
+}

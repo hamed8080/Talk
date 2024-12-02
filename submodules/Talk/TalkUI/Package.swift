@@ -17,7 +17,7 @@ let package = Package(
             targets: ["TalkUI"]),
     ],
     dependencies: [
-        .package(path: "../../SDK/Chat/submodules/AdditiveUI"),
+        .package(path: "../AdditiveUI"),
         .package(path: "../TalkModels"),
         .package(path: "../TalkExtensions"),
         .package(path: "../TalkViewModels"),
