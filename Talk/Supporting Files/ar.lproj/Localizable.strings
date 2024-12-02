@@ -120,6 +120,11 @@
 "Contacts.selectContacts" = "حدد جهات الاتصال";
 "Contctas.notFound" = "لم يتم العثور على جهة الاتصال.";
 "Contctas.list.notFound" = "لم يتم العثور على المستخدم";
+"Contacts.invite" = "يدعو";
+"Contacts.inviteSMS" = "مرحبًا، انضم إلى Talk لتجربة دردشة مختلفة. أولاً، قم بالتسجيل على:
+https://panel.pod.ir
+ثم قم بتسجيل الدخول على:
+talk.pod.ir";
 "ConversationBuilder.enterGroupName" = "أدخل اسم المجموعة";
 "ConversationBuilder.enterChannelName" = "أدخل اسم القناة";
 "ConversationBuilder.atLeatsEnterTwoCharacter" = "الرجاء إدخال اسم المحادثة. (حرفين على الأقل)";

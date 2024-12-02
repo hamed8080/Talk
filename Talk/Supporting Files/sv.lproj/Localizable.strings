@@ -120,6 +120,11 @@
 "Contacts.selectContacts" = "Välj kontakter";
 "Contctas.notFound" = "Kontakten har inte hittats.";
 "Contctas.list.notFound" = "Användaren hittades inte";
+"Contacts.invite" = "Bjuda";
+"Contacts.inviteSMS" = "Hej, gå med i Talk för en annorlunda chattupplevelse. Börja med att registrera dig på:
+https://panel.pod.ir
+Logga sedan in på:
+talk.pod.ir";
 "ConversationBuilder.enterGroupName" = "Ange gruppnamnet";
 "ConversationBuilder.enterChannelName" = "Ange kanalnamnet";
 "ConversationBuilder.atLeatsEnterTwoCharacter" = "Vänligen ange namnet på konversationen. (minst två tecken)";

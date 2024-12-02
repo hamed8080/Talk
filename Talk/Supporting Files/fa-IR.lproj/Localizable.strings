@@ -121,6 +121,12 @@
 "Contacts.selectContacts" = "انتخاب مخا‍طبین";
 "Contctas.notFound" = "مخاطب یافت نشد.";
 "Contctas.list.notFound" = "کاربر یافت نشد";
+"Contacts.invite" = "دعوت";
+"Contacts.inviteSMS" = "سلام! به اپلیکیشن پیام‌رسان تاک بپیوندید و تجربه‌ای متفاوت از گفتگو داشته باشید  
+ابتدا در لینک زیر ثبت نام کنید 
+ :https://panel.pod.ir
+سپس وارد تاک شوید: 
+talk.pod.ir";
 "ConversationBuilder.enterGroupName" = "نام گروه را وارد کنید";
 "ConversationBuilder.enterChannelName" = "نام کانال را وارد کنید.";
 "ConversationBuilder.atLeatsEnterTwoCharacter" = "لطفا نام گفتگو را وارد نمایید. (حداقل ۲ حرف)";

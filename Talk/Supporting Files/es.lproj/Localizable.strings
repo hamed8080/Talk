@@ -122,6 +122,11 @@
 "Contacts.selectContacts" = "Seleccionar contactos";
 "Contctas.notFound" = "No se ha encontrado el contacto.";
 "Contctas.list.notFound" = "Usuario no encontrado";
+"Contacts.invite" = "Invitar";
+"Contacts.inviteSMS" = "Hola, únete a Talk para una experiencia de chat diferente. Primero, regístrate en:
+https://panel.pod.ir
+Luego inicia sesión en:
+talk.pod.ir";
 "ConversationBuilder.enterGroupName" = "Ingresa el nombre del grupo";
 "ConversationBuilder.enterChannelName" = "Ingrese el nombre del canal";
 "ConversationBuilder.atLeatsEnterTwoCharacter" = "Por favor ingresa el nombre de la conversación. (al menos dos caracteres)";

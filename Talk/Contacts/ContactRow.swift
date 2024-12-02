@@ -10,9 +10,11 @@ import Chat
 import SwiftUI
 import TalkUI
 import TalkViewModels
+import TalkModels
 
 struct ContactRow: View {
     let contact: Contact
+    @Environment(\.showInviteButton) var showInvitee
     @Binding public var isInSelectionMode: Bool
     var contactImageURL: String? { contact.image ?? contact.user?.image }
     private var searchVM: ThreadsSearchViewModel { AppState.shared.objectsContainer.searchVM }
@@ -58,6 +60,7 @@ struct ContactRow: View {
                     notFoundUserText
                 }
                 Spacer()
+                inviteButton
                 if contact.blocked == true {
                     Text("General.blocked")
                         .font(.iransansCaption2)
@@ -74,6 +77,30 @@ struct ContactRow: View {
     var isOnline: Bool {
         contact.notSeenDuration ?? 16000 < 15000
     }
+    
+    @ViewBuilder
+    private var inviteButton: some View {
+        let hasNumber = contact.cellphoneNumber != nil && contact.cellphoneNumber?.isEmpty == false
+        if contact.hasUser == false || contact.hasUser == nil, showInvitee {
+            Button {
+                if hasNumber, let number = contact.cellphoneNumber {
+                    openSMSWith(number)
+                }
+            } label: {
+                Text("Contacts.invite".bundleLocalized())
+                    .foregroundStyle(Color.App.white)
+            }
+            .buttonStyle(.plain)
+            .frame(height: 16)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(Color.App.accent)
+            .opacity(hasNumber ? 1.0 : 0.3)
+            .font(.iransansCaption2)
+            .contentShape(Rectangle())
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+    }
 
     @ViewBuilder
     private var notFoundUserText: some View {
@@ -84,6 +111,14 @@ struct ContactRow: View {
                 .fontWeight(.medium)
                 .padding(.leading, 16)
         }
+    }
+    
+    private func openSMSWith(_ phoneNumber: String) {
+        let text = "Contacts.inviteSMS".bundleLocalized()
+        let rtlChar = Language.isRTL ? "\u{200B}" : ""
+        let sms = "sms:\(phoneNumber)&body=\(rtlChar)\(text)"
+        let strURL = sms.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        UIApplication.shared.open(URL(string: strURL)!, options: [:], completionHandler: nil)
     }
 }
 
@@ -96,6 +131,17 @@ struct ContactRowRadioButton: View {
         RadioButton(visible: $viewModel.isInSelectionMode, isSelected: .constant(isSelected)) { isSelected in
             viewModel.toggleSelectedContact(contact: contact)
         }
+    }
+}
+
+public struct ShowInviteeEnvironmentKey: EnvironmentKey {
+    public static var defaultValue: Bool = false
+}
+
+public extension EnvironmentValues {
+    var showInviteButton: Bool {
+        get { self[ShowInviteeEnvironmentKey.self] }
+        set { self[ShowInviteeEnvironmentKey.self] = newValue }
     }
 }
 
