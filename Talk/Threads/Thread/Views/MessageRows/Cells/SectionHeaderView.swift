@@ -52,6 +52,6 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
     }
 
     @objc private func onTapped(_ sender: UITapGestureRecognizer) {
-//        delegate?.openMoveToDatePicker()
+        delegate?.openMoveToDatePicker()
     }
 }
