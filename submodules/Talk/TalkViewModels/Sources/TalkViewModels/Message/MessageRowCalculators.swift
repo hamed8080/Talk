@@ -47,7 +47,7 @@ class MessageRowCalculators {
             calculatedMessage.timeString = MessageRowCalculatedData.formatter.string(from: date)
         }
 
-        rowType.isSingleEmoji = isSingleEmoji(message)
+        rowType.isSingleEmoji = false //isSingleEmoji(message)
         rowType.isImage = !rowType.isMap && message.isImage
         rowType.isVideo = message.isVideo
         rowType.isAudio = message.isAudio
