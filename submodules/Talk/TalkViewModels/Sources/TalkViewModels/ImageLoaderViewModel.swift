@@ -12,7 +12,7 @@ import TalkModels
 import TalkExtensions
 import Combine
 
-public struct ImageLoaderConfig {
+public struct ImageLoaderConfig: Sendable {
     public let url: String
     public let metaData: String?
     public let userName: String?
@@ -30,6 +30,7 @@ public struct ImageLoaderConfig {
     }
 }
 
+@MainActor
 public final class ImageLoaderViewModel: ObservableObject {
     @Published public private(set) var image: UIImage = .init()
     public var onImage: ((UIImage) -> Void)?
@@ -82,7 +83,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         }
 
         if let image = image {
-            await updateImage(image: image)
+            updateImage(image: image)
         }
     }
 
@@ -95,11 +96,10 @@ public final class ImageLoaderViewModel: ObservableObject {
             image = UIImage(cgImage: cgImage)
         }
         if let image = image {
-            await updateImage(image: image)
+            updateImage(image: image)
         }
     }
 
-    @MainActor
     private func updateImage(image: UIImage) {
         self.image = image
         isFetching = false
@@ -108,18 +108,21 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     /// The hashCode decode FileMetaData so it needs to be done on the background thread.
     public func fetch() {
-        Task { @HistoryActor [weak self] in
-            guard let self = self else { return }
-            let hashCode = await getHashCode()
-            isFetching = true
-            fileMetadata = config.metaData
-            if let hashCode = hashCode {
-                getFromSDK(hashCode: hashCode)
-            } else if isPodURL() {
-                await downloadRestImageFromPodURL()
-            } else if let fileURL = getCachedFileURL() {
-                await setCachedImage(fileURL: fileURL)
-            }
+        Task {
+            await fetchAsync()
+        }
+    }
+    
+    private func fetchAsync() async {
+        let hashCode = await getHashCode()
+        isFetching = true
+        fileMetadata = config.metaData
+        if let hashCode = hashCode {
+            getFromSDK(hashCode: hashCode)
+        } else if isPodURL() {
+            await downloadRestImageFromPodURL()
+        } else if let fileURL = await getCachedFileURL() {
+            await setCachedImage(fileURL: fileURL)
         }
     }
 
@@ -127,11 +130,14 @@ public final class ImageLoaderViewModel: ObservableObject {
         let req = ImageRequest(hashCode: hashCode, forceToDownloadFromServer: config.forceToDownloadFromServer, size: config.size, thumbnail: config.thumbnail)
         uniqueId = req.uniqueId
         RequestsManager.shared.append(prepend: IMAGE_LOADER_KEY, value: req)
-        ChatManager.activeInstance?.file.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.get(req)
+        }
     }
 
     @HistoryActor
     private func onGetImage(_ response: ChatResponse<Data>, _ url: URL?) async {
+        let uniqueId = await uniqueId
         guard response.uniqueId == uniqueId else { return }
         if response.uniqueId == uniqueId, !response.cache, let data = response.result {
             response.pop(prepend: IMAGE_LOADER_KEY)
@@ -149,10 +155,11 @@ public final class ImageLoaderViewModel: ObservableObject {
         await setImage(data: data)
     }
 
-    @MainActor
     private func storeInCache(data: Data) {
         guard isRealImage(data), let url = getURL() else { return }
-        ChatManager.activeInstance?.file.saveFileInGroup(url: url, data: data) { _ in }
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.saveFileInGroup(url: url, data: data) { _ in }
+        }
     }
 
     private var headers: [String: String] {
@@ -183,26 +190,36 @@ public final class ImageLoaderViewModel: ObservableObject {
         self.config = config
     }
 
+    @HistoryActor
     private func getMetaData() async ->  FileMetaData? {
-        guard let fileMetadata = (config.metaData ?? fileMetadata)?.data(using: .utf8) else { return nil }
+        let metadata = await getMetaDataAsync()
+        guard let fileMetadata = metadata?.data(using: .utf8) else { return nil }
         return try? JSONDecoder.instance.decode(FileMetaData.self, from: fileMetadata)
     }
 
-    @HistoryActor
     private func getHashCode() async -> String? {
         let parsedMetadata = await getMetaData()
-        return parsedMetadata?.fileHash ?? getOldURLHash()
+        let oldHashCode = await getOldURLHash()
+        return parsedMetadata?.fileHash ?? oldHashCode
     }
 
-    private func getOldURLHash() -> String? {
-        guard let url = getURL(), let comp = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
+    @HistoryActor
+    private func getOldURLHash() async -> String? {
+        guard let url = await getURLHistoryActor(), let comp = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
         return comp.queryItems?.first(where: { $0.name == "hash" })?.value
     }
 
-    private func getCachedFileURL() -> URL? {
-        guard let url = getURL(),
-              let fileManager = ChatManager.activeInstance?.file
+    private func getCachedFileURL() async -> URL? {
+        guard
+            let url = getURL(),
+            let cachedURL = await fileURLOnChatActor(url)
         else { return nil }
+        return cachedURL
+    }
+   
+    @ChatGlobalActor
+    private func fileURLOnChatActor(_ url: URL) -> URL? {
+        guard let fileManager = ChatManager.activeInstance?.file else { return nil }
         if fileManager.isFileExist(url) {
             return fileManager.filePath(url)
         } else if fileManager.isFileExistInGroup(url) {
@@ -213,6 +230,11 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     private func getURL() -> URL? {
         URL(string: config.url)
+    }
+    
+    @HistoryActor
+    private func getURLHistoryActor() async -> URL? {
+        URL(string: await config.url)
     }
 
     private func isRealImage(_ data: Data) -> Bool {
@@ -226,16 +248,30 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     @HistoryActor
     private func downloadRestImageFromPodURL() async {
-        guard let url = getURL() else { return }
+        guard let url = await getURL() else { return }
         var request = URLRequest(url: url)
-        uniqueId = "\(request.hashValue)"
+        await setUniqueId("\(request.hashValue)")
+        let headers = await getHeaders()
         headers.forEach { key, value in
             request.addValue(value, forHTTPHeaderField: key)
         }
         let response = try? await URLSession.shared.data(for: request)
         guard let data = response?.0 else { return }
         await update(data: data)
-        uniqueId = nil
+        await setUniqueId(nil)
         await storeInCache(data: data)
+    }
+    
+    private func getMetaDataAsync() async -> String? {
+        return config.metaData ?? fileMetadata
+    }
+    
+    private func getHeaders() async -> [String: String] {
+        return headers
+    }
+    
+    @MainActor
+    private func setUniqueId(_ uniqueId: String?) async {
+        self.uniqueId = uniqueId
     }
 }

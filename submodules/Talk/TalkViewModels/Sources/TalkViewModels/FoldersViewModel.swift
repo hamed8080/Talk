@@ -13,6 +13,7 @@ import TalkModels
 import TalkExtensions
 import OSLog
 
+@MainActor
 public final class FoldersViewModel: ObservableObject {
     public private(set) var count = 15
     public private(set) var offset = 0
@@ -59,7 +60,9 @@ public final class FoldersViewModel: ObservableObject {
         isLoading = true
         let req = ThreadsRequest(threadIds: threadIds)
         RequestsManager.shared.append(prepend: CONVERSATION_INSIDE_FOLDER_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
         animateObjectWillChange()
     }
 

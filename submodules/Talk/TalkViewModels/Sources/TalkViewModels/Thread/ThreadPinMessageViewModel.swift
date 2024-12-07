@@ -12,6 +12,7 @@ import Combine
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class ThreadPinMessageViewModel {
     private weak var viewModel: ThreadViewModel?
     public weak var historyVM: ThreadHistoryViewModel?
@@ -148,7 +149,9 @@ public final class ThreadPinMessageViewModel {
 
             let req = ImageRequest(hashCode: hashCode, quality: 0.1, size: .SMALL, thumbnail: true)
             requestUniqueId = req.uniqueId
-            ChatManager.activeInstance?.file.get(req)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.file.get(req)
+            }
         }
     }
 
@@ -162,11 +165,15 @@ public final class ThreadPinMessageViewModel {
     }
 
     public func pinMessage(_ messageId: Int, notifyAll: Bool) {
-        ChatManager.activeInstance?.message.pin(.init(messageId: messageId, notifyAll: notifyAll))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.pin(.init(messageId: messageId, notifyAll: notifyAll))
+        }
     }
 
     public func unpinMessage(_ messageId: Int) {
-        ChatManager.activeInstance?.message.unpin(.init(messageId: messageId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.unpin(.init(messageId: messageId))
+        }
     }
 
     public func moveToPinnedMessage() {

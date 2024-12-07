@@ -1,7 +1,7 @@
 import Foundation
 import ChatModels
 
-public protocol HistoryMessageProtocol: Hashable {
+public protocol HistoryMessageProtocol: Hashable, Sendable {
     var deletable: Bool? { get set }
     var delivered: Bool? { get set }
     var editable: Bool? { get set }
@@ -29,7 +29,7 @@ public protocol HistoryMessageProtocol: Hashable {
     var callHistory: CallHistory? { get set }
 }
 
-public class HistoryMessageBaseCalss: HistoryMessageProtocol {
+public class HistoryMessageBaseCalss: HistoryMessageProtocol, @unchecked Sendable {
     public static func == (lhs: HistoryMessageBaseCalss, rhs: HistoryMessageBaseCalss) -> Bool {
         lhs.uniqueId == rhs.uniqueId
     }

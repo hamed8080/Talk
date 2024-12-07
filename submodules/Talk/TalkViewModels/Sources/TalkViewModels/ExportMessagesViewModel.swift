@@ -9,6 +9,7 @@ import Chat
 import Foundation
 import Combine
 
+@MainActor
 public final class ExportMessagesViewModel {
     private weak var viewModel: ThreadViewModel?
     private var thread: Conversation? { viewModel?.thread }
@@ -36,7 +37,9 @@ public final class ExportMessagesViewModel {
 
     public func exportChats(startDate: Date, endDate: Date) {
         let req = GetHistoryRequest(threadId: threadId, fromTime: UInt(startDate.millisecondsSince1970), toTime: UInt(endDate.millisecondsSince1970))
-        ChatManager.activeInstance?.message.export(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.export(req)
+        }
     }
 
     public func deleteFile() {

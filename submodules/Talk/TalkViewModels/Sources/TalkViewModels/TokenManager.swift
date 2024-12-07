@@ -12,7 +12,8 @@ import OSLog
 import Logger
 import TalkExtensions
 
-public final class TokenManager: ObservableObject {
+@MainActor
+public final class TokenManager: ObservableObject, @unchecked Sendable {
     public static let shared = TokenManager()
     @Published public var secondToExpire: Double = 0
     @Published public private(set) var isLoggedIn = false // to update login logout ui
@@ -55,13 +56,18 @@ public final class TokenManager: ObservableObject {
         return urlReq
     }
 
-    private func otpURLrequest(refreshToken: String, keyId: String) -> URLRequest {
-        let config = ChatManager.activeInstance?.config
+    private func otpURLrequest(refreshToken: String, keyId: String) async -> URLRequest {
+        let config = await config()
         let serverType = Config.serverType(config: config) ?? .main
         var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: serverType).refreshToken)!)
         urlReq.url?.append(queryItems: [.init(name: "refreshToken", value: refreshToken)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         return urlReq
+    }
+    
+    @ChatGlobalActor
+    private func config() -> ChatConfig? {
+        ChatManager.activeInstance?.config
     }
     
     @MainActor
@@ -78,11 +84,10 @@ public final class TokenManager: ObservableObject {
         else { return }
         do {
             let refreshToken = ssoTokenModel.refreshToken ?? ""
-            let urlReq = otpURLrequest(refreshToken: refreshToken, keyId: keyId)
+            let urlReq = await otpURLrequest(refreshToken: refreshToken, keyId: keyId)
             let tuple = try await session.data(for: urlReq)
             if let resp = tuple.1 as? HTTPURLResponse, resp.statusCode >= 400 && resp.statusCode < 500 {
                 throw AppErrors.revokedToken
-                return
             }
             let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: tuple)
             post(log: log)
@@ -97,7 +102,9 @@ public final class TokenManager: ObservableObject {
     private func onNewRefreshToken(_ ssoToken: SSOTokenResponse) async {
         await MainActor.run {
             saveSSOToken(ssoToken: ssoToken)
-            ChatManager.activeInstance?.setToken(newToken: ssoToken.accessToken ?? "", reCreateObject: false)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.setToken(newToken: ssoToken.accessToken ?? "", reCreateObject: false)
+            }
             if AppState.shared.connectionStatus != .connected {
                 AppState.shared.connectionStatus = .connected
                 let log = Log(prefix: "TALK_APP", time: .now, message: "App State was not connected and set token just happend without set observeable", level: .error, type: .sent, userInfo: nil)
@@ -177,12 +184,18 @@ public final class TokenManager: ObservableObject {
     public func startTokenTimer() {
 #if DEBUG
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            if let createDate = TokenManager.shared.getCreateTokenDate(), let ssoTokenExipreTime = TokenManager.shared.getSSOTokenFromUserDefaults()?.expiresIn {
-                let expireIn = createDate.advanced(by: Double(ssoTokenExipreTime)).timeIntervalSince1970 - Date().timeIntervalSince1970
-                self?.secondToExpire = Double(expireIn)
+            Task { @MainActor in
+                self?.handleTimer()
             }
         }
 #endif
+    }
+    
+    private func handleTimer() {
+        if let createDate = TokenManager.shared.getCreateTokenDate(), let ssoTokenExipreTime = TokenManager.shared.getSSOTokenFromUserDefaults()?.expiresIn {
+            let expireIn = createDate.advanced(by: Double(ssoTokenExipreTime)).timeIntervalSince1970 - Date().timeIntervalSince1970
+            secondToExpire = Double(expireIn)
+        }
     }
 
     private func post(log: Log) {

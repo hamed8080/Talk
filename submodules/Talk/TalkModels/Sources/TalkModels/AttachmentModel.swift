@@ -1,6 +1,6 @@
 import Chat
 
-public struct AttachmentModel {
+public struct AttachmentModel: Sendable {
     public private(set) var count = 50
     public private(set) var offset = 0
     public private(set) var totalCount = 0

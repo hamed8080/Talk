@@ -9,6 +9,7 @@ import Foundation
 import Chat
 import Combine
 
+@MainActor
 public final class MentionListPickerViewModel {
     private weak var viewModel: ThreadViewModel?
     private var thread: Conversation? { viewModel?.thread }
@@ -131,12 +132,14 @@ public final class MentionListPickerViewModel {
         let offset = lazyList.offset
         let req = ThreadParticipantRequest(threadId: threadId, offset: offset, count: count, name: searchText)
         RequestsManager.shared.append(prepend: MENTION_PARTICIPANTS_KEY, value: req)
-        ChatManager.activeInstance?.conversation.participant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.get(req)
+        }
     }
 
     public func loadMore() async {
         if await !lazyList.canLoadMore() { return }
-        await lazyList.prepareForLoadMore()
+        lazyList.prepareForLoadMore()
         await getParticipants()
     }
 

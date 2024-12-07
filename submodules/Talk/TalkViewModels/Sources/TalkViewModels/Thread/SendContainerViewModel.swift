@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public final class SendContainerViewModel {
     private weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init() }

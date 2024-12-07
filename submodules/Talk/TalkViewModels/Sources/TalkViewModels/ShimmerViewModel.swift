@@ -8,10 +8,12 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 public class ShimmerItemViewModel: ObservableObject {
     @Published public var isAnimating = false
 }
 
+@MainActor
 public class ShimmerViewModel: ObservableObject {
     @Published public var isShowing = false
     private var timer: Timer?
@@ -54,10 +56,16 @@ public class ShimmerViewModel: ObservableObject {
         timer = nil
         timer = Timer.scheduledTimer(withTimeInterval: repeatInterval, repeats: true) { [weak self] timer in
             if timer.isValid {
-                withAnimation(.easeInOut) {
-                    self?.itemViewModel.isAnimating.toggle()
+                Task { @MainActor [weak self] in
+                    self?.handleTimer()
                 }
             }
+        }
+    }
+    
+    private func handleTimer() {        
+        withAnimation(.easeInOut) {
+            itemViewModel.isAnimating.toggle()
         }
     }
 

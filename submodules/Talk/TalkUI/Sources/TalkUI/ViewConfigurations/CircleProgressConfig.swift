@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 public struct CircleProgressConfig {
 
     public static let normal: CircleProgressConfig = .init(progressFont: .iransansSubheadline,

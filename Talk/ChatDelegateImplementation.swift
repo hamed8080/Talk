@@ -17,6 +17,7 @@ final class ChatDelegateImplementation: ChatDelegate {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
     private(set) static var sharedInstance = ChatDelegateImplementation()
 
+    @MainActor
     func createChatObject() {
         if let userConfig = UserConfigManagerVM.instance.currentUserConfig, let userId = userConfig.id {
             UserConfigManagerVM.instance.createChatObjectAndConnect(userId: userId, config: userConfig.config, delegate: self)
@@ -55,26 +56,27 @@ final class ChatDelegateImplementation: ChatDelegate {
     }
 
     func chatEvent(event: ChatEventType) {
-        Task.detached(priority: .userInitiated) {
-            await MainActor.run {
-                NotificationCenter.post(event: event)
-                switch event {
-                case let .system(systemEventTypes):
-                    self.onSystemEvent(systemEventTypes)
-                case let .user(userEventTypes):
-                    self.onUserEvent(userEventTypes)
-                default:
-                    break
-                }
+        let copy = event
+        Task { @MainActor in
+            NotificationCenter.post(event: copy)
+            switch event {
+            case let .system(systemEventTypes):
+                self.onSystemEvent(systemEventTypes)
+            case let .user(userEventTypes):
+                self.onUserEvent(userEventTypes)
+            default:
+                break
             }
         }
     }
 
+    @MainActor
     private func onUserEvent(_ event: UserEventTypes) {
         switch event {
         case let .user(response):
             if let user = response.result {
                 UserConfigManagerVM.instance.onUser(user)
+                AppState.shared.updateUserCache()
             }
         default:
             break
@@ -90,7 +92,7 @@ final class ChatDelegateImplementation: ChatDelegate {
         }
     }
 
-    private func onError(_ response: ChatResponse<Any>) {
+    private func onError(_ response: ChatResponse<Sendable>) {
         Task.detached(priority: .userInitiated) {
             await MainActor.run {
                 NotificationCenter.error.post(name: .error, object: response)
@@ -103,7 +105,9 @@ final class ChatDelegateImplementation: ChatDelegate {
             tryRefreshToken()
         } else {
             if response.isPresentable {
-                AppState.shared.animateAndShowError(error)
+                Task { @MainActor in
+                    AppState.shared.animateAndShowError(error)
+                }
             }
         }
     }
@@ -121,21 +125,22 @@ final class ChatDelegateImplementation: ChatDelegate {
         }
     }
     
+    @MainActor
     func logout() async {
-        ChatManager.activeInstance?.user.logOut()
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.user.logOut()
+        }
         TokenManager.shared.clearToken()
         UserConfigManagerVM.instance.logout(delegate:  self)
         await AppState.shared.objectsContainer.reset()
     }
 
-    private func canNotify(_ response: ChatResponse<Message>) -> Bool {
-        response.result?.isMe(currentUserId: AppState.shared.user?.id) == false && AppState.shared.lifeCycleState == .background
-    }
-
     func onLog(log: Log) {
 #if DEBUG
-        NotificationCenter.logs.post(name: .logs, object: log)
-        logger.debug("\(log.message ?? "")")
+        Task { @MainActor in
+            NotificationCenter.logs.post(name: .logs, object: log)
+            logger.debug("\(log.message ?? "")")
+        }
 #endif
     }
 

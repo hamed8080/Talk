@@ -38,15 +38,9 @@ public struct ListLoadingView: View {
                 }
                 .task {
                     timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-                        if timer.isValid, isLoading {
-                            DispatchQueue.main.async {
-                                withAnimation(.easeInOut(duration: 2).delay(0.05)) {
-                                    self.isAnimating.toggle()
-                                }
-                            }
-                        } else {
-                            self.timer?.invalidate()
-                            self.timer = nil
+                        let isValid = timer.isValid
+                        Task { @MainActor in
+                            handleTimer(isValid: isValid)
                         }
                     }
                 }
@@ -58,6 +52,19 @@ public struct ListLoadingView: View {
                 timer?.invalidate()
                 timer = nil
             }
+        }
+    }
+    
+    private func handleTimer(isValid: Bool) {
+        if isValid, isLoading {
+            DispatchQueue.main.async {
+                withAnimation(.easeInOut(duration: 2).delay(0.05)) {
+                    self.isAnimating.toggle()
+                }
+            }
+        } else {
+            self.timer?.invalidate()
+            self.timer = nil
         }
     }
 }

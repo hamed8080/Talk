@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct MessageRowSizes {
-    public static var avatarSize: CGFloat = 37
+public struct MessageRowSizes: Sendable {
+    nonisolated(unsafe) public static var avatarSize: CGFloat = 37
     public static let tailSize: CGSize = .init(width: 6, height: 12)
     public var paddings = MessagePaddings()
     public var width: CGFloat? = nil

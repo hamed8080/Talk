@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Language: Identifiable {
+public struct Language: Identifiable, Sendable {
     public var id: String { identifier }
     public let identifier: String
     public let language: String
@@ -12,7 +12,7 @@ public struct Language: Identifiable {
         self.text = text
     }
 
-    public static let languages: [Language] = [
+    nonisolated(unsafe) public static let languages: [Language] = [
         .init(identifier: "en_US", language: "en-US", text: "English"),
         .init(identifier: "fa_IR", language: "fa-IR", text: "Persian (فارسی)"),
         .init(identifier: "sv_SE", language: "sv-SE", text: "Swedish"),
@@ -62,7 +62,7 @@ public struct Language: Identifiable {
         return bundle
     }
 
-    private static var cachedbundel: Bundle?
-    private static var cachedIsRTL: Bool?
-    private static var cachedPreferedLocale: Locale?
+    nonisolated(unsafe) private static var cachedbundel: Bundle?
+    nonisolated(unsafe) private static var cachedIsRTL: Bool?
+    nonisolated(unsafe) private static var cachedPreferedLocale: Locale?
 }

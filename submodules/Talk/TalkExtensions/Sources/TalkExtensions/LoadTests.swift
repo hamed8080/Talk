@@ -9,20 +9,23 @@ import Foundation
 import Chat
 
 public class LoadTests {
+    nonisolated(unsafe) static var start = 0
     public class func rapidSend(threadId: Int,
                                 messageTempelate: String,
                                 start: Int,
                                 end: Int,
                                 duration: TimeInterval = 3) {
 #if DEBUG
-        var start = start
+        self.start = start
         Timer.scheduledTimer(withTimeInterval: duration, repeats: true) { timer in
             if start < end {
                 let req = SendTextMessageRequest(threadId: threadId,
                                                  textMessage: String(format: messageTempelate, start) ,
                                                  messageType: .text)
-                ChatManager.activeInstance?.message.send(req)
-                start += 1
+                Task { @ChatGlobalActor in
+                    await ChatManager.activeInstance?.message.send(req)
+                }
+                self.start += 1
             }
         }
 #endif

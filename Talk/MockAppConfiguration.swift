@@ -14,6 +14,7 @@ import TalkViewModels
 import Logger
 import Additive
 
+@MainActor
 class MockAppConfiguration: ChatDelegate {
     let conversation = Conversation(group: true, id: 1, type: .normal)
     var viewModels: [MessageRowViewModel] = []
@@ -254,15 +255,15 @@ In this new line we are going to test if it can break the line.
         viewModels = vms
     }
 
-    func chatState(state: ChatCore.ChatState, currentUser: ChatModels.User?, error: ChatCore.ChatError?) {
+    nonisolated func chatState(state: ChatCore.ChatState, currentUser: ChatModels.User?, error: ChatCore.ChatError?) {
 
     }
 
-    func chatEvent(event: ChatEventType) {
+    nonisolated func chatEvent(event: ChatEventType) {
 
     }
 
-    func onLog(log: Log) {
+    nonisolated func onLog(log: Log) {
 
     }
 }

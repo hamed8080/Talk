@@ -3,6 +3,7 @@ import Combine
 import TalkModels
 import Foundation
 
+@MainActor
 public final class UploadFileViewModel: ObservableObject {
     @Published public private(set) var uploadPercent: Int64 = 0
     @Published public var state: UploadFileState = .paused
@@ -64,7 +65,9 @@ public final class UploadFileViewModel: ObservableObject {
         } else if let uploadLoaction = self.message as? UploadFileWithLocationMessage {
             let req = uploadLoaction
             uploadUniqueId = req.uniqueId
-            ChatManager.activeInstance?.message.send(req.locationRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.send(req.locationRequest)
+            }
         } else if let imageRequest = (self.message as? UploadFileWithReplyPrivatelyMessage)?.uploadImageRequest {
             uploadImage(message, imageRequest)
         }
@@ -73,18 +76,26 @@ public final class UploadFileViewModel: ObservableObject {
     public func uploadFile(_ message: SendTextMessageRequest, _ uploadFileRequest: UploadFileRequest) {
         uploadUniqueId = uploadFileRequest.uniqueId
         if let uploadMessage = self.message as? UploadFileWithReplyPrivatelyMessage {
-            ChatManager.activeInstance?.message.replyPrivately(uploadMessage.replyPrivatelyRequest, uploadFileRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.replyPrivately(uploadMessage.replyPrivatelyRequest, uploadFileRequest)
+            }
         } else {
-            ChatManager.activeInstance?.message.send(message, uploadFileRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.send(message, uploadFileRequest)
+            }
         }
     }
 
     public func uploadImage(_ message: SendTextMessageRequest, _ uploadImageRequest: UploadImageRequest) {
         uploadUniqueId = uploadImageRequest.uniqueId
         if let uploadMessage = self.message as? UploadFileWithReplyPrivatelyMessage {
-            ChatManager.activeInstance?.message.replyPrivately(uploadMessage.replyPrivatelyRequest, uploadImageRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.replyPrivately(uploadMessage.replyPrivatelyRequest, uploadImageRequest)
+            }
         } else {
-            ChatManager.activeInstance?.message.send(message, uploadImageRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.send(message, uploadImageRequest)
+            }
         }
     }
 
@@ -103,12 +114,16 @@ public final class UploadFileViewModel: ObservableObject {
 
     public func pauseUpload() {
         guard let uploadUniqueId = uploadUniqueId else { return }
-        ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: .suspend)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: .suspend)
+        }
     }
 
     public func cancelUpload() {
         guard let uploadUniqueId = uploadUniqueId else { return }
-        ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: .cancel)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: .cancel)
+        }
     }
 
     private func onPause(_ uniqueId: String) {
@@ -119,7 +134,9 @@ public final class UploadFileViewModel: ObservableObject {
 
     public func resumeUpload() {
         guard let uploadUniqueId = uploadUniqueId else { return }
-        ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: .resume)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: .resume)
+        }
     }
 
     private func onResume(_ uniqueId: String) {

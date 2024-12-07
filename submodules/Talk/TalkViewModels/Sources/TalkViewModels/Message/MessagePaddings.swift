@@ -10,7 +10,7 @@ import ChatModels
 import UIKit
 import SwiftUI
 
-public struct MessagePaddings {
+public struct MessagePaddings: Sendable {
     public var textViewPadding: UIEdgeInsets
     public var textViewSpacingTop: CGFloat = 0
     public var replyViewSpacingTop: CGFloat = 0

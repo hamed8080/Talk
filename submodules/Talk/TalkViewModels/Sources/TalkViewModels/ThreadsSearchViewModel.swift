@@ -13,6 +13,7 @@ import TalkModels
 import TalkExtensions
 import OSLog
 
+@MainActor
 public final class ThreadsSearchViewModel: ObservableObject {
     @Published public var searchedConversations: ContiguousArray<Conversation> = []
     @Published public var searchedContacts: ContiguousArray<Contact> = []
@@ -147,7 +148,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
         lazyList.setLoading(true)
         let req = ThreadsRequest(searchText: text, count: lazyList.count, offset: lazyList.offset, new: new)
         RequestsManager.shared.append(prepend: loadMore ? SEARCH_LOAD_MORE_KEY : SEARCH_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     @MainActor
@@ -156,7 +159,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
         lazyList.setLoading(true)
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, name: text, type: .publicGroup)
         RequestsManager.shared.append(prepend: SEARCH_PUBLIC_THREAD_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     @MainActor
@@ -205,7 +210,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
             req = ContactsRequest(query: searchText)
         }
         RequestsManager.shared.append(prepend: SEARCH_CONTACTS_IN_THREADS_LIST_KEY, value: req)
-        ChatManager.activeInstance?.contact.search(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.search(req)
+        }
     }
 
     private func onSearchContacts(_ response: ChatResponse<[Contact]>) {

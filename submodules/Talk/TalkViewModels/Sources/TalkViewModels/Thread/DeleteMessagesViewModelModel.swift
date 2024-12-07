@@ -83,7 +83,7 @@ public final class DeleteMessagesViewModelModel {
     public func deleteMessagesForMe() {
         Task {
             let selectedMessages = await getSelectedMessages()
-            viewModel?.historyVM.deleteMessages(selectedMessages)
+            await viewModel?.historyVM.deleteMessages(selectedMessages)
             viewModel?.selectedMessagesViewModel.setInSelectionMode(false)
             viewModel?.delegate?.showSelectionBar(false)
             viewModel?.delegate?.setSelection(false)
@@ -94,7 +94,7 @@ public final class DeleteMessagesViewModelModel {
     public func deleteForAll() {
         Task {
             let selectedMessages = await getSelectedMessages()
-            viewModel?.historyVM.deleteMessages(selectedMessages, forAll: true)
+            await viewModel?.historyVM.deleteMessages(selectedMessages, forAll: true)
             viewModel?.selectedMessagesViewModel.setInSelectionMode(false)
             viewModel?.delegate?.showSelectionBar(false)
             viewModel?.delegate?.setSelection(false)
@@ -102,12 +102,12 @@ public final class DeleteMessagesViewModelModel {
         }
     }
 
-    public func deleteForMeAndAllOthersPossible() {
+    public func deleteForMeAndAllOthersPossible() async {
         if pastDeleteTimeForOthers.count > 0 {
-            viewModel?.historyVM.deleteMessages(pastDeleteTimeForOthers, forAll: false)
+            await viewModel?.historyVM.deleteMessages(pastDeleteTimeForOthers, forAll: false)
         }
         if notPastDeleteTime.count > 0 {
-            viewModel?.historyVM.deleteMessages(notPastDeleteTime, forAll: true)
+            await viewModel?.historyVM.deleteMessages(notPastDeleteTime, forAll: true)
         }
         viewModel?.selectedMessagesViewModel.setInSelectionMode(false)
         viewModel?.delegate?.showSelectionBar(false)
@@ -115,7 +115,7 @@ public final class DeleteMessagesViewModelModel {
         AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
     }
 
-    public func cleanup() {
+    public func cleanup() async {
         viewModel?.selectedMessagesViewModel.clearSelection()
         viewModel?.selectedMessagesViewModel.setInSelectionMode(false)
         viewModel?.delegate?.setSelection(false)

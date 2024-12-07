@@ -10,6 +10,7 @@ import Combine
 import Foundation
 import TalkModels
 
+@MainActor
 public final class AssistantHistoryViewModel: ObservableObject {
     private var count = 15
     private var offset = 0
@@ -63,7 +64,9 @@ public final class AssistantHistoryViewModel: ObservableObject {
         isLoading = true
         let req = AssistantsHistoryRequest(count: count, offset: offset, fromTime: UInt(Date().advanced(by: 15 * 24 * 3600).timeIntervalSince1970))
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.history(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.history(req)
+        }
     }
 
     public func loadMore() {

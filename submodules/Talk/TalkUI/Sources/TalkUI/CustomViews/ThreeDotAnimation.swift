@@ -27,10 +27,8 @@ struct ThreeDotAnimation: View {
         .task {
             timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
                 if timer.isValid {
-                    if drawCount == 3 {
-                        drawCount = 0
-                    } else {
-                        drawCount += 1
+                    Task {
+                        await handleTimer()
                     }
                 }
             }
@@ -39,6 +37,14 @@ struct ThreeDotAnimation: View {
         .onDisappear {
             timer?.invalidate()
             timer = nil
+        }
+    }
+    
+    private func handleTimer() {
+        if drawCount == 3 {
+            drawCount = 0
+        } else {
+            drawCount += 1
         }
     }
 }

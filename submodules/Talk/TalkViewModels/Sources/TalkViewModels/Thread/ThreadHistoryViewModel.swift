@@ -13,24 +13,15 @@ import Combine
 import UIKit
 import CoreGraphics
 
-public typealias MessageType = any HistoryMessageProtocol
-public typealias MessageIndex = Array<MessageType>.Index
-public typealias SectionIndex = Array<MessageSection>.Index
-public typealias HistoryResponse = ChatResponse<[Message]>
-
-enum JoinPoint {
-    case bottom(bottomVMBeforeJoin: MessageRowViewModel?)
-    case top(topVMBeforeJoin: MessageRowViewModel?)
-}
-
-//@HistoryActor
+@HistoryActor
 public final class ThreadHistoryViewModel {
     // MARK: Stored Properties
-    internal weak var viewModel: ThreadViewModel?
-    public weak var delegate: HistoryScrollDelegate?
-    public var sections: ContiguousArray<MessageSection> = .init()
+    @MainActor internal weak var viewModel: ThreadViewModel?
+    @MainActor public weak var delegate: HistoryScrollDelegate?
+    private var sections: ContiguousArray<MessageSection> = .init()
+    @MainActor public var mSections: ContiguousArray<MessageSection> = .init()
 
-    @HistoryActor private var threshold: CGFloat = 800
+    private var threshold: CGFloat = 800
     private var created: Bool = false
     private var topLoading = false
     private var centerLoading = false
@@ -39,13 +30,14 @@ public final class ThreadHistoryViewModel {
     private var hasNextBottom = true
     private let count: Int = 25
     private var isFetchedServerFirstResponse: Bool = false
+    @MainActor
     private var cancelable: Set<AnyCancellable> = []
     private var hasSentHistoryRequest = false
-    internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
+    @MainActor internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
     private var isJumpedToLastMessage = false
     private var tasks: [Task<Void, Error>] = []
     private var visibleTracker = VisibleMessagesTracker()
-    private var highlightVM = ThreadHighlightViewModel()
+    @MainActor private var highlightVM = ThreadHighlightViewModel()
     private var isEmptyThread = false
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
@@ -58,22 +50,19 @@ public final class ThreadHistoryViewModel {
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
 
     // MARK: Computed Properties
-    private var thread: Conversation { viewModel?.thread ?? .init(id: -1) }
-    private var threadId: Int { thread.id ?? -1 }
-    private var isSimulated: Bool { viewModel?.isSimulatedThared == true }
+    private var thread: Conversation = Conversation()
+    private var threadId: Int = -1
 
     // MARK: Initializer
     nonisolated public init() {}
 }
 
+
 extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
-    func onStableVisibleMessages(_ messages: [MessageType]) {
-        Task { @HistoryActor [weak self] in
-            guard let self = self else { return }
-            let invalidVisibleMessages = await getInvalidVisibleMessages().compactMap({$0 as? Message})
-            if invalidVisibleMessages.count > 0 {
-                viewModel?.reactionViewModel.fetchReactions(messages: invalidVisibleMessages)
-            }
+    func onStableVisibleMessages(_ messages: [MessageType]) async {
+        let invalidVisibleMessages = await getInvalidVisibleMessages().compactMap({$0 as? Message})
+        if invalidVisibleMessages.count > 0 {
+            await viewModel?.reactionViewModel.fetchReactions(messages: invalidVisibleMessages)
         }
     }
 }
@@ -93,27 +82,33 @@ extension ThreadHistoryViewModel {
 
 // MARK: Setup/Start
 extension ThreadHistoryViewModel {
-    public func setup(viewModel: ThreadViewModel) {
-        self.viewModel = viewModel
-        middleFetcher = MiddleHistoryFetcherViewModel(historyVM: self)
-        highlightVM.setup(self)
-        visibleTracker.delegate = self
-        setupNotificationObservers()
+    public func setup(viewModel: ThreadViewModel) async {
+        let thread = await viewModel.thread
+        self.thread = thread
+        threadId = thread.id ?? -1
+        let readOnly = await viewModel.readOnly
+        middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: readOnly)
+        Task { @VisibleActor in
+            await visibleTracker.delegate = self
+        }
+        await MainActor.run {
+            self.viewModel = viewModel
+            highlightVM.setup(self)
+            setupNotificationObservers()
+        }
     }
-
+    
     // MARK: Scenarios Common Functions
-    public func start() {
-        Task { @HistoryActor in
-            /// After deleting a thread it will again tries to call histroy,
-            /// we should prevent it from calling it to not get any error.
-            if isFetchedServerFirstResponse == false {
-                await startFetchingHistory()
-                await viewModel?.threadsViewModel?.clearAvatarsOnSelectAnotherThread()
-            } else if isFetchedServerFirstResponse == true {
-                /// try to open reply privately if user has tried to click on  reply privately and back button multiple times
-                /// iOS has a bug where it tries to keep the object in the memory, so multiple back and forward doesn't lead to destroy the object.
-                await moveToMessageTimeOnOpenConversation()
-            }
+    public func start() async {
+        /// After deleting a thread it will again tries to call histroy,
+        /// we should prevent it from calling it to not get any error.
+        if isFetchedServerFirstResponse == false {
+            await startFetchingHistory()
+            await viewModel?.threadsViewModel?.clearAvatarsOnSelectAnotherThread()
+        } else if isFetchedServerFirstResponse == true {
+            /// try to open reply privately if user has tried to click on  reply privately and back button multiple times
+            /// iOS has a bug where it tries to keep the object in the memory, so multiple back and forward doesn't lead to destroy the object.
+            await moveToMessageTimeOnOpenConversation()
         }
     }
 
@@ -121,17 +116,24 @@ extension ThreadHistoryViewModel {
     private func startFetchingHistory() async {
         /// We check this to prevent recalling these methods when the view reappears again.
         /// If centerLoading is true it is mean theat the array has gotten clear for Scenario 6 to move to a time.
-        let isSimulatedThread = viewModel?.isSimulatedThared == true
-        let hasAnythingToLoadOnOpen = AppState.shared.appStateNavigationModel.moveToMessageId != nil
+        let isSimulatedThread = await viewModel?.isSimulatedThared == true
+        let hasAnythingToLoadOnOpen = await AppState.shared.appStateNavigationModel.moveToMessageId != nil
         await moveToMessageTimeOnOpenConversation()
         await setIsEmptyThread()
         if sections.count > 0 || hasAnythingToLoadOnOpen || isSimulatedThread { return }
-        hasSentHistoryRequest = true
+        Task.detached {
+            /// We won't set this variable to prevent duplicate call on connection status for the first time.
+            /// If we don't sleep we will get a crash.
+            try? await Task.sleep(for: .microseconds(500))
+            Task { @HistoryActor in
+                self.hasSentHistoryRequest = true
+            }
+        }
         tryFirstScenario()
-        trySecondScenario()
-        trySeventhScenario()
+        await trySecondScenario()
+        await trySeventhScenario()
         await tryEightScenario()
-        tryNinthScenario()
+        await tryNinthScenario()
     }
 }
 
@@ -144,30 +146,29 @@ extension ThreadHistoryViewModel {
         if hasUnreadMessage(), let toTime = thread.lastSeenMessageTime {
             Task {
                 await moreTop(prepend: keys.MORE_TOP_FIRST_SCENARIO_KEY, toTime.advanced(by: 1))
-                showTopLoading(false) // We do not need to show two loadings at the same time.
+                await showTopLoading(false) // We do not need to show two loadings at the same time.
             }
         }
     }
 
-    @HistoryActor
     private func onMoreTopFirstScenario(_ response: HistoryResponse) async {
         await onMoreTop(response)
-        delegate?.onScenario()
+        await delegate?.onScenario()
         /*
          It'd be better to go to the last message in the sections, instead of finding the item.
          If the last message has been deleted, we can not find the message.
          Consequently, the scroll to the last message won't work.
         */
         let uniqueId = sections.last?.vms.last?.message.uniqueId
-        delegate?.scrollTo(uniqueId: uniqueId ?? "", position: .bottom, animate: false)
+        await delegate?.scrollTo(uniqueId: uniqueId ?? "", position: .bottom, animate: false)
 
         /// 4- Fetch from time messages to get to the bottom part and new messages to stay there if the user scrolls down.
         if let fromTime = thread.lastSeenMessageTime {
-            viewModel?.scrollVM.isProgramaticallyScroll = false
+            await viewModel?.scrollVM.setIsProgramaticallyScrolling(false)
             await appenedUnreadMessagesBannerIfNeeed()
             await moreBottom(prepend: keys.MORE_BOTTOM_FIRST_SCENARIO_KEY, fromTime.advanced(by: 1))
         }
-        showCenterLoading(false)
+        await showCenterLoading(false)
     }
 
     private func onMoreBottomFirstScenario(_ response: HistoryResponse) async {
@@ -175,42 +176,42 @@ extension ThreadHistoryViewModel {
     }
 
     // MARK: Scenario 2
-    private func trySecondScenario() {
+    private func trySecondScenario() async {
+        print("trySecondScenario")
         /// 1- Get the top part to time messages
-        if isLastMessageEqualToLastSeen(), let toTime = thread.lastSeenMessageTime {
-            Task {
-                hasNextBottom = false
-                await moveToTime(toTime, thread.lastMessageVO?.id ?? -1, highlight: false)
-                showTopLoading(false) // We have to hide it to prevent double loading center and top
-            }
+        if await isLastMessageEqualToLastSeen(), let toTime = thread.lastSeenMessageTime {
+            hasNextBottom = false
+            await moveToTime(toTime, thread.lastMessageVO?.id ?? -1, highlight: false)
+            await showTopLoading(false) // We have to hide it to prevent double loading center and top
         }
     }
 
     private func onMoreTopSecondScenario(_ response: HistoryResponse) async {
         await onMoreTop(response)
         if let uniqueId = thread.lastMessageVO?.uniqueId, let messageId = thread.lastMessageVO?.id {
-            delegate?.reload()
-            delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: false)
+            await delegate?.reload()
+            await delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: false)
             await highlightVM.showHighlighted(uniqueId, messageId, highlight: false)
         }
-        showCenterLoading(false)
+        await showCenterLoading(false)
         await fetchReactions(messages: response.result ?? [])
     }
 
     // MARK: Scenario 3 or 4 more top/bottom.
 
     // MARK: Scenario 5
-    private func tryFifthScenario(status: ConnectionStatus) {
+    private func tryFifthScenario(status: ConnectionStatus) async {
         /// 1- Get the bottom part of the list of what is inside the memory.
-        if canGetNewMessagesAfterConnectionEstablished(status), let lastMessageInListTime = sections.last?.vms.last?.message.time {
-            showBottomLoading(true)
-            let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
+        if await canGetNewMessagesAfterConnectionEstablished(status), let lastMessageInListTime = sections.last?.vms.last?.message.time {
+            await showBottomLoading(true)
+            let req = await makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
             doRequest(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
         }
     }
 
-    private func canGetNewMessagesAfterConnectionEstablished(_ status: ConnectionStatus) -> Bool {
-        return !isSimulated && status == .connected && isFetchedServerFirstResponse == true && viewModel?.isActiveThread == true
+    private func canGetNewMessagesAfterConnectionEstablished(_ status: ConnectionStatus) async -> Bool {
+        let isActiveThread = await viewModel?.isActiveThread == true
+        return await !isSimulated() && status == .connected && isFetchedServerFirstResponse == true && isActiveThread
     }
 
     private func onMoreBottomFifthScenario(_ response: HistoryResponse) async {
@@ -220,21 +221,21 @@ extension ThreadHistoryViewModel {
         if messages.count > 0 {
             removeOldBanner()
             await appenedUnreadMessagesBannerIfNeeed()
-            viewModel?.scrollVM.isAtBottomOfTheList = false
+            await viewModel?.scrollVM.setIsProgramaticallyScrolling(false)
         }
 
         /// 3- Append and sort and calculate the array but not call to update the view.
         let sortedMessages = messages.sortedByTime()
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
-        appendSort(viewModels)
-        delegate?.reload()
+        await appendSort(viewModels)
+        await delegate?.reload()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
-        delegate?.onScenario()
+        await delegate?.onScenario()
 
         /// 4- Set whether it has more messages at the bottom or not.
         await setHasMoreBottom(response)
-        showBottomLoading(false)
-        showCenterLoading(false)
+        await showBottomLoading(false)
+        await showCenterLoading(false)
         for vm in viewModels {
             await vm.register()
         }
@@ -245,23 +246,23 @@ extension ThreadHistoryViewModel {
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
         /// 1- Move to a message locally if it exists.
         if moveToBottom, !sections.isLastSeenMessageExist(thread: thread) {
-            removeAllSections()
+            await removeAllSections()
         } else if let uniqueId = canMoveToMessageLocally(messageId) {
-            showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
+            await showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             await moveToMessageLocally(uniqueId, messageId, highlight, true)
             return
         } else {
             log("The message id to move to is not exist in the list")
         }
 
-        showCenterLoading(true)
-        showTopLoading(false)
+        await showCenterLoading(true)
+        await showTopLoading(false)
 
-        removeAllSections()
-        delegate?.reload()
+        await removeAllSections()
+        await delegate?.reload()
 
         middleFetcher?.completion = { [weak self] response in
-            Task { @HistoryActor [weak self] in
+            Task { [weak self] in
                 await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
             }
         }
@@ -270,9 +271,9 @@ extension ThreadHistoryViewModel {
 
     private func onMoveToTime(_ response: HistoryResponse, messageId: Int, highlight: Bool) async {
         let messages = response.result ?? []
-        delegate?.onScenario()
+        await delegate?.onScenario()
         // Update the UI and fetch reactions the rows at top part.
-        delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
+        await delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
         await onMoreTop(response, isMiddleFetcher: true)
         // If messageId is equal to thread.lastMessageVO?.id it means we are going to open up the thread at the bottom of it so there is
         if messageId == thread.lastMessageVO?.id {
@@ -283,7 +284,7 @@ extension ThreadHistoryViewModel {
         }
         let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
         await highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
-        showCenterLoading(false)
+        await showCenterLoading(false)
         await fetchReactions(messages: messages)
     }
 
@@ -295,14 +296,14 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 7
     /// When lastMessgeSeenId is bigger than thread.lastMessageVO.id as a result of server chat bug or when the conversation is empty.
-    private func trySeventhScenario() {
+    private func trySeventhScenario() async {
         if thread.lastMessageVO?.id ?? 0 < thread.lastSeenMessageId ?? 0 {
-            requestBottomPartByCountAndOffset()
+            await requestBottomPartByCountAndOffset()
         }
     }
 
-    private func requestBottomPartByCountAndOffset() {
-        let req = makeRequest(offset: 0)
+    private func requestBottomPartByCountAndOffset() async {
+        let req = await makeRequest(offset: 0)
         doRequest(req, keys.FETCH_BY_OFFSET_KEY)
     }
 
@@ -311,16 +312,16 @@ extension ThreadHistoryViewModel {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
-        appendSort(viewModels)
+        await appendSort(viewModels)
         isFetchedServerFirstResponse = true
-        delegate?.reload()
-        delegate?.onScenario()
+        await delegate?.reload()
+        await delegate?.onScenario()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
         await highlightVM.showHighlighted(sortedMessages.last?.uniqueId ?? "", sortedMessages.last?.id ?? -1, highlight: false)
         for vm in viewModels {
             await vm.register()
         }
-        showCenterLoading(false)
+        await showCenterLoading(false)
         await fetchReactions(messages: messages)
     }
 
@@ -334,27 +335,29 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 9
     /// When a new thread has been built and there is no message inside the thread yet.
-    private func tryNinthScenario() {
+    private func tryNinthScenario() async {
         if hasThreadNeverOpened() && thread.lastMessageVO == nil {
-            requestBottomPartByCountAndOffset()
+            await requestBottomPartByCountAndOffset()
         }
     }
 
     // MARK: Scenario 10
     private func moveToMessageTimeOnOpenConversation() async {
-        let model = AppState.shared.appStateNavigationModel
+        let model = await AppState.shared.appStateNavigationModel
         if let id = model.moveToMessageId, let time = model.moveToMessageTime {
             await moveToTime(time, id, highlight: true)
-            AppState.shared.appStateNavigationModel = .init()
+            await MainActor.run {
+                AppState.shared.appStateNavigationModel = .init()
+            }
         }
     }
 
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) {
-        firstMessageOfTheDayVM = FirstMessageOfTheDayViewModel(historyVM: self)
+        firstMessageOfTheDayVM = FirstMessageOfTheDayViewModel(threadId: threadId, readOnly: false)
         firstMessageOfTheDayVM?.completion = { [weak self] message in
             guard let message = message else { return }
-            Task { @HistoryActor [weak self] in
+            Task { [weak self] in
                 await self?.moveToTime(message.time ?? 0, message.id ?? -1)
             }
         }
@@ -370,15 +373,15 @@ extension ThreadHistoryViewModel {
         
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
-        appendSort(viewModels)
-        viewModel?.scrollVM.disableExcessiveLoading()
+        await appendSort(viewModels)
+        await viewModel?.scrollVM.disableExcessiveLoading()
         isFetchedServerFirstResponse = false
         if response.containsPartial(prependedKey: keys.MORE_TOP_KEY) {
             hasNextTop = messages.count >= count // We just need the top part when the user open the thread while it's not connected.
         }
-        showBottomLoading(true)
-        showTopLoading(false)
-        delegate?.reload()
+        await showBottomLoading(true)
+        await showTopLoading(false)
+        await delegate?.reload()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
         if !isJumpedToLastMessage {
             await highlightVM.showHighlighted(sortedMessages.last?.uniqueId ?? "", sortedMessages.last?.id ?? -1, highlight: false)
@@ -387,18 +390,16 @@ extension ThreadHistoryViewModel {
         for vm in viewModels {
             await vm.register()
         }
-        showCenterLoading(false)
+        await showCenterLoading(false)
     }
 
-    @HistoryActor
     private func moreTop(prepend: String, _ toTime: UInt?) async {
-        if !canLoadMoreTop() { return }
-        showTopLoading(true)
-        let req = makeRequest(toTime: toTime, offset: nil)
+        if await !canLoadMoreTop() { return }
+        await showTopLoading(true)
+        let req = await makeRequest(toTime: toTime, offset: nil)
         doRequest(req, prepend)
     }
 
-    @HistoryActor
     private func onMoreTop(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         // If the last message of the thread deleted and we have seen all the messages we move to top of the thread which is wrong
         let wasEmpty = sections.isEmpty
@@ -411,18 +412,18 @@ extension ThreadHistoryViewModel {
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
-        appendSort(viewModels)
+        await appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
-        viewModel?.scrollVM.disableExcessiveLoading()
+        await viewModel?.scrollVM.disableExcessiveLoading()
         await setHasMoreTop(response)
         let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, viewModels)
 
-        let moveToMessage = viewModel?.scrollVM.lastContentOffsetY ?? 0 < 24
+        let moveToMessage = await viewModel?.scrollVM.lastContentOffsetY ?? 0 < 24
         var indexPathToScroll: IndexPath?
         if moveToMessage, let lastTopMessageVM = lastTopMessageVM {
             indexPathToScroll = sections.indexPath(for: lastTopMessageVM)
         }
-        delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
+        await delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .top(topVMBeforeJoin: topVMBeforeJoin))
 
         await detectLastMessageDeleted(wasEmptyBeforeInsert: wasEmpty, sortedMessages: sortedMessages)
@@ -431,17 +432,19 @@ extension ThreadHistoryViewModel {
         for vm in viewModels {
             await vm.register()
         }
-        showTopLoading(false)
+        await showTopLoading(false)
         if !isMiddleFetcher {
             await fetchReactions(messages: viewModels.compactMap({$0.message}))
         }
-        prepareAvatars(viewModels)
+        await prepareAvatars(viewModels)
     }
 
     private func detectLastMessageDeleted(wasEmptyBeforeInsert: Bool, sortedMessages: [any HistoryMessageProtocol]) async {
-        if wasEmptyBeforeInsert, isLastMessageEqualToLastSeen(), !isLastMessageExistInSortedMessages(sortedMessages) {
+        if wasEmptyBeforeInsert, await isLastMessageEqualToLastSeen(), await !isLastMessageExistInSortedMessages(sortedMessages) {
             let lastSortedMessage = sortedMessages.last
-            viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
+            await MainActor.run {
+                viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
+            }
             await setIsAtBottom(newValue: true)
             await highlightVM.showHighlighted(lastSortedMessage?.uniqueId ?? "",
                                                 lastSortedMessage?.id ?? -1,
@@ -450,13 +453,12 @@ extension ThreadHistoryViewModel {
     }
 
     private func moreBottom(prepend: String, _ fromTime: UInt?) async {
-        if !canLoadMoreBottom() { return }
-        showBottomLoading(true)
-        let req = makeRequest(fromTime: fromTime, offset: nil)
+        if await !canLoadMoreBottom() { return }
+        await showBottomLoading(true)
+        let req = await makeRequest(fromTime: fromTime, offset: nil)
         doRequest(req, prepend)
     }
 
-    @HistoryActor
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         let bottomVMBeforeJoin = sections.last?.vms.last
         let messages = response.result ?? []
@@ -466,12 +468,12 @@ extension ThreadHistoryViewModel {
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
-        appendSort(viewModels)
+        await appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
-        viewModel?.scrollVM.disableExcessiveLoading()
+        await viewModel?.scrollVM.disableExcessiveLoading()
         await setHasMoreBottom(response)
         let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+        await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
 
         for vm in viewModels {
@@ -479,12 +481,12 @@ extension ThreadHistoryViewModel {
         }
 
         isFetchedServerFirstResponse = true
-        showBottomLoading(false)
+        await showBottomLoading(false)
 
         if !isMiddleFetcher {
             await fetchReactions(messages: viewModels.compactMap({$0.message}))
         }
-        prepareAvatars(viewModels)
+        await prepareAvatars(viewModels)
     }
 
     public func loadMoreTop(message: MessageType) async {
@@ -501,7 +503,7 @@ extension ThreadHistoryViewModel {
     }
 
     private func makeCalculateViewModelsFor(_ messages: [any HistoryMessageProtocol]) async -> [MessageRowViewModel] {
-        guard let viewModel = viewModel else { return [] }
+        guard let viewModel = await viewModel else { return [] }
         return await withTaskGroup(of: MessageRowViewModel.self) { group in
             for message in messages {
                 group.addTask {
@@ -535,12 +537,12 @@ extension ThreadHistoryViewModel {
                         bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
                     }
                     if let indexPath = sections.viewModelAndIndexPath(viewModelUniqueId: bottomVMBeforeJoin?.uniqueId ?? "")?.indexPath {
-                        delegate?.reloadData(at: indexPath)
+                        await delegate?.reloadData(at: indexPath)
                     }
                 }
                 // 2- Set More bottom first message isFirstMessage to false, if they are the same participant.
                 if let indexPath = sections.viewModelAndIndexPath(viewModelUniqueId: firstMessageInMoreBottom?.uniqueId ?? "")?.indexPath {
-                    delegate?.reloadData(at: indexPath)
+                    await delegate?.reloadData(at: indexPath)
                     await MainActor.run {
                         firstMessageInMoreBottom?.calMessage.isFirstMessageOfTheUser = false
                     }
@@ -556,7 +558,7 @@ extension ThreadHistoryViewModel {
                     topVMBeforeJoin?.calMessage.isFirstMessageOfTheUser = false
                 }
                 if let indexPath = sections.viewModelAndIndexPath(viewModelUniqueId: topVMBeforeJoin?.uniqueId ?? "")?.indexPath {
-                    delegate?.reloadData(at: indexPath)
+                    await delegate?.reloadData(at: indexPath)
                 }
                 // 2- Set More top last message isLastMessage to false, if they are the same participant.
                 // We only set this value to false if lastMessageInMoreTop is not equal to the last messaege of the thread,
@@ -566,7 +568,7 @@ extension ThreadHistoryViewModel {
                         lastMessageInMoreTop?.calMessage.isLastMessageOfTheUser = false
                     }
                     if let indexPath = sections.viewModelAndIndexPath(viewModelUniqueId: lastMessageInMoreTop?.uniqueId ?? "")?.indexPath {
-                        delegate?.reloadData(at: indexPath)
+                        await delegate?.reloadData(at: indexPath)
                     }
                 }
             }
@@ -578,26 +580,28 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
 
     private func doRequest(_ req: GetHistoryRequest, _ prepend: String, _ store: OnMoveTime? = nil) {
+        print("called the request")
         RequestsManager.shared.append(prepend: prepend, value: store ?? req)
         logHistoryRequest(req: req)
-        ChatManager.activeInstance?.message.history(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.history(req)
+        }
     }
 
-    private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int?) -> GetHistoryRequest {
+    private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int?) async -> GetHistoryRequest {
         GetHistoryRequest(threadId: threadId,
                           count: count,
                           fromTime: fromTime,
                           offset: offset,
                           order: fromTime != nil ? "asc" : "desc",
                           toTime: toTime,
-                          readOnly: viewModel?.readOnly == true)
+                          readOnly: await viewModel?.readOnly == true)
     }
 }
 
 // MARK: Event Handlers
 extension ThreadHistoryViewModel {
-    private func onUploadEvents(_ notification: Notification) {
-        guard let event = notification.object as? UploadEventTypes else { return }
+    private func onUploadEvents(_ event: UploadEventTypes) {
         switch event {
         case .canceled(let uniqueId):
             onUploadCanceled(uniqueId)
@@ -675,16 +679,18 @@ extension ThreadHistoryViewModel {
 
             await setIsEmptyThread()
             log("End on history:\(Date().millisecondsSince1970)")
-        } else if response.cache && AppState.shared.connectionStatus != .connected {
+        } else if response.cache, await isConnected {
             await onHistoryCacheRsponse(response)
         }
     }
 
     // It will be only called by ThreadsViewModel
     public func onNewMessage(_ message: Message, _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
-        if let viewModel = viewModel, isLastMessageInsideTheSections(oldConversation) {
+        if let viewModel = await viewModel, await isLastMessageInsideTheSections(oldConversation) {
             let bottomVMBeforeJoin = sections.last?.vms.last
-            self.viewModel?.thread = updatedConversation
+            await MainActor.run {
+                self.viewModel?.thread = updatedConversation
+            }
             let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
             let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
             await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
@@ -692,7 +698,7 @@ extension ThreadHistoryViewModel {
             await sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
             await updateAvatarAndGroupuserNameForLastUserMessageIfNeeded(message, bottomVMBeforeJoin)
         }
-        setSeenForAllOlderMessages(newMessage: message)
+        await setSeenForAllOlderMessages(newMessage: message, myId: await appUserId ?? -1)
         await setIsEmptyThread()
     }
 
@@ -700,12 +706,11 @@ extension ThreadHistoryViewModel {
      We use this method in new messages due to the fact that, if we are uploading multiple files/pictures...
      we don't know when the upload message will be completed, thus it's essential to sort them and then check if the row has been moved after sorting.
     */
-    @HistoryActor
     private func sortAndMoveRowIfNeeded(message: Message, currentIndexPath: IndexPath?) async {
         sort()
         let newIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
         if let currentIndexPath = currentIndexPath, let newIndexPath = newIndexPath, currentIndexPath != newIndexPath {
-            delegate?.moveRow(at: currentIndexPath, to: newIndexPath)
+            await delegate?.moveRow(at: currentIndexPath, to: newIndexPath)
             await viewModel?.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
         }
     }
@@ -717,8 +722,8 @@ extension ThreadHistoryViewModel {
      when I send a message it will append to the list immediately, and then it will be updated by the sent/deliver method.
      Therefore, the id is greater than the id of the previous conversation.lastMessageVO.id
      */
-    private func isLastMessageInsideTheSections(_ oldConversation: Conversation?) -> Bool {
-        let hasAnyUploadMessage = viewModel?.uploadMessagesViewModel.hasAnyUploadMessage() ?? false
+    private func isLastMessageInsideTheSections(_ oldConversation: Conversation?) async -> Bool {
+        let hasAnyUploadMessage = await viewModel?.uploadMessagesViewModel.hasAnyUploadMessage() ?? false
         let isLastMessageExistInLastSection = sections.last?.vms.last?.message.id ?? 0 >= oldConversation?.lastMessageVO?.id ?? 0
         return isLastMessageExistInLastSection || hasAnyUploadMessage
     }
@@ -731,26 +736,26 @@ extension ThreadHistoryViewModel {
             vm = sections[indexPath.section].vms[indexPath.row]
             vm.swapUploadMessageWith(message)
             await vm.performaCalculation()
-            delegate?.reloadData(at: indexPath) // Do not call reload(at:) the item it will lead to call endDisplay
+            await delegate?.reloadData(at: indexPath) // Do not call reload(at:) the item it will lead to call endDisplay
         } else {
             // A new message comes from server
             vm = MessageRowViewModel(message: message, viewModel: viewModel)
             await vm.performaCalculation(appendMessages: [message])
-            appendSort([vm])
+            await appendSort([vm])
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, [vm])
-            delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+            await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
         }
         return vm
     }
 
     private func updateAvatarAndGroupuserNameForLastUserMessageIfNeeded(_ message: Message, _ bottomVMBeforeJoin: MessageRowViewModel?) async {
-        let isMe = message.isMe(currentUserId: AppState.shared.user?.id)
+        let isMe = await message.isMe(currentUserId: appUserId)
         if thread.group == true, !isMe, let vm = sections.messageViewModel(for: message.uniqueId ?? "") {
             await updateIsLastMessageAndIsFirstMessageFor([vm], at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
 
             if let prevIndexPath = sections.sameUserPrevIndex(message) {
                 sections[prevIndexPath.section].vms[prevIndexPath.row].calMessage.isLastMessageOfTheUser = false
-                delegate?.reload(at: prevIndexPath)
+                await delegate?.reload(at: prevIndexPath)
             }
         }
     }
@@ -810,7 +815,9 @@ extension ThreadHistoryViewModel {
         await MainActor.run {
             delegate?.seen(indexPath)
         }
-        setSeenForOlderMessages(messageId: response.result?.messageId)
+        if let messageId = response.result?.messageId, let myId = await appUserId {
+            await setSeenForOlderMessages(messageId: messageId, myId: myId)
+        }
     }
 
     /*
@@ -841,15 +848,24 @@ extension ThreadHistoryViewModel {
         if sections[indices.section].vms.count == 0 {
             sections.remove(at: indices.section)
         }
-        delegate?.removed(at: indices)
+        await onDeleteMessage(indices)
         await setIsEmptyThread()
+    }
+    
+    @MainActor
+    private func onDeleteMessage(_ indices: IndexPath) async {
+        mSections[indices.section].vms.remove(at: indices.row)
+        if mSections[indices.section].vms.count == 0 {
+            mSections.remove(at: indices.section)
+        }
+        delegate?.removed(at: indices)
     }
 }
 
 // MARK: Append/Sort/Delete
 extension ThreadHistoryViewModel {
 
-    private func appendSort(_ viewModels: [MessageRowViewModel]) {
+    private func appendSort(_ viewModels: [MessageRowViewModel]) async {
         log("Start of the appendMessagesAndSort: \(Date().millisecondsSince1970)")
         guard viewModels.count > 0 else { return }
         for vm in viewModels {
@@ -858,6 +874,9 @@ extension ThreadHistoryViewModel {
         sort()
         log("End of the appendMessagesAndSort: \(Date().millisecondsSince1970)")
         lastItemIdInSections = sections.last?.vms.last?.id ?? 0
+        await MainActor.run { [sections] in
+            mSections = sections
+        }
         return
     }
 
@@ -876,33 +895,10 @@ extension ThreadHistoryViewModel {
 
     public func injectMessagesAndSort(_ requests: [any HistoryMessageProtocol]) async {
         let viewModels = await makeCalculateViewModelsFor(requests)
-        appendSort(viewModels)
+        await appendSort(viewModels)
         for vm in viewModels {
             await vm.register()
         }
-    }
-
-    private func insertIntoSection(_ message: MessageType) -> MessageRowViewModel? {
-        if message.threadId == threadId || message.conversation?.id == threadId, let viewModel = viewModel {
-            let viewModel = MessageRowViewModel(message: message, viewModel: viewModel)
-            if let sectionIndex = sections.sectionIndexByDate(message.time?.date ?? Date()) {
-                sections[sectionIndex].vms.append(viewModel)
-                return viewModel
-            } else {
-                sections.append(.init(date: message.time?.date ?? Date(), vms: [viewModel]))
-                return viewModel
-            }
-        }
-        return nil
-    }
-
-    private func insertOrUpdate(_ message: MessageType) -> MessageRowViewModel? {
-        guard let uniqueId = message.uniqueId else { return nil }
-        let indices = sections.findIncicesBy(uniqueId: uniqueId, message.id ?? -1)
-        if let vm = updateMessage(message, indices) {
-            return vm
-        }
-        return insertIntoSection(message)
     }
 
     private func insertIntoProperSection(_ viewModel: MessageRowViewModel) {
@@ -937,9 +933,13 @@ extension ThreadHistoryViewModel {
         sections[indices.section].vms.remove(at: indices.row)
     }
 
-    public func deleteMessages(_ messages: [MessageType], forAll: Bool = false) {
+    @MainActor
+    public func deleteMessages(_ messages: [MessageType], forAll: Bool = false) async {
         let messagedIds = messages.compactMap(\.id)
-        ChatManager.activeInstance?.message.delete(.init(threadId: threadId, messageIds: messagedIds, deleteForAll: forAll))
+        let threadId = await threadId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.delete(.init(threadId: await threadId, messageIds: messagedIds, deleteForAll: forAll))
+        }
         viewModel?.selectedMessagesViewModel.clearSelection()
     }
 
@@ -947,7 +947,7 @@ extension ThreadHistoryViewModel {
         guard
             thread.unreadCount ?? 0 > 0, // in self thread it's essential to check the value always, if not we will always get unread banner.
             let tuples = sections.message(for: thread.lastSeenMessageId),
-            let viewModel = viewModel
+            let viewModel = await viewModel
         else { return }
         let time = (tuples.message.time ?? 0) + 1
         let unreadMessage = UnreadMessage(id: LocalId.unreadMessageBanner.rawValue, time: time, uniqueId: "\(LocalId.unreadMessageBanner.rawValue)")
@@ -955,25 +955,31 @@ extension ThreadHistoryViewModel {
         let vm = MessageRowViewModel(message: unreadMessage, viewModel: viewModel)
         await vm.performaCalculation()
         sections[indexPath.section].vms.append(vm)
-        let bannerIndexPath = IndexPath(row: sections[indexPath.section].vms.indices.last!, section: indexPath.section)
-        delegate?.inserted(at: bannerIndexPath)
-        Task {
-            try? await Task.sleep(for: .seconds(0.5))
+        await MainActor.run { [weak self, sections] in
+            guard let self = self else { return }
+            mSections = sections
+            let bannerIndexPath = IndexPath(row: sections[indexPath.section].vms.indices.last!, section: indexPath.section)
+            delegate?.inserted(at: bannerIndexPath)
+        }
+        try? await Task.sleep(for: .seconds(0.5))
+        await MainActor.run {
             delegate?.scrollTo(index: indexPath, position: .middle, animate: true)
         }
     }
 
-    private func removeAllSections() {
+    private func removeAllSections() async {
         sections.removeAll()
+        await MainActor.run {
+            mSections.removeAll()
+        }
     }
 }
 
 // MARK: Appear/Disappear/Display/End Display
 extension ThreadHistoryViewModel {
-    @HistoryActor
     public func willDisplay(_ indexPath: IndexPath) async {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
-        visibleTracker.append(message: message)
+        await visibleTracker.append(message: message)
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         if message.id == thread.lastMessageVO?.id {
             await setIsAtBottom(newValue: true)
@@ -981,11 +987,10 @@ extension ThreadHistoryViewModel {
         await seenVM?.onAppear(message)
     }
 
-    @HistoryActor
     public func didEndDisplay(_ indexPath: IndexPath) async {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message disappeared id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
-        visibleTracker.remove(message: message)
+        await visibleTracker.remove(message: message)
         if message.id == thread.lastMessageVO?.id {
             await setIsAtBottom(newValue: false)
         }
@@ -999,23 +1004,20 @@ extension ThreadHistoryViewModel {
         }
     }
 
-    public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) {
-        Task { @HistoryActor in
-            if isInProcessingScroll() {
-                viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
-                if contentOffset.y < 0 {
-                    await doScrollAction(contentOffset, contentSize)
-                }
-                return
+    public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) async {
+        if isInProcessingScroll() {
+            await viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
+            if contentOffset.y < 0 {
+                await doScrollAction(contentOffset, contentSize)
             }
-            await doScrollAction(contentOffset, contentSize)
-            viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
+            return
         }
+        await doScrollAction(contentOffset, contentSize)
+        await viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
     }
 
-    @HistoryActor
     private func doScrollAction(_ contentOffset: CGPoint , _ contentSize: CGSize) async {
-        guard let scrollVM = viewModel?.scrollVM else { return }
+        guard let scrollVM = await viewModel?.scrollVM else { return }
         if contentOffset.y > scrollVM.lastContentOffsetY {
             // scroll down
             scrollVM.scrollingUP = false
@@ -1041,41 +1043,42 @@ extension ThreadHistoryViewModel {
     }
 }
 
-// MARK: Observers
+// MARK: Observers On MainActor
+@MainActor
 extension ThreadHistoryViewModel {
     private func setupNotificationObservers() {
-        AppState.shared.$connectionStatus
-            .sink { [weak self] status in
-                Task { [weak self] in
-                    await self?.onConnectionStatusChanged(status)
+        observe(AppState.shared.$connectionStatus) { [weak self] status in
+            await self?.onConnectionStatusChanged(status)
+        }
+        
+        let messageEvent = NotificationCenter.message.publisher(for: .message).compactMap { $0.object as? MessageEventTypes }
+        observe(messageEvent) { [weak self] event in
+            await self?.onMessageEvent(event)
+        }
+        
+        observe(NotificationCenter.onRequestTimer.publisher(for: .onRequestTimer)) { [weak self] newValue in
+            if let key = newValue.object as? String {
+                await self?.onCancelTimer(key: key)
+            }
+        }
+        
+        observe(NotificationCenter.windowMode.publisher(for: .windowMode)) { [weak self] _ in
+            await self?.updateAllRows()
+        }
+        
+        observe(NotificationCenter.upload.publisher(for: .upload)) { [weak self] notification in
+            if let event = notification.object as? UploadEventTypes {
+                await self?.onUploadEvents(event)
+            }
+        }
+    }
+    
+    private func observe<P: Publisher>(_ publisher: P, action: @escaping (P.Output) async -> Void) where P.Failure == Never {
+        publisher
+            .sink { value in
+                Task {
+                    await action(value)
                 }
-            }
-            .store(in: &cancelable)
-        NotificationCenter.message.publisher(for: .message)
-            .compactMap { $0.object as? MessageEventTypes }
-            .sink { [weak self] event in
-                Task { @HistoryActor [weak self] in
-                    await self?.onMessageEvent(event)
-                }
-            }
-            .store(in: &cancelable)
-        NotificationCenter.onRequestTimer.publisher(for: .onRequestTimer)
-            .sink { [weak self] newValue in
-                if let key = newValue.object as? String {
-                    Task { @HistoryActor [weak self] in
-                        self?.onCancelTimer(key: key)
-                    }
-                }
-            }
-            .store(in: &cancelable)
-        NotificationCenter.windowMode.publisher(for: .windowMode)
-            .sink { [weak self] newValue in
-                self?.updateAllRows()
-            }
-            .store(in: &cancelable)
-        NotificationCenter.upload.publisher(for: .upload)
-            .sink { [weak self] notification in
-                self?.onUploadEvents(notification)
             }
             .store(in: &cancelable)
     }
@@ -1111,10 +1114,9 @@ extension ThreadHistoryViewModel {
 
 // MARK: Reactions
 extension ThreadHistoryViewModel {
-    @HistoryActor
     private func fetchReactions(messages: [MessageType]) async {
-        if viewModel?.searchedMessagesViewModel.isInSearchMode == false {
-            viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
+        if await viewModel?.searchedMessagesViewModel.isInSearchMode == false {
+            await viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
         }
     }
 }
@@ -1125,7 +1127,7 @@ extension ThreadHistoryViewModel {
         if !response.cache {
             hasNextTop = response.hasNext
             isFetchedServerFirstResponse = true
-            showTopLoading(false)
+            await showTopLoading(false)
         }
     }
 
@@ -1133,7 +1135,7 @@ extension ThreadHistoryViewModel {
         if !response.cache {
             hasNextBottom = response.hasNext
             isFetchedServerFirstResponse = true
-            showBottomLoading(false)
+            await showBottomLoading(false)
         }
     }
 
@@ -1143,21 +1145,23 @@ extension ThreadHistoryViewModel {
         }
     }
 
-    private func canLoadMoreTop() -> Bool {
-        return hasNextTop && !topLoading && viewModel?.scrollVM.isProgramaticallyScroll == false
+    private func canLoadMoreTop() async -> Bool {
+        let isProgramaticallyScroll = await viewModel?.scrollVM.getIsProgramaticallyScrolling() == true
+        return hasNextTop && !topLoading && !isProgramaticallyScroll
     }
 
-    private func canLoadMoreBottom() -> Bool {
-        return hasNextBottom && !bottomLoading && viewModel?.scrollVM.isProgramaticallyScroll == false
+    private func canLoadMoreBottom() async -> Bool {
+        let isProgramaticallyScroll = await viewModel?.scrollVM.getIsProgramaticallyScrolling() == true
+        return hasNextBottom && !bottomLoading && !isProgramaticallyScroll
     }
 
     public func setIsEmptyThread() async {
         let noMessage = isFetchedServerFirstResponse == true && sections.count == 0
-        let emptyThread = viewModel?.isSimulatedThared == true
+        let emptyThread = await viewModel?.isSimulatedThared == true
         isEmptyThread = emptyThread || noMessage
-        delegate?.emptyStateChanged(isEmpty: isEmptyThread)
+        await delegate?.emptyStateChanged(isEmpty: isEmptyThread)
         if isEmptyThread {
-            showCenterLoading(false)
+            await showCenterLoading(false)
         }
     }
 
@@ -1166,9 +1170,7 @@ extension ThreadHistoryViewModel {
     }
 
     public func setThreashold(_ threshold: CGFloat) {
-        Task { @HistoryActor in
-            self.threshold = threshold
-        }
+        self.threshold = threshold
     }
 }
 
@@ -1176,49 +1178,37 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     /// When you have sent messages for example 5 messages and your partner didn't read messages and send a message directly it will send you only one seen.
     /// So you have to set seen to true for older unread messages you have sent, because the partner has read all messages and after you back to the list of thread the server will respond with seen == true for those messages.
-    private func setSeenForAllOlderMessages(newMessage: MessageType) {
-        let unseenMessages = sections.last?.vms.filter({($0.message.seen == false || $0.message.seen == nil) && $0.message.isMe(currentUserId: AppState.shared.user?.id)})
-        let isNotMe = !newMessage.isMe(currentUserId: AppState.shared.user?.id)
-        if isNotMe, unseenMessages?.count ?? 0 > 0 {
-            unseenMessages?.forEach { vm in
-                Task {
-                    if let indexPath = sections.indexPath(for: vm) {
-                        vm.message.delivered = true
-                        vm.message.seen = true
-                        await vm.performaCalculation()
-                        await MainActor.run {
-                            delegate?.seen(indexPath)
-                        }
-                    }
-                }
+    
+    private func unseenMessages(myId: Int) -> [MessageRowViewModel] {
+        let unseenMessages = sections.last?.vms.filter({($0.message.seen == false || $0.message.seen == nil) && $0.message.isMe(currentUserId: myId)})
+        return unseenMessages ?? []
+    }
+    
+    private func setSeenForAllOlderMessages(newMessage: MessageType, myId: Int) async {
+        let unseenMessages = unseenMessages(myId: myId)
+        let isNotMe = !newMessage.isMe(currentUserId: myId)
+        if isNotMe, unseenMessages.count > 0 {
+            for vm in unseenMessages {
+                await setSeen(vm: vm)
             }
         }
     }
-
-    private func setSeenForOlderMessages(messageId: Int?) {
-        if let messageId = messageId {
-            let isMeId = ChatManager.activeInstance?.userInfo?.id ?? 0
-            sections
-                .flatMap { $0.vms }
-                .filter {
-                    let message = $0.message
-                    let notDelivered = message.delivered ?? false == false
-                    let notSeen = message.seen ?? false == false
-                    let isValidToChange = (message.id ?? 0 < messageId) && (notSeen || notDelivered) && message.ownerId == isMeId
-                    return isValidToChange
-                }
-                .forEach { vm in
-                    Task {
-                        if let indexPath = sections.indexPath(for: vm) {
-                            vm.message.delivered = true
-                            vm.message.seen = true
-                            await vm.performaCalculation()
-                            await MainActor.run {
-                                delegate?.seen(indexPath)
-                            }
-                        }
-                    }
-                }
+    
+    private func setSeen(vm: MessageRowViewModel) async {
+        if let indexPath = sections.indexPath(for: vm) {
+            vm.message.delivered = true
+            vm.message.seen = true
+            await vm.performaCalculation()
+            await MainActor.run {
+                delegate?.seen(indexPath)
+            }
+        }
+    }
+    
+    private func setSeenForOlderMessages(messageId: Int, myId: Int) async {
+        let vms = sections.flatMap { $0.vms }.filter { canSetSeen(for: $0.message, newMessageId: messageId, isMeId: myId) }
+        for vm in vms {
+            await setSeen(vm: vm)
         }
     }
 }
@@ -1226,23 +1216,21 @@ extension ThreadHistoryViewModel {
 // MARK: On Notifications actions
 extension ThreadHistoryViewModel {
     public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
-        if canGetNewMessagesAfterConnectionEstablished(status) {
+        if await canGetNewMessagesAfterConnectionEstablished(status) {
             // After connecting again get latest messages.
-            tryFifthScenario(status: status)
+            await tryFifthScenario(status: status)
         }
 
         /// Fetch the history for the first time if the internet connection is not available.
-        if !isSimulated, status == .connected, hasSentHistoryRequest == true, sections.isEmpty {
+        if await !isSimulated(), status == .connected, hasSentHistoryRequest == true, sections.isEmpty {
             await startFetchingHistory()
         }
     }
 
-    private func updateAllRows() {
-        sections.forEach { section in
-            section.vms.forEach { vm in
-                Task {
-                    await vm.recalculateWithAnimation()
-                }
+    private func updateAllRows() async {
+        for section in sections {
+            for vm in section.vms {
+                await vm.recalculateWithAnimation()
             }
         }
     }
@@ -1250,27 +1238,24 @@ extension ThreadHistoryViewModel {
 
 // MARK: Avatars
 extension ThreadHistoryViewModel {
-    func prepareAvatars(_ viewModels: [MessageRowViewModel]) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            // A delay to scroll to position and layout all rows properply
-            try? await Task.sleep(for: .seconds(0.2))
-            let filtered = viewModels.filter({$0.calMessage.isLastMessageOfTheUser})
-            for vm in filtered {
-                viewModel?.avatarManager.addToQueue(vm)
-            }
+    func prepareAvatars(_ viewModels: [MessageRowViewModel]) async {
+        // A delay to scroll to position and layout all rows properply
+        try? await Task.sleep(for: .seconds(0.2))
+        let filtered = viewModels.filter({$0.calMessage.isLastMessageOfTheUser})
+        for vm in filtered {
+            await viewModel?.avatarManager.addToQueue(vm)
         }
     }
 }
 
 // MARK: Cleanup
 extension ThreadHistoryViewModel {
-    private func onCancelTimer(key: String) {
+    private func onCancelTimer(key: String) async {
         if topLoading || bottomLoading {
             topLoading = false
             bottomLoading = false
-            showTopLoading(false)
-            showBottomLoading(false)
+            await showTopLoading(false)
+            await showBottomLoading(false)
         }
     }
 }
@@ -1278,7 +1263,7 @@ extension ThreadHistoryViewModel {
 public extension ThreadHistoryViewModel {
     @MainActor
     func getSections() async -> ContiguousArray<MessageSection> {
-        return sections
+        return await sections
     }
 }
 
@@ -1288,10 +1273,10 @@ extension ThreadHistoryViewModel {
     func waitingToFinishDecelerating() async {
         var isEnded = false
         while(!isEnded) {
-            if viewModel?.scrollVM.isEndedDecelerating == true {
+            if await viewModel?.scrollVM.isEndedDecelerating == true {
                 isEnded = true
                 print("Deceleration has been completed.")
-            } else if viewModel == nil {
+            } else if await viewModel == nil {
                 isEnded = true
                 print("ViewModel has been deallocated, thus, the deceleration will end.")
             } else {
@@ -1307,30 +1292,32 @@ extension ThreadHistoryViewModel {
 }
 
 extension ThreadHistoryViewModel {
-    private func showTopLoading(_ show: Bool) {
+    private func showTopLoading(_ show: Bool) async {
         topLoading = show
-        viewModel?.delegate?.startTopAnimation(show)
+        await viewModel?.delegate?.startTopAnimation(show)
     }
 
-    private func showCenterLoading(_ show: Bool) {
+    private func showCenterLoading(_ show: Bool) async {
         centerLoading = show
-        viewModel?.delegate?.startCenterAnimation(show)
+        await viewModel?.delegate?.startCenterAnimation(show)
     }
 
-    private func showBottomLoading(_ show: Bool) {
+    private func showBottomLoading(_ show: Bool) async {
         bottomLoading = show
-        viewModel?.delegate?.startBottomAnimation(show)
+        await viewModel?.delegate?.startBottomAnimation(show)
     }
 }
 
 // MARK: Conditions and common functions
 extension ThreadHistoryViewModel {
-    private func isLastMessageEqualToLastSeen() -> Bool {
-        viewModel?.thread.lastMessageVO?.id ?? 0 == viewModel?.thread.lastSeenMessageId ?? 0
+    private func isLastMessageEqualToLastSeen() async -> Bool {
+        let thread = await viewModel?.thread
+        return thread?.lastMessageVO?.id ?? 0 == thread?.lastSeenMessageId ?? 0
     }
-
-    private func isLastMessageExistInSortedMessages(_ sortedMessages: [any HistoryMessageProtocol]) -> Bool {
-        sortedMessages.contains(where: {$0.id == viewModel?.thread.lastMessageVO?.id})
+    
+    private func isLastMessageExistInSortedMessages(_ sortedMessages: [any HistoryMessageProtocol]) async -> Bool {
+        let lastMessageId = await viewModel?.thread.lastMessageVO?.id
+        return sortedMessages.contains(where: {$0.id == lastMessageId})
     }
 
     private func hasUnreadMessage() -> Bool {
@@ -1352,5 +1339,22 @@ extension ThreadHistoryViewModel {
             let time = thread.lastMessageVO?.time
         else { return nil }
         return (time, lastMSGId)
+    }
+    
+    public func isSimulated() async -> Bool {
+        let createThread = await AppState.shared.appStateNavigationModel.userToCreateThread != nil
+        return createThread && thread.id == LocalId.emptyThread.rawValue
+    }
+    
+    private var appUserId: Int? {
+        get async {
+            return await AppState.shared.user?.id
+        }
+    }
+    
+    private var isConnected: Bool {
+        get async {
+            await AppState.shared.connectionStatus != .connected
+        }
     }
 }

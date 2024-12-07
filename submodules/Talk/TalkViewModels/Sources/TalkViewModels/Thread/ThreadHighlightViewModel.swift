@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+@MainActor
 final class ThreadHighlightViewModel {
     // Stored properties
     private weak var viewModel: ThreadHistoryViewModel?
@@ -16,27 +17,24 @@ final class ThreadHighlightViewModel {
     private var task: Task<(), Never>?
 
     // Computed properties
-    private var sections: ContiguousArray<MessageSection> { viewModel?.sections ?? [] }
+    private var sections: ContiguousArray<MessageSection> { viewModel?.mSections ?? [] }
     private var delegate: HistoryScrollDelegate? { viewModel?.delegate }
 
-    init(){}
+    nonisolated init(){}
 
     public func setup(_ viewModel: ThreadHistoryViewModel) {
         self.viewModel = viewModel
     }
 
-    @HistoryActor
-    private func setHighlight(_ messageId: Int) async {
+    private func setHighlight(_ messageId: Int) {
         // Check if prevhighlightedMessageId is equal to message id, it means that we click twice and we are currently in the middle of an highlight animation.
         if prevhighlightedMessageId == messageId { return }
         guard let vm = sections.messageViewModel(for: messageId), let indexPath = sections.indexPath(for: vm) else { return }
         vm.calMessage.state.isHighlited = true
-        await MainActor.run {
-            delegate?.setHighlightRowAt(indexPath, highlight: true)
-        }
+        delegate?.setHighlightRowAt(indexPath, highlight: true)
 
         // Cancel immediately old highlighted item
-        await cancelOldHighlighted()
+        cancelOldHighlighted()
 
         prevhighlightedMessageId = messageId
         highlightTask?.cancel()
@@ -45,23 +43,22 @@ final class ThreadHighlightViewModel {
             if !Task.isCancelled {
                 // Be sure and make current indexPath, there is a chance the indexPath position is incorrect due to so many factor
                 if let tuple = sections.viewModelAndIndexPath(for: messageId) {
-                    await unHighlightTimer(vm: tuple.vm, indexPath: tuple.indexPath)
+                    unHighlightTimer(vm: tuple.vm, indexPath: tuple.indexPath)
                     prevhighlightedMessageId = nil
                 }
             }
         }
     }
 
-    private func cancelOldHighlighted() async {
+    private func cancelOldHighlighted() {
         guard
             let prevhighlightedMessageId = prevhighlightedMessageId,
             let tuple = sections.viewModelAndIndexPath(for: prevhighlightedMessageId)
         else { return }
-        await unHighlightTimer(vm: tuple.vm, indexPath: tuple.indexPath)
+        unHighlightTimer(vm: tuple.vm, indexPath: tuple.indexPath)
     }
 
-    @MainActor
-    private func unHighlightTimer(vm: MessageRowViewModel, indexPath: IndexPath) async {
+    private func unHighlightTimer(vm: MessageRowViewModel, indexPath: IndexPath) {
         highlightTask?.cancel()
         highlightTask = nil
         vm.calMessage.state.isHighlited = false
@@ -77,12 +74,10 @@ final class ThreadHighlightViewModel {
         return indexPath
     }
 
-    public func showHighlighted(_ uniqueId: String, _ messageId: Int, highlight: Bool = true, position: UITableView.ScrollPosition = .bottom, animate: Bool = false) async {
+    public func showHighlighted(_ uniqueId: String, _ messageId: Int, highlight: Bool = true, position: UITableView.ScrollPosition = .bottom, animate: Bool = false) {
         if highlight {
-            await setHighlight(messageId)
+            setHighlight(messageId)
         }
-        await MainActor.run { [weak self] in
-            self?.delegate?.scrollTo(uniqueId: uniqueId, position: position, animate: animate)
-        }
+        delegate?.scrollTo(uniqueId: uniqueId, position: position, animate: animate)
     }
 }

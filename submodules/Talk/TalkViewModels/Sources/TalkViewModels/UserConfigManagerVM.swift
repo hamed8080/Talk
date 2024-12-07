@@ -10,7 +10,8 @@ public extension UserDefaults {
     }
 }
 
-public final class UserConfigManagerVM: ObservableObject, Equatable {
+@MainActor
+public final class UserConfigManagerVM: ObservableObject, @preconcurrency Equatable {
     public static func == (lhs: UserConfigManagerVM, rhs: UserConfigManagerVM) -> Bool {
         lhs.userConfigs.count == rhs.userConfigs.count
     }
@@ -55,14 +56,18 @@ public final class UserConfigManagerVM: ObservableObject, Equatable {
 
     public func setCurrentUserAndSwitch(_ userConfig: UserConfig) {
         UserDefaults.standard.setValue(userConfig.data, forKey: UserDefaults.keys.userConfigData.rawValue)
-        ChatManager.switchToUser(userId: userConfig.user.id ?? -1)
+        Task { @ChatGlobalActor in
+            ChatManager.switchToUser(userId: userConfig.user.id ?? -1)
+        }
     }
 
     public func createChatObjectAndConnect(userId: Int?, config: ChatConfig, delegate: ChatDelegate?) {
-        ChatManager.activeInstance?.dispose()
-        ChatManager.instance.createOrReplaceUserInstance(userId: userId, config: config)
-        ChatManager.activeInstance?.delegate = delegate
-        ChatManager.activeInstance?.connect()
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.dispose()
+            ChatManager.instance.createOrReplaceUserInstance(userId: userId, config: config)
+            ChatManager.activeInstance?.delegate = delegate
+            ChatManager.activeInstance?.connect()
+        }
     }
 
     public func switchToUser(_ userConfig: UserConfig, delegate: ChatDelegate) {
@@ -73,8 +78,13 @@ public final class UserConfigManagerVM: ObservableObject, Equatable {
     }
 
     public func onUser(_ user: User) {
-        if let config = ChatManager.activeInstance?.config, let ssoToken = TokenManager.shared.getSSOTokenFromUserDefaults() {
-            addUserInUserDefaultsIfNotExist(userConfig: .init(user: user, config: config, ssoToken: ssoToken))
+        Task { @ChatGlobalActor in
+            let config = ChatManager.activeInstance?.config
+            await MainActor.run {
+                if let config = config, let ssoToken = TokenManager.shared.getSSOTokenFromUserDefaults() {
+                    addUserInUserDefaultsIfNotExist(userConfig: .init(user: user, config: config, ssoToken: ssoToken))
+                }
+            }
         }
     }
 

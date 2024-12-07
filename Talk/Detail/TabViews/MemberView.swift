@@ -167,7 +167,9 @@ struct AddParticipantButton: View {
         guard let threadId = conversation?.id else { return }
         let contactIds = contacts.compactMap(\.id)
         let req = AddParticipantRequest(contactIds: contactIds, threadId: threadId)
-        ChatManager.activeInstance?.conversation.participant.add(req)        
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.add(req)
+        }
     }
 }
 

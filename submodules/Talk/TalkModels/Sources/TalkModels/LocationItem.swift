@@ -1,7 +1,7 @@
 import CoreLocation
 import MapKit
 
-public struct LocationItem: Identifiable {
+public struct LocationItem: Identifiable, Sendable {
     public var id = UUID().uuidString
     public let name: String
     public let description: String

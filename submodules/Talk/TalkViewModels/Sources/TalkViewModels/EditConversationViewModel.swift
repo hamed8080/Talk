@@ -12,7 +12,8 @@ import Photos
 import TalkModels
 import Chat
 
-public final class EditConversationViewModel: ObservableObject, Hashable {
+@MainActor
+public final class EditConversationViewModel: ObservableObject, @preconcurrency Hashable {
     public static func == (lhs: EditConversationViewModel, rhs: EditConversationViewModel) -> Bool {
         lhs.thread.id == rhs.thread.id
     }
@@ -93,7 +94,9 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
     private func onReactionSwitchChanged(_ isEnabled: Bool) {
         isLoading = true
         let req = ConversationCustomizeReactionsRequest(conversationId: thread.id ?? -1, reactionStatus: isEnabled ? .enable : .disable)
-        ChatManager.activeInstance?.reaction.customizeReactions(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.reaction.customizeReactions(req)
+        }
     }
 
     private func onUploadEvent(_ event: UploadEventTypes) {
@@ -140,7 +143,9 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         }
         let req = UpdateThreadInfoRequest(description: threadDescription, threadId: threadId, threadImage: imageRequest, title: editTitle)
         RequestsManager.shared.append(prepend: EDIT_GROUP_KEY, value: req, autoCancel: false)
-        ChatManager.activeInstance?.conversation.updateInfo(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.updateInfo(req)
+        }
     }
 
     public func onEditGroup(_ response: ChatResponse<Conversation>) {
@@ -204,7 +209,9 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         let typeValue: ThreadTypes = type.isPrivate == true ? type.publicType : type.privateType
         let req = ChangeThreadTypeRequest(threadId: threadId, type: typeValue)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.conversation.changeType(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.changeType(req)
+        }
     }
 
     private func onChangeThreadType(_ response: ChatResponse<Conversation>) {
@@ -220,7 +227,9 @@ public final class EditConversationViewModel: ObservableObject, Hashable {
         guard let threadId = thread.id else { return }
         let req = ThreadParticipantRequest(request: .init(threadId: threadId, count: 100), admin: true)
         RequestsManager.shared.append(prepend: EDIT_GROUP_ADMINS_KEY, value: req)
-        ChatManager.activeInstance?.conversation.participant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.get(req)
+        }
     }
 
     private func onAdmins(_ response: ChatResponse<[Participant]>) {

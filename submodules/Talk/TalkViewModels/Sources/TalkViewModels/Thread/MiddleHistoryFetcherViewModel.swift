@@ -10,8 +10,8 @@ import OSLog
 import Chat
 import Combine
 
+@HistoryActor
 final class MiddleHistoryFetcherViewModel {
-    private weak var historyVM: ThreadHistoryViewModel?
     private let TO_TIME_KEY: String
     private let FROM_TIME_KEY: String
     private var messageId: Int = -1
@@ -25,21 +25,26 @@ final class MiddleHistoryFetcherViewModel {
     private var fromTimeUniqueId: String?
     private var topPartCompleted: Bool = false
     private var bottomPartCompleted: Bool = false
+    @MainActor
     private var cancelable: AnyCancellable?
+    private let readOnly: Bool
 
-    public init(historyVM: ThreadHistoryViewModel) {
-        self.threadId = historyVM.viewModel?.threadId ?? -1
-        self.historyVM = historyVM
+    public init(threadId: Int, readOnly: Bool) {
+        self.threadId = threadId
+        self.readOnly = readOnly
         let objectId = UUID().uuidString
         TO_TIME_KEY = "TO-TIME-\(objectId)"
         FROM_TIME_KEY = "FROM-TIME-\(objectId)"
-        registerObservers()
+        Task {
+            await registerObservers()
+        }
     }
 
+    @MainActor
     private func registerObservers() {
         cancelable = NotificationCenter.message.publisher(for: .message).sink { [weak self] notif in
-            Task { @HistoryActor [weak self] in
-                if let event = notif.object as? MessageEventTypes {
+            if let event = notif.object as? MessageEventTypes {
+                Task { @HistoryActor [weak self] in                    
                     await self?.onMessageEvent(event)
                 }
             }
@@ -92,7 +97,9 @@ final class MiddleHistoryFetcherViewModel {
     private func doRequest(_ req: GetHistoryRequest, _ prepend: String) {
         RequestsManager.shared.append(prepend: prepend, value: req)
         log(req: req)
-        ChatManager.activeInstance?.message.history(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.history(req)
+        }
     }
 
     private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int?) -> GetHistoryRequest {
@@ -102,7 +109,7 @@ final class MiddleHistoryFetcherViewModel {
                           offset: offset,
                           order: fromTime != nil ? "asc" : "desc",
                           toTime: toTime,
-                          readOnly: historyVM?.viewModel?.readOnly == true)
+                          readOnly: readOnly)
     }
 
     private func onMessageEvent(_ event: MessageEventTypes?) async {
@@ -117,11 +124,11 @@ final class MiddleHistoryFetcherViewModel {
     private func onHistory(_ response: ResponseType) async {
         if !response.cache, response.subjectId == threadId {
             /// For the sixth scenario.
-            if let request = response.pop(prepend: TO_TIME_KEY) {
-                await onTopPart(response)
+            if let _ = response.pop(prepend: TO_TIME_KEY) {
+                onTopPart(response)
             }
 
-            if let request = response.pop(prepend: FROM_TIME_KEY) {
+            if let _ = response.pop(prepend: FROM_TIME_KEY) {
                 await onBottomPart(response)
             }
         }

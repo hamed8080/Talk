@@ -11,6 +11,7 @@ import Chat
 
 public typealias ReactionTabId = String
 
+@MainActor
 public class ReactionTabParticipantsViewModel: ObservableObject {
 
     @Published public var reactions: [ReactionTabId: [Reaction]] = [:]

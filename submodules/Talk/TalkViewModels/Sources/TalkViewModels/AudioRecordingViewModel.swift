@@ -11,6 +11,7 @@ import Foundation
 import OSLog
 import TalkModels
 
+@MainActor
 protocol AudioRecordingViewModelprotocol: ObservableObject {
     var audioRecorder: AVAudioRecorder { get set }
     var startDate: Date { get set }
@@ -28,6 +29,7 @@ protocol AudioRecordingViewModelprotocol: ObservableObject {
     func requestPermission()
 }
 
+@MainActor
 public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
     public lazy var audioRecorder = AVAudioRecorder()
     public var startDate: Date = .init()
@@ -58,7 +60,9 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
             guard let self = self else { return }
-            self.timerString = self.startDate.distance(to: Date()).timerString(locale: Language.preferredLocale) ?? ""
+            Task { @MainActor in
+                self.timerString = self.startDate.distance(to: Date()).timerString(locale: Language.preferredLocale) ?? ""
+            }
         }
         recordingFileName = "Voice-\(Date().fileDateString).wav"
         recordingOutputPath = recordingOutputBasePath?.appendingPathComponent(recordingFileName)
@@ -110,7 +114,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
             try recordingSession.setActive(true)
             recordingSession.requestRecordPermission { granted in
                 Task { [weak self] in
-                    await self?.onPermission(granted: granted)
+                    self?.onPermission(granted: granted)
                 }
             }
         } catch {

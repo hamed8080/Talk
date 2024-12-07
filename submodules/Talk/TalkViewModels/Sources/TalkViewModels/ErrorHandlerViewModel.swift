@@ -10,19 +10,20 @@ import Combine
 import SwiftUI
 import Chat
 
+@MainActor
 public final class ErrorHandlerViewModel: ObservableObject {
     public private(set) var cancellable: Set<AnyCancellable> = []
 
     init() {
         NotificationCenter.error.publisher(for: .error)
-            .compactMap { $0.object as? ChatResponse<Any> }
+            .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] event in
                 self?.onError(event)
             }
             .store(in: &cancellable)
     }
 
-    public func onError(_ response: ChatResponse<Any>) {
+    public func onError(_ response: ChatResponse<Sendable>) {
         if let code = response.error?.code,
            code == ServerErrorType.noOtherOwnership.rawValue,
            let request = response.pop(prepend: "LEAVE") as? LeaveThreadRequest,

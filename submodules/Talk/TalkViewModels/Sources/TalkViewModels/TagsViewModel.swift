@@ -10,6 +10,7 @@ import Combine
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class TagsViewModel: ObservableObject {
     public var tags: [Tag] = []
     @Published public var selectedTag: Tag?
@@ -69,12 +70,16 @@ public final class TagsViewModel: ObservableObject {
     }
 
     public func getTagList() {
-        ChatManager.activeInstance?.tag.all()
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.tag.all()
+        }
     }
 
     public func deleteTag(_ tag: Tag) {
         let req = DeleteTagRequest(id: tag.id)
-        ChatManager.activeInstance?.tag.delete(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.tag.delete(req)
+        }
     }
 
     private func onDeleteTag(_ response: ChatResponse<Tag>) {
@@ -103,13 +108,17 @@ public final class TagsViewModel: ObservableObject {
     public func createTag(name: String) {
         isLoading = true
         let req = CreateTagRequest(tagName: name)
-        ChatManager.activeInstance?.tag.create(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.tag.create(req)
+        }
     }
 
     public func addThreadToTag(tag: Tag, threadId: Int?) {
         if let threadId = threadId {
             isLoading = true
-            ChatManager.activeInstance?.tag.add(.init(tagId: tag.id, threadIds: [threadId]))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.tag.add(.init(tagId: tag.id, threadIds: [threadId]))
+            }
         }
     }
 
@@ -126,7 +135,9 @@ public final class TagsViewModel: ObservableObject {
 
     public func editTag(tag: Tag) {
         let req = EditTagRequest(id: tag.id, tagName: tag.name)
-        ChatManager.activeInstance?.tag.edit(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.tag.edit(req)
+        }
     }
 
     private func onEditTag(_ response: ChatResponse<Tag>) {
@@ -138,7 +149,9 @@ public final class TagsViewModel: ObservableObject {
     public func deleteTagParticipant(_ tagId: Int, _ tagParticipant: TagParticipant) {
         let req = RemoveTagParticipantsRequest(tagId: tagId, tagParticipants: [tagParticipant])
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.tag.remove(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.tag.remove(req)
+        }
     }
 
     private func onRemoveTagParticipant(_ response: ChatResponse<[TagParticipant]>) {

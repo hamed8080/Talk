@@ -1,4 +1,4 @@
-public enum ServerTypes: String, CaseIterable, Identifiable {
+public enum ServerTypes: String, CaseIterable, Identifiable, Sendable {
     public var id: Self { self }
     case main
     case sandbox

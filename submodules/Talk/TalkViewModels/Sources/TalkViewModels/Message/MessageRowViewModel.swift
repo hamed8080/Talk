@@ -10,7 +10,7 @@ import SwiftUI
 import TalkModels
 import OSLog
 
-public final class MessageRowViewModel: Identifiable, Hashable {
+public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Sendable {
     public static func == (lhs: MessageRowViewModel, rhs: MessageRowViewModel) -> Bool {
         lhs.id == rhs.id
     }
@@ -41,7 +41,8 @@ public final class MessageRowViewModel: Identifiable, Hashable {
 
     @HistoryActor
     public func performaCalculation(appendMessages: [any HistoryMessageProtocol] = []) async {
-        calMessage = await MessageRowCalculators.calculate(message: message, threadVM: threadVM, appendMessages: appendMessages)
+        let mainData = await getMainData()
+        calMessage = await MessageRowCalculators.calculate(message: message, mainData: mainData, appendMessages: appendMessages)
         if calMessage.fileURL != nil {
             fileState.state = .completed
             fileState.showDownload = false
@@ -50,20 +51,16 @@ public final class MessageRowViewModel: Identifiable, Hashable {
     }
 
     @MainActor
-    public func register() {
+    public func register() async {
         if message is UploadProtocol {
             threadVM?.uploadFileManager.register(message: message, viewModelUniqueId: uniqueId)
         }
         if fileState.state != .completed {
-            Task {
-                await threadVM?.downloadFileManager.register(message: message)
-            }
+            threadVM?.downloadFileManager.register(message: message)
         }
         
         if calMessage.isReplyImage && fileState.replyImage == nil {
-            Task {
-                await threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
-            }
+            await threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
         }
     }
 
@@ -71,7 +68,9 @@ public final class MessageRowViewModel: Identifiable, Hashable {
     public func setFileState(_ state: MessageFileState) {
         fileState.update(state)
         if state.state == .completed {
-            calMessage.fileURL = message.fileURL // It will use hash code to make the url in some uploading videos and files we only recicve a hash code so it would be better to create a file url from hashcode
+            Task {
+                calMessage.fileURL = await message.fileURL // It will use hash code to make the url in some uploading videos and files we only recicve a hash code so it would be better to create a file url from hashcode
+            }
         }
     }
 
@@ -110,12 +109,16 @@ public extension MessageRowViewModel {
 public extension MessageRowViewModel {
     func swapUploadMessageWith(_ message: any HistoryMessageProtocol) {
         self.message = message
-        calMessage.fileURL = message.fileURL
+        Task {
+            calMessage.fileURL = await message.fileURL
+        }
     }
 }
 
 // MARK: Tap actions
 public extension MessageRowViewModel {
+    
+    @MainActor
     func onTap(sourceView: UIView? = nil) {
         if fileState.state == .completed {
             doAction(sourceView: sourceView)
@@ -135,6 +138,7 @@ public extension MessageRowViewModel {
         }
     }
 
+    @MainActor
     private func doAction(sourceView: UIView? = nil) {
         if calMessage.rowType.isMap {
             openMap()
@@ -158,12 +162,14 @@ public extension MessageRowViewModel {
         }
     }
 
+    @MainActor
     private func openMap() {
         if let url = message.neshanURL, UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         }
     }
 
+    @MainActor
     private func openImageViewer() {
         AppState.shared.objectsContainer.appOverlayVM.galleryMessage = message as? Message
     }
@@ -178,14 +184,17 @@ public extension MessageRowViewModel {
 
 // MARK: Audio file
 public extension MessageRowViewModel {
+    @MainActor
     private var audioVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
 
+    @MainActor
     private var isSameAudioFile: Bool {
         if audioVM.fileURL == nil { return true } // It means it has never played a audio.
         guard let fileURL = calMessage.fileURL else { return false }
         return audioVM.fileURL?.absoluteString == fileURL.absoluteString
     }
 
+    @MainActor
     private func toggleAudio() {
         if isSameAudioFile {
             togglePlaying()
@@ -195,6 +204,7 @@ public extension MessageRowViewModel {
         }
     }
 
+    @MainActor
     private func togglePlaying() {
         if let fileURL = calMessage.fileURL {
             let convrtedURL = message.convertedFileURL
@@ -234,8 +244,8 @@ public extension MessageRowViewModel {
         }
     }
 
-    func canReact() -> Bool {
-        if threadVM?.thread.reactionStatus == .disable { return false }
+    func canReact() async -> Bool {
+        if await threadVM?.thread.reactionStatus == .disable { return false }
         // Two weeks
         return Date().millisecondsSince1970 < Int64(message.time ?? 0) + (1_209_600_000)
     }
@@ -259,5 +269,16 @@ public extension MessageRowViewModel {
             message.pinTime = time
             await recalculateWithAnimation()
         }
+    }
+}
+
+extension MessageRowViewModel {
+    
+    @MainActor
+    func getMainData() async -> MainRequirements {
+        return MainRequirements(appUserId: AppState.shared.user?.id,
+                                thread: threadVM?.thread,
+                                participantsColorVM: threadVM?.participantsColorVM,
+                                isInSelectMode: threadVM?.selectedMessagesViewModel.isInSelectMode ?? false)
     }
 }

@@ -14,6 +14,7 @@ import TalkExtensions
 import OSLog
 import Logger
 
+@MainActor
 public final class ThreadsViewModel: ObservableObject {
     public var threads: ContiguousArray<Conversation> = []
     @Published private(set) var tagViewModel = TagsViewModel()
@@ -115,7 +116,9 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.setLoading(true)
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
         RequestsManager.shared.append(prepend: GET_THREADS_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     @MainActor
@@ -126,13 +129,13 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func onThreads(_ response: ChatResponse<[Conversation]>) async {
-        var wasSilentClear = isSilentClear
+        let wasSilentClear = isSilentClear
         if isSilentClear {
             threads.removeAll()
             isSilentClear = false
             // We have got to wait to update the UI with removed items then append and refresh the UI with new elements, unless we will end up with wrong scroll position after update
             animateObjectWillChange()
-            await try? Task.sleep(for: .milliseconds(200))
+            try? await Task.sleep(for: .milliseconds(200))
         }
         var threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil}) ?? []
         threads.enumerated().forEach { index, thread in
@@ -203,7 +206,9 @@ public final class ThreadsViewModel: ObservableObject {
     public func fastMessage(_ invitee: Invitee, _ message: String) async {
         let messageREQ = CreateThreadMessage(text: message, messageType: .text)
         let req = CreateThreadWithMessage(invitees: [invitee], title: "", type: StrictThreadTypeCreation.p2p.threadType, message: messageREQ)
-        ChatManager.activeInstance?.conversation.create(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.create(req)
+        }
         lazyList.setLoading(true)
     }
 
@@ -216,12 +221,16 @@ public final class ThreadsViewModel: ObservableObject {
         guard let threadId = thread.id, let type = thread.type else { return }
         let req = ChangeThreadTypeRequest(threadId: threadId, type: type.publicType, uniqueName: UUID().uuidString)
         RequestsManager.shared.append(prepend: CHANNEL_TO_KEY, value: req)
-        ChatManager.activeInstance?.conversation.changeType(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.changeType(req)
+        }
     }
 
     public func makeThreadPrivate(_ thread: Conversation) {
         guard let threadId = thread.id, let type = thread.type else { return }
-        ChatManager.activeInstance?.conversation.changeType(.init(threadId: threadId, type: type.privateType))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.changeType(.init(threadId: threadId, type: type.privateType))
+        }
     }
 
     public func showAddParticipants(_ thread: Conversation) {
@@ -234,7 +243,9 @@ public final class ThreadsViewModel: ObservableObject {
         guard let threadId = selectedThraed?.id else { return }
         let contactIds = contacts.compactMap(\.id)
         let req = AddParticipantRequest(contactIds: contactIds, threadId: threadId)
-        ChatManager.activeInstance?.conversation.participant.add(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.add(req)
+        }
         lazyList.setLoading(true)
     }
 
@@ -246,7 +257,7 @@ public final class ThreadsViewModel: ObservableObject {
             await appendThreads(threads: [newConversation])
         }
         await insertIntoParticipantViewModel(response)
-        await lazyList.setLoading(false)
+        lazyList.setLoading(false)
     }
 
     @MainActor
@@ -327,9 +338,13 @@ public final class ThreadsViewModel: ObservableObject {
         let conversation = threads.first(where: { $0.id == threadId})
         let isGroup = conversation?.group == true
         if isGroup {
-            ChatManager.activeInstance?.conversation.delete(.init(subjectId: threadId))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.conversation.delete(.init(subjectId: threadId))
+            }
         } else {
-            ChatManager.activeInstance?.conversation.leave(.init(threadId: threadId, clearHistory: true))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.conversation.leave(.init(threadId: threadId, clearHistory: true))
+            }
         }
         sheetType = nil
     }
@@ -344,18 +359,24 @@ public final class ThreadsViewModel: ObservableObject {
         guard let threadId = thread.id else { return }
         let req = LeaveThreadRequest(threadId: threadId, clearHistory: true)
         RequestsManager.shared.append(prepend: LEAVE_KEY, value: req)
-        ChatManager.activeInstance?.conversation.leave(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.leave(req)
+        }
     }
 
     public func close(_ thread: Conversation) {
         guard let threadId = thread.id else { return }
         let req = GeneralSubjectIdRequest(subjectId: threadId)
-        ChatManager.activeInstance?.conversation.close(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.close(req)
+        }
     }
 
     public func clearHistory(_ thread: Conversation) {
         guard let threadId = thread.id else { return }
-        ChatManager.activeInstance?.message.clear(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.clear(.init(subjectId: threadId))
+        }
     }
 
     func onClear(_ response: ChatResponse<Int>) {
@@ -366,7 +387,9 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func spamPV(_ thread: Conversation) {
         guard let threadId = thread.id else { return }
-        ChatManager.activeInstance?.conversation.spam(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.spam(.init(subjectId: threadId))
+        }
     }
 
     func onSpam(_ response: ChatResponse<Contact>) {
@@ -381,7 +404,9 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func refreshThreadsUnreadCount() {
         let threadsIds = threads.compactMap(\.id)
-        ChatManager.activeInstance?.conversation.unreadCount(.init(threadIds: threadsIds))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unreadCount(.init(threadIds: threadsIds))
+        }
     }
 
     @MainActor
@@ -405,7 +430,7 @@ public final class ThreadsViewModel: ObservableObject {
                 arrItem.image = metadatImagelink
             }
             arrItem.title = replacedEmoji
-            arrItem.closed = thread.closed ?? arrItem.closed
+            arrItem.closed = thread.closed
             arrItem.time = thread.time ?? arrItem.time
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
             arrItem.description = thread.description
@@ -534,7 +559,9 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func joinPublicGroup(_ publicName: String) {
-        ChatManager.activeInstance?.conversation.join(.init(threadName: publicName))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.join(.init(threadName: publicName))
+        }
     }
 
     public func onSeen(_ response: ChatResponse<MessageResponse>) {
@@ -563,7 +590,9 @@ public final class ThreadsViewModel: ObservableObject {
         if let conversationId = conversation?.id, !threads.contains(where: {$0.id == conversationId }) {
             let req = ThreadsRequest(threadIds: [conversationId])
             RequestsManager.shared.append(prepend: GET_NOT_ACTIVE_THREADS_KEY, value: req)
-            ChatManager.activeInstance?.conversation.get(req)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.conversation.get(req)
+            }
         }
     }
 

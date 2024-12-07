@@ -4,6 +4,7 @@ import Combine
 import Foundation
 import SwiftUI
 
+@MainActor
 public protocol DownloadFileViewModelProtocol {
     var message: Message? { get }
     var fileHashCode: String { get }
@@ -17,34 +18,45 @@ public protocol DownloadFileViewModelProtocol {
     func resumeDownload()
 }
 
+@MainActor
 public final class DownloadFileViewModel: ObservableObject, DownloadFileViewModelProtocol {
     private var downloadPercent: Int64 = 0
     public var state: DownloadFileState = .undefined
     public var thumbnailData: Data?
     public var data: Data?
-    public var fileHashCode: String { message?.fileHashCode ?? "" }
-    var chat: Chat? { ChatManager.activeInstance }
+    
+    public var fileHashCode: String = ""
     var uniqueId: String = ""
     public var message: Message?
     private var cancellableSet: Set<AnyCancellable> = .init()
-    public var fileURL: URL? { message?.fileURL }
-    public var url: URL? { message?.url }
+    public var fileURL: URL? = nil
+    public var url: URL? = nil
     public var isInCache: Bool = false
-    private let queue: DispatchQueue
     private var thumbnailVM: ThumbnailDownloadManagerViewModel?
     private var isConverting = false
 
-    public init(message: Message, queue: DispatchQueue) {
-        self.queue = queue
-        self.message = message
-        thumbnailVM = .init()
-        setObservers()
+    public init(message: Message) {
+        Task {
+            self.url = await message.url
+            self.fileURL = await message.fileURL
+            self.fileHashCode = await message.fileHashCode
+            await MainActor.run {
+                self.message = message
+                thumbnailVM = .init()
+                setObservers()
+            }
+        }
     }
 
     /// It should be on the background thread because it decodes metadata in message.url.
     public func setup() async {
         if let url = url {
-            isInCache = chat?.file.isFileExist(url) ?? false || chat?.file.isFileExistInGroup(url) ?? false
+            Task { @ChatGlobalActor in
+                let isInCache = ChatManager.activeInstance?.file.isFileExist(url) ?? false || ChatManager.activeInstance?.file.isFileExistInGroup(url) ?? false
+                await MainActor.run {
+                    self.isInCache = isInCache
+                }
+            }
         }
         if isInCache {
             await MainActor.run {
@@ -59,7 +71,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         NotificationCenter.download.publisher(for: .download)
             .compactMap { $0.object as? DownloadEventTypes }
             .sink { [weak self] value in
-                self?.queue.async { [weak self] in
+                Task { @MainActor [weak self] in
                     self?.onDownloadEvent(value)
                 }
             }
@@ -117,7 +129,9 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             let req = FileRequest(hashCode: fileHashCode, conversationId: message?.threadId ?? message?.conversation?.id)
             uniqueId = req.uniqueId
             RequestsManager.shared.append(value: req, autoCancel: false)
-            ChatManager.activeInstance?.file.get(req)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.file.get(req)
+            }
             animateObjectWillChange()
         }
     }
@@ -130,7 +144,9 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             let req = ImageRequest(hashCode: fileHashCode, size: .ACTUAL, conversationId: message?.threadId ?? message?.conversation?.id)
             uniqueId = req.uniqueId
             RequestsManager.shared.append(value: req, autoCancel: false)
-            ChatManager.activeInstance?.file.get(req)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.file.get(req)
+            }
             animateObjectWillChange()
         }
     }
@@ -167,14 +183,18 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             guard let self = self else { return }
             let isVoice = message.type == .podSpaceVoice || message.type == .voice
             print("isVoice: \(isVoice)")
-            if isVoice, await OpusConverter.isOpus(path: filePath) {
-                print("Converting the voice file")
-                isConverting = true
-                let convertedURL = await OpusConverter.convert(message)
-                print(convertedURL)
-                if let convertedURL = convertedURL, let data = try? Data(contentsOf: convertedURL) {
-                    setDataSync(data: data)
+            if isVoice {
+#if canImport(ffmpegkit)
+                if await OpusConverter.isOpus(path: filePath) {
+                    print("Converting the voice file")
+                    isConverting = true
+                    let convertedURL = await OpusConverter.convert(message)
+                    print(convertedURL)
+                    if let convertedURL = convertedURL, let data = try? Data(contentsOf: convertedURL) {
+                        setDataSync(data: data)
+                    }
                 }
+#endif
             } else {
                 setDataSync(data: data)
             }
@@ -230,11 +250,17 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     public func pauseDownload() {
-        ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .suspend)
+        let uniqueId = uniqueId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .suspend)
+        }
     }
 
     public func resumeDownload() {
-        ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .resume)
+        let uniqueId = uniqueId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .resume)
+        }
     }
 
     private func isSameUnqiueId(_ uniqueId: String) -> Bool {
@@ -242,9 +268,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     public func downloadPercentValue() -> Int64 {
-        queue.sync {
-            return downloadPercent
-        }
+        return downloadPercent
     }
 
     public func downloadPercentValueNoLock() -> Int64 {
@@ -252,8 +276,8 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     deinit {
-        cancellableSet.forEach { cancellable in
-            cancellable.cancel()
-        }
+//        cancellableSet.forEach { cancellable in
+//            cancellable.cancel()
+//        }
     }
 }

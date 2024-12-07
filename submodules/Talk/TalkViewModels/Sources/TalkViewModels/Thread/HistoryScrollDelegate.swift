@@ -9,7 +9,8 @@ import Foundation
 import UIKit
 import TalkModels
 
-public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate {
+@MainActor
+public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable {
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool)
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool)
     func reload()
@@ -37,33 +38,40 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate {
     func onScenario()
 }
 
+@MainActor
 public protocol HistoryEmptyDelegate {
     func emptyStateChanged(isEmpty: Bool)
 }
 
+@MainActor
 public protocol UnreadCountDelegate {
     func onUnreadCountChanged()
 }
 
+@MainActor
 public protocol ChangeUnreadMentionsDelegate {
     func onChangeUnreadMentions()
 }
 
+@MainActor
 public protocol ChangeSelectionDelegate {
     func setSelection(_ value: Bool)
     func updateSelectionView()
 }
 
+@MainActor
 public protocol LastMessageAppearedDelegate {
     func lastMessageAppeared(_ appeared: Bool)
 }
 
+@MainActor
 public protocol SheetsDelegate {
     func openForwardPicker()
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?)
     func openMoveToDatePicker()
 }
 
+@MainActor
 public protocol BottomToolbarDelegate {
     func showMainButtons(_ show: Bool)
     func showSelectionBar(_ show: Bool)
@@ -81,20 +89,24 @@ public protocol BottomToolbarDelegate {
     func muteChanged()
 }
 
+@MainActor
 public protocol LoadingDelegate {
     func startTopAnimation(_ animate: Bool)
     func startCenterAnimation(_ animate: Bool)
     func startBottomAnimation(_ animate: Bool)
 }
 
+@MainActor
 public protocol MentionList {
     func onMentionListUpdated()
 }
 
+@MainActor
 public protocol AvatarDelegate {
     func updateAvatar(image: UIImage, participantId: Int)
 }
 
+@MainActor
 public protocol TopToolbarDelegate {
     func updateTitleTo(_ title: String?)
     func updateSubtitleTo(_ subtitle: String?)
@@ -103,5 +115,6 @@ public protocol TopToolbarDelegate {
     func onUpdatePinMessage()
 }
 
+@MainActor
 public protocol ThreadViewDelegate: AnyObject, UnreadCountDelegate, ChangeUnreadMentionsDelegate, ChangeSelectionDelegate, LastMessageAppearedDelegate, SheetsDelegate, HistoryScrollDelegate, LoadingDelegate, MentionList, AvatarDelegate, BottomToolbarDelegate, TopToolbarDelegate, ContextMenuDelegate {
 }

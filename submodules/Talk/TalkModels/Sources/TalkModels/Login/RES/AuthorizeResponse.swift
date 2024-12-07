@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthorizeResponse: Codable {
+public struct AuthorizeResponse: Codable, Sendable {
     public let expiresIn: Int?
     public let identity: String?
     public let type: String?
@@ -38,7 +38,7 @@ public struct AuthorizeResponse: Codable {
     }
 }
 
-public struct ErrorMessage: Codable {
+public struct ErrorMessage: Codable, Sendable {
     public let error: String?
     public let description: String?
     public let unlockInSec: Int?

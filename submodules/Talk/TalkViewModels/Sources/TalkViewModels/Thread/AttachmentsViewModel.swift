@@ -15,6 +15,7 @@ public protocol AttachmentDelegate: AnyObject {
     func reload()
 }
 
+@MainActor
 public final class AttachmentsViewModel {
     public private(set)var attachments: [AttachmentFile] = []
     public private(set) var isExpanded: Bool = false

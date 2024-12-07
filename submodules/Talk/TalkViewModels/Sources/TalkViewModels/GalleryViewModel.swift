@@ -4,6 +4,7 @@ import Combine
 import TalkModels
 import SwiftUI
 
+@MainActor
 public final class GalleryViewModel: ObservableObject {
     public var starter: Message
     public var pictures: ContiguousArray<Message> = []
@@ -111,7 +112,9 @@ public final class GalleryViewModel: ObservableObject {
         let req = ImageRequest(hashCode: hashCode, size: .ACTUAL)
         self.uniqueId = req.uniqueId
         RequestsManager.shared.append(prepend: FETCH_GALLERY_VIEW_KEY, value: req)
-        ChatManager.activeInstance?.file.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.get(req)
+        }
     }
 
     public func fecthMoreLeadingMessages() {

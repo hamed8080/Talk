@@ -11,6 +11,7 @@ import SwiftUI
 import TalkViewModels
 import TalkModels
 
+@MainActor
 class UIHistoryTableView: UITableView {
     private weak var viewModel: ThreadViewModel?
 
@@ -54,11 +55,11 @@ class UIHistoryTableView: UITableView {
 // MARK: TableView DataSource
 extension UIHistoryTableView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel?.historyVM.sections[section].vms.count ?? 0
+        return viewModel?.historyVM.mSections[section].vms.count ?? 0
     }
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return viewModel?.historyVM.sections.count ?? 0
+        return viewModel?.historyVM.mSections.count ?? 0
     }
 }
 
@@ -69,7 +70,7 @@ extension UIHistoryTableView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard let viewModel = viewModel else { return nil }
         if let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: String(describing: SectionHeaderView.self)) as? SectionHeaderView {
-            let sectionVM = viewModel.historyVM.sections[section]
+            let sectionVM = viewModel.historyVM.mSections[section]
             headerView.delegate = viewModel.delegate
             headerView.set(sectionVM)
             return headerView
@@ -83,7 +84,7 @@ extension UIHistoryTableView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = UIColor.clear
-        viewModel?.historyVM.sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
+        viewModel?.historyVM.mSections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -116,7 +117,7 @@ extension UIHistoryTableView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        let estimate = viewModel?.historyVM.sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
+        let estimate = viewModel?.historyVM.mSections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
         return estimate ?? 28
     }
 
@@ -147,7 +148,7 @@ extension UIHistoryTableView: UITableViewDataSourcePrefetching {
 extension UIHistoryTableView {
     func makeReplyButton(indexPath: IndexPath, isLeading: Bool) -> UISwipeActionsConfiguration? {
         guard let viewModel = viewModel else { return nil }
-        let sections = viewModel.historyVM.sections
+        let sections = viewModel.historyVM.mSections
         guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
         let vm = sections[indexPath.section].vms[indexPath.row]
         if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
@@ -169,7 +170,9 @@ extension UIHistoryTableView {
 // MARK: ScrollView delegate
 extension UIHistoryTableView {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)
+        Task {
+            await viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)
+        }
     }
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {

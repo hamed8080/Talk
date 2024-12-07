@@ -11,6 +11,7 @@ import Foundation
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class ParticipantsViewModel: ObservableObject {
     private weak var viewModel: ThreadViewModel?
     public var thread: Conversation? { viewModel?.thread }
@@ -51,7 +52,7 @@ public final class ParticipantsViewModel: ObservableObject {
             .store(in: &cancelable)
 
         NotificationCenter.error.publisher(for: .error)
-            .compactMap { $0.object as? ChatResponse<Any> }
+            .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] event in
                 self?.onError(event)
             }
@@ -131,21 +132,25 @@ public final class ParticipantsViewModel: ObservableObject {
             return
         }
         lastRequestTime = Date()
-        await lazyList.setLoading(true)
-        let req = ThreadParticipantRequest(threadId: thread?.id ?? 0, offset: await lazyList.offset, count: await lazyList.count)
+        lazyList.setLoading(true)
+        let req = ThreadParticipantRequest(threadId: thread?.id ?? 0, offset: lazyList.offset, count: lazyList.count)
         RequestsManager.shared.append(prepend: LOAD_KEY, value: req)
-        ChatManager.activeInstance?.conversation.participant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.get(req)
+        }
     }
 
     private func loadByTimerQueue() async {
-        await lazyList.setLoading(true)        
-        let req = ThreadParticipantRequest(threadId: thread?.id ?? 0, offset: await lazyList.offset, count: await lazyList.count)
+        lazyList.setLoading(true)
+        let req = ThreadParticipantRequest(threadId: thread?.id ?? 0, offset: lazyList.offset, count: lazyList.count)
         RequestsManager.shared.append(prepend: LOAD_KEY, value: req)
-        ChatManager.activeInstance?.conversation.participant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.get(req)
+        }
     }
 
     private func searchParticipants(_ searchText: String) async {
-        await lazyList.setLoading(true)
+        lazyList.setLoading(true)
         var req = ThreadParticipantRequest(threadId: thread?.id ?? -1)
         switch searchType {
         case .name:
@@ -159,7 +164,9 @@ public final class ParticipantsViewModel: ObservableObject {
             req.name = searchText
         }
         RequestsManager.shared.append(prepend: SEARCH_KEY, value: req)
-        ChatManager.activeInstance?.conversation.participant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.get(req)
+        }
     }
 
     public var sorted: [Participant] {
@@ -168,7 +175,7 @@ public final class ParticipantsViewModel: ObservableObject {
 
     public func loadMore() async {
         if await !lazyList.canLoadMore() { return }
-        await lazyList.prepareForLoadMore()
+        lazyList.prepareForLoadMore()
         await getParticipants()
     }
 
@@ -200,26 +207,32 @@ public final class ParticipantsViewModel: ObservableObject {
     }
 
     public func clear() async {
-        await lazyList.reset()
+        lazyList.reset()
         participants = []
     }
 
     public func removePartitipant(_ participant: Participant) {
         guard let id = participant.id, let threadId = thread?.id else { return }
-        ChatManager.activeInstance?.conversation.participant.remove(.init(participantId: id, threadId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.remove(.init(participantId: id, threadId: threadId))
+        }
     }
 
     public func makeAdmin(_ participant: Participant) {
         guard let id = participant.id, let threadId = thread?.id else { return }
         let req = RolesRequest(userRoles: [.init(userId: id, roles: Roles.adminRoles)], threadId: threadId)
         RequestsManager.shared.append(prepend: ADMIN_KEY, value: req)
-        ChatManager.activeInstance?.user.set(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.user.set(req)
+        }
 //        ChatManager.activeInstance?.conversation.participant.addAdminRole(.init(participants: [.init(id: "\(participant.coreUserId ?? 0)", idType: .coreUserId)], conversationId: threadId))
     }
 
     public func removeAdminRole(_ participant: Participant) {
         guard let id = participant.id, let threadId = thread?.id else { return }
-        ChatManager.activeInstance?.user.remove(RolesRequest(userRoles: [.init(userId: id, roles: Roles.adminRoles)], threadId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.user.remove(RolesRequest(userRoles: [.init(userId: id, roles: Roles.adminRoles)], threadId: threadId))
+        }
 //        ChatManager.activeInstance?.conversation.participant.removeAdminRole(.init(participants: [.init(id: "\(participant.coreUserId ?? 0)", idType: .coreUserId)], conversationId: threadId))
     }
 
@@ -287,7 +300,7 @@ public final class ParticipantsViewModel: ObservableObject {
         participants.removeAll(where: { $0.id == participant.id })
     }
 
-    public func onError(_ response: ChatResponse<Any>) {
+    public func onError(_ response: ChatResponse<Sendable>) {
         if response.error != nil, response.pop(prepend: SEARCH_KEY) != nil {
             searchedParticipants.removeAll()
         }
@@ -300,6 +313,6 @@ public final class ParticipantsViewModel: ObservableObject {
     }
 
     deinit {
-        print("deinit called for ParticipantsViewModel thread:\(thread?.title ?? "")")
+        print("deinit called for ParticipantsViewModel")
     }
 }

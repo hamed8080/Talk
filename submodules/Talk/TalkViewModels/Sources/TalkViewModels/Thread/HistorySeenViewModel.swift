@@ -13,6 +13,7 @@ import Chat
 import TalkModels
 import UIKit
 
+@MainActor
 public final class HistorySeenViewModel {
     private weak var threadVM: ThreadViewModel?
     private var historyVM: ThreadHistoryViewModel? { threadVM?.historyVM }
@@ -39,14 +40,16 @@ public final class HistorySeenViewModel {
     }
 
     @HistoryActor
-    internal func onAppear(_ message: any HistoryMessageProtocol) {
-        if !canReduce(for: message) { return }
+    internal func onAppear(_ message: any HistoryMessageProtocol) async {
+        if await !canReduce(for: message) { return }
         queue.sync {
             logMessageApperance(message, appeard: true, isUp: false)
-            reduceUnreadCountLocaly(message)
-            if message.id ?? 0 >= lastInQueue, let message = message as? Message {
-                lastInQueue = message.id ?? 0
-                seenPublisher.send(message)
+            Task { @MainActor in
+                reduceUnreadCountLocaly(message)
+                if message.id ?? 0 >= lastInQueue, let message = message as? Message {
+                    lastInQueue = message.id ?? 0
+                    seenPublisher.send(message)
+                }
             }
         }
     }
@@ -54,11 +57,14 @@ public final class HistorySeenViewModel {
     /// We use isProgramaticallyScroll false to only not sending scrolling up when the user really scrolling
     /// If we don't do that it will result in not sending seen for threads with messages lower than 10, on opening the thread.
     @HistoryActor
-    private func canReduce(for message: any HistoryMessageProtocol) -> Bool {
-        if threadVM?.scrollVM.scrollingUP == true && threadVM?.scrollVM.isProgramaticallyScroll == false { return false }
-        if thread.unreadCount ?? 0 == 0 { return false }
+    private func canReduce(for message: any HistoryMessageProtocol) async -> Bool {
+        let scrollingUP = await threadVM?.scrollVM.scrollingUP == true
+        let isProgramaticallyScroll = await threadVM?.scrollVM.getIsProgramaticallyScrollingHistoryActor() == true
+        if scrollingUP && !isProgramaticallyScroll { return false }
+        if await thread.unreadCount ?? 0 == 0 { return false }
         if message.id == LocalId.unreadMessageBanner.rawValue { return false }
-        return message.id ?? 0 > thread.lastSeenMessageId ?? 1
+        let lastSeenMessageId = await thread.lastSeenMessageId
+        return message.id ?? 0 > lastSeenMessageId ?? 1
     }
 
     /// We reduce it locally to keep the UI Sync and user feels it really read the message.
@@ -95,8 +101,13 @@ public final class HistorySeenViewModel {
             if let index = threadsVM.firstIndex(threadId) {
                 threadsVM.threads[index].lastSeenMessageId = messageId
             }
-            log("send seen for message:\(message.messageTitle) with id:\(messageId)")
-            ChatManager.activeInstance?.message.seen(.init(threadId: threadId, messageId: messageId))
+            Task {
+                await log("send seen for message:\(message.messageTitle) with id:\(messageId)")
+            }
+            let threadId = threadId
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.seen(.init(threadId: threadId, messageId: messageId))
+            }
         }
     }
 
@@ -128,6 +139,7 @@ public final class HistorySeenViewModel {
         }
     }
 
+    @HistoryActor
     private func logMessageApperance(_ message: any HistoryMessageProtocol, appeard: Bool, isUp: Bool? = nil) {
 #if DEBUG
         let dir = isUp == true ? "UP" : (isUp == false ? "DOWN" : "")
@@ -146,6 +158,7 @@ public final class HistorySeenViewModel {
 #endif
     }
 
+    @HistoryActor
     private func log(_ string: String) {
 #if DEBUG
         Logger.viewModels.info("\(string, privacy: .sensitive)")

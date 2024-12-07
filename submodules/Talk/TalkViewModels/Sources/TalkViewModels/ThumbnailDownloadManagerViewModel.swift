@@ -2,6 +2,7 @@ import Chat
 import Combine
 import Foundation
 
+@MainActor
 class ThumbnailDownloadManagerViewModel {
     private var objectId = UUID().uuidString
     private let THUMBNAIL_KEY: String
@@ -34,11 +35,10 @@ class ThumbnailDownloadManagerViewModel {
     }
 
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
-    public func downloadBlurImage(req: ImageRequest) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            uniqueId = req.uniqueId
-            RequestsManager.shared.append(prepend: THUMBNAIL_KEY, value: req, autoCancel: false)
+    public func downloadBlurImage(req: ImageRequest) {        
+        uniqueId = req.uniqueId
+        RequestsManager.shared.append(prepend: THUMBNAIL_KEY, value: req, autoCancel: false)
+        Task { @ChatGlobalActor in
             ChatManager.activeInstance?.file.get(req)
         }
     }
@@ -51,6 +51,6 @@ class ThumbnailDownloadManagerViewModel {
     }
 
     public func removeKey() {
-        RequestsManager.shared.pop(prepend: THUMBNAIL_KEY, for: uniqueId)
+        _ = RequestsManager.shared.pop(prepend: THUMBNAIL_KEY, for: uniqueId)
     }
 }

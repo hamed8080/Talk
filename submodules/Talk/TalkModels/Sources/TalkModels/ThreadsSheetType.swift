@@ -1,4 +1,4 @@
-public enum ThreadsSheetType: Identifiable {
+public enum ThreadsSheetType: Identifiable, Sendable {
     public var id: Self { self }
     case tagManagement
     case addParticipant

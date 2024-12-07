@@ -8,6 +8,7 @@
 import Chat
 import Foundation
 
+@MainActor
 protocol PinThreadProtocol {
     func togglePin(_ thread: Conversation)
     func pin(_ threadId: Int)
@@ -27,11 +28,15 @@ extension ThreadsViewModel: PinThreadProtocol {
     }
 
     public func pin(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.pin(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.pin(.init(subjectId: threadId))
+        }
     }
 
     public func unpin(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.unpin(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unpin(.init(subjectId: threadId))
+        }
     }
 
     public func onPin(_ response: ChatResponse<Conversation>) {

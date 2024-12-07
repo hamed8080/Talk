@@ -40,7 +40,9 @@ struct SyncView: View {
                 Button {
                     withAnimation {
                         isSynced = true
-                        ChatManager.activeInstance?.contact.sync()
+                        Task { @ChatGlobalActor in
+                            ChatManager.activeInstance?.contact.sync()
+                        }
                     }
                 } label: {
                     Text("Contacts.Sync.sync")

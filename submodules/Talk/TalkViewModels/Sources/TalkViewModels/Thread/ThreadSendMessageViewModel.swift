@@ -12,6 +12,7 @@ import TalkExtensions
 import TalkModels
 import OSLog
 
+@MainActor
 public final class ThreadSendMessageViewModel {
     private weak var viewModel: ThreadViewModel?
     private var creator: P2PConversationBuilder?
@@ -39,7 +40,6 @@ public final class ThreadSendMessageViewModel {
     }
 
     /// It triggers when send button tapped
-    @MainActor
     public func sendTextMessage() async {
         if isOriginForwardThread() { return }
         model = makeModel()
@@ -59,9 +59,7 @@ public final class ThreadSendMessageViewModel {
             sendNormalMessage()
         }
 
-        Task { @HistoryActor [weak self] in
-            self?.viewModel?.historyVM.seenVM?.sendSeenForAllUnreadMessages()
-        }
+        viewModel?.historyVM.seenVM?.sendSeenForAllUnreadMessages()
         viewModel?.mentionListPickerViewModel.text = ""
         sendVM.clear() // close ui
     }
@@ -103,7 +101,9 @@ public final class ThreadSendMessageViewModel {
                 sendSingleReplyAttachment(lastItem, replyMessageId)
             } else {
                 let req = ReplyMessageRequest(model: model)
-                ChatManager.activeInstance?.message.reply(req)
+                Task { @ChatGlobalActor in
+                    ChatManager.activeInstance?.message.reply(req)
+                }
             }
         }
         attVM.clear()
@@ -115,10 +115,14 @@ public final class ThreadSendMessageViewModel {
         if let imageItem = attachmentFile?.request as? ImageItem {
             let imageReq = UploadImageRequest(imageItem: imageItem, thread.userGroupHash)
             req.messageType = .podSpacePicture
-            ChatManager.activeInstance?.message.reply(req, imageReq)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.reply(req, imageReq)
+            }
         } else if let url = attachmentFile?.request as? URL, let fileReq = UploadFileRequest(url: url, thread.userGroupHash) {
             req.messageType = .podSpaceFile
-            ChatManager.activeInstance?.message.reply(req, fileReq)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.reply(req, fileReq)
+            }
         }
     }
 
@@ -150,7 +154,9 @@ public final class ThreadSendMessageViewModel {
 
     private func sendTextOnlyReplyPrivately() {
         if let req = ReplyPrivatelyRequest(model: model) {
-            ChatManager.activeInstance?.message.replyPrivately(req)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.replyPrivately(req)
+            }
         }
     }
 
@@ -186,29 +192,28 @@ public final class ThreadSendMessageViewModel {
                 let tuple = Message.makeRequest(model: model)
                 let historyVM = viewModel?.historyVM
                 await historyVM?.injectMessagesAndSort([tuple.message])
-                let lastSectionIndex = max(0, (historyVM?.sections.count ?? 0) - 1)
-                let row = max((historyVM?.sections[lastSectionIndex].vms.count ?? 0) - 1, 0)
+                let lastSectionIndex = max(0, (historyVM?.mSections.count ?? 0) - 1)
+                let row = max((historyVM?.mSections[lastSectionIndex].vms.count ?? 0) - 1, 0)
                 let indexPath = IndexPath(row: row, section: lastSectionIndex)
                 viewModel?.delegate?.inserted(at: indexPath)
                 viewModel?.delegate?.scrollTo(index: indexPath, position: .bottom, animate: true)
-                ChatManager.activeInstance?.message.send(tuple.req)
+                Task { @ChatGlobalActor in
+                    ChatManager.activeInstance?.message.send(tuple.req)
+                }
             }
         }
     }
 
     public func openDestinationConversationToForward(_ destinationConversation: Conversation?, _ contact: Contact?) {
         sendVM.clear() /// Close edit mode in ui
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            let messages = selectVM.getSelectedMessages().compactMap{$0.message as? Message}
-            if let contact = contact {
-                AppState.shared.openForwardThread(from: threadId, contact: contact, messages: messages)
-            } else if let destinationConversation = destinationConversation {
-                AppState.shared.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
-            }
-            selectVM.clearSelection()
-            viewModel?.delegate?.setSelection(false)
+        let messages = selectVM.getSelectedMessages().compactMap{$0.message as? Message}
+        if let contact = contact {
+            AppState.shared.openForwardThread(from: threadId, contact: contact, messages: messages)
+        } else if let destinationConversation = destinationConversation {
+            AppState.shared.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
         }
+        selectVM.clearSelection()
+        viewModel?.delegate?.setSelection(false)
     }
 
     private func sendForwardMessages() {
@@ -231,12 +236,18 @@ public final class ThreadSendMessageViewModel {
     private func sendForwardMessages(_ req: ForwardMessageRequest) {
         if !model.textMessage.isEmpty {
             let messageReq = SendTextMessageRequest(threadId: threadId, textMessage: model.textMessage, messageType: .text)
-            ChatManager.activeInstance?.message.send(messageReq)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.send(messageReq)
+            }
         }
         Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
-            ChatManager.activeInstance?.message.send(req)
-            self?.navModel = .init()
-            self?.viewModel?.delegate?.showForwardPlaceholder(show: false)
+            Task { @MainActor [weak self] in
+                Task { @ChatGlobalActor in
+                    ChatManager.activeInstance?.message.send(req)
+                }
+                self?.navModel = .init()
+                self?.viewModel?.delegate?.showForwardPlaceholder(show: false)
+            }
         }
         sendAttachmentsMessage()
     }
@@ -305,7 +316,9 @@ public final class ThreadSendMessageViewModel {
     public func sendEditMessage() {
         guard let editMessage = sendVM.getEditMessage(), let messageId = editMessage.id else { return }
         let req = EditMessageRequest(messageId: messageId, model: model)
-        ChatManager.activeInstance?.message.edit(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.edit(req)
+        }
     }
 
     public func sendLocation(_ location: LocationItem) {

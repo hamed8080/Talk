@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum AttachmentType {
+public enum AttachmentType: Sendable {
     case gallery
     case file
     case drop

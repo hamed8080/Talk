@@ -35,6 +35,7 @@ fileprivate struct Constants {
     }
 }
 
+@MainActor
 extension MessageContainerStackView {
     func addMenus() {
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(openContextMenu))
@@ -65,7 +66,14 @@ extension MessageContainerStackView {
 
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
         if viewModel?.threadVM?.thread.closed == true { return }
-        if sender.state == .began, let indexPath = indexpath(), let contentView = makeContextMenuView(indexPath) {
+        let isBegin = sender.state == .began
+        Task {
+            await openContextAsync(isBegin)
+        }
+    }
+    
+    private func openContextAsync(_ isBegin: Bool) async {
+        if isBegin, let indexPath = indexpath(), let contentView = await makeContextMenuView(indexPath) {
             delegate?.showContextMenu(indexPath, contentView: contentView)
             UIView.animate(withDuration: Constants.animateToHideOriginalMessageDuration) {
                 self.alpha = 0.0
@@ -74,7 +82,7 @@ extension MessageContainerStackView {
         }
     }
 
-    func makeContextMenuView(_ indexPath: IndexPath) -> UIView? {
+    func makeContextMenuView(_ indexPath: IndexPath) async -> UIView? {
         guard let viewModel = viewModel else { return nil }
         let vc = delegate as? ThreadViewController
         guard let vc = vc, let tableView = vc.tableView else { return nil }
@@ -86,7 +94,7 @@ extension MessageContainerStackView {
         let messageContainer = createCopyStackContainer(viewModel, sizes)
         scrollViewContainer.addSubview(messageContainer)
 
-        let reactionBarView = createReaction(viewModel, sizes, messageContainer)
+        let reactionBarView = await createReaction(viewModel, sizes, messageContainer)
         scrollViewContainer.addSubview(reactionBarView)
 
         let menu = createMenu(viewModel, indexPath, messageContainer, sizes)
@@ -186,7 +194,7 @@ extension MessageContainerStackView {
         view.layer.add(springAnim, forKey: "springAnim")
     }
 
-    private func createReaction(_ viewModel: MessageRowViewModel, _ sizes: Constants.Sizes, _ messageContainer: MessageContainerStackView) -> UIReactionsPickerScrollView {
+    private func createReaction(_ viewModel: MessageRowViewModel, _ sizes: Constants.Sizes, _ messageContainer: MessageContainerStackView) async -> UIReactionsPickerScrollView {
 
         let reactionsView = UIReactionsPickerScrollView(size: Constants.reactionHeight)
         reactionsView.frame = .init(x: sizes.reactionX,
@@ -196,7 +204,7 @@ extension MessageContainerStackView {
         reactionsView.setup(viewModel)
         reactionsView.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
 
-        let canReact = viewModel.canReact()
+        let canReact = await viewModel.canReact()
         reactionsView.isUserInteractionEnabled = canReact
         reactionsView.isHidden = !canReact
 
@@ -244,7 +252,7 @@ extension MessageContainerStackView {
     private func indexpath() -> IndexPath? {
         guard
             let vm = viewModel,
-            let indexPath = viewModel?.threadVM?.historyVM.sections.indexPath(for: vm)
+            let indexPath = viewModel?.threadVM?.historyVM.mSections.indexPath(for: vm)
         else { return nil }
         return indexPath
     }

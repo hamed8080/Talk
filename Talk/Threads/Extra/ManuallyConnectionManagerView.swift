@@ -49,12 +49,18 @@ struct ManuallyConnectionManagerView: View {
                 }
 
                 SubmitBottomButton(text: "Close connections", color: Color.App.red) {
-                    ChatManager.activeInstance?.dispose()
+                    Task { @ChatGlobalActor in
+                        ChatManager.activeInstance?.dispose()
+                    }
                 }
 
                 SubmitBottomButton(text: "Coneect", color: Color.App.color2) {
-                    ChatManager.activeInstance?.dispose()
-                    ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: recreate)
+                    let recreate = recreate
+                    let token = token
+                    Task { @ChatGlobalActor in
+                        ChatManager.activeInstance?.dispose()
+                        ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: recreate)
+                    }
                 }
             }
         }

@@ -12,6 +12,7 @@ import TalkModels
 import TalkExtensions
 import SwiftUI
 
+@MainActor
 public final class LoginViewModel: ObservableObject {
     @Published public var isLoading = false
     // This two variable need to be set from Binding so public setter needed.
@@ -78,7 +79,7 @@ public final class LoginViewModel: ObservableObject {
                 await MainActor.run {
                     expireIn = decodecd.client?.accessTokenExpiryTime ?? 60
                 }
-                await startTimer()
+                startTimer()
             } catch {
                 isLoading = false
                 showError(.failed)
@@ -181,28 +182,32 @@ public final class LoginViewModel: ObservableObject {
         if let keyId = keyId {
             Task { [weak self] in
                 guard let self = self else { return }
-                await requestOTP(identity: text, keyId: keyId, resend: true)
-                await startTimer()
+                requestOTP(identity: text, keyId: keyId, resend: true)
+                startTimer()
             }
         }
     }
 
-    @MainActor
-    public func startTimer() async {
+    private func startTimer() {
         timerHasFinished = false
         timer?.invalidate()
         timer = nil
         timerValue = expireIn
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
-            guard let self else { return }
-            if timerValue != 0 {
-                timerValue -= 1
-                timerString = timerValue.timerString(locale: Language.preferredLocale) ?? ""
-            } else {
-                timerHasFinished = true
-                timer.invalidate()
-                self.timer = nil
+            Task { @MainActor [weak self] in
+                self?.handleTimer()
             }
+        }
+    }
+    
+    private func handleTimer() {
+        if timerValue != 0 {
+            timerValue -= 1
+            timerString = timerValue.timerString(locale: Language.preferredLocale) ?? ""
+        } else {
+            timerHasFinished = true
+            timer?.invalidate()
+            self.timer = nil
         }
     }
 
@@ -226,17 +231,21 @@ public final class LoginViewModel: ObservableObject {
                                               callbackURLScheme: bundleIdentifier)
         let authenticator = OAuth2PKCEAuthenticator()
         authenticator.authenticate(parameters: parameters) { [weak self] result in
-            switch result {
-            case .success(let accessTokenResponse):
-                Task { [weak self] in
-                    let ssoToken = accessTokenResponse
-                    await self?.saveTokenAndCreateChatObject(ssoToken)
-                }
-            case .failure(let error):
-                let message = error.localizedDescription
-                print(message)
-                self?.startNewPKCESession()
+            Task { @MainActor [weak self] in
+                await self?.onAuthentication(result)
             }
+        }
+    }
+    
+    private func onAuthentication(_ result: Result<SSOTokenResponse, OAuth2PKCEAuthenticatorError>) async {
+        switch result {
+        case .success(let accessTokenResponse):
+            let ssoToken = accessTokenResponse
+            await saveTokenAndCreateChatObject(ssoToken)
+        case .failure(let error):
+            let message = error.localizedDescription
+            print(message)
+            startNewPKCESession()
         }
     }
 

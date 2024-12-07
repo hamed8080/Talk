@@ -13,7 +13,8 @@ import TalkModels
 import AVKit
 import Chat
 
-final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
+@MainActor
+final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDelegate {
     // Views
     private let fileNameLabel = UILabel()
     private let fileTypeLabel = UILabel()
@@ -29,7 +30,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
 
     // Models
     private var playerVC: AVPlayerViewController?
-    @HistoryActor private var videoPlayerVM: VideoPlayerViewModel?
+    private var videoPlayerVM: VideoPlayerViewModel?
     private weak var viewModel: MessageRowViewModel?
     private var message: (any HistoryMessageProtocol)? { viewModel?.message }
     private static let playIcon: UIImage = UIImage(systemName: "play.fill")!
@@ -167,7 +168,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         playIcon.setIsHidden(false)
         Task {
             await makeViewModel(url: url, message: message)
-            if let player = await videoPlayerVM?.player {
+            if let player = videoPlayerVM?.player {
                 setVideo(player: player)
             }
         }
@@ -213,9 +214,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
 
     @objc private func onTap(_ sender: UIGestureRecognizer) {
         if viewModel?.calMessage.fileURL != nil {
-            Task {
-                await videoPlayerVM?.toggle()
-            }
+            videoPlayerVM?.toggle()
             enterFullScreen(animated: true)
         } else {
             // Download file
@@ -255,6 +254,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     func playerViewController(_ playerViewController: AVPlayerViewController, willBeginFullScreenPresentationWithAnimationCoordinator coordinator: any UIViewControllerTransitionCoordinator) {
         playerVC?.showsPlaybackControls = true
     }
+    
     public func playerViewController(_ playerViewController: AVPlayerViewController, willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
         playerVC?.showsPlaybackControls = false
     }
@@ -267,12 +267,17 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         playerVC?.perform(NSSelectorFromString("exitFullScreenAnimated:completionHandler:"), with: animated, with: nil)
     }
 
-    @HistoryActor
-    private func makeViewModel(url: URL, message: (any HistoryMessageProtocol)?) {
+    private func makeViewModel(url: URL, message: (any HistoryMessageProtocol)?) async {
+        let metadata = await metadata(message: message)
         if url.absoluteString == videoPlayerVM?.fileURL.absoluteString ?? "" { return }
         self.videoPlayerVM = VideoPlayerViewModel(fileURL: url,
-                             ext: message?.fileMetaData?.file?.mimeType?.ext,
-                             title: message?.fileMetaData?.name,
-                             subtitle: message?.fileMetaData?.file?.originalName ?? "")
+                             ext: metadata?.file?.mimeType?.ext,
+                             title: metadata?.name,
+                             subtitle: metadata?.file?.originalName ?? "")
+    }
+    
+    @HistoryActor
+    private func metadata(message: (any HistoryMessageProtocol)?) async -> FileMetaData? {
+        message?.fileMetaData
     }
 }

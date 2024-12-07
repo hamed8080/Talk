@@ -10,6 +10,7 @@ import PhotosUI
 import TalkViewModels
 import TalkModels
 
+@MainActor
 public final class GallleryViewController: NSObject, PHPickerViewControllerDelegate {
     public weak var viewModel: ThreadViewModel?
 
@@ -52,13 +53,16 @@ public final class GallleryViewController: NSObject, PHPickerViewControllerDeleg
             }
 
             if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                let suggestedName = provider.suggestedName ?? "unknown"
                 provider.loadObject(ofClass: UIImage.self) { item, error in
                     if let image = item as? UIImage {
                         let item = ImageItem(data: image.pngData() ?? Data(),
                                              width: Int(image.size.width),
                                              height: Int(image.size.height),
-                                             originalFilename: provider.suggestedName ?? "unknown")
-                        self.viewModel?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+                                             originalFilename: suggestedName)
+                        Task { @MainActor in
+                            self.viewModel?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+                        }
                     }
                 }
             }

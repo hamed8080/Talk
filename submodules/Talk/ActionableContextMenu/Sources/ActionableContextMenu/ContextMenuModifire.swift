@@ -131,8 +131,10 @@ struct ContextMenuModifire<V: View>: ViewModifier {
     private func startTimerOnPress() {
         Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
             // Check if still after 0.3 second the user is holding finger down if not we do nothing.
-            if isTouchedLocalPosition {
-                showWithAnimation()
+            Task { @MainActor in
+                if isTouchedLocalPosition {
+                    showWithAnimation()
+                }
             }
         }
     }

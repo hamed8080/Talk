@@ -8,7 +8,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-public struct AnimatingCellHeight: AnimatableModifier {
+public struct AnimatingCellHeight: Animatable {
     public var height: CGFloat = 0
 
     public init(height: CGFloat) {
@@ -18,10 +18,6 @@ public struct AnimatingCellHeight: AnimatableModifier {
     public var animatableData: CGFloat {
         get { height }
         set { height = newValue }
-    }
-
-    public func body(content: Content) -> some View {
-        content.frame(height: height)
     }
 }
 #endif

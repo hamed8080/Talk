@@ -1,4 +1,5 @@
 import Foundation
+#if canImport(ffmpegkit)
 import ffmpegkit
 import Chat
 import TalkExtensions
@@ -27,16 +28,17 @@ class OpusConverter {
 
     public static func convert(_ message: Message) async -> URL? {
         typealias Completion = CheckedContinuation<URL?, Never>
+        let path = await message.fileURL
         return await withCheckedContinuation { (result: Completion) in
-            convertAudio(message) { url in
+            convertAudio(message, path) { url in
                 result.resume(returning: url)
             }
         }
     }
 
-    private static func convertAudio(_ message: Message, _ completion: @escaping (URL?) -> Void){
+    private static func convertAudio(_ message: Message, _ path: URL?, _ completion: @escaping (URL?) -> Void) {
         guard
-            let path = message.fileURL,
+            let path = path,
             let output = message.convertedFileURL,
             let convertedDIR = Message.convertedDIRURL
         else {
@@ -79,3 +81,4 @@ class OpusConverter {
         }
     }
 }
+#endif

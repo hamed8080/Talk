@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import Chat
 
+@MainActor
 public class ThreadOrContactPickerViewModel: ObservableObject {
     private var cancellableSet: Set<AnyCancellable> = .init()
     @Published public var searchText: String = ""
@@ -97,11 +98,15 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         conversationsLazyList.setLoading(true)
         let req = ThreadsRequest(searchText: text)
         RequestsManager.shared.append(prepend: GET_THREADS_IN_SELECT_THREAD_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
 
         let contactsReq = ContactsRequest(query: text)
         RequestsManager.shared.append(prepend: GET_CONTCATS_IN_SELECT_CONTACT_KEY, value: contactsReq)
-        ChatManager.activeInstance?.contact.get(contactsReq)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.get(contactsReq)
+        }
     }
 
     @MainActor
@@ -116,7 +121,9 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         conversationsLazyList.setLoading(true)
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
         RequestsManager.shared.append(prepend: GET_THREADS_IN_SELECT_THREAD_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     @MainActor
@@ -124,7 +131,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         if !response.cache, response.pop(prepend: GET_THREADS_IN_SELECT_THREAD_KEY) != nil {
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(response.hasNext)
-            let filtered = (response.result ?? []).filter({$0.closed == false || $0.closed == nil})
+            let filtered = (response.result ?? []).filter({$0.closed == false })
             conversations.append(contentsOf: filtered)
             animateObjectWillChange()
         }
@@ -142,7 +149,9 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         contactsLazyList.setLoading(true)
         let req = ContactsRequest(count: contactsLazyList.count, offset: contactsLazyList.offset)
         RequestsManager.shared.append(prepend: GET_CONTCATS_IN_SELECT_CONTACT_KEY, value: req)
-        ChatManager.activeInstance?.contact.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.get(req)
+        }
     }
 
     @MainActor
@@ -163,15 +172,14 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
 
     private func hideConversationsLoadingWithDelay() async {
         try? await Task.sleep(for: .seconds(0.3))
-        await conversationsLazyList.setLoading(false)
+        conversationsLazyList.setLoading(false)
     }
 
     private func hideContactsLoadingWithDelay() async {
         try? await Task.sleep(for: .seconds(0.3))
-        await contactsLazyList.setLoading(false)
+        contactsLazyList.setLoading(false)
     }
 
-    @MainActor
     public func reset() async {
         conversationsLazyList.reset()
         contactsLazyList.reset()

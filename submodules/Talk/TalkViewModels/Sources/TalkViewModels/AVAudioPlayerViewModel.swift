@@ -4,9 +4,9 @@ import AVFoundation
 import OSLog
 import SwiftUI
 import Chat
-import ffmpegkit
 
-public final class AVAudioPlayerViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
+@MainActor
+public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcurrency AVAudioPlayerDelegate {
     @Published public var isPlaying: Bool = false
     @Published public var isClosed: Bool = true
     @Published public var player: AVAudioPlayer?
@@ -51,16 +51,22 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, AVAudioPl
         player?.prepareToPlay()
         player?.play()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            let transaction = Transaction(animation: .easeInOut)
-            withTransaction(transaction) {
-                if self?.duration != self?.currentTime {
-                    self?.currentTime = self?.player?.currentTime ?? 0
-                    self?.duration = self?.player?.duration ?? 0
-                }
+            Task { @MainActor [weak self] in
+                self?.onTickTimer()
             }
         }
         if let timer = timer {
             RunLoop.main.add(timer, forMode: .common)
+        }
+    }
+    
+    private func onTickTimer() {
+        let transaction = Transaction(animation: .easeInOut)
+        withTransaction(transaction) {
+            if duration != currentTime {
+                currentTime = player?.currentTime ?? 0
+                duration = player?.duration ?? 0
+            }
         }
     }
 
@@ -90,13 +96,19 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, AVAudioPl
     public func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully _: Bool) {
         currentTime = duration
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
-            var transaction = Transaction(animation: .none)
-            transaction.disablesAnimations = false
-            withTransaction(transaction) {
-                self?.isPlaying = false
-                self?.currentTime = self?.duration ?? 0
-                self?.close()
+            Task { @MainActor [weak self] in
+                self?.onCloseTimer()
             }
+        }
+    }
+    
+    private func onCloseTimer() {
+        var transaction = Transaction(animation: .none)
+        transaction.disablesAnimations = false
+        withTransaction(transaction) {
+            isPlaying = false
+            currentTime = duration
+            close()
         }
     }
     

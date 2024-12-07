@@ -35,6 +35,7 @@ public enum AppOverlayTypes {
     case none
 }
 
+@MainActor
 public class AppOverlayViewModel: ObservableObject {
     @Published public var isPresented = false
     public var type: AppOverlayTypes = .none
@@ -134,10 +135,12 @@ public class AppOverlayViewModel: ObservableObject {
         isPresented = true
         animateObjectWillChange()
         Timer.scheduledTimer(withTimeInterval: TimeInterval(duration.duration), repeats: false) { [weak self] _ in
-            self?.isToast = false
-            self?.type = .none
-            self?.isPresented = false
-            self?.animateObjectWillChange()
+            Task { @MainActor [weak self] in
+                self?.isToast = false
+                self?.type = .none
+                self?.isPresented = false
+                self?.animateObjectWillChange()
+            }
         }
     }
 

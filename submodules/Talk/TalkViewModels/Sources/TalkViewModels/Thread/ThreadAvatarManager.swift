@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+@MainActor
 public class ThreadAvatarManager {
     private var queue = DispatchQueue(label: "ThreadAvatarManagerSerialQueue")
     private var avatarsViewModelsQueue: [ImageLoaderViewModel] = []
@@ -23,7 +24,9 @@ public class ThreadAvatarManager {
 
     public func addToQueue(_ viewModel: MessageRowViewModel) {
         queue.async { [weak self] in
-            self?.addOrUpdate(viewModel)
+            Task { @MainActor in
+                self?.addOrUpdate(viewModel)
+            }
         }
     }
 

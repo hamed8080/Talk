@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MessageViewRowType {
+public struct MessageViewRowType: Sendable {
     public var isFile: Bool = false
     public var isImage: Bool = false
     public var isForward: Bool = false

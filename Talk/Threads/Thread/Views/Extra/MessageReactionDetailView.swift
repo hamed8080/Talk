@@ -17,6 +17,7 @@ struct MessageReactionDetailView: View {
     private let row: ReactionRowsCalculated.Row
     private var messageId: Int { message.id ?? -1 }
     @EnvironmentObject var tabVM: ReactionTabParticipantsViewModel
+    @State private var tabs: [TabItem] = []
 
     init(message: any HistoryMessageProtocol, row: ReactionRowsCalculated.Row) {
         self.message = message
@@ -36,11 +37,19 @@ struct MessageReactionDetailView: View {
         .onAppear {
             tabVM.setActiveTab(tabId: row.selectedEmojiTabId)
         }
+        .task {
+            let tabs = await prepareTabs()
+            await MainActor.run {
+                self.tabs = tabs
+            }
+        }
     }
 
-    var tabs: [TabItem] {
-        if summaryTabs.count > 0 {
-            var tabs = summaryTabs
+    private func prepareTabs() async -> [TabItem] {
+        let messageId = messageId
+        let summary = await summaryTabs(messageId)
+        if summary.count > 0 {
+            var tabs = summary
             tabs.insert(allTab, at: 0)
             return tabs
         } else {
@@ -56,17 +65,22 @@ struct MessageReactionDetailView: View {
         )
     }
 
-    var summaryTabs: [TabItem] {
-        ChatManager.activeInstance?.reaction.inMemoryReaction.summary(for: messageId)
-            .compactMap { reaction in
-                let countText = reaction.count?.localNumber(locale: Language.preferredLocale) ?? ""
-                let title = "\(reaction.sticker?.emoji ?? "all") \(countText)"
-                return TabItem(
-                    tabContent: ParticiapntsPageSticker(tabId: title).environmentObject(tabVM),
-                    title: title,
-                    showSelectedDivider: true
-                )
-            } ?? []
+    @ChatGlobalActor
+    func reactionsSummaryFor(_ messageId: Int) -> [ReactionCount] {
+        ChatManager.activeInstance?.reaction.inMemoryReaction.summary(for: messageId) ?? []
+    }
+    
+    func summaryTabs(_ messageId: Int) async -> [TabItem] {
+        let summary = await reactionsSummaryFor(messageId)
+        return summary.compactMap { reaction in
+            let countText = reaction.count?.localNumber(locale: Language.preferredLocale) ?? ""
+            let title = "\(reaction.sticker?.emoji ?? "all") \(countText)"
+            return TabItem(
+                tabContent: ParticiapntsPageSticker(tabId: title).environmentObject(tabVM),
+                title: title,
+                showSelectedDivider: true
+            )
+        }
     }
 }
 

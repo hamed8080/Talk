@@ -7,7 +7,7 @@
 import Foundation
 import Combine
 
-public struct AppSettingsModel: Codable, Hashable {
+public struct AppSettingsModel: Codable, Hashable, Sendable {
     public static func == (lhs: AppSettingsModel, rhs: AppSettingsModel) -> Bool {
         lhs.hashValue == rhs.hashValue
     }
@@ -26,7 +26,9 @@ public struct AppSettingsModel: Codable, Hashable {
 
     public func save() {
         UserDefaults.standard.setValue(codable: self, forKey: AppSettingsModel.key)
-        NotificationCenter.appSettingsModel.post(name: .appSettingsModel, object: self)
+        Task { @MainActor in
+            NotificationCenter.appSettingsModel.post(name: .appSettingsModel, object: self)
+        }
     }
 
     public static func restore() -> AppSettingsModel {
@@ -36,24 +38,24 @@ public struct AppSettingsModel: Codable, Hashable {
 }
 
 /// Automatic download settings.
-public struct AutomaticDownloadSettingModel: Codable {
+public struct AutomaticDownloadSettingModel: Codable, Sendable {
     public var downloadImages: Bool = false
     public var downloadFiles: Bool = false
     public var privateChat: ChatSettings = .init()
     public var channel: ChannelSettings = .init()
     public var group: GroupSettings = .init()
 
-    public struct ChatSettings: Codable {
+    public struct ChatSettings: Codable, Sendable {
         public var downloadImages: Bool = false
         public var downloadFiles: Bool = false
     }
 
-    public struct ChannelSettings: Codable {
+    public struct ChannelSettings: Codable, Sendable {
         public var downloadImages: Bool = false
         public var downloadFiles: Bool = false
     }
 
-    public struct GroupSettings: Codable {
+    public struct GroupSettings: Codable, Sendable {
         public var downloadImages: Bool = false
         public var downloadFiles: Bool = false
     }
@@ -63,7 +65,7 @@ public struct AutomaticDownloadSettingModel: Codable {
     }
 }
 
-public struct NotificationSettingModel: Codable {
+public struct NotificationSettingModel: Codable, Sendable {
     public var soundEnable: Bool = true
     public var showDetails: Bool = true
     public var vibration: Bool = true
@@ -71,17 +73,17 @@ public struct NotificationSettingModel: Codable {
     public var channel: ChannelSettings = .init()
     public var group: GroupSettings = .init()
 
-    public struct ChatSettings: Codable {
+    public struct ChatSettings: Codable, Sendable {
         public var showNotification: Bool = true
         public var sound = true
     }
 
-    public struct ChannelSettings: Codable {
+    public struct ChannelSettings: Codable, Sendable {
         public  var showNotification: Bool = true
         public  var sound = true
     }
 
-    public struct GroupSettings: Codable {
+    public struct GroupSettings: Codable, Sendable {
         public var showNotification: Bool = true
         public var sound = true
     }

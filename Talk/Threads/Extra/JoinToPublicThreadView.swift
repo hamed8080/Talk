@@ -73,7 +73,9 @@ struct JoinToPublicThreadView: View {
             }
         }
         .onChange(of: publicThreadName) { newValue in
-            ChatManager.activeInstance?.conversation.isNameAvailable(.init(name: newValue))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.conversation.isNameAvailable(.init(name: newValue))
+            }
         }
     }
 }

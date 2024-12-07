@@ -1,4 +1,4 @@
-public enum ThreadSheetType {
+public enum ThreadSheetType: Sendable {
     case attachment
     case exportMessagesFile
     case datePicker

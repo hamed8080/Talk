@@ -1,6 +1,6 @@
 import Chat
 
-public struct SideBarItem: Identifiable, Hashable {
+public struct SideBarItem: Identifiable, Hashable, Sendable {
     public var id: String
     public var tag: Tag?
     public var title: String

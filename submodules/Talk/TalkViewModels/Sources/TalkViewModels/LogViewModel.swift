@@ -12,6 +12,7 @@ import Foundation
 import Logger
 import TalkExtensions
 
+@MainActor
 public final class LogViewModel: ObservableObject {
     @Published public var logs: [Log] = []
     @Published public var searchText: String = ""

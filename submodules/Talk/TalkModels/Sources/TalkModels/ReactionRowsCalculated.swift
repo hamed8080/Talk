@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Chat
 
-public struct ReactionRowsCalculated {
+public struct ReactionRowsCalculated: Sendable {
     public var rows: [Row]
     public let topPadding: CGFloat
     public let myReactionSticker: Sticker?
@@ -13,7 +13,7 @@ public struct ReactionRowsCalculated {
         self.myReactionSticker = myReactionSticker
     }
 
-    public struct Row: Identifiable {
+    public struct Row: Identifiable, Sendable {
         public var id: String { "\(emoji) \(countText)" }
         public let reactionId: Int
         public let edgeInset: EdgeInsets

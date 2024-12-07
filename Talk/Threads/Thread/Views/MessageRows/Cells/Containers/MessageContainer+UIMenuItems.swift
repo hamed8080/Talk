@@ -165,12 +165,14 @@ private extension MessageContainerStackView {
     }
 
     func onSaveAction(_ model: ActionModel) {
-        if let url = model.viewModel.message.fileURL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-            UIImageWriteToSavedPhotosAlbum(image, model.viewModel, nil, nil)
-            let icon = Image(systemName: "externaldrive.badge.checkmark")
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.App.white)
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: Color.App.textPrimary)
+        Task {
+            if let url = await model.viewModel.message.fileURL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                UIImageWriteToSavedPhotosAlbum(image, model.viewModel, nil, nil)
+                let icon = Image(systemName: "externaldrive.badge.checkmark")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.App.white)
+                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: Color.App.textPrimary)
+            }
         }
     }
 
@@ -202,14 +204,16 @@ private extension MessageContainerStackView {
     func onDeleteCacheAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
         model.threadVM?.clearCacheFile(message: message)
-        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
+        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.mSections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
                 if let threadVM = model.threadVM {
                     let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
                     await newVM.performaCalculation()
-                    model.threadVM?.historyVM.sections[indexPath.section].vms[indexPath.row] = newVM
-                    model.threadVM?.delegate?.reloadData(at: indexPath)
+                    await MainActor.run {
+                        model.threadVM?.historyVM.mSections[indexPath.section].vms[indexPath.row] = newVM
+                        model.threadVM?.delegate?.reloadData(at: indexPath)
+                    }
                 }
             }
         }

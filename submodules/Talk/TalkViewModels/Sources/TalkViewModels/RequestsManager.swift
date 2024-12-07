@@ -9,18 +9,19 @@ import Foundation
 import OSLog
 import Chat
 
-public class RequestsManager {
+public class RequestsManager: @unchecked Sendable {
     public static let shared = RequestsManager()
-    fileprivate var requests: [String: ChatDTO.UniqueIdProtocol] = [:]
+    fileprivate var requests: [String: SendableUniqueIdProtocol] = [:]
     private var queue = DispatchQueue(label: "RequestQueue")
 
     private init(){}
 
     func append(value: ChatDTO.UniqueIdProtocol, autoCancel: Bool = true) {
+        let key = "\(value.uniqueId)"
+        let sendable = value.sendable
         queue.async { [weak self] in
             guard let self = self else { return }
-            let key = "\(value.uniqueId)"
-            requests[key] = value
+            requests[key] = sendable
             if autoCancel {
                 addCancelTimer(key: key)
             }
@@ -28,10 +29,11 @@ public class RequestsManager {
     }
 
     func append(prepend: String, value: ChatDTO.UniqueIdProtocol, autoCancel: Bool = true) {
+        let key = "\(prepend)-\(value.uniqueId)"
+        let sendable = value.sendable
         queue.async { [weak self] in
             guard let self = self else { return }
-            let key = "\(prepend)-\(value.uniqueId)"
-            requests[key] = value
+            requests[key] = sendable
             if autoCancel {
                 addCancelTimer(key: key)
             }
@@ -62,7 +64,7 @@ public class RequestsManager {
             log("poping prepend: \(prepend) with uniqueId \(key)")
             let value = requests[prependedKey]
             requests.removeValue(forKey: prependedKey)
-            return value
+            return value?.value
         }
     }
 
@@ -72,7 +74,7 @@ public class RequestsManager {
             log("poping uniqueId \(key)")
             let value = requests[key]
             requests.removeValue(forKey: key)
-            return value
+            return value?.value
         }
     }
 
@@ -81,14 +83,17 @@ public class RequestsManager {
         let timer = SourceTimer()
         timer.start(duration: 25) { [weak self] in
             self?.queue.async {  [weak self] in
-                guard let self = self else { return }
-                if requests.keys.contains(where: { $0 == key}) {
-                    log("addCancelTimer remvove: uniqueId \(key)")
-                    remove(key: key)
-                    DispatchQueue.main.async {
-                        NotificationCenter.onRequestTimer.post(name: .onRequestTimer, object: key)
-                    }
-                }
+                self?.handleCancelTimer(key)
+            }
+        }
+    }
+    
+    private func handleCancelTimer(_ key: String) {
+        if requests.keys.contains(where: { $0 == key}) {
+            log("addCancelTimer remvove: uniqueId \(key)")
+            remove(key: key)
+            DispatchQueue.main.async {
+                NotificationCenter.onRequestTimer.post(name: .onRequestTimer, object: key)
             }
         }
     }
@@ -151,4 +156,16 @@ public extension ChatResponse {
         guard let uniqueId = uniqueId else { return false }
         return RequestsManager.shared.containsPartial(prependedKey: "\(prependedKey)-\(uniqueId)")
     }
+}
+
+struct SendableUniqueIdProtocol: @unchecked Sendable {
+    public let value: ChatDTO.UniqueIdProtocol
+    
+    public init(value: ChatDTO.UniqueIdProtocol) {
+        self.value = value
+    }
+}
+
+extension ChatDTO.UniqueIdProtocol {
+    var sendable: SendableUniqueIdProtocol { SendableUniqueIdProtocol(value: self) }
 }

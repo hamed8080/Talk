@@ -13,6 +13,7 @@ import TalkModels
 import ChatModels
 import TalkUI
 
+@MainActor
 final class ThreadViewController: UIViewController {
     var viewModel: ThreadViewModel?
     public var tableView: UIHistoryTableView!
@@ -50,7 +51,9 @@ final class ThreadViewController: UIViewController {
         super.viewWillAppear(animated)
         isVisible = true
         ThreadViewModel.threadWidth = view.frame.width
-        viewModel?.historyVM.start()
+        Task {
+            await viewModel?.historyVM.start()
+        }
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -71,7 +74,9 @@ final class ThreadViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
+        Task { @HistoryActor in
+            await viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
+        }
         contextMenuContainer = ContextMenuContainerView(delegate: self)
         tableView.contentInset.top = topThreadToolbar.frame.height
     }
@@ -290,7 +295,9 @@ extension ThreadViewController: ThreadViewDelegate {
         showSelectionBar(value)
         // We need a delay to show selection view to calculate height of sendContainer then update to the last Message if it is visible
         Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
-            self?.moveTolastMessageIfVisible()
+            Task { [weak self] in
+                await self?.moveTolastMessageIfVisible()
+            }
         }
 
         if !value {
@@ -554,7 +561,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {
-        if let indexPath = viewModel?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
+        if let indexPath = viewModel?.historyVM.mSections.indicesByMessageUniqueId(uniqueId) {
             scrollTo(index: indexPath, position: position, animate: animate)
         }
     }
@@ -575,14 +582,14 @@ extension ThreadViewController: HistoryScrollDelegate {
     func reloadData(at: IndexPath) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = viewModel?.historyVM.sections.viewModelWith(at) {
+            if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = viewModel?.historyVM.mSections.viewModelWith(at) {
                 cell.setValues(viewModel: vm)
             }
         }
     }
 
     private func moveTolastMessageIfVisible() {
-        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = viewModel?.historyVM.sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
+        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = viewModel?.historyVM.mSections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
             scrollTo(index: indexPath, position: .bottom)
         }
     }
@@ -707,8 +714,8 @@ extension ThreadViewController: HistoryScrollDelegate {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             tableView.beginUpdates()
-            if tableView.numberOfSections > viewModel.historyVM.sections.count {
-                tableView.deleteSections(IndexSet(viewModel.historyVM.sections.count..<tableView.numberOfSections), with: .fade)
+            if tableView.numberOfSections > viewModel.historyVM.mSections.count {
+                tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
             }
             tableView.deleteRows(at: [at], with: .fade)
             tableView.endUpdates()
@@ -720,8 +727,8 @@ extension ThreadViewController: HistoryScrollDelegate {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             tableView.beginUpdates()
-            if tableView.numberOfSections > viewModel.historyVM.sections.count {
-                tableView.deleteSections(IndexSet(viewModel.historyVM.sections.count..<tableView.numberOfSections), with: .fade)
+            if tableView.numberOfSections > viewModel.historyVM.mSections.count {
+                tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
             }
             tableView.deleteRows(at: at, with: .fade)
             tableView.endUpdates()
@@ -733,7 +740,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         tableView.performBatchUpdates {
             for indexPath in indexPaths {
                 let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
-                if let cell = cell, let viewModel = viewModel?.historyVM.sections.viewModelWith(indexPath) {
+                if let cell = cell, let viewModel = viewModel?.historyVM.mSections.viewModelWith(indexPath) {
                     cell.reactionsUpdated(viewModel: viewModel)
                 }
             }
@@ -761,40 +768,51 @@ struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
 extension ThreadViewController {
     private func registerKeyboard() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            if self?.isVisible == false { return }
-            print(notif)
-            guard let self = self else { return }
-            if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                if rect.size.height <= 69 {
-                    hasExternalKeyboard = true
-                } else {
-                    hasExternalKeyboard = false
-                }
-
-                UIView.animate(withDuration: 0.2) {
-                    self.sendContainerBottomConstraint?.constant = -rect.height
-                    self.keyboardheight = rect.height
-                    self.view.layoutIfNeeded()
-                } completion: { completed in
-                    if completed {
-                        self.moveTolastMessageIfVisible()
-                    }
-                }
+            let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+            Task { [weak self] in
+                await self?.onShowKeyboard(rect)
             }
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] _ in
-            if self?.isVisible == false { return }
-            self?.sendContainerBottomConstraint?.constant = 0
-            self?.keyboardheight = 0
-            self?.hasExternalKeyboard = false
-            UIView.animate(withDuration: 0.2) {
-                self?.view.layoutIfNeeded()
+            Task { [weak self] in
+                await self?.onHideKeyorad()
             }
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))
         tapGetsure.isEnabled = true
         view.addGestureRecognizer(tapGetsure)
+    }
+    
+    private func onShowKeyboard(_ rect: CGRect?) {
+        if isVisible == false { return }
+        if let rect = rect {
+            if rect.size.height <= 69 {
+                hasExternalKeyboard = true
+            } else {
+                hasExternalKeyboard = false
+            }
+
+            UIView.animate(withDuration: 0.2) {
+                self.sendContainerBottomConstraint?.constant = -rect.height
+                self.keyboardheight = rect.height
+                self.view.layoutIfNeeded()
+            } completion: { completed in
+                if completed {
+                    self.moveTolastMessageIfVisible()
+                }
+            }
+        }
+    }
+    
+    private func onHideKeyorad() {
+        if isVisible == false { return }
+        sendContainerBottomConstraint?.constant = 0
+        keyboardheight = 0
+        hasExternalKeyboard = false
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
+        }
     }
 
     @objc private func hideKeyboard() {
@@ -816,7 +834,7 @@ extension ThreadViewController {
     }
 
     private func prevouisVisibleIndexPath() -> MessageBaseCell? {
-        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = viewModel?.historyVM.sections.previousIndexPath(firstVisible) {
+        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = viewModel?.historyVM.mSections.previousIndexPath(firstVisible) {
             let cell = tableView.cellForRow(at: previousIndexPath) as? MessageBaseCell
             return cell
         }
@@ -824,7 +842,7 @@ extension ThreadViewController {
     }
 
     private func nextVisibleIndexPath() -> MessageBaseCell? {
-        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = viewModel?.historyVM.sections.nextIndexPath(lastVisible) {
+        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = viewModel?.historyVM.mSections.nextIndexPath(lastVisible) {
             let cell = tableView.cellForRow(at: nextIndexPath) as? MessageBaseCell
             return cell
         }

@@ -104,8 +104,12 @@ struct DatePickerDialogWrapper: View {
 
     var body: some View {
         DatePickerWrapper { date in
-            viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+            Task { @HistoryActor in
+                await viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
+                await MainActor.run {
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+                }
+            }
         }
         .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
     }

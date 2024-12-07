@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MessageRowState {
+public struct MessageRowState: Sendable {
     public var isSelected: Bool = false
     public var isInSelectMode: Bool = false
     public var isHighlited: Bool = false

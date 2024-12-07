@@ -58,7 +58,9 @@ struct LogoutDialogView: View {
 
     private func onLogoutTapped() async {
         container.appOverlayVM.dialogView = nil
-        ChatManager.activeInstance?.user.logOut()
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.user.logOut()
+        }
         TokenManager.shared.clearToken()
         UserConfigManagerVM.instance.logout(delegate: ChatDelegateImplementation.sharedInstance)
         await container.reset()

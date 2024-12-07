@@ -35,11 +35,18 @@ public struct ProgressRotationAnimation: ViewModifier {
 
     private func scheduleAnimation() {
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
-            if timer.isValid {
-                reverseAnimation()
-            } else {
-              stopAnimation()
+            let isValid = timer.isValid
+            Task {
+                await handleTimer(isValid)
             }
+        }
+    }
+    
+    private func handleTimer(_ isValid: Bool) {
+        if isValid {
+            reverseAnimation()
+        } else {
+          stopAnimation()
         }
     }
 

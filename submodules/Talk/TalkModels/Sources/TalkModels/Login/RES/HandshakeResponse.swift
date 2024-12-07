@@ -1,4 +1,4 @@
-public struct HandshakeResponse: Codable {
+public struct HandshakeResponse: Codable, Sendable {
     public let algorithm: String?
     public let client: HandhsakeClient?
     public let keyFormat: String?
@@ -8,7 +8,7 @@ public struct HandshakeResponse: Codable {
 }
 
 
-public struct HandhsakeClient: Codable {
+public struct HandhsakeClient: Codable, Sendable {
     public let accessTokenExpiryTime: Int?
     public let allowedRedirectUris: [String]?
     public let userId: Int?

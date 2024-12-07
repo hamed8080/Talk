@@ -1,4 +1,4 @@
-public struct Config: Codable {
+public struct Config: Codable, Sendable {
     public var socketAddresss: String
     public var ssoHost: String
     public var platformHost: String

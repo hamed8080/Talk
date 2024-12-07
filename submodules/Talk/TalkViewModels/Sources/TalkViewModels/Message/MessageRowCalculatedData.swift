@@ -10,8 +10,8 @@ import SwiftUI
 import TalkModels
 import Chat
 
-public struct MessageRowCalculatedData {
-    public static var formatter: DateFormatter = {
+public struct MessageRowCalculatedData: @unchecked Sendable {
+    nonisolated(unsafe) public static var formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         formatter.locale = Language.preferredLocale

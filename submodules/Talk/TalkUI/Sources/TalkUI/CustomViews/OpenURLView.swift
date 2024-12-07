@@ -12,19 +12,22 @@ import TalkViewModels
 
 public struct OpenURLView: View {
     @EnvironmentObject var appState: AppState
-    @State private var isPresented: Binding<Bool> = Binding(get: { AppState.shared.appStateNavigationModel.openURL != nil }, set: { _ in })
+    @State private var isPresented: Bool = false
 
     public init(){}
 
     public var body: some View {
         if let url = appState.appStateNavigationModel.openURL {
             Rectangle()
-                .fullScreenCover(isPresented: isPresented) {
+                .fullScreenCover(isPresented: $isPresented) {
                     OpenURLViewControllerRepresentable(url: url) {
                         appState.appStateNavigationModel.openURL = nil
                         appState.animateObjectWillChange()
                     }
                     .ignoresSafeArea()
+                }
+                .onChange(of: AppState.shared.appStateNavigationModel.openURL) { newValue in
+                    self.isPresented = newValue != nil
                 }
         }
     }

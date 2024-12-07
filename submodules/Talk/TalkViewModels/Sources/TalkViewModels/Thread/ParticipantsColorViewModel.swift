@@ -8,10 +8,11 @@
 import UIKit
 import SwiftUI
 
-public final class ParticipantsColorViewModel {
+@HistoryActor
+public final class ParticipantsColorViewModel: @unchecked Sendable {
     var participantsColor: [Int: UIColor] = [:]
     private var reservedColors: [Int] = []
-    public init() { }
+    nonisolated public init() { }
 
     func random() -> UIColor {
         let number = Int.random(in: 1...7)
@@ -23,8 +24,7 @@ public final class ParticipantsColorViewModel {
         return UIColor(named: "userColor\(newNumber ?? number)") ?? .random()
     }
     
-    @HistoryActor
-    public func color(for participantId: Int) async -> UIColor {
+    public func color(for participantId: Int) -> UIColor {
         if let color = participantsColor[participantId] {
             return color
         } else {

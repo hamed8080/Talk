@@ -2,6 +2,7 @@ import Chat
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class NavigationModel: ObservableObject {
     @Published public var selectedId: Int?
     @Published public var paths = NavigationPath()
@@ -94,7 +95,7 @@ public extension NavigationModel {
         Task { @MainActor in
             let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
             Task { @HistoryActor in
-                viewModel.historyVM.setCreated(created) 
+                await viewModel.historyVM.setCreated(created) 
             }
             let value = ConversationNavigationValue(viewModel: viewModel)
             append(value: value)

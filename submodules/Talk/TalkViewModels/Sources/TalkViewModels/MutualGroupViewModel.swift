@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public final class MutualGroupViewModel: ObservableObject {
     @Published public private(set) var mutualThreads: ContiguousArray<Conversation> = []
     private var partner: Participant?
@@ -35,18 +36,20 @@ public final class MutualGroupViewModel: ObservableObject {
 
     public func loadMoreMutualGroups() async {
         if let username = partner?.username, await lazyList.canLoadMore() {
-            await lazyList.prepareForLoadMore()
+            lazyList.prepareForLoadMore()
             await fetchMutualThreads(username: username)
         }
     }
 
     public func fetchMutualThreads(username: String) async {
         guard AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue else { return }
-        await lazyList.setLoading(true)
+        lazyList.setLoading(true)
         let invitee = Invitee(id: "\(username)", idType: .username)
-        let req = await MutualGroupsRequest(toBeUser: invitee, count: lazyList.count, offset: lazyList.offset)
+        let req = MutualGroupsRequest(toBeUser: invitee, count: lazyList.count, offset: lazyList.offset)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.conversation.mutual(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.mutual(req)
+        }
     }
 
     private func onThreadEvent(_ event: ThreadEventTypes) {
@@ -63,9 +66,7 @@ public final class MutualGroupViewModel: ObservableObject {
             Task { @MainActor in
                 lazyList.setLoading(false)
                 lazyList.setHasNext(response.hasNext)
-
-                var uniqueThreads: [Conversation] = []
-                for (i, thread) in threads.enumerated() {
+                for (_, thread) in threads.enumerated() {
                     if !self.mutualThreads.contains(where: {$0.id == thread.id}) {
                         mutualThreads.append(thread)
                     }

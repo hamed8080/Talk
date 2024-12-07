@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 public class GalleyOffsetViewModel: ObservableObject {
     @Published public var endScale: CGFloat = 1.0
     @Published public var isDragging = false

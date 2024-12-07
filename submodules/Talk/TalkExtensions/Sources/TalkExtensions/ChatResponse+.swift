@@ -10,8 +10,8 @@ import TalkModels
 import Chat
 
 extension ChatError {
-    public static var presentableErrors: [ServerErrorType] = ServerErrorType.allCases.filter{ !customPresentable.contains($0) }
-    public static var customPresentable: [ServerErrorType] = [.noOtherOwnership]
+    nonisolated(unsafe) public static var presentableErrors: [ServerErrorType] = ServerErrorType.allCases.filter{ !customPresentable.contains($0) }
+    nonisolated(unsafe) public static var customPresentable: [ServerErrorType] = [.noOtherOwnership]
     public var localizedError: String? {
         guard let code = code, let chatCode = ServerErrorType(rawValue: code) else { return nil }
         switch chatCode {

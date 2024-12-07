@@ -12,7 +12,7 @@ import TalkExtensions
 import Combine
 
 /// Properties that can transfer between each navigation page and stay alive unless manually destroyed.
-public struct AppStateNavigationModel {
+public struct AppStateNavigationModel: Sendable {
     public var userToCreateThread: Participant?
     public var replyPrivately: Message?
     public var forwardMessages: [Message]?
@@ -23,10 +23,10 @@ public struct AppStateNavigationModel {
     public init() {}
 }
 
-public final class AppState: ObservableObject {
+@MainActor
+public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
-    private var cachedUser: User? { UserConfigManagerVM.instance.currentUserConfig?.user }
-    public var user: User? { cachedUser ?? ChatManager.activeInstance?.userInfo }
+    public var user: User?
     @Published public var error: ChatError?
     @Published public var isLoading: Bool = false
     @Published public var callLogs: [URL]?
@@ -49,12 +49,24 @@ public final class AppState: ObservableObject {
     private init() {
         registerObservers()
         updateWindowMode()
+        updateUserCache()
+    }
+
+    public func updateUserCache() {
+        Task { @ChatGlobalActor in
+            let fetchedUser = ChatManager.activeInstance?.userInfo
+            await MainActor.run {
+                self.user = UserConfigManagerVM.instance.currentUserConfig?.user ?? user
+            }
+        }
     }
 
     public func updateWindowMode() {
         windowMode = UIApplication.shared.windowMode()
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-            AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
+            Task { @MainActor in
+                AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
+            }
         }
 
         NotificationCenter.windowMode.post(name: .windowMode, object: windowMode)
@@ -73,7 +85,9 @@ public final class AppState: ObservableObject {
             isLoading = false
             self.error = error
             Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { [weak self] _ in
-                self?.error = nil
+                Task { @MainActor in
+                    self?.error = nil
+                }
             }
         }
     }

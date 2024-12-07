@@ -13,7 +13,8 @@ import SwiftUI
 import Photos
 import TalkExtensions
 
-public final class ConversationBuilderViewModel: ContactsViewModel {
+@MainActor
+public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
     public var uploadProfileUniqueId: String?
     public var uploadProfileProgress: Int64?
     public var createdConversation: Conversation?
@@ -88,7 +89,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
                                                   wC: width
             )
             uploadProfileUniqueId = imageRequest.uniqueId
-            ChatManager.activeInstance?.file.upload(imageRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.file.upload(imageRequest)
+            }
         }
     }
 
@@ -96,7 +99,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
         guard let uploadProfileUniqueId = uploadProfileUniqueId else { return }
         resetImageUploading()
         animateObjectWillChange()
-        ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadProfileUniqueId, action: .cancel)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadProfileUniqueId, action: .cancel)
+        }
     }
 
     public func createGroup() {
@@ -116,7 +121,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
                                       uniqueName: isPublic ? UUID().uuidString : nil
         )
         RequestsManager.shared.append(prepend: CREATE_THREAD_CONVERSATION_BUILDER_KEY, value: req)
-        ChatManager.activeInstance?.conversation.create(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.create(req)
+        }
     }
 
     @MainActor
@@ -129,7 +136,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
                 } else {
                     /// It will prevent a bug on small deveice can not click on the back button after creation.
                     Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { _ in
-                        AppState.shared.showThread(conversation, created: true)
+                        Task { @MainActor in
+                            AppState.shared.showThread(conversation, created: true)
+                        }
                     }
                 }
             }
@@ -166,7 +175,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
     func dimissAnResetDismiss() {
         dismiss = true
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
-            self?.dismiss = false
+            Task { @MainActor [weak self] in
+                self?.dismiss = false
+            }
         }
     }
 
@@ -213,7 +224,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
     public func checkPublicName(_ title: String) {
         if titleIsValid {
             isCehckingName = true
-            ChatManager.activeInstance?.conversation.isNameAvailable(.init(name: title))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.conversation.isNameAvailable(.init(name: title))
+            }
         }
     }
 

@@ -11,15 +11,27 @@ import TalkModels
 import Chat
 import UIKit
 
+struct MainRequirements: Sendable {
+    let appUserId: Int?
+    let thread: Conversation?
+    let participantsColorVM: ParticipantsColorViewModel?
+    let isInSelectMode: Bool
+}
+
+@HistoryActor
 class MessageRowCalculators {
     typealias MessageType = any HistoryMessageProtocol
 
-    class func calculate(message: MessageType, threadVM: ThreadViewModel?, appendMessages: [MessageType] = []) async -> MessageRowCalculatedData {
+    class func calculate(message: MessageType,
+                         mainData: MainRequirements,
+                         appendMessages: [MessageType] = []
+    ) async -> MessageRowCalculatedData {
         var calculatedMessage = MessageRowCalculatedData()
         var sizes = MessageRowSizes()
         var rowType = MessageViewRowType()
+        let thread = mainData.thread
 
-        calculatedMessage.isMe = message.isMe(currentUserId: AppState.shared.user?.id) || message is UploadProtocol
+        calculatedMessage.isMe = message.isMe(currentUserId: mainData.appUserId) || message is UploadProtocol
 
         calculatedMessage.canShowIconFile = message.replyInfo?.messageType != .text && message.replyInfo?.deleted == false
         calculatedMessage.isCalculated = true
@@ -33,11 +45,11 @@ class MessageRowCalculators {
         calculatedMessage.avatarSplitedCharaters = String.splitedCharacter(message.participant?.name ?? message.participant?.username ?? "")
 
         let isEditableOrNil = (message.editable == true || message.editable == nil)
-        calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && threadVM?.thread.admin == true && threadVM?.thread.type?.isChannelType == true)
+        calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && thread?.admin == true && thread?.type?.isChannelType == true)
         rowType.isMap = calculatedMessage.fileMetaData?.mapLink != nil || calculatedMessage.fileMetaData?.latitude != nil || message is UploadFileWithLocationMessage
-        let isFirstMessageOfTheUser = await isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, viewModel: threadVM)
-        calculatedMessage.isFirstMessageOfTheUser = threadVM?.thread.group == true && isFirstMessageOfTheUser
-        calculatedMessage.isLastMessageOfTheUser = await isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, viewModel: threadVM)
+        let isFirstMessageOfTheUser = await isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: mainData.thread?.type?.isChannelType == true)
+        calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
+        calculatedMessage.isLastMessageOfTheUser = await isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
         calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading
         calculatedMessage.markdownTitle = calculateAttributeedString(message: message)
         rowType.isPublicLink = message.isPublicLink
@@ -56,18 +68,18 @@ class MessageRowCalculators {
         rowType.hasText = (!rowType.isPublicLink) && !rowType.isSingleEmoji && calculateText(message: message) != nil
         rowType.cellType = getCellType(message: message, isMe: calculatedMessage.isMe)
         calculatedMessage.callTypeKey = message.callHistory?.status?.key?.bundleLocalized() ?? ""
-        async let color = threadVM?.participantsColorVM.color(for: message.participant?.id ?? -1)
-        calculatedMessage.participantColor = await color ?? .clear
+        let color = mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
+        calculatedMessage.participantColor = color ?? .clear
 
-        calculatedMessage.fileURL = getFileURL(serverURL: message.url)
+        calculatedMessage.fileURL = await getFileURL(serverURL: message.url)
 
         calculatedMessage.computedFileSize = calculateFileSize(message: message, calculatedMessage: calculatedMessage)
         calculatedMessage.extName = calculateFileTypeWithExt(message: message, calculatedMessage: calculatedMessage)
         calculatedMessage.fileName = calculateFileName(message: message, calculatedMessage: calculatedMessage)
-        calculatedMessage.addOrRemoveParticipantsAttr = calculateAddOrRemoveParticipantRow(message: message, calculatedMessage: calculatedMessage)
+        calculatedMessage.addOrRemoveParticipantsAttr = calculateAddOrRemoveParticipantRow(message: message, calculatedMessage: calculatedMessage, appUserId: mainData.appUserId)
         sizes.paddings.textViewPadding = calculateTextViewPadding(message: message)
         calculatedMessage.localizedReplyFileName = calculateLocalizeReplyFileName(message: message)
-        calculatedMessage.groupMessageParticipantName = calculateGroupParticipantName(message: message, calculatedMessage: calculatedMessage, thread: threadVM?.thread)
+        calculatedMessage.groupMessageParticipantName = calculateGroupParticipantName(message: message, calculatedMessage: calculatedMessage, thread: mainData.thread)
         sizes.replyContainerWidth = await calculateReplyContainerWidth(message: message, calculatedMessage: calculatedMessage, sizes: sizes)
         sizes.forwardContainerWidth = await calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
@@ -80,7 +92,7 @@ class MessageRowCalculators {
         sizes.paddings.paddingEdgeInset = originalPaddings.paddingEdgeInset
 
         calculatedMessage.avatarColor = String.getMaterialColorByCharCode(str: message.participant?.name ?? message.participant?.username ?? "")
-        calculatedMessage.state.isInSelectMode = threadVM?.selectedMessagesViewModel.isInSelectMode ?? false
+        calculatedMessage.state.isInSelectMode = mainData.isInSelectMode
 
         calculatedMessage.callDateText = calculateCallText(message: message)
 
@@ -166,10 +178,10 @@ class MessageRowCalculators {
         return extensionName.isEmpty ? nil : extensionName.uppercased()
     }
 
-    class func calculateAddOrRemoveParticipantRow(message: MessageType, calculatedMessage: MessageRowCalculatedData) -> NSAttributedString? {
+    class func calculateAddOrRemoveParticipantRow(message: MessageType, calculatedMessage: MessageRowCalculatedData, appUserId: Int?) -> NSAttributedString? {
         if ![.participantJoin, .participantLeft].contains(message.type) { return nil }
         let date = Date(milliseconds: Int64(message.time ?? 0)).onlyLocaleTime
-        let string = "\(message.addOrRemoveParticipantString(meId: AppState.shared.user?.id) ?? "") \(date)"
+        let string = "\(message.addOrRemoveParticipantString(meId: appUserId) ?? "") \(date)"
         let attr = NSMutableAttributedString(string: string)
         let isMeDoer = "General.you".bundleLocalized()
         let doer = calculatedMessage.isMe ? isMeDoer : (message.participant?.name ?? "")
@@ -428,8 +440,8 @@ class MessageRowCalculators {
         }
     }
 
-    class func isLastMessageOfTheUserInsideAppending(_ message: MessageType, appended: [any HistoryMessageProtocol], viewModel: ThreadViewModel?) async -> Bool {
-        if viewModel?.thread.type?.isChannelType == true { return false }
+    class func isLastMessageOfTheUserInsideAppending(_ message: MessageType, appended: [any HistoryMessageProtocol], isChannelType: Bool) async -> Bool {
+        if isChannelType { return false }
         let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
         let nextIndex = index + 1
         let isNextExist = appended.indices.contains(nextIndex)
@@ -440,8 +452,8 @@ class MessageRowCalculators {
         return true
     }
 
-    class func isFirstMessageOfTheUserInsideAppending(_ message: MessageType, appended: [any HistoryMessageProtocol], viewModel: ThreadViewModel?) async -> Bool {
-        if viewModel?.thread.type?.isChannelType == true { return false }
+    class func isFirstMessageOfTheUserInsideAppending(_ message: MessageType, appended: [any HistoryMessageProtocol], isChannelType: Bool) async -> Bool {
+        if isChannelType == true { return false }
         let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
         let prevIndex = index - 1
         let isPrevExist = appended.indices.contains(prevIndex)
@@ -460,6 +472,7 @@ class MessageRowCalculators {
         return text
     }
 
+    @ChatGlobalActor
     class func getFileURL(serverURL: URL?) -> URL? {
         if let url = serverURL {
             if ChatManager.activeInstance?.file.isFileExist(url) == false { return nil }

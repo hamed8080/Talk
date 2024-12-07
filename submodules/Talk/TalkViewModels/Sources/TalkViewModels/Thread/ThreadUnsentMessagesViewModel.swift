@@ -11,6 +11,7 @@ import TalkModels
 import Combine
 import OSLog
 
+@MainActor
 public final class ThreadUnsentMessagesViewModel {
     public typealias MessageType = any HistoryMessageProtocol
     public weak var viewModel: ThreadViewModel?
@@ -24,10 +25,12 @@ public final class ThreadUnsentMessagesViewModel {
         self.viewModel = viewModel
         setupNotificationObservers()
         if let threadId = thread?.id {
-            ChatManager.activeInstance?.message.unsentTextMessages(.init(threadId: threadId))
-            ChatManager.activeInstance?.message.unsentEditMessages(.init(threadId: threadId))
-            ChatManager.activeInstance?.message.unsentFileMessages(.init(threadId: threadId))
-            ChatManager.activeInstance?.message.unsentForwardMessages(.init(threadId: threadId))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.unsentTextMessages(.init(threadId: threadId))
+                ChatManager.activeInstance?.message.unsentEditMessages(.init(threadId: threadId))
+                ChatManager.activeInstance?.message.unsentFileMessages(.init(threadId: threadId))
+                ChatManager.activeInstance?.message.unsentForwardMessages(.init(threadId: threadId))
+            }
         }
     }
 
@@ -68,7 +71,9 @@ public final class ThreadUnsentMessagesViewModel {
     }
 
     public func cancel(_ uniqueId: String?) {
-        ChatManager.activeInstance?.message.cancel(uniqueId: uniqueId ?? "")
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.cancel(uniqueId: uniqueId ?? "")
+        }
         rowViewModels.removeAll(where: {$0.message.uniqueId == uniqueId})
     }
 
@@ -111,15 +116,21 @@ public final class ThreadUnsentMessagesViewModel {
     public func resendUnsetMessage(_ message: MessageType) {
         switch message {
         case let req as SendTextMessage:
-            ChatManager.activeInstance?.message.send(req.sendTextMessageRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.send(req.sendTextMessageRequest)
+            }
         case let req as EditTextMessage:
-            ChatManager.activeInstance?.message.edit(req.editMessageRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.edit(req.editMessageRequest)
+            }
         case let req as ForwardMessage:
-            ChatManager.activeInstance?.message.send(req.forwardMessageRequest)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.message.send(req.forwardMessageRequest)
+            }
         case let req as UploadFileMessage:
             // remove unset message type to start upload again the new one.
             Task { @HistoryActor in
-                viewModel?.historyVM.removeByUniqueId(req.uniqueId)
+                await viewModel?.historyVM.removeByUniqueId(req.uniqueId)
             }
             if message.isImage, let imageRequest = req.uploadImageRequest {
                 let imageMessage = UploadFileMessage(imageFileRequest: imageRequest, sendTextMessageRequest: req.sendTextMessageRequest, thread: thread)

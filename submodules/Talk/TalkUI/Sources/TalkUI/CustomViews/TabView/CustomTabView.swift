@@ -48,7 +48,8 @@ public struct CustomDetailTabView<T: View>: View {
     }
 }
 
-public struct SelectedTabIndexKey: EnvironmentKey {
+public struct SelectedTabIndexKey: @preconcurrency EnvironmentKey {
+    @MainActor
     public static var defaultValue: Int = 0
 }
 

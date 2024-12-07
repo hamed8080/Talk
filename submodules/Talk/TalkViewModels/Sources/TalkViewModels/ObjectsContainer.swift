@@ -2,6 +2,7 @@ import Combine
 import SwiftUI
 import Chat
 
+@MainActor
 public final class ObjectsContainer: ObservableObject {
     public private(set) var cancellableSet: Set<AnyCancellable> = []
     @Published public var userConfigsVM = UserConfigManagerVM.instance
@@ -96,7 +97,7 @@ public final class ObjectsContainer: ObservableObject {
         }
 
         if notificationSettings.vibration {
-            await UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         }
     }
 
@@ -134,7 +135,9 @@ public final class ObjectsContainer: ObservableObject {
         // we have to wait for init and then the cache is not nil and can find the file
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
             if user != nil {
-                self?.userProfileImageVM.fetch()
+                Task { @MainActor [weak self] in
+                    self?.userProfileImageVM.fetch()
+                }
             }
         }
     }

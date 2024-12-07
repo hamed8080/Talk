@@ -12,6 +12,7 @@ import TalkModels
 import UIKit
 import TalkExtensions
 
+@MainActor
 public final class UploadFileManager {
     private weak var viewModel: ThreadViewModel?
     private var uploadVMS: [String: UploadFileViewModel] = [:]
@@ -64,8 +65,8 @@ public final class UploadFileManager {
 
     public func cancel(viewModelUniqueId: String) async {
         if let vm = uploadVMS.first(where: {$0.key == viewModelUniqueId})?.value {
-            if let indexPath = viewModel?.historyVM.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
-                viewModel?.historyVM.sections[indexPath.section].vms.remove(at: indexPath.row)
+            if let indexPath = viewModel?.historyVM.mSections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
+                viewModel?.historyVM.mSections[indexPath.section].vms.remove(at: indexPath.row)
                 viewModel?.delegate?.removed(at: indexPath)
             }
             vm.cancelUpload()
@@ -111,7 +112,7 @@ public final class UploadFileManager {
 
     @HistoryActor
     private func changeStateTo(state: MessageFileState, viewModelUniqueId: String) async {
-        let tuple = viewModel?.historyVM.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
+        let tuple = await viewModel?.historyVM.mSections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
         await MainActor.run {
             guard let tuple = tuple else { return }
             tuple.vm.setFileState(state)
@@ -122,7 +123,7 @@ public final class UploadFileManager {
             }
         }
         if state.state == .completed {
-            unRegister(viewModelUniqueId: viewModelUniqueId)
+            await unRegister(viewModelUniqueId: viewModelUniqueId)
         }
     }
 }

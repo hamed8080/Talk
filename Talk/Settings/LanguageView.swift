@@ -63,9 +63,3 @@ struct LanguageView: View {
         restart = true
     }
 }
-
-struct LanguageView_Previews: PreviewProvider {
-    static var previews: some View {
-        LanguageView(container: .init(delegate: ChatManager.activeInstance!.delegate!))
-    }
-}

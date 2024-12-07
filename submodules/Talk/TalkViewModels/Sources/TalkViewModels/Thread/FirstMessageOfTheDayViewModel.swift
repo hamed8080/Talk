@@ -10,29 +10,34 @@ import Chat
 import Combine
 import OSLog
 
+@HistoryActor
 final class FirstMessageOfTheDayViewModel {
-    private weak var historyVM: ThreadHistoryViewModel?
+    private let threadId: Int
+    private let readOnly: Bool
     private let FIRST_MESSAGE_KEY: String
     private var highlight: Bool = false
-    private let threadId: Int
     typealias ResponseType = ChatResponse<[Message]>
     public var completion: ((Message?) -> Void)?
     private var uniqueId: String?
+    @MainActor
     private var cancelable: AnyCancellable?
 
-    public init(historyVM: ThreadHistoryViewModel) {
-        self.threadId = historyVM.viewModel?.threadId ?? -1
-        self.historyVM = historyVM
+    public init(threadId: Int, readOnly: Bool) {
+        self.threadId = threadId
+        self.readOnly = readOnly
         let objectId = UUID().uuidString
         FIRST_MESSAGE_KEY = "FIRST-MESSAGE-OF-DAY-\(objectId)"
-        registerObservers()
+        Task {
+            await registerObservers()
+        }
     }
 
+    @MainActor
     private func registerObservers() {
-        cancelable = NotificationCenter.message.publisher(for: .message).sink { [weak self] notif in
-            Task { @HistoryActor [weak self] in
-                if let event = notif.object as? MessageEventTypes {
-                    await self?.onMessageEvent(event)
+        cancelable = NotificationCenter.message.publisher(for: .message).sink { notif in
+            if let event = notif.object as? MessageEventTypes {
+                Task { @HistoryActor in
+                    await self.onMessageEvent(event)
                 }
             }
         }
@@ -55,7 +60,9 @@ final class FirstMessageOfTheDayViewModel {
     private func doRequest(_ req: GetHistoryRequest, _ prepend: String) {
         RequestsManager.shared.append(prepend: prepend, value: req)
         log(req: req)
-        ChatManager.activeInstance?.message.history(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.history(req)
+        }
     }
 
     private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int?, count: Int = 25) -> GetHistoryRequest {
@@ -65,7 +72,7 @@ final class FirstMessageOfTheDayViewModel {
                           offset: offset,
                           order: fromTime != nil ? "asc" : "desc",
                           toTime: toTime,
-                          readOnly: historyVM?.viewModel?.readOnly == true)
+                          readOnly: readOnly)
     }
 
     private func onMessageEvent(_ event: MessageEventTypes?) async {
@@ -80,7 +87,7 @@ final class FirstMessageOfTheDayViewModel {
     private func onHistory(_ response: ResponseType) async {
         if !response.cache, response.subjectId == threadId {
 
-            if let request = response.pop(prepend: FIRST_MESSAGE_KEY) {
+            if let _ = response.pop(prepend: FIRST_MESSAGE_KEY) {
                 await onFirstMessage(response)
             }
         }

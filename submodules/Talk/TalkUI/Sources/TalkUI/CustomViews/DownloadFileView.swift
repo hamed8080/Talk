@@ -113,7 +113,7 @@ struct DownloadFileView_Previews: PreviewProvider {
             let message = Message(message: "Please download this file.",
                                   messageType: .file,
                                   metadata: metadata.string)
-            let viewModel = DownloadFileViewModel(message: message, queue: .main)
+            let viewModel = DownloadFileViewModel(message: message)
             _viewModel = StateObject(wrappedValue: viewModel)
         }
 

@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import Chat
 
+@MainActor
 public class MessageParticipantsSeenViewModel: ObservableObject {
     @Published public var participants: [Participant] = []
     private var hasNext = true
@@ -34,7 +35,9 @@ public class MessageParticipantsSeenViewModel: ObservableObject {
     public func getParticipants() {
         isLoading = true
         let req = MessageSeenByUsersRequest(messageId: message.id ?? -1, count: count, offset: offset)
-        ChatManager.activeInstance?.message.seenByParticipants(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.seenByParticipants(req)
+        }
     }
 
     public func loadMore() {

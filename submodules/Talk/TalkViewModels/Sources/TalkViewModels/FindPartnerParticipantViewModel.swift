@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public final class FindPartnerParticipantViewModel {
     private let id: String = "P2P_PARTNET_PARTICIPANT_KEY-\(UUID().uuidString)"
     private var cancelable: Set<AnyCancellable> = []
@@ -24,7 +25,9 @@ public final class FindPartnerParticipantViewModel {
         self.completion = completion
         let req = ThreadParticipantRequest(threadId: threadId, offset: 0, count: 20)
         RequestsManager.shared.append(prepend: id, value: req)
-        ChatManager.activeInstance?.conversation.participant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.get(req)
+        }
     }
 
     private func onP2PPartnerParticipant(_ response: ChatResponse<[Participant]>) {

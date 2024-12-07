@@ -13,6 +13,7 @@ import TalkModels
 import TalkExtensions
 import OSLog
 
+@MainActor
 public final class ArchiveThreadsViewModel: ObservableObject {
     public private(set) var count = 15
     public private(set) var offset = 0
@@ -70,18 +71,24 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
 
     public func archive(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.archive(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.archive(.init(subjectId: threadId))
+        }
     }
 
     public func unarchive(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.unarchive(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unarchive(.init(subjectId: threadId))
+        }
     }
 
     public func getArchivedThreads() {
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
         RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
         animateObjectWillChange()
     }
 

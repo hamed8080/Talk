@@ -14,6 +14,7 @@ import Chat
  It will update the ThreadViewModel in the stack of navigations, then look for any
  opened detail view.
 */
+@MainActor
 public class ParticipantsCountManager {
     public var cancelable: Set<AnyCancellable> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
