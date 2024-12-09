@@ -116,7 +116,11 @@ struct MusicRowView: View {
                 await downloadVM.setup()
             }
         }
-        .customContextMenu(id: message.id, self: self.environmentObject(downloadVM)) {
+        .newCustomContextMenu {
+            MusicRowView(message: message)
+                .disabled(true)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } menus: {
             VStack {
                 ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
                     Task {

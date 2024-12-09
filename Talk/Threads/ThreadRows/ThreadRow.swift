@@ -91,13 +91,14 @@ struct ThreadRow: View {
                 Label("General.delete", systemImage: "trash")
             }
         }
-        .customContextMenu(
-            id: thread.id,
-            self: ThreadRowSelfContextMenu(thread: thread, viewModel: viewModel),
-            addedX: 8,
-            disable: isInForwardMode == true
-        ) {
+        .onTapGesture {
             onTap?()
+        }
+        .newCustomContextMenu {
+            ThreadRow(thread: thread, onTap: nil)
+                .padding(4)
+                .background(ThreadListRowBackground(thread: thread))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
         } menus: {
             ThreadRowContextMenu(thread: thread, viewModel: viewModel)
         }

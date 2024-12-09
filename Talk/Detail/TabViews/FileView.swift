@@ -118,7 +118,11 @@ struct FileRowView: View {
                 downloadViewModel.startDownload()
             }
         }
-        .customContextMenu(id: message.id, self: self.environmentObject(downloadVM)) {
+        .newCustomContextMenu {
+            FileRowView(message: message)
+                .disabled(true)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } menus: {
             VStack {
                 ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
                     Task {

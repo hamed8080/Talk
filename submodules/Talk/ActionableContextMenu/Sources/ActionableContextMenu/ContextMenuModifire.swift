@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import OSLog
 
+@available(*, deprecated, message: "Use new version NewCustomContextMenuViewModifier")
 struct ContextMenuModifire<V: View>: ViewModifier {
     private let logger = Logger(subsystem: "ActionableContextMenu", category: "ContextMenuModifire")
     @EnvironmentObject var viewModel: ContextMenuModel
@@ -34,14 +35,14 @@ struct ContextMenuModifire<V: View>: ViewModifier {
     }
     
     func body(content: Content) -> some View {
-        if #available(iOS 17.0, macOS 10.15, tvOS 17.0, watchOS 6.0, *) {
-            return ios17(content: content)
+        if #available(iOS 18.0, macOS 10.15, tvOS 18.0, watchOS 7.0, *) {
+            return ios18(content: content)
         } else {
             return ios15(content: content)
         }
     }
     
-    private func ios17(content: Content) -> some View {
+    private func ios18(content: Content) -> some View {
         content
             .background(frameReader)
             .scaleEffect(x: scale, y: scale, anchor: .center)
@@ -195,6 +196,7 @@ struct ContextMenuModifire<V: View>: ViewModifier {
 }
 
 public extension View {
+    @available(*, deprecated, message: "Use new version newCustomContextMenu")
     func customContextMenu<V: View>(id: Int?, self: any View, addedX: CGFloat = 48, disable: Bool = false, onTap: (() -> Void)? = nil, @ViewBuilder menus: @escaping () -> V) -> some View {
         modifier(ContextMenuModifire(id: id, root: self, addedX: addedX, disable: disable, onTap: onTap, menus: menus))
     }
