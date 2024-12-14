@@ -59,10 +59,12 @@ public final class LoginViewModel: ObservableObject {
             isLoading = false
             return
         }
+        
+        let isiPad = UIDevice.current.userInterfaceIdiom == .pad
         let req = HandshakeRequest(deviceName: UIDevice.current.name,
                                          deviceOs: UIDevice.current.systemName,
                                          deviceOsVersion: UIDevice.current.systemVersion,
-                                         deviceType: "MOBILE_PHONE",
+                                         deviceType: isiPad ? "TABLET" : "MOBILE_PHONE",
                                          deviceUID: UIDevice.current.identifierForVendor?.uuidString ?? "")
         var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: selectedServerType).handshake)!)
         urlReq.httpBody = req.parameterData

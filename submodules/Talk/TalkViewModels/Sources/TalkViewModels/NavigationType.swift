@@ -21,5 +21,6 @@ public enum NavigationType: Hashable {
     case support(SupportNavigationValue)
     case messageParticipantsSeen(MessageParticipantsSeenNavigationValue)
     case editProfile(EditProfileNavigationValue)
+    case manageSessions(ManageSessionsNavigationValue)
     case loadTests(LoadTestsNavigationValue)
 }

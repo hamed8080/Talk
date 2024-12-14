@@ -75,6 +75,7 @@
 "General.thirdSentVerb" = "%@ فرستاد";
 "General.noDescription" = "بدون توضیحات!";
 "General.noResult" = "نتیجه ای وجود ندارد";
+"General.unknown" = "نامشخص";
 
 /* Tabs */
 "Tab.chats" = "گفتگو ها";
@@ -359,6 +360,7 @@ talk.pod.ir";
 "Setting.EditProfile.bioHintMore" = "در این قسمت می توانید کمی درباره خودتان بنویسید.";
 "Setting.EditProfile.enterToPodAccount" = "ورود به حساب کاربری پاد";
 "Settings.darkModeEnabled" = "حالت شب";
+"Settings.ManageSessions.title" = "دستگاه های فعال";
 
 /* Support */
 "Support.title" = "پیام رسان تاک";
@@ -451,3 +453,20 @@ talk.pod.ir";
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "ارسال موقعیت انتخاب شده";
+
+/* ManageSessions */
+"ManageSessions.type" = "نوع دیوایس";
+"ManageSessions.deviceName" = "نام";
+"ManageSessions.deviceType" = "نوع دستگاه";
+"ManageSessions.os" = "سسیتم عامل";
+"ManageSessions.osVersion" = "نسخه سیستم عامل";
+"ManageSessions.ip" = "آدرس آی پی";
+"ManageSessions.lastActivity" = "آخرین زمان ورود";
+"ManageSessions.location" = "موقعیت مکانی";
+"ManageSessions.removeAllDescription" = "می توانید دستگاه هایی که توسط آن لاگین کرده اید را مشاهده و درصورت نیاز حذف نمایید.";
+"ManageSessions.removeAll" = "خروج از همه دستگاه ها";
+"ManageSessions.removeOnce" = "خروج از دستگاه";
+"ManageSessions.RemoveAllSessions.title" = "توجه";
+"ManageSessions.RemoveAllSessions.subtitle" = "آیا مایل به غیر فعال کردن همه دستگاه ها به غیر از این دستگاه هستید؟";
+"ManageSessions.RemoveOneSession.title" = "توجه";
+"ManageSessions.RemoveOneSession.subtitle" = "آیا مایل هستید از پذیرنده %@ خارج شوید؟";

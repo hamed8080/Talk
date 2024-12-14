@@ -76,6 +76,7 @@
 "General.thirdSentVerb" = "%@ enviado";
 "General.noDescription" = "¡Sin descripción!";
 "General.noResult" = "no hay resultado";
+"General.unknown" = "desconocido";
 
 /* Pestañas */
 "Tab.chats" = "Chats";
@@ -359,6 +360,7 @@ talk.pod.ir";
 "Setting.EditProfile.bioHintMore" = "Ingresa un poco sobre ti mismo...";
 "Setting.EditProfile.enterToPodAccount" = "Ingresa a tu cuenta POD";
 "Settings.darkModeEnabled" = "Modo oscuro";
+"Settings.ManageSessions.title" = "Administrar sesiones activas";
 
 /* Support */
 "Support.title" = "Talk messenger";
@@ -451,3 +453,20 @@ talk.pod.ir";
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Enviar ubicación seleccionada";
+
+/* ManageSessions */
+"ManageSessions.type" = "Tipo de dispositivo";
+"ManageSessions.deviceName" = "Nombre";
+"ManageSessions.deviceType" = "Tipo de dispositivo";
+"ManageSessions.os" = "Sistema operativo";
+"ManageSessions.osVersion" = "Versión del sistema operativo";
+"ManageSessions.ip" = "IP";
+"ManageSessions.lastActivity" = "Última actividad";
+"ManageSessions.location" = "Ubicación";
+"ManageSessions.removeAllDescription" = "Puedes eliminar todos los dispositivos en los que hayas iniciado sesión de una vez.";
+"ManageSessions.removeAll" = "Eliminar todo";
+"ManageSessions.removeOnce" = "Eliminar sesión";
+"ManageSessions.RemoveAllSessions.title" = "Atención";
+"ManageSessions.RemoveAllSessions.subtitle" = "¿Deseas desactivar todos los dispositivos excepto este?";
+"ManageSessions.RemoveOneSession.title" = "Atención";
+"ManageSessions.RemoveOneSession.subtitle" = "¿Deseas desactivar %@?";

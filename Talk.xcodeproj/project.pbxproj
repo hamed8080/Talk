@@ -473,6 +473,14 @@
 		05FE15F32ADA82D9009AC44A /* NavigationBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B4C1772ACEF1FA00FBC4DC /* NavigationBackButton.swift */; };
 		05FF13332AF8CD8200F120DF /* SelectedContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FF13322AF8CD8200F120DF /* SelectedContact.swift */; };
 		05FF13342AF8CD8200F120DF /* SelectedContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FF13322AF8CD8200F120DF /* SelectedContact.swift */; };
+		AC39BEFE2D0EB23F00AB7447 /* PreferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */; };
+		AC39BEFF2D0EB23F00AB7447 /* PreferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */; };
+		AC39BF012D0EB7E200AB7447 /* DarkModeSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */; };
+		AC39BF022D0EB7E200AB7447 /* DarkModeSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */; };
+		AC39BF042D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */; };
+		AC39BF052D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */; };
+		AC6F9BDC2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
+		AC6F9BDD2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
 		ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 		ACF914712CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 /* End PBXBuildFile section */
@@ -750,6 +758,10 @@
 		05FB7D692B8EE85D00C14ABE /* SearchFiltersMessagesDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFiltersMessagesDialog.swift; sourceTree = "<group>"; };
 		05FE15F02ADA5591009AC44A /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
 		05FF13322AF8CD8200F120DF /* SelectedContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedContact.swift; sourceTree = "<group>"; };
+		AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceView.swift; sourceTree = "<group>"; };
+		AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkModeSection.swift; sourceTree = "<group>"; };
+		AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsSection.swift; sourceTree = "<group>"; };
+		AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsView.swift; sourceTree = "<group>"; };
 		ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleEmojiCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1134,6 +1146,10 @@
 				0594FE582B034B050031AADF /* SettingNotificationSection.swift */,
 				05C6DA1A2B19F3020049BCDC /* EditProfileView.swift */,
 				05D893042B862BEE00D8F7AF /* LoadTestsView.swift */,
+				AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */,
+				AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */,
+				AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */,
+				AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1583,6 +1599,7 @@
 				0506DE1F2AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0652AE183EA0025B3B7 /* ConversationBuilder.swift in Sources */,
 				0521F85F2B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */,
+				AC39BF052D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */,
 				05E8F50D2C4D3D6600E535C0 /* CancelAudioRecordingButton.swift in Sources */,
 				0570CC4F2AAEE98F001832E9 /* FileView.swift in Sources */,
 				0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */,
@@ -1608,6 +1625,7 @@
 				0560C3602AB77B0B009F6A58 /* TabButtonsContainer.swift in Sources */,
 				0594FE592B034B050031AADF /* SettingNotificationSection.swift in Sources */,
 				0570CBEF2AAEE98F001832E9 /* ThreadImageView.swift in Sources */,
+				AC39BF022D0EB7E200AB7447 /* DarkModeSection.swift in Sources */,
 				05E9C08D2B1EFBCE00E782BD /* ThreadListRowBackground.swift in Sources */,
 				05B617652C294BB00059FE0A /* UIReactionsPickerScrollView.swift in Sources */,
 				0560C3622AB77B0B009F6A58 /* TabButtonItem.swift in Sources */,
@@ -1628,6 +1646,7 @@
 				0570CC492AAEE98F001832E9 /* LogView.swift in Sources */,
 				0570CC0B2AAEE98F001832E9 /* ForwardInfoView.swift in Sources */,
 				053803D02B11F879005C8FAB /* DeleteThreadDialog.swift in Sources */,
+				AC6F9BDC2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */,
 				05EEADC22C188AA2000562EE /* AudioRecordingView.swift in Sources */,
 				05E869C92AEFA57300F6B200 /* LanguageView.swift in Sources */,
 				0570CC5D2AAEE98F001832E9 /* MemberView.swift in Sources */,
@@ -1735,6 +1754,7 @@
 				0525571E2BE94D1C00DFCE54 /* DetailEditConversationButton.swift in Sources */,
 				05B617622C2948900059FE0A /* MessageContainer+ContextMenu.swift in Sources */,
 				05EC8A302ACBED930016361F /* FooterReactionsCountView.swift in Sources */,
+				AC39BEFE2D0EB23F00AB7447 /* PreferenceView.swift in Sources */,
 				052C94092C11901F0061A6CF /* MyselfMessageCell.swift in Sources */,
 				0570CC432AAEE98F001832E9 /* StartThreadContactPickerView.swift in Sources */,
 				052CA3E42BA4166300E38E19 /* ThreadPinMessageView.swift in Sources */,
@@ -1791,6 +1811,7 @@
 				0506DE202AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0662AE187D80025B3B7 /* ConversationBuilder.swift in Sources */,
 				0521F8602B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */,
+				AC39BF042D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */,
 				05E8F50E2C4D3D6600E535C0 /* CancelAudioRecordingButton.swift in Sources */,
 				0570CC502AAEE98F001832E9 /* FileView.swift in Sources */,
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
@@ -1816,6 +1837,7 @@
 				0560C3612AB77B0B009F6A58 /* TabButtonsContainer.swift in Sources */,
 				0570CBF02AAEE98F001832E9 /* ThreadImageView.swift in Sources */,
 				0560C3632AB77B0B009F6A58 /* TabButtonItem.swift in Sources */,
+				AC39BF012D0EB7E200AB7447 /* DarkModeSection.swift in Sources */,
 				05E9C08E2B1EFBCE00E782BD /* ThreadListRowBackground.swift in Sources */,
 				05B617662C294BB00059FE0A /* UIReactionsPickerScrollView.swift in Sources */,
 				05CC0B042B7DFE30009AFBC4 /* ThreadHistoryShimmerView.swift in Sources */,
@@ -1836,6 +1858,7 @@
 				0570CC4A2AAEE98F001832E9 /* LogView.swift in Sources */,
 				0570CC0C2AAEE98F001832E9 /* ForwardInfoView.swift in Sources */,
 				05E869CA2AEFA57300F6B200 /* LanguageView.swift in Sources */,
+				AC6F9BDD2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */,
 				053803D12B11F879005C8FAB /* DeleteThreadDialog.swift in Sources */,
 				05EEADC32C188AA2000562EE /* AudioRecordingView.swift in Sources */,
 				0594FE5B2B034B080031AADF /* AutomaticDownloadSettings.swift in Sources */,
@@ -1943,6 +1966,7 @@
 				05B617632C2948900059FE0A /* MessageContainer+ContextMenu.swift in Sources */,
 				0570CC3E2AAEE98F001832E9 /* ManageTagView.swift in Sources */,
 				052C940A2C11901F0061A6CF /* MyselfMessageCell.swift in Sources */,
+				AC39BEFF2D0EB23F00AB7447 /* PreferenceView.swift in Sources */,
 				05F90D572C595C9900BB9498 /* CustomizeReactionsViewUIKitWrapper.swift in Sources */,
 				05EC8A312ACBED930016361F /* FooterReactionsCountView.swift in Sources */,
 				052CA3E52BA4166300E38E19 /* ThreadPinMessageView.swift in Sources */,

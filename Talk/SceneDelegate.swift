@@ -11,6 +11,7 @@ import TalkUI
 import TalkViewModels
 import UIKit
 import BackgroundTasks
+import TalkModels
 import Logger
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDelegate {
@@ -124,9 +125,15 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in handleTaskRefreshToken method", level: .error, type: .sent, userInfo: nil)
         self.log(log)
         Task { @MainActor in
-            try? await TokenManager.shared.getNewTokenWithRefreshToken()
-            scheduleAppRefreshToken() /// Reschedule again when user receive a token.
-        }       
+            do {
+                try await TokenManager.shared.getNewTokenWithRefreshToken()
+                scheduleAppRefreshToken() /// Reschedule again when user receive a token.
+            } catch {
+                if let error = error as? AppErrors, error == AppErrors.revokedToken {
+                    await ChatDelegateImplementation.sharedInstance.logout()
+                }
+            }
+        }
     }
 
     private func log(_ log: Log) {
