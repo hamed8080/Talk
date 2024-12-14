@@ -91,6 +91,7 @@ public final class TokenManager: ObservableObject {
             await onNewRefreshToken(ssoToken)
         } catch {
             onRefreshTokenError(error: error)
+            throw error
         }
     }
     
