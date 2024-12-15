@@ -16,12 +16,9 @@ struct BlockedContacts: View {
     var body: some View {
         List(viewModel.blockedContacts, id: \.blockId) { blocked in
             HStack {
-                let contactName = blocked.contact?.user?.name ?? blocked.contact?.firstName
-                let name = contactName ?? blocked.nickName
                 let userId = blocked.contact?.cellphoneNumber ?? blocked.contact?.email ?? "\(blocked.coreUserId ?? 0)"
-
-                let config = ImageLoaderConfig(url: blocked.profileImage ?? blocked.contact?.image ?? "", userName: String.splitedCharacter(name ?? ""))
-                ImageLoaderView(imageLoader: .init(config: config))
+                
+                ImageLoaderView(blocked: blocked)
                     .id(userId)
                     .font(.iransansBody)
                     .foregroundColor(.white)
@@ -29,6 +26,8 @@ struct BlockedContacts: View {
                     .background(Color.App.color1.opacity(0.4))
                     .clipShape(RoundedRectangle(cornerRadius:(22)))
 
+                let contactName = blocked.contact?.user?.name ?? blocked.contact?.firstName
+                let name = contactName ?? blocked.nickName
                 VStack(alignment: .leading) {
                     Text(name ?? "")
                         .foregroundStyle(Color.App.textPrimary)

@@ -357,8 +357,7 @@ struct ‌BuilderContactRow: View {
             HStack(spacing: 0) {
                 BuilderContactRowRadioButton(contact: contact)
                     .padding(.trailing, isInSelectionMode ? 8 : 0)
-                let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: String.splitedCharacter(contact.firstName ?? ""))
-                ImageLoaderView(imageLoader: .init(config: config))
+                ImageLoaderView(contact: contact)
                     .id("\(contact.image ?? "")\(contact.id ?? 0)")
                     .font(.iransansBody)
                     .foregroundColor(Color.App.textPrimary)

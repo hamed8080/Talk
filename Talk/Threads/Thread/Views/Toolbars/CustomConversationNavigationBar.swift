@@ -200,7 +200,8 @@ public class CustomConversationNavigationBar: UIView {
 
     public func fetchImageOnUpdateInfo() {
         guard let image = viewModel?.thread.image else { return }
-        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: image, metaData: nil, userName: nil) {
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: httpsImage, metaData: nil, userName: nil) {
             self.imageLoader = imageViewModel
 
             // Set first time opening the thread image from cahced version inside avatarVMS
@@ -232,7 +233,8 @@ public class CustomConversationNavigationBar: UIView {
     private func registerObservers() {
         // Initial image from avatarVMS inside the thread
         let image = viewModel?.thread.image
-        if let image = image, let _ = viewModel?.threadsViewModel?.avatars(for: image, metaData: nil, userName: nil) {
+        let httpsImage = image?.replacingOccurrences(of: "http://", with: "https://")
+        if let httpsImage = httpsImage, let _ = viewModel?.threadsViewModel?.avatars(for: httpsImage, metaData: nil, userName: nil) {
             fetchImageOnUpdateInfo()
         } else {
             Task {

@@ -38,12 +38,11 @@ struct AssistantActionRow: View {
 
     var body: some View {
         HStack {
-            let config = ImageLoaderConfig(url: action.participant?.image ?? "", userName: action.participant?.name)
-            ImageLoaderView(imageLoader: .init(config: config))
+            ImageLoaderView(participant: action.participant)
                 .frame(width: 28, height: 28)
                 .background(.blue.opacity(0.8))
                 .clipShape(RoundedRectangle(cornerRadius:(18)))
-
+            
             VStack(alignment: .leading) {
                 Text(action.participant?.name ?? "")
                     .font(.iransansCaption)
