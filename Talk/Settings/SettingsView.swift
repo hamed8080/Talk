@@ -38,9 +38,9 @@ struct SettingsView: View {
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
                 SettingLanguageSection()
-                SettingLogSection()
                 SettingSettingSection()
                 if EnvironmentValues.isTalkTest {
+                    SettingLogSection()
                     BlockedMessageSection()
                     // SettingCallHistorySection()
                     // SettingSavedMessagesSection()
@@ -243,15 +243,13 @@ struct SettingLogSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        if EnvironmentValues.isTalkTest {
-            ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
-                let value = LogNavigationValue()
-                navModel.append(value: value)
-            }
-            .listRowInsets(.zero)
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparatorTint(Color.App.dividerPrimary)
+        ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
+            let value = LogNavigationValue()
+            navModel.append(value: value)
         }
+        .listRowInsets(.zero)
+        .listRowBackground(Color.App.bgPrimary)
+        .listRowSeparatorTint(Color.App.dividerPrimary)
     }
 }
 

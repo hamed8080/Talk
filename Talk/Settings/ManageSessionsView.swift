@@ -121,20 +121,20 @@ struct DeviceSessionRow: View {
         }
         .frame(minWidth: 0, maxWidth: .infinity)
         .padding(16)
-        .background(Color.App.bgPrimary)
+        .background(Color.App.bgSecondary)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
     private var list: some View {
         ForEach(session.dict, id: \.0) { (title, value) in
-            let isDeviceType = title == "ManageSessions.deviceType"
-            let isTypeAndCurrent = isDeviceType && session.current == true
+            let isDeviceName = title == "ManageSessions.deviceName"
+            let isNameAndCurrent = isDeviceName && session.current == true
             HStack(alignment: .top, spacing: 16) {
                 Text(title)
                     .fontWeight(.bold)
                     .frame(minWidth: 128, alignment: .leading)
                     
-                if isDeviceType {
+                if isDeviceName {
                     Image(systemName: icon)
                         .scaledToFit()
                         .frame(width: 22, height: 22)
@@ -145,7 +145,7 @@ struct DeviceSessionRow: View {
                     .foregroundStyle(.gray)
                     .font(.iransansCaption)
                 
-                if isTypeAndCurrent {
+                if isNameAndCurrent {
                     Spacer()
                     Circle()
                         .fill(.green)

@@ -12,6 +12,7 @@ public struct DeviceSession: Decodable, Sendable, Identifiable {
     public let uid: String?
     public let agent: String?
     public let ip: String?
+    public let clientIp: String?
     public let language: String?
     public let os: String?
     public let osVersion: String?
@@ -27,7 +28,7 @@ public struct DeviceSession: Decodable, Sendable, Identifiable {
     public let activeUser: SSOActiveUser?
     
     public init(
-        id: Int, uid: String?, agent: String?, ip: String?, language: String?,
+        id: Int, uid: String?, agent: String?, ip: String?, clientIp: String?, language: String?,
         os: String?, osVersion: String?, browser: String?,
         browserVersion: String?, deviceType: String?, current: Bool?,
         lastAccessTime: UInt?, name: String?, location: DeviceSessionLocation?,
@@ -37,6 +38,7 @@ public struct DeviceSession: Decodable, Sendable, Identifiable {
         self.uid = uid
         self.agent = agent
         self.ip = ip
+        self.clientIp = clientIp
         self.language = language
         self.os = os
         self.osVersion = osVersion
