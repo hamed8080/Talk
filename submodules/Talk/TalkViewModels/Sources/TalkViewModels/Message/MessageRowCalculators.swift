@@ -406,15 +406,16 @@ class MessageRowCalculators {
 
     class func calculateAttributeedString(message: MessageType) -> NSAttributedString? {
         guard let text = calculateText(message: message) else { return nil }
-        let option: AttributedString.MarkdownParsingOptions = .init(allowsExtendedAttributes: false,
-                                                                    interpretedSyntax: .inlineOnly,
-                                                                    failurePolicy: .throwError,
-                                                                    languageCode: nil,
-                                                                    appliesSourcePositionAttributes: false)
-        guard let mutableAttr = try? NSMutableAttributedString(markdown: text, options: option) else { return NSAttributedString() }
+        let accent = UIColor(named: "accent") ?? .orange
+        guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
         mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
-        mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
+        mutableAttr.addUserColor(accent)
         mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
+        mutableAttr.addBold()
+        mutableAttr.addItalic()
+        mutableAttr.addStrikethrough()
+        mutableAttr.addTripleTicksStyle(text: text, barColor: accent, bgColor: UIColor(named: "bg_primary") ?? .black)
+    
         return NSAttributedString(attributedString: mutableAttr)
     }
 

@@ -9,8 +9,8 @@ import Foundation
 import UIKit
 
 public extension NSMutableAttributedString {
-
-    private static let userMentionFont = UIFont(name: "IRANSansX-Bold", size: 14)
+    private static let heavyFont = UIFont(name: "IRANSansX-Bold", size: 16)
+    private static let boldFont = UIFont(name: "IRANSansX-Bold", size: 14)
     private static let bodyFont = UIFont(name: "IRANSansX", size: 16)
 
     func addDefaultTextColor(_ color: UIColor) {
@@ -65,7 +65,7 @@ public extension NSMutableAttributedString {
     private func userColorAttributes(link: NSURL, color: UIColor) -> [NSAttributedString.Key: Any] {
         [NSAttributedString.Key.link: link,
          NSAttributedString.Key.foregroundColor: color,
-         NSAttributedString.Key.font: NSMutableAttributedString.userMentionFont ?? .systemFont(ofSize: 14, weight: .bold)]
+         NSAttributedString.Key.font: NSMutableAttributedString.boldFont ?? .systemFont(ofSize: 14, weight: .bold)]
     }
 
     private func linkColorAttributes(color: UIColor, link: NSURL) -> [NSAttributedString.Key: Any] {
@@ -73,5 +73,87 @@ public extension NSMutableAttributedString {
          NSAttributedString.Key.underlineColor: color,
          NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
          NSAttributedString.Key.link: link]
+    }
+    
+    public func addBold() {
+        let pattern = "\\*\\*(.*?)\\*\\*"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        
+        let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
+        for match in matches.reversed() {
+            let range = match.range
+            addAttributes([.font: NSMutableAttributedString.heavyFont ?? .systemFont(ofSize: 16, weight: .heavy)], range: range)
+            
+            // Remove the surrounding `**` by replacing them with an empty string
+            let fullRange = match.range
+            replaceCharacters(in: NSRange(location: fullRange.location + fullRange.length - 2, length: 2), with: "")
+            replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
+        }
+    }
+    
+    public func addItalic() {
+        let pattern = "\\_\\_(.*?)\\_\\_"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        
+        let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
+        for match in matches.reversed() {
+            let range = match.range
+            addAttributes([.font: UIFont.italicSystemFont(ofSize: 16)], range: range)
+            
+            // Remove the surrounding `**` by replacing them with an empty string
+            let fullRange = match.range
+            replaceCharacters(in: NSRange(location: fullRange.location + fullRange.length - 2, length: 2), with: "")
+            replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
+        }
+    }
+    
+    public func addStrikethrough() {
+        let pattern = "\\~\\~(.*?)\\~\\~"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        
+        let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
+        for match in matches.reversed() {
+            let range = match.range
+            addAttributes([.strikethroughStyle: NSUnderlineStyle.single.rawValue], range: range)
+            
+            // Remove the surrounding `**` by replacing them with an empty string
+            let fullRange = match.range
+            replaceCharacters(in: NSRange(location: fullRange.location + fullRange.length - 2, length: 2), with: "")
+            replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
+        }
+    }
+    
+    public func addTripleTicksStyle(text: String, barColor: UIColor, bgColor: UIColor) {
+//        let fullText = self.string
+//           
+//           // Regular expression to find text between delimiters
+//           let regexPattern = "```(.*?)```"
+//           guard let regex = try? NSRegularExpression(pattern: regexPattern, options: []) else { return }
+//           
+//           // Find matches in the text
+//           let matches = regex.matches(in: fullText, options: [], range: NSRange(location: 0, length: fullText.utf16.count))
+//           
+//           // Apply attributes for each match
+//           for match in matches.reversed() { // Reverse order to avoid messing up ranges
+//               guard let range = Range(match.range(at: 1), in: fullText) else { continue }
+//               let matchedText = String(fullText[range])
+//               
+//               // Remove the delimiters from the text
+//               self.replaceCharacters(in: match.range, with: matchedText)
+//               
+//               // Create rounded corner background attributes
+//               let paragraphStyle = NSMutableParagraphStyle()
+//               paragraphStyle.alignment = .center
+//               
+//               let attributes: [NSAttributedString.Key: Any] = [
+//                .font: UIFont.systemFont(ofSize: 14),
+//                   .foregroundColor: UIColor.white,
+//                   .backgroundColor: bgColor,
+//                   .paragraphStyle: paragraphStyle
+//               ]
+//               
+//               // Apply attributes
+//               self.addAttributes(attributes, range: NSRange(match.range(at: 1).location, in: self.string))
+//           }
     }
 }
