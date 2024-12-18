@@ -133,7 +133,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
                     await ChatDelegateImplementation.sharedInstance.logout()
                 }
             }
-        }       
+        }
     }
 
     private func log(_ log: Log) {

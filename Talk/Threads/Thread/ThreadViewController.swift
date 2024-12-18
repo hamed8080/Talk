@@ -35,7 +35,7 @@ final class ThreadViewController: UIViewController {
     private static let loadingViewWidth: CGFloat = 26
     private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
-    private var isVisible: Bool = true
+    private var isViewControllerVisible: Bool = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,7 +48,7 @@ final class ThreadViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        isVisible = true
+        isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
         viewModel?.historyVM.start()
     }
@@ -56,7 +56,7 @@ final class ThreadViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         var hasAnyInstanceInStack = false
-        isVisible = false
+        isViewControllerVisible = false
         navigationController?.viewControllers.forEach({ hostVC in
             hostVC.children.forEach { vc in
                 if vc == self {
@@ -139,20 +139,20 @@ extension ThreadViewController {
             self?.onSendHeightChanged(height)
         }
     }
-
-    private func onSendHeightChanged(_ height: CGFloat) {
+    
+    private func onSendHeightChanged(_ height: CGFloat, duration: Double = 0.25, options: UIView.AnimationOptions = []) {
         let isButtonsVisible = viewModel?.sendContainerViewModel.showPickerButtons ?? false
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let height = (height - safeAreaHeight) + keyboardheight
         if tableView.contentInset.bottom != height {
-            UIView.animate(withDuration: 0.1) { [weak self] in
-                guard let self = self else { return }
-                tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
-            }
-            Task { [weak self] in
-                guard let self = self else { return }
-                try? await Task.sleep(for: .seconds(0.3))
+            tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+            Task {
                 await viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+            }
+            UIView.animate(withDuration: duration, delay: 0, options: options) { [weak self] in
+                self?.view.layoutIfNeeded()
+            } completion: {  completed in
+                if completed {}
             }
         }
     }
@@ -761,40 +761,52 @@ struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
 extension ThreadViewController {
     private func registerKeyboard() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            if self?.isVisible == false { return }
-            print(notif)
-            guard let self = self else { return }
-            if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                if rect.size.height <= 69 {
-                    hasExternalKeyboard = true
-                } else {
-                    hasExternalKeyboard = false
-                }
-
-                UIView.animate(withDuration: 0.2) {
-                    self.sendContainerBottomConstraint?.constant = -rect.height
-                    self.keyboardheight = rect.height
-                    self.view.layoutIfNeeded()
-                } completion: { completed in
-                    if completed {
-                        self.moveTolastMessageIfVisible()
-                    }
-                }
-            }
+            self?.willShowKeyboard(notif: notif)
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] _ in
-            if self?.isVisible == false { return }
-            self?.sendContainerBottomConstraint?.constant = 0
-            self?.keyboardheight = 0
-            self?.hasExternalKeyboard = false
-            UIView.animate(withDuration: 0.2) {
-                self?.view.layoutIfNeeded()
-            }
+            self?.willHidekeyboard()
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))
         tapGetsure.isEnabled = true
         view.addGestureRecognizer(tapGetsure)
+    }
+    
+    private func willShowKeyboard(notif: Notification) {
+        if isViewControllerVisible == false { return }
+        if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+           let animationCurve = notif.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+           let duration = notif.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        {
+            let animationOptions = UIView.AnimationOptions(rawValue: animationCurve << 16)
+            print("rect of keyboard will show: \(rect.size)")
+            if rect.size.height <= 69 {
+                hasExternalKeyboard = true
+            } else {
+                hasExternalKeyboard = false
+            }
+            sendContainerBottomConstraint?.constant = -rect.height
+            keyboardheight = rect.height
+            onSendHeightChanged(sendContainer.frame.height, duration: duration, options: animationOptions)
+            UIView.animate(withDuration: duration, delay: 0 , options: animationOptions) {
+                self.view.layoutIfNeeded()
+            } completion: { completed in
+                if completed {
+                    self.moveTolastMessageIfVisible()
+                }
+            }
+        }
+    }
+    
+    private func willHidekeyboard() {
+        if isViewControllerVisible == false { return }
+        sendContainerBottomConstraint?.constant = 0
+        keyboardheight = 0
+        hasExternalKeyboard = false
+        onSendHeightChanged(sendContainer.frame.height)
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
+        }
     }
 
     @objc private func hideKeyboard() {
