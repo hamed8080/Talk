@@ -22,20 +22,22 @@ struct PreferenceView: View {
                 .listRowSeparator(.hidden)
             ManageSessionsSection()
                 .listRowInsets(.zero)
-                .listRowSeparator(.hidden)
-            StickyHeaderSection(header: "", height: 10)
-                .listRowInsets(.zero)
-                .listRowSeparator(.hidden)
-            Section("Tab.contacts") {
-                VStack(alignment: .leading, spacing: 2) {
-                    Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
-                    Text("Contacts.Sync.subtitle")
-                        .foregroundColor(.gray)
-                        .font(.iransansCaption3)
+                .listRowSeparator(.hidden)            
+            if EnvironmentValues.isTalkTest {
+                StickyHeaderSection(header: "", height: 10)
+                    .listRowInsets(.zero)
+                    .listRowSeparator(.hidden)
+                Section("Tab.contacts") {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
+                        Text("Contacts.Sync.subtitle")
+                            .foregroundColor(.gray)
+                            .font(.iransansCaption3)
+                    }
                 }
+                .listRowBackground(Color.App.bgPrimary)
+                .listRowSeparator(.hidden)
             }
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparator(.hidden)
         }
         .environment(\.defaultMinListRowHeight, 8)
         .background(Color.App.bgPrimary)
