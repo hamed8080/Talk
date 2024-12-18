@@ -42,8 +42,7 @@ struct ThreadImageView: View {
                     .clipShape(RoundedRectangle(cornerRadius:(24)))
             }
         }.task {
-            /// We do this beacuse computedImageURL use metadata decoder and it should not be on the main thread.
-            await calculate()
+             calculate(thread: thread)
         }
 //        .onReceive(thread.objectWillChange) { _ in /// update an image of a thread by another device
 //            if computedImageURL != self.thread.computedImageURL {
@@ -55,14 +54,18 @@ struct ThreadImageView: View {
 //        }
     }
 
-    private func calculate() async {
-        let materialBackground = String.getMaterialColorByCharCode(str: thread.title ?? "")
-        let splitedTitle = String.splitedCharacter(thread.computedTitle)
-        let computedImageURL = thread.computedImageURL
-        await MainActor.run {
-            self.materialBackground = materialBackground
-            self.splitedTitle = splitedTitle
-            self.computedImageURL = computedImageURL
+    /// We use a detached Task as of computedImageURL, use metadata decoder, and it should not be on the main thread.
+    private func calculate(thread: Conversation) {
+        Task.detached {
+            let materialBackground = String.getMaterialColorByCharCode(str: thread.title ?? "")
+            let splitedTitle = String.splitedCharacter(thread.computedTitle)
+            let computedImageURL = thread.computedImageURL
+            let https = computedImageURL?.replacingOccurrences(of: "http://", with: "https://")
+            await MainActor.run {
+                self.materialBackground = materialBackground
+                self.splitedTitle = splitedTitle
+                self.computedImageURL = https
+            }
         }
     }
 }

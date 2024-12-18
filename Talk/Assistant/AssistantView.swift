@@ -120,8 +120,7 @@ struct AddAssistantRow: View {
 
     var body: some View {
         HStack {
-            let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: contact.firstName)
-            ImageLoaderView(imageLoader: .init(config: config))
+            ImageLoaderView(contact: contact)
                 .id("\(contact.image ?? "")\(contact.id ?? 0)")
                 .font(.iransansBoldBody)
                 .foregroundColor(.white)

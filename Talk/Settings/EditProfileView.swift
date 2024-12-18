@@ -29,8 +29,7 @@ struct EditProfileView: View {
 //                    viewModel.showImagePicker = true
                 } label: {
                     ZStack(alignment: .leading) {
-                        let config = ImageLoaderConfig(url: AppState.shared.user?.image ?? "", userName: String.splitedCharacter(AppState.shared.user?.name ?? ""))
-                        ImageLoaderView(imageLoader: .init(config: config))
+                        ImageLoaderView(user: AppState.shared.user)
                             .scaledToFit()
                             .font(.iransansBoldCaption2)
                             .foregroundColor(.white)

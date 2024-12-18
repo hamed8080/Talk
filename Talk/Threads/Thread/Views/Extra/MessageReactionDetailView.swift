@@ -97,8 +97,7 @@ struct ReactionParticipantRow: View {
     var body: some View {
         HStack {
             ZStack(alignment: .leading) {
-                let config = ImageLoaderConfig(url: reaction.participant?.image ?? "", userName: String.splitedCharacter(reaction.participant?.name ?? ""))
-                ImageLoaderView(imageLoader: .init(config: config))
+                ImageLoaderView(participant: reaction.participant)
                     .scaledToFit()
                     .id(reaction.participant?.id)
                     .font(.iransansBoldCaption2)

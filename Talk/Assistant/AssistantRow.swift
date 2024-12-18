@@ -18,8 +18,8 @@ struct AssistantRow: View {
             if viewModel.isInSelectionMode {
                 SelectAssistantRadio(assistant: assistant)
             }
-            let config = ImageLoaderConfig(url: assistant.participant?.image ?? "", userName: assistant.participant?.name)
-            ImageLoaderView(imageLoader: .init(config: config))
+            
+            ImageLoaderView(participant: assistant.participant)
                 .frame(width: 28, height: 28)
                 .background(.blue.opacity(0.8))
                 .clipShape(RoundedRectangle(cornerRadius:(18)))
