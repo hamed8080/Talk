@@ -35,14 +35,27 @@ public class TextKitStack {
         self.storage = textStorage
     }
     
+    @MainActor
+    public func layoutManagerOnMain() -> NSLayoutManager? {
+        return layoutManager()
+    }
+    
+    @MainActor
+    public func textContainerOnMain() -> NSTextContainer? {
+        layoutManager()?.textContainers.first
+    }
+    
+    public func layoutManager() -> NSLayoutManager? {
+        storage?.layoutManagers.first
+    }
+    
     public func textContainer() -> NSTextContainer? {
-        storage?.layoutManagers.first?.textContainers.first
+        layoutManager()?.textContainers.first
     }
     
     public func getRect(width: CGFloat) -> CGRect? {
-        guard let lm = storage?.layoutManagers.first else { return nil }
+        guard let lm = layoutManager(), let tc = textContainer() else { return nil }
         let size = CGSize(width: width, height: CGFloat.greatestFiniteMagnitude)
-        let tc = NSTextContainer(size: size)
         lm.glyphRange(forBoundingRect: CGRect(origin: .zero, size: size), in: tc)
         let rect = lm.usedRect(for: tc)
         return rect
@@ -67,6 +80,11 @@ public class TextKitStack {
         }
         
         return NSAttributedString(attributedString: mutableAttr)
+    }
+    
+    public func updateText(text: String) {
+        guard let attr = attributedString(text: text) else { return }
+        storage?.setAttributedString(attr)
     }
 }
 

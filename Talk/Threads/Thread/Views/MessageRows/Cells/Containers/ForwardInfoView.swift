@@ -23,11 +23,11 @@ final class ForwardInfoView: UIView {
     private static let forwardFromStaticText = "Message.forwardedFrom".bundleLocalized()
 
     // Sizes
-    private let margin: CGFloat = 6
-    private let imageSize: CGFloat = 36
-    private let barWidth: CGFloat = 2.5
-    private let barMargin: CGFloat = 0.5
-    private let verticalSpacing: CGFloat = 2.0
+    private static let margin: CGFloat = 6
+    private static let imageSize: CGFloat = 36
+    private static let barWidth: CGFloat = 2.5
+    private static let barMargin: CGFloat = 0.5
+    private static let verticalSpacing: CGFloat = 2.0
 
     init(frame: CGRect, isMe: Bool) {
         super.init(frame: frame)
@@ -71,7 +71,7 @@ final class ForwardInfoView: UIView {
 
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.backgroundColor = Color.App.accentUIColor
-        bar.layer.cornerRadius = barWidth / 2
+        bar.layer.cornerRadius = ForwardInfoView.barWidth / 2
         bar.layer.masksToBounds = true
         bar.accessibilityIdentifier = "barForwardInfoView"
         bar.setContentHuggingPriority(.required, for: .horizontal)
@@ -84,19 +84,19 @@ final class ForwardInfoView: UIView {
         addGestureRecognizer(tap)
 
         NSLayoutConstraint.activate([
-            bar.widthAnchor.constraint(equalToConstant: barWidth),
-            bar.topAnchor.constraint(equalTo: topAnchor, constant: margin),
-            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin),
-            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: barMargin),
+            bar.widthAnchor.constraint(equalToConstant: ForwardInfoView.barWidth),
+            bar.topAnchor.constraint(equalTo: topAnchor, constant: ForwardInfoView.margin),
+            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ForwardInfoView.margin),
+            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ForwardInfoView.barMargin),
 
-            forwardStaticLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: margin),
-            forwardStaticLabel.topAnchor.constraint(equalTo: topAnchor, constant: margin),
-            forwardStaticLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            forwardStaticLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ForwardInfoView.margin),
+            forwardStaticLabel.topAnchor.constraint(equalTo: topAnchor, constant: ForwardInfoView.margin),
+            forwardStaticLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ForwardInfoView.margin),
 
-            participantLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: margin),
-            participantLabel.topAnchor.constraint(equalTo: forwardStaticLabel.bottomAnchor, constant: verticalSpacing),
-            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
-            participantLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin)
+            participantLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ForwardInfoView.margin),
+            participantLabel.topAnchor.constraint(equalTo: forwardStaticLabel.bottomAnchor, constant: ForwardInfoView.verticalSpacing),
+            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ForwardInfoView.margin),
+            participantLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ForwardInfoView.margin)
         ])
     }
 

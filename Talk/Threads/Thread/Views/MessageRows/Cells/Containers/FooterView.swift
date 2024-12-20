@@ -31,12 +31,12 @@ final class FooterView: UIStackView {
     private var heightConstraint: NSLayoutConstraint!
 
     // Sizes
-    private let heightWithReaction: CGFloat = 28
-    private let heightWithoutReaction: CGFloat = 16
-    private let normalStatusWidth: CGFloat = 12
-    private let seenWidth: CGFloat = 22
-    private let pinWidth: CGFloat = 22
-    private let statusHeight: CGFloat = 16
+    private static let heightWithReaction: CGFloat = 28
+    private static let heightWithoutReaction: CGFloat = 16
+    private static let normalStatusWidth: CGFloat = 12
+    private static let seenWidth: CGFloat = 22
+    private static let pinWidth: CGFloat = 22
+    private static let statusHeight: CGFloat = 16
 
     init(frame: CGRect, isMe: Bool) {
         self.reactionView = .init(frame: frame, isMe: isMe)
@@ -73,10 +73,10 @@ final class FooterView: UIStackView {
             statusImage.contentMode = .scaleAspectFit
             statusImage.accessibilityIdentifier = "statusImageFooterView"
             addArrangedSubview(statusImage)
-            statusImageWidthConstriant = statusImage.widthAnchor.constraint(equalToConstant: normalStatusWidth)
+            statusImageWidthConstriant = statusImage.widthAnchor.constraint(equalToConstant: FooterView.normalStatusWidth)
             statusImageWidthConstriant.isActive = true
             statusImageWidthConstriant.identifier = "statusImageWidthConstriantFooterView"
-            statusImage.heightAnchor.constraint(equalToConstant: statusHeight).isActive = true
+            statusImage.heightAnchor.constraint(equalToConstant: FooterView.statusHeight).isActive = true
         }
 
         timelabel.translatesAutoresizingMaskIntoConstraints = false
@@ -97,10 +97,10 @@ final class FooterView: UIStackView {
         editedLabel.setContentHuggingPriority(.required, for: .horizontal)
         editedLabel.isOpaque = true
 
-        heightConstraint = heightAnchor.constraint(equalToConstant: heightWithReaction)
+        heightConstraint = heightAnchor.constraint(equalToConstant: FooterView.heightWithReaction)
         NSLayoutConstraint.activate([
             heightConstraint,
-            timelabel.heightAnchor.constraint(equalToConstant: statusHeight),
+            timelabel.heightAnchor.constraint(equalToConstant: FooterView.statusHeight),
         ])
     }
 
@@ -120,7 +120,7 @@ final class FooterView: UIStackView {
             let statusTuple = viewModel.message.uiFooterStatus
             statusImage.image = statusTuple.image
             statusImage.tintColor = statusTuple.fgColor
-            statusImageWidthConstriant.constant = viewModel.message.seen == true ? seenWidth : normalStatusWidth
+            statusImageWidthConstriant.constant = viewModel.message.seen == true ? FooterView.seenWidth : FooterView.normalStatusWidth
 
             if viewModel.message is UploadProtocol, viewModel.fileState.isUploading {
                 startSendingAnimation()
@@ -133,8 +133,8 @@ final class FooterView: UIStackView {
     private func attachOrdetachPinImage(isPin: Bool) {
         if isPin, pinImage.superview == nil {
             insertArrangedSubview(pinImage, at: 0)
-            pinImage.heightAnchor.constraint(equalToConstant: statusHeight).isActive = true
-            pinImage.widthAnchor.constraint(equalToConstant: pinWidth).isActive = true
+            pinImage.heightAnchor.constraint(equalToConstant: FooterView.statusHeight).isActive = true
+            pinImage.widthAnchor.constraint(equalToConstant: FooterView.pinWidth).isActive = true
         } else if !isPin {
             pinImage.removeFromSuperview()
         }
@@ -143,7 +143,7 @@ final class FooterView: UIStackView {
     private func attachOrdetachEditLabel(isEdited: Bool) {
         if isEdited, pinImage.superview == nil {
             addArrangedSubview(editedLabel)
-            editedLabel.heightAnchor.constraint(equalToConstant: statusHeight).isActive = true
+            editedLabel.heightAnchor.constraint(equalToConstant: FooterView.statusHeight).isActive = true
         } else if !isEdited {
             editedLabel.removeFromSuperview()
         }
@@ -162,7 +162,7 @@ final class FooterView: UIStackView {
     }
 
     public func sent(image: UIImage?) {
-        statusImageWidthConstriant.constant = normalStatusWidth
+        statusImageWidthConstriant.constant = FooterView.normalStatusWidth
         self.statusImage.setIsHidden(false)
         UIView.animate(withDuration: 0.2) {
             self.layoutIfNeeded()
@@ -180,7 +180,7 @@ final class FooterView: UIStackView {
     }
 
     public func seen(image: UIImage?) {
-        statusImageWidthConstriant.constant = seenWidth
+        statusImageWidthConstriant.constant = FooterView.seenWidth
         statusImage.setIsHidden(false)
         UIView.animate(withDuration: 0.2) {
             self.layoutIfNeeded()
@@ -214,7 +214,7 @@ final class FooterView: UIStackView {
         addArrangedSubview(reactionView)
         fadeAnimateReactions(animation)
         reactionView.set(viewModel)
-        heightConstraint.constant = viewModel.reactionsModel.rows.isEmpty ? heightWithoutReaction : heightWithReaction
+        heightConstraint.constant = viewModel.reactionsModel.rows.isEmpty ? FooterView.heightWithoutReaction : FooterView.heightWithReaction
     }
 
     // Prevent animation in reuse call method, yet has animation when updateReaction called

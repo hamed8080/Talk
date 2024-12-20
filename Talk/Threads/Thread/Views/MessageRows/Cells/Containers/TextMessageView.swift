@@ -18,6 +18,12 @@ final class TextMessageView: UITextView {
         super.init(frame: frame, textContainer: textContainer)
         configureView()
     }
+    
+    init(frame: CGRect, textContainer: NSTextContainer?, viewModel: MessageRowViewModel) {
+        super.init(frame: frame, textContainer: textContainer)
+        configureView()
+        set(viewModel)
+    }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -38,6 +44,7 @@ final class TextMessageView: UITextView {
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
+        backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         self.viewModel = viewModel
         setText(viewModel: viewModel)
     }
@@ -49,7 +56,6 @@ final class TextMessageView: UITextView {
     }
 
     public func setText(viewModel: MessageRowViewModel) {
-//        self.textContainer = viewModel.calMessage.textStack?.textContainer()
         let hide = viewModel.calMessage.rowType.hasText == false && viewModel.calMessage.rowType.isPublicLink == false
         setIsHidden(hide)
 

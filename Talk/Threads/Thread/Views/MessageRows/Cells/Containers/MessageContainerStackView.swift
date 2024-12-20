@@ -25,7 +25,7 @@ public final class MessageContainerStackView: UIStackView {
     private let replyInfoMessageRow: ReplyInfoView
     private let forwardMessageRow: ForwardInfoView
     private let singleEmojiView: SingleEmojiView
-    private let textMessageView = TextMessageView()
+    private var textMessageView = TextMessageView()
     private static let tailImage = UIImage(named: "tail")
     private var tailImageView = UIImageView()
     private let footerView: FooterView
@@ -36,9 +36,9 @@ public final class MessageContainerStackView: UIStackView {
     public weak var cell: MessageBaseCell?
 
     // Sizes
-    private let tailWidth: CGFloat = 16
-    private let tailHeight: CGFloat = 32
-    private let margin: CGFloat = 4
+    private static let tailWidth: CGFloat = 16
+    private static let tailHeight: CGFloat = 32
+    private static let margin: CGFloat = 4
 
     init(frame: CGRect, isMe: Bool) {
         self.groupParticipantNameView = .init(frame: frame)
@@ -67,7 +67,7 @@ public final class MessageContainerStackView: UIStackView {
         spacing = 4
         alignment = .top
         distribution = .fill
-        layoutMargins = .init(all: margin)
+        layoutMargins = .init(all: MessageContainerStackView.margin)
         isLayoutMarginsRelativeArrangement = true
         layer.cornerRadius = 10
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
@@ -83,7 +83,6 @@ public final class MessageContainerStackView: UIStackView {
         locationRowView.translatesAutoresizingMaskIntoConstraints = false
         singleEmojiView.translatesAutoresizingMaskIntoConstraints = false
         textMessageView.translatesAutoresizingMaskIntoConstraints = false
-        textMessageView.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         footerView.translatesAutoresizingMaskIntoConstraints = false
 //        unsentMessageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -94,8 +93,8 @@ public final class MessageContainerStackView: UIStackView {
             tailImageView.tintColor = Color.App.bgChatUserUIColor!
             addSubview(tailImageView)
 
-            tailImageView.widthAnchor.constraint(equalToConstant: tailWidth).isActive = true
-            tailImageView.heightAnchor.constraint(equalToConstant: tailHeight).isActive = true
+            tailImageView.widthAnchor.constraint(equalToConstant: MessageContainerStackView.tailWidth).isActive = true
+            tailImageView.heightAnchor.constraint(equalToConstant: MessageContainerStackView.tailHeight).isActive = true
             tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -12).isActive = true
             tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         }
@@ -125,7 +124,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isReply {
             replyInfoMessageRow.set(viewModel)
             addArrangedSubview(replyInfoMessageRow)
-            replyInfoMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin).isActive = true
+            replyInfoMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageContainerStackView.margin).isActive = true
         } else {
             replyInfoMessageRow.removeFromSuperview()
         }
@@ -133,7 +132,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isForward {
             forwardMessageRow.set(viewModel)
             addArrangedSubview(forwardMessageRow)
-            forwardMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin).isActive = true
+            forwardMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageContainerStackView.margin).isActive = true
         } else {
             forwardMessageRow.removeFromSuperview()
         }
@@ -174,10 +173,9 @@ public final class MessageContainerStackView: UIStackView {
         } else {
             messageVideoView.removeFromSuperview()
         }
-
+        
         if viewModel.calMessage.rowType.hasText || viewModel.calMessage.rowType.isPublicLink {
-            textMessageView.set(viewModel)
-            addArrangedSubview(textMessageView)
+            createTextViewOnReuse(viewModel: viewModel)
         } else {
             textMessageView.removeFromSuperview()
         }
@@ -221,14 +219,35 @@ public struct ActionModel {
 extension MessageContainerStackView {
     func edited() {
         guard let viewModel = viewModel else { return }
+        viewModel.calMessage.textStack?.updateText(text: viewModel.message.message ?? "")
         if viewModel.calMessage.rowType.hasText, textMessageView.superview == nil {
             footerView.removeFromSuperview()
             addArrangedSubview(textMessageView)
             addArrangedSubview(footerView)
         }
+        
         UIView.animate(withDuration: 0.2) {
-            self.textMessageView.setText(viewModel: viewModel)
+            self.replaceTextViewOnEdit(viewModel: viewModel)
             self.footerView.edited()
+        }
+    }
+    
+    private func replaceTextViewOnEdit(viewModel: MessageRowViewModel) {
+        if let textContainer = viewModel.calMessage.textStack?.textContainerOnMain() {
+            let indexBeforeRemove = arrangedSubviews.firstIndex(where: { $0 is TextMessageView })
+            textMessageView.removeFromSuperview()
+            textMessageView = TextMessageView(frame: .zero, textContainer: textContainer, viewModel: viewModel)
+            if let index = indexBeforeRemove {
+                insertArrangedSubview(textMessageView, at: index)
+            }
+        }
+    }
+    
+    private func createTextViewOnReuse(viewModel: MessageRowViewModel) {
+        if let textContainer = viewModel.calMessage.textStack?.textContainerOnMain() {
+            textMessageView.removeFromSuperview()
+            textMessageView = TextMessageView(frame: .zero, textContainer: textContainer, viewModel: viewModel)
+            addArrangedSubview(textMessageView)
         }
     }
 

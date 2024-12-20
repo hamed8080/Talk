@@ -39,10 +39,10 @@ final class MessageAudioView: UIView {
     private var seekTimer: Timer? = nil
 
     // Sizes
-    private let margin: CGFloat = 6
-    private let verticalSpacing: CGFloat = 4
-    private let progressButtonSize: CGFloat = 42
-    private let playerProgressHeight: CGFloat = 3
+    private static let margin: CGFloat = 6
+    private static let verticalSpacing: CGFloat = 4
+    private static let progressButtonSize: CGFloat = 42
+    private static let playerProgressHeight: CGFloat = 3
 
     init(frame: CGRect, isMe: Bool) {
         super.init(frame: frame)
@@ -116,14 +116,14 @@ final class MessageAudioView: UIView {
         addSubview(playbackSpeedButton)
 
         NSLayoutConstraint.activate([
-            progressButton.widthAnchor.constraint(equalToConstant: progressButtonSize),
-            progressButton.heightAnchor.constraint(equalToConstant: progressButtonSize),
-            progressButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),
-            progressButton.topAnchor.constraint(equalTo: topAnchor, constant: margin),
+            progressButton.widthAnchor.constraint(equalToConstant: MessageAudioView.progressButtonSize),
+            progressButton.heightAnchor.constraint(equalToConstant: MessageAudioView.progressButtonSize),
+            progressButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageAudioView.margin),
+            progressButton.topAnchor.constraint(equalTo: topAnchor, constant: MessageAudioView.margin),
             
             waveImageView.widthAnchor.constraint(equalToConstant: 246),
-            waveImageView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: margin * 2),
-            waveImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin * 2),
+            waveImageView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: MessageAudioView.margin * 2),
+            waveImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageAudioView.margin * 2),
             waveImageView.topAnchor.constraint(equalTo: progressButton.topAnchor),
             waveImageView.heightAnchor.constraint(equalToConstant: 42),
             
@@ -133,17 +133,17 @@ final class MessageAudioView: UIView {
             playbackWaveformImageView.topAnchor.constraint(equalTo: waveImageView.topAnchor),
             
             fileSizeLabel.leadingAnchor.constraint(equalTo: waveImageView.leadingAnchor),
-            fileSizeLabel.topAnchor.constraint(equalTo: waveImageView.bottomAnchor, constant: margin),
+            fileSizeLabel.topAnchor.constraint(equalTo: waveImageView.bottomAnchor, constant: MessageAudioView.margin),
             fileSizeLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
             
-            timeLabel.leadingAnchor.constraint(equalTo: fileSizeLabel.trailingAnchor, constant: margin),
+            timeLabel.leadingAnchor.constraint(equalTo: fileSizeLabel.trailingAnchor, constant: MessageAudioView.margin),
             timeLabel.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor),
-            timeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            timeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageAudioView.margin),
             timeLabel.bottomAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor),
             
             playbackSpeedButton.widthAnchor.constraint(equalToConstant: 52),
             playbackSpeedButton.heightAnchor.constraint(equalToConstant: 28),
-            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageAudioView.margin),
             playbackSpeedButton.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor, constant: -4),
         ])
         registerObservers()

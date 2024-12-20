@@ -30,7 +30,7 @@ final class MessageImageView: UIImageView {
     private var heightConstraint: NSLayoutConstraint!
 
     // Sizes
-    private let progessSize: CGFloat = 32
+    private static let progessSize: CGFloat = 32
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -94,8 +94,8 @@ final class MessageImageView: UIImageView {
         NSLayoutConstraint.activate([
             widthConstraint,
             heightConstraint,
-            progressView.widthAnchor.constraint(equalToConstant: progessSize),
-            progressView.heightAnchor.constraint(equalToConstant: progessSize),
+            progressView.widthAnchor.constraint(equalToConstant: MessageImageView.progessSize),
+            progressView.heightAnchor.constraint(equalToConstant: MessageImageView.progessSize),
         ])
     }
 
