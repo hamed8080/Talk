@@ -36,7 +36,7 @@ public struct MessageRowCalculatedData {
     public var avatarSplitedCharaters = ""
     public var isInTwoWeekPeriod: Bool = false
     public var localizedReplyFileName: String? = nil
-    public var markdownTitle: NSAttributedString?
+    public var textStack: TextKitStack?
     public var isFirstMessageOfTheUser: Bool = false
     public var isLastMessageOfTheUser: Bool = false
     public var canShowIconFile: Bool = false

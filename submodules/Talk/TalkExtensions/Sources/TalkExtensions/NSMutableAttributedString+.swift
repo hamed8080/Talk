@@ -122,38 +122,4 @@ public extension NSMutableAttributedString {
             replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
         }
     }
-    
-    public func addTripleTicksStyle(text: String, barColor: UIColor, bgColor: UIColor) {
-//        let fullText = self.string
-//           
-//           // Regular expression to find text between delimiters
-//           let regexPattern = "```(.*?)```"
-//           guard let regex = try? NSRegularExpression(pattern: regexPattern, options: []) else { return }
-//           
-//           // Find matches in the text
-//           let matches = regex.matches(in: fullText, options: [], range: NSRange(location: 0, length: fullText.utf16.count))
-//           
-//           // Apply attributes for each match
-//           for match in matches.reversed() { // Reverse order to avoid messing up ranges
-//               guard let range = Range(match.range(at: 1), in: fullText) else { continue }
-//               let matchedText = String(fullText[range])
-//               
-//               // Remove the delimiters from the text
-//               self.replaceCharacters(in: match.range, with: matchedText)
-//               
-//               // Create rounded corner background attributes
-//               let paragraphStyle = NSMutableParagraphStyle()
-//               paragraphStyle.alignment = .center
-//               
-//               let attributes: [NSAttributedString.Key: Any] = [
-//                .font: UIFont.systemFont(ofSize: 14),
-//                   .foregroundColor: UIColor.white,
-//                   .backgroundColor: bgColor,
-//                   .paragraphStyle: paragraphStyle
-//               ]
-//               
-//               // Apply attributes
-//               self.addAttributes(attributes, range: NSRange(match.range(at: 1).location, in: self.string))
-//           }
-    }
 }

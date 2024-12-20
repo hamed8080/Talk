@@ -12,7 +12,6 @@ import TalkModels
 
 final class TextMessageView: UITextView {
     private weak var viewModel: MessageRowViewModel?
-    private var tap: UITapGestureRecognizer!
     public var forceEnableSelection = false
 
     override init(frame: CGRect, textContainer: NSTextContainer?) {
@@ -50,16 +49,13 @@ final class TextMessageView: UITextView {
     }
 
     public func setText(viewModel: MessageRowViewModel) {
-        self.attributedText = viewModel.calMessage.markdownTitle
+//        self.textContainer = viewModel.calMessage.textStack?.textContainer()
         let hide = viewModel.calMessage.rowType.hasText == false && viewModel.calMessage.rowType.isPublicLink == false
         setIsHidden(hide)
 
-        if viewModel.calMessage.rowType.isPublicLink == true, tap == nil {
+        if viewModel.calMessage.rowType.isPublicLink == true {
             let tap = UITapGestureRecognizer(target: self, action: #selector(onTapJoinGroup(_:)))
             addGestureRecognizer(tap)
-        } else if tap != nil {
-            removeGestureRecognizer(tap)
-            tap = nil
         }
     }
 
@@ -77,42 +73,3 @@ final class TextMessageView: UITextView {
         return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
     }
 }
-
-//
-//class CATextLayerView: UIView {
-//    private var hConstraint: NSLayoutConstraint!
-//    private var wConstrint: NSLayoutConstraint!
-//    private var textLayer = CATextLayer()
-//
-//    override init(frame: CGRect) {
-//        super.init(frame: frame)
-//        configureView()
-//    }
-//
-//    required init?(coder: NSCoder) {
-//        fatalError("init(coder:) has not been implemented")
-//    }
-//
-//    private func configureView() {
-//        translatesAutoresizingMaskIntoConstraints = false
-//        hConstraint = heightAnchor.constraint(equalToConstant: 0)
-//        wConstrint = widthAnchor.constraint(equalToConstant: 0)
-//        NSLayoutConstraint.activate([
-//            hConstraint,
-//            wConstrint,
-//        ])
-//    }
-//
-//    public func set(_ viewModel: MessageRowViewModel) {
-//        guard let textLayer = viewModel.calMessage.textLayer, let textRect = viewModel.calMessage.textRect else { return }
-//        self.textLayer = textLayer
-//        self.layer.addSublayer(self.textLayer)
-//        hConstraint.constant = textRect.height
-//        wConstrint.constant = textRect.width
-//    }
-//
-//    override func layoutSubviews() {
-//        super.layoutSubviews()
-//        textLayer.frame = bounds
-//    }
-//}

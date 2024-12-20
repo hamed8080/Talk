@@ -39,7 +39,9 @@ class MessageRowCalculators {
         calculatedMessage.isFirstMessageOfTheUser = threadVM?.thread.group == true && isFirstMessageOfTheUser
         calculatedMessage.isLastMessageOfTheUser = await isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, viewModel: threadVM)
         calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading
-        calculatedMessage.markdownTitle = calculateAttributeedString(message: message)
+        let textStack = TextKitStack()
+        await textStack.setup(message.message ?? "")
+        calculatedMessage.textStack = textStack
         rowType.isPublicLink = message.isPublicLink
         rowType.isFile = message.isFileType && !rowType.isMap && !message.isImage && !message.isAudio && !message.isVideo
         rowType.isReply = message.replyInfo != nil
@@ -72,7 +74,7 @@ class MessageRowCalculators {
         sizes.forwardContainerWidth = await calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
 //        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
-        calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.markdownTitle, width: ThreadViewModel.maxAllowedWidth - 16)
+        calculatedMessage.textRect = textStack.getRect(width: ThreadViewModel.maxAllowedWidth - 16)
 
         let originalPaddings = sizes.paddings
         sizes.paddings = calculateSpacingPaddings(message: message, calculatedMessage: calculatedMessage)
@@ -404,23 +406,8 @@ class MessageRowCalculators {
         return .unknown
     }
 
-    class func calculateAttributeedString(message: MessageType) -> NSAttributedString? {
-        guard let text = calculateText(message: message) else { return nil }
-        let accent = UIColor(named: "accent") ?? .orange
-        guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
-        mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
-        mutableAttr.addUserColor(accent)
-        mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
-        mutableAttr.addBold()
-        mutableAttr.addItalic()
-        mutableAttr.addStrikethrough()
-        mutableAttr.addTripleTicksStyle(text: text, barColor: accent, bgColor: UIColor(named: "bg_primary") ?? .black)
-    
-        return NSAttributedString(attributedString: mutableAttr)
-    }
-
     class func calculateText(message: MessageType) -> String? {
-        if let uploadReplyTitle = (message as? UploadFileWithReplyPrivatelyMessage)?.replyPrivatelyRequest.replyContent.text  {
+        if let uploadReplyTitle = (message as? UploadFileWithReplyPrivatelyMessage)?.replyPrivatelyRequest.replyContent.text {
             return uploadReplyTitle
         } else if let text = message.message, !text.isEmpty {
             return text
