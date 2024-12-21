@@ -39,7 +39,7 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
         await performaCalculation()
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     public func performaCalculation(appendMessages: [any HistoryMessageProtocol] = []) async {
         let mainData = await getMainData()
         calMessage = await MessageRowCalculators.calculate(message: message, mainData: mainData, appendMessages: appendMessages)
@@ -65,12 +65,10 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     }
 
     @MainActor
-    public func setFileState(_ state: MessageFileState) {
+    public func setFileState(_ state: MessageFileState, fileURL: URL?) {
         fileState.update(state)
         if state.state == .completed {
-            Task {
-                calMessage.fileURL = await message.fileURL // It will use hash code to make the url in some uploading videos and files we only recicve a hash code so it would be better to create a file url from hashcode
-            }
+            calMessage.fileURL = fileURL
         }
     }
 

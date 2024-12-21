@@ -55,7 +55,7 @@ public final class ImageLoaderViewModel: ObservableObject {
             .store(in: &cancelable)
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func onDownloadEvent(_ event: DownloadEventTypes) async {
         switch event {
         case .image(let chatResponse, let url):
@@ -135,7 +135,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         }
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func onGetImage(_ response: ChatResponse<Data>, _ url: URL?) async {
         let uniqueId = await uniqueId
         guard response.uniqueId == uniqueId else { return }
@@ -190,7 +190,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         self.config = config
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func getMetaData() async ->  FileMetaData? {
         let metadata = await getMetaDataAsync()
         guard let fileMetadata = metadata?.data(using: .utf8) else { return nil }
@@ -203,7 +203,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         return parsedMetadata?.fileHash ?? oldHashCode
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func getOldURLHash() async -> String? {
         guard let url = await getURLHistoryActor(), let comp = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
         return comp.queryItems?.first(where: { $0.name == "hash" })?.value
@@ -232,7 +232,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         URL(string: config.url)
     }
     
-    @HistoryActor
+    @AppBackgroundActor
     private func getURLHistoryActor() async -> URL? {
         URL(string: await config.url)
     }
@@ -246,7 +246,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         return url?.host() == "core.pod.ir"
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func downloadRestImageFromPodURL() async {
         guard let url = await getURL() else { return }
         var request = URLRequest(url: url)

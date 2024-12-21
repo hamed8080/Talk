@@ -113,9 +113,10 @@ public final class UploadFileManager {
     @HistoryActor
     private func changeStateTo(state: MessageFileState, viewModelUniqueId: String) async {
         let tuple = await viewModel?.historyVM.mSections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
+        let fileURL = await tuple?.vm.message.fileURL
         await MainActor.run {
             guard let tuple = tuple else { return }
-            tuple.vm.setFileState(state)
+            tuple.vm.setFileState(state, fileURL: fileURL)
             if state.state == .completed {
                 viewModel?.delegate?.uploadCompleted(at: tuple.indexPath, viewModel: tuple.vm)
             } else {

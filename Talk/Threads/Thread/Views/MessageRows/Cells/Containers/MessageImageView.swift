@@ -132,6 +132,28 @@ final class MessageImageView: UIImageView {
             effectView.removeFromSuperview()
         }
     }
+    
+    private func removeEffectViewByHidingAnimation() {
+        effectView.layer.opacity = 1.0
+        UIView.animate(withDuration: 0.2) {
+            self.effectView.layer.opacity = 0.0
+        } completion: { completed in
+            if completed {
+                self.effectView.removeFromSuperview()
+            }
+        }
+    }
+    
+    private func removeProgressViewByHidingAnimation() {
+        stack.layer.opacity = 1.0
+        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseInOut]) {
+            self.stack.layer.opacity = 0.0
+        } completion: { completed in
+            if completed {
+                self.stack.removeFromSuperview()
+            }
+        }
+    }
 
     private func attachOrDetachProgressView(canShow: Bool) {
         if canShow, stack.superview == nil {
@@ -143,12 +165,18 @@ final class MessageImageView: UIImageView {
         }
     }
 
-    private func setImage(fileURL: URL) {
-        Task { @HistoryActor in
+    private func setImage(fileURL: URL, animate: Bool = false) {
+        Task { @AppBackgroundActor in
             if let scaledImage = fileURL.imageScale(width: 300)?.image {
                 let image = scaledImage
                 await MainActor.run {
-                    self.image = UIImage(cgImage: image)
+                    if animate {
+                        UIView.transition(with: self, duration: 0.5, options: .transitionCrossDissolve) {
+                            self.image = UIImage(cgImage: image)
+                        }
+                    } else {
+                        self.image = UIImage(cgImage: image)
+                    }
                 }
             }
         }
@@ -180,17 +208,17 @@ final class MessageImageView: UIImageView {
     public func downloadCompleted(viewModel: MessageRowViewModel) {
         if let fileURL = viewModel.calMessage.fileURL {
             updateProgress(viewModel: viewModel)
-            attachOrDetachProgressView(canShow: false)
-            attachOrDetachEffectView(canShow: false)
-            setImage(fileURL: fileURL)
+            removeProgressViewByHidingAnimation()
+            removeEffectViewByHidingAnimation()
+            setImage(fileURL: fileURL, animate: true)
         }
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
         if let fileURL = viewModel.calMessage.fileURL {
             updateProgress(viewModel: viewModel)
-            attachOrDetachProgressView(canShow: false)
-            attachOrDetachEffectView(canShow: false)
+            removeProgressViewByHidingAnimation()
+            removeEffectViewByHidingAnimation()
             setImage(fileURL: fileURL)
         }
     }

@@ -239,20 +239,22 @@ public final class DownloadFileManager {
         }
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func changeStateTo(state: MessageFileState, messageId: Int) async {
         guard let result = await viewModel?.historyVM.mSections.viewModelAndIndexPath(for: messageId) else {
             await log("Index path could not be found for message id:\(messageId)")
             return
         }
+        let fileURL = await result.vm.message.fileURL
         await MainActor.run {
-            result.vm.setFileState(state)
+            result.vm.setFileState(state, fileURL: fileURL)
+            let delegate = viewModel?.delegate
             if state.state == .completed {
-                viewModel?.delegate?.downloadCompleted(at: result.indexPath, viewModel: result.vm)
+                delegate?.downloadCompleted(at: result.indexPath, viewModel: result.vm)
             } else if state.state == .thumbnail {
-                viewModel?.delegate?.updateThumbnail(at: result.indexPath, viewModel: result.vm)
+                delegate?.updateThumbnail(at: result.indexPath, viewModel: result.vm)
             } else {
-                viewModel?.delegate?.updateProgress(at: result.indexPath, viewModel: result.vm)
+                delegate?.updateProgress(at: result.indexPath, viewModel: result.vm)
             }
         }
         if state.state == .completed {
@@ -260,12 +262,12 @@ public final class DownloadFileManager {
         }
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func updateAllReplyMessageImages(image: UIImage?, messageId: Int) async {
         if let replyMessagesWithSameSourceImage = await messagesWithReplyImage[messageId] {
             for vm in replyMessagesWithSameSourceImage {
                 await vm.setRelyImage(image: image)
-                if let indexPath = await viewModel?.historyVM.mSections.indexPath(for: vm) {
+                if let indexPath = await viewModel?.historyVM.indexPath(vm: vm) {
                     await viewModel?.delegate?.updateReplyImageThumbnail(at: indexPath, viewModel: vm)
                 }
             }

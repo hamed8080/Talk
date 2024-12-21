@@ -1357,4 +1357,8 @@ extension ThreadHistoryViewModel {
             await AppState.shared.connectionStatus != .connected
         }
     }
+    
+    public func indexPath(vm: MessageRowViewModel) -> IndexPath? {
+        sections.indexPath(for: vm)
+    }
 }

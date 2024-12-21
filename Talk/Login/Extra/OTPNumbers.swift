@@ -34,12 +34,13 @@ struct OTPNumbers: View {
                     .font(.iransansBoldLargeTitle)
                     .focused($focusField, equals: VerifyFocusFileds.allCases.first(where: { i == $0.rawValue })!)
                     .disabled(viewModel.isLoading)
-                    .opacity(viewModel.isLoading ? 0.5 : 1)
+                    .opacity(viewModel.isLoading && !viewModel.showSuccessAnimation ? 0.5 : 1)
                     .onChange(of: viewModel.verifyCodes[i]) { newString in
                         onTextChangedInFiledWith(index: i, newString)
                     }
             }
         }
+        .animation(.smooth, value: viewModel.showSuccessAnimation)
         .onAppear {
             focusField = VerifyFocusFileds.first
         }

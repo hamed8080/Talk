@@ -36,14 +36,17 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     private var isConverting = false
 
     public init(message: Message) {
-        Task {
-            self.url = await message.url
-            self.fileURL = await message.fileURL
-            self.fileHashCode = await message.fileHashCode
+        self.message = message
+        thumbnailVM = .init()
+        setObservers()
+        Task { @AppBackgroundActor in
+            let url = await message.url
+            let fileURL = await message.fileURL
+            let fileHashCode = await message.fileHashCode
             await MainActor.run {
-                self.message = message
-                thumbnailVM = .init()
-                setObservers()
+                self.url = url
+                self.fileURL = fileURL
+                self.fileHashCode = fileHashCode
             }
         }
     }
@@ -55,14 +58,12 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
                 let isInCache = ChatManager.activeInstance?.file.isFileExist(url) ?? false || ChatManager.activeInstance?.file.isFileExistInGroup(url) ?? false
                 await MainActor.run {
                     self.isInCache = isInCache
+                    if isInCache {
+                        state = .completed
+                        thumbnailData = nil
+                        animateObjectWillChange()
+                    }
                 }
-            }
-        }
-        if isInCache {
-            await MainActor.run {
-                state = .completed
-                thumbnailData = nil
-                animateObjectWillChange()
             }
         }
     }
@@ -83,10 +84,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
                 self?.onGalleryDownload(result)
             }
             .store(in: &cancellableSet)
-
-        thumbnailVM?.onDownload = { [weak self] data in
-            self?.setThumbnail(data: data)
-        }
     }
 
     private func onGalleryDownload(_ result: (request: ImageRequest, data: Data)) {
@@ -154,10 +151,16 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
     public func downloadBlurImage(quality: Float = 0.02, size: ImageSize = .SMALL) {
         guard let threadId = message?.threadId ?? message?.conversation?.id else { return }
-        let hashCode = fileHashCode
         state = .thumbnailDownloaing
-        let req = ImageRequest(hashCode: hashCode, quality: quality, size: size, thumbnail: true, conversationId: threadId)
-        thumbnailVM?.downloadBlurImage(req: req)
+        let message = message
+        Task { @AppBackgroundActor [weak self] in
+            guard let self = self else { return }
+            let hashCode = await message?.fileHashCode ?? ""
+            let req = ImageRequest(hashCode: hashCode, quality: quality, size: size, thumbnail: true, conversationId: threadId)
+            if let data = await thumbnailVM?.downloadThumbnail(req: req) {
+                await setThumbnail(data: data)
+            }
+        }
     }
 
     private func onResponse(_ response: ChatResponse<Data>, _ url: URL?) {
@@ -183,24 +186,33 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             guard let self = self else { return }
             let isVoice = message.type == .podSpaceVoice || message.type == .voice
             print("isVoice: \(isVoice)")
-            if isVoice {
-#if canImport(ffmpegkit)
-                if await OpusConverter.isOpus(path: filePath) {
-                    print("Converting the voice file")
-                    isConverting = true
-                    let convertedURL = await OpusConverter.convert(message)
-                    print(convertedURL)
-                    if let convertedURL = convertedURL, let data = try? Data(contentsOf: convertedURL) {
-                        setDataSync(data: data)
-                    }
-                }
-#endif
+            if isVoice, await isOpus(filePath: filePath) {
+                await convertIfIsOpus(message: message)
             } else {
                 setDataSync(data: data)
             }
         }
     }
+    
+    private func isOpus(filePath: URL) async -> Bool {
+#if canImport(ffmpegkit)
+        return await OpusConverter.isOpus(path: filePath)
+#endif
+        return false
+    }
 
+#if canImport(ffmpegkit)
+    private func convertIfIsOpus(message: Message) async {
+        print("Converting the opus voice file")
+        isConverting = true
+        let convertedURL = await OpusConverter.convert(message)
+        print(convertedURL)
+        if let convertedURL = convertedURL, let data = try? Data(contentsOf: convertedURL) {
+            setDataSync(data: data)
+        }
+    }
+#endif
+    
     private func setDataSync(data: Data?) {
         autoreleasepool {
             state = .completed

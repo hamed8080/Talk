@@ -257,21 +257,15 @@ extension ThreadViewController {
 // MARK: ThreadViewDelegate
 extension ThreadViewController: ThreadViewDelegate {
     func onScenario() {
-        DispatchQueue.main.async { [weak self] in
-            self?.moveToBottom.showIfHasAnyUnreadCount()
-        }
+        moveToBottom.showIfHasAnyUnreadCount()
     }
     
     func onUnreadCountChanged() {
-        DispatchQueue.main.async { [weak self] in
-            self?.moveToBottom.updateUnreadCount()
-        }
+        moveToBottom.updateUnreadCount()
     }
 
     func onChangeUnreadMentions() {
-        DispatchQueue.main.async { [weak self] in
-            self?.unreadMentionsButton.onChangeUnreadMentions()
-        }
+        unreadMentionsButton.onChangeUnreadMentions()
     }
 
     func setSelection(_ value: Bool) {
@@ -317,36 +311,30 @@ extension ThreadViewController: ThreadViewDelegate {
             self.tableView.tableFooterView = self.bottomLoadingContainer
         }
     }
-
+    
     func startTopAnimation(_ animate: Bool) {
-        DispatchQueue.main.async {
-            self.tableView.tableHeaderView?.isHidden = !animate
-            UIView.animate(withDuration: 0.25) {
-                self.tableView.tableHeaderView?.layoutIfNeeded()
-            }
-            self.topLoading.animate(animate)
+        self.tableView.tableHeaderView?.isHidden = !animate
+        UIView.animate(withDuration: 0.25) {
+            self.tableView.tableHeaderView?.layoutIfNeeded()
         }
+        self.topLoading.animate(animate)
     }
-
+    
     func startCenterAnimation(_ animate: Bool) {
-        DispatchQueue.main.async {
-            if animate {
-                self.attachCenterLoading()
-                self.centerLoading.animate(animate)
-            } else {
-                self.centerLoading.removeFromSuperViewWithAnimation()
-            }
+        if animate {
+            self.attachCenterLoading()
+            self.centerLoading.animate(animate)
+        } else {
+            self.centerLoading.removeFromSuperViewWithAnimation()
         }
     }
 
     func startBottomAnimation(_ animate: Bool) {
-        DispatchQueue.main.async {
-            self.tableView.tableFooterView?.isHidden = !animate
-            UIView.animate(withDuration: 0.25) {
-                self.tableView.tableFooterView?.layoutIfNeeded()
-            }
-            self.bottomLoading.animate(animate)
+        self.tableView.tableFooterView?.isHidden = !animate
+        UIView.animate(withDuration: 0.25) {
+            self.tableView.tableFooterView?.layoutIfNeeded()
         }
+        self.bottomLoading.animate(animate)
     }
 
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?) {
@@ -541,23 +529,15 @@ extension ThreadViewController {
 // MARK: Scrolling to
 extension ThreadViewController: HistoryScrollDelegate {
     func emptyStateChanged(isEmpty: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            showEmptyThread(show: isEmpty)
-        }
+        showEmptyThread(show: isEmpty)
     }
 
     func reload() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.reloadData()
-        }
+        tableView.reloadData()
     }
 
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.scrollToRow(at: index, at: position, animated: animate)
-        }
+        tableView.scrollToRow(at: index, at: position, animated: animate)
     }
 
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {
@@ -565,26 +545,18 @@ extension ThreadViewController: HistoryScrollDelegate {
             scrollTo(index: indexPath, position: position, animate: animate)
         }
     }
-
+    
     func reload(at: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.reloadRows(at: [at], with: .fade)
-        }
+        tableView.reloadRows(at: [at], with: .fade)
     }
-
+    
     func moveRow(at: IndexPath, to: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.moveRow(at: at, to: to)
-        }
+        tableView.moveRow(at: at, to: to)
     }
 
     func reloadData(at: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = viewModel?.historyVM.mSections.viewModelWith(at) {
-                cell.setValues(viewModel: vm)
-            }
+        if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = viewModel?.historyVM.mSections.viewModelWith(at) {
+            cell.setValues(viewModel: vm)
         }
     }
 
@@ -593,60 +565,45 @@ extension ThreadViewController: HistoryScrollDelegate {
             scrollTo(index: indexPath, position: .bottom)
         }
     }
-
+    
     func uploadCompleted(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.uploadCompleted(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.uploadCompleted(viewModel: viewModel)
     }
-
+    
     func downloadCompleted(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.downloadCompleted(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.downloadCompleted(viewModel: viewModel)
     }
 
     func updateProgress(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.updateProgress(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.updateProgress(viewModel: viewModel)
     }
 
     func updateThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.updateThumbnail(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.updateThumbnail(viewModel: viewModel)
     }
 
     func updateReplyImageThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.updateReplyImageThumbnail(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.updateReplyImageThumbnail(viewModel: viewModel)
     }
 
     func inserted(at: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.beginUpdates()
-            // Insert a new section if we have a message in a new day.
-            let beforeNumberOfSections = tableView.numberOfSections
-            if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
-                tableView.insertSections(IndexSet(beforeNumberOfSections..<at.section + 1), with: .none)
-            }
-            tableView.insertRows(at: [at], with: .fade)
-            tableView.endUpdates()
+        tableView.beginUpdates()
+        // Insert a new section if we have a message in a new day.
+        let beforeNumberOfSections = tableView.numberOfSections
+        if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
+            tableView.insertSections(IndexSet(beforeNumberOfSections..<at.section + 1), with: .none)
         }
+        tableView.insertRows(at: [at], with: .fade)
+        tableView.endUpdates()
     }
-
+    
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate :UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
-        DispatchQueue.main.async { [weak self] in
-            self?.inserted(sections: sections, rows: rows, animate: animate, scrollTo: scrollTo)
-        }
+        inserted(sections: sections, rows: rows, animate: animate, scrollTo: scrollTo)
     }
 
     private func inserted(sections: IndexSet, rows: [IndexPath], animate :UITableView.RowAnimation = .top, scrollTo: IndexPath?) {
@@ -702,37 +659,29 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func inserted(at: [IndexPath]) {
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.beginUpdates()
-            self?.tableView.insertRows(at: at, with: .fade)
-            self?.tableView.endUpdates()
-        }
+        tableView.beginUpdates()
+        tableView.insertRows(at: at, with: .fade)
+        tableView.endUpdates()
     }
 
     func removed(at: IndexPath) {
         guard let viewModel = viewModel else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.beginUpdates()
-            if tableView.numberOfSections > viewModel.historyVM.mSections.count {
-                tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
-            }
-            tableView.deleteRows(at: [at], with: .fade)
-            tableView.endUpdates()
+        tableView.beginUpdates()
+        if tableView.numberOfSections > viewModel.historyVM.mSections.count {
+            tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
         }
+        tableView.deleteRows(at: [at], with: .fade)
+        tableView.endUpdates()
     }
 
     func removed(at: [IndexPath]) {
         guard let viewModel = viewModel else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.beginUpdates()
-            if tableView.numberOfSections > viewModel.historyVM.mSections.count {
-                tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
-            }
-            tableView.deleteRows(at: at, with: .fade)
-            tableView.endUpdates()
+        tableView.beginUpdates()
+        if tableView.numberOfSections > viewModel.historyVM.mSections.count {
+            tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
         }
+        tableView.deleteRows(at: at, with: .fade)
+        tableView.endUpdates()
     }
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {

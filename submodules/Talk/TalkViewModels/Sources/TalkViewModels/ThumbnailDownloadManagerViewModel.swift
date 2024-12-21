@@ -8,7 +8,7 @@ class ThumbnailDownloadManagerViewModel {
     private let THUMBNAIL_KEY: String
     private var uniqueId: String = ""
     private var cancellable: AnyCancellable?
-    public var onDownload: ((Data?) -> Void)?
+    public var onDownload: (@Sendable (Data?) -> Void)?
 
     public init() {
         THUMBNAIL_KEY = "THUMBNAIL-\(objectId)"
@@ -35,11 +35,21 @@ class ThumbnailDownloadManagerViewModel {
     }
 
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
-    public func downloadBlurImage(req: ImageRequest) {        
+    public func downloadBlurImage(req: ImageRequest, onDownload: (@Sendable (Data?) -> Void)? = nil) {
+        self.onDownload = onDownload
         uniqueId = req.uniqueId
         RequestsManager.shared.append(prepend: THUMBNAIL_KEY, value: req, autoCancel: false)
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.file.get(req)
+        }
+    }
+    
+    public func downloadThumbnail(req: ImageRequest) async -> Data? {
+        typealias ResultType = CheckedContinuation<Data?, Never>
+        return await withCheckedContinuation { (continuation: ResultType) in
+            downloadBlurImage(req: req) { data in
+                continuation.resume(with: .success(data))
+            }
         }
     }
 
