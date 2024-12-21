@@ -23,7 +23,7 @@ struct AppOverlayFactory: View {
                 .id(message.id)
         case .galleryImageView(let image):
             ZStack {
-                GalleryImageView(uiimage: image)
+                GalleryImageView(uiimage: image, forceLeftToRight: false)
             }
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
             .fullScreenBackgroundView()

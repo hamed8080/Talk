@@ -200,7 +200,7 @@ public final class ImageLoaderViewModel: ObservableObject {
     }
     
     private func getHashByLastPath() -> String? {
-        guard let url = getURL(), let comp = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
+        guard let url = getURL() else { return nil }
         let isPodspaceFile = url.absoluteString.contains("https://podspace.pod.ir/api/files/")
         let isPodspaceImage = url.absoluteString.contains("https://podspace.pod.ir/api/images/")
         if isPodspaceFile || isPodspaceImage {
