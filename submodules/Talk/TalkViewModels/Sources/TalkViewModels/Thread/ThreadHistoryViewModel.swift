@@ -36,6 +36,7 @@ public final class ThreadHistoryViewModel {
     @MainActor internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
     private var isJumpedToLastMessage = false
     private var tasks: [Task<Void, Error>] = []
+    @VisibleActor
     private var visibleTracker = VisibleMessagesTracker()
     @MainActor private var highlightVM = ThreadHighlightViewModel()
     private var isEmptyThread = false
@@ -82,20 +83,23 @@ extension ThreadHistoryViewModel {
 
 // MARK: Setup/Start
 extension ThreadHistoryViewModel {
-    public func setup(viewModel: ThreadViewModel) async {
-        let thread = await viewModel.thread
+    public func setup(thread: Conversation, readOnly: Bool) async {
         self.thread = thread
         threadId = thread.id ?? -1
-        let readOnly = await viewModel.readOnly
         middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: readOnly)
-        Task { @VisibleActor in
-            await visibleTracker.delegate = self
-        }
-        await MainActor.run {
-            self.viewModel = viewModel
-            highlightVM.setup(self)
-            setupNotificationObservers()
-        }
+        await setupVisible()
+        await setupMain()
+    }
+    
+    @VisibleActor
+    private func setupVisible() {
+        visibleTracker.delegate = self
+    }
+    
+    @MainActor
+    private func setupMain() {
+        highlightVM.setup(self)
+        setupNotificationObservers()
     }
     
     // MARK: Scenarios Common Functions

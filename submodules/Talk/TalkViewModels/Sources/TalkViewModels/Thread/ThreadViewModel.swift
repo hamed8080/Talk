@@ -91,9 +91,11 @@ public final class ThreadViewModel {
         searchedMessagesViewModel.setup(viewModel: self)
         threadPinMessageViewModel.setup(viewModel: self)
         participantsViewModel.setup(viewModel: self)
+        historyVM.viewModel = self
+        let thread = thread
         Task { @HistoryActor [weak self] in
             guard let self = self else { return }
-            await historyVM.setup(viewModel: self)
+            await historyVM.setup(thread: thread, readOnly: readOnly)
         }
         sendMessageViewModel.setup(viewModel: self)
         scrollVM.setup(viewModel: self)
