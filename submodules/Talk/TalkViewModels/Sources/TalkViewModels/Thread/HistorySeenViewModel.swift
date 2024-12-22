@@ -39,12 +39,17 @@ public final class HistorySeenViewModel {
     }
 
     internal func onAppear(_ message: any HistoryMessageProtocol) async {
-        if await !canReduce(for: message) { return }
+        logSeen("OnAppear message: \(message.message ?? "") Type: \(message.type ?? .unknown) id: \(message.id ?? 0)")
+        if await !canReduce(for: message) {
+            logSeen("Can't reduce message: \(message.message ?? "") Type: \(message.type ?? .unknown) id: \(message.id ?? 0)")
+            return
+        }
         await logMessageApperance(message, appeard: true, isUp: false)
-        await reduceUnreadCountLocaly(message)
+        reduceUnreadCountLocaly(message)
         if message.id ?? 0 >= lastInQueue, let message = message as? Message {
             lastInQueue = message.id ?? 0
             seenPublisher.send(message)
+            logSeen("Send Seen to publisher queue for message: \(message.message ?? "") Type: \(message.type ?? .unknown) id: \(message.id ?? 0)")
         }
     }
 
@@ -56,39 +61,34 @@ public final class HistorySeenViewModel {
     }
     
     private func hasUnreadAndLastMessageIsBiggerLastSeen(messageId: Int?) -> Bool {
-        if thread.unreadCount ?? 0 == 0 { return false }
+        if unreadCount() == 0 { return false }
         if messageId == LocalId.unreadMessageBanner.rawValue { return false }
-        let lastSeenMessageId = thread.lastSeenMessageId
-        return messageId ?? 0 > lastSeenMessageId ?? 1
+        return messageId ?? 0 > lastSeenMessageId()
     }
     
     @HistoryActor
     private func scrollupAndNotPorgramatically() async -> Bool {
         let scrollingUP = await threadVM?.scrollVM.scrollingUP == true
         let isProgramaticallyScroll = await threadVM?.scrollVM.getIsProgramaticallyScrollingHistoryActor() == true
-        return scrollingUP && !isProgramaticallyScroll
+        let result = scrollingUP && !isProgramaticallyScroll
+        await logSeen("Scrolling up: \(scrollingUP) isProgramaticallyScroll: \(isProgramaticallyScroll)")
+        return result
     }
 
     /// We reduce it locally to keep the UI Sync and user feels it really read the message.
     /// However, we only send seen request with debouncing
     private func reduceUnreadCountLocaly(_ message: any HistoryMessageProtocol) {
         if let newUnreadCount = newLocalUnreadCount(for: message) {
-            threadVM?.thread.unreadCount = newUnreadCount
-            reduceThreadListLocally(to: newUnreadCount)
-            threadVM?.delegate?.onUnreadCountChanged()
+            setUnreadCount(newUnreadCount: newUnreadCount)
+            logSeen("Reduced localy to: \(newUnreadCount)")
+        } else {
+            logSeen("Can't Reduced localy")
         }
-    }
-
-    private func reduceThreadListLocally(to newUnreadCount: Int) {
-        if let index = threadsVM.threads.firstIndex(where: {$0.id == threadId}) {
-            threadsVM.threads[index].unreadCount = newUnreadCount
-        }
-        threadsVM.animateObjectWillChange()
     }
 
     private func newLocalUnreadCount(for message: any HistoryMessageProtocol) -> Int? {
         let messageId = message.id ?? -1
-        let currentUnreadCount = thread.unreadCount ?? -1
+        let currentUnreadCount = unreadCount()
         if currentUnreadCount > 0, messageId >= thread.lastSeenMessageId ?? 0 {
             let newUnreadCount = currentUnreadCount - 1
             return newUnreadCount
@@ -99,10 +99,7 @@ public final class HistorySeenViewModel {
     private func sendSeen(for message: Message) {
         let isMe = message.isMe(currentUserId: AppState.shared.user?.id)
         if let messageId = message.id, !isMe, AppState.shared.lifeCycleState == .active || AppState.shared.lifeCycleState == .foreground {
-            threadVM?.thread.lastSeenMessageId = messageId
-            if let index = threadsVM.firstIndex(threadId) {
-                threadsVM.threads[index].lastSeenMessageId = messageId
-            }
+            setLastSeenMessageId(messageId: messageId)
             Task {
                 await log("send seen for message:\(message.messageTitle) with id:\(messageId)")
             }
@@ -117,7 +114,7 @@ public final class HistorySeenViewModel {
         if let message = thread.lastMessageVO,
            message.seen == nil || message.seen == false,
            message.participant?.id != AppState.shared.user?.id,
-           thread.unreadCount ?? 0 > 0
+           unreadCount() > 0
         {
             sendSeen(for: message.toMessage)
         }
@@ -131,13 +128,39 @@ public final class HistorySeenViewModel {
 
     @available(iOS 13.0, *)
     @objc private func onSceneBeomeActive(_: Notification) {
-        let hasLastMeesageSeen = thread.lastMessageVO?.id != thread.lastSeenMessageId
+        let hasLastMeesageSeen = thread.lastMessageVO?.id != lastSeenMessageId()
         let lastMessage = thread.lastMessageVO
         Task { [weak self] in
             let isAtEndOfTleList = self?.threadVM?.scrollVM.isAtBottomOfTheList == true
             if isAtEndOfTleList, hasLastMeesageSeen, let lastMessage = lastMessage {
                 self?.sendSeen(for: lastMessage.toMessage)
             }
+        }
+    }
+    
+    /// We have to use this as a source of truth for unread count.
+    /// That's beacuse the ThreadViewModel.thread instance is different than ThreadsViewModel[index].instance
+    private func unreadCount() -> Int {
+        threadsVM.threads.first(where: {$0.id == threadId})?.unreadCount ?? 0
+    }
+    
+    private func setUnreadCount(newUnreadCount: Int) {
+        threadVM?.thread.unreadCount = newUnreadCount
+        if let index = threadsVM.threads.firstIndex(where: {$0.id == threadId}) {
+            threadsVM.threads[index].unreadCount = newUnreadCount
+        }
+        threadsVM.animateObjectWillChange()
+        threadVM?.delegate?.onUnreadCountChanged()
+    }
+    
+    private func lastSeenMessageId() -> Int {
+        threadsVM.threads.first(where: {$0.id == threadId})?.lastSeenMessageId ?? 0
+    }
+    
+    private func setLastSeenMessageId(messageId: Int) {
+        threadVM?.thread.lastSeenMessageId = messageId
+        if let index = threadsVM.firstIndex(threadId) {
+            threadsVM.threads[index].lastSeenMessageId = messageId
         }
     }
 
@@ -164,6 +187,12 @@ public final class HistorySeenViewModel {
     private func log(_ string: String) {
 #if DEBUG
         Logger.viewModels.info("\(string, privacy: .sensitive)")
+#endif
+    }
+    
+    private func logSeen(_ string: String) {
+#if DEBUG
+        Logger.viewModels.info("SEEN: \(string, privacy: .sensitive)")
 #endif
     }
 }

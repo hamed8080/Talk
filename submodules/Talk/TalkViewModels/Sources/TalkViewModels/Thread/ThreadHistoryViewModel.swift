@@ -1010,28 +1010,34 @@ extension ThreadHistoryViewModel {
 
     public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) async {
         if isInProcessingScroll() {
+            logScroll("IsProcessingScroll")
             await viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
             if contentOffset.y < 0 {
                 await doScrollAction(contentOffset, contentSize)
             }
             return
         }
+        logScroll("NonProcessing")
         await doScrollAction(contentOffset, contentSize)
         await viewModel?.scrollVM.lastContentOffsetY = contentOffset.y
     }
 
     private func doScrollAction(_ contentOffset: CGPoint , _ contentSize: CGSize) async {
         guard let scrollVM = await viewModel?.scrollVM else { return }
-        if contentOffset.y > scrollVM.lastContentOffsetY {
+        logScroll("ContentOffset: \(contentOffset) lastContentOffsetY: \(scrollVM.lastContentOffsetY)")
+        if contentOffset.y >= scrollVM.lastContentOffsetY {
             // scroll down
+            logScroll("DOWN")
             scrollVM.scrollingUP = false
             if contentOffset.y > contentSize.height - threshold, let message = sections.last?.vms.last?.message {
                 await loadMoreBottom(message: message)
             }
         } else {
             // scroll up
+            logScroll("UP")
             scrollVM.scrollingUP = true
             if contentOffset.y < threshold, let message = sections.first?.vms.first?.message {
+                logScroll("LoadMoreTop")
                 await loadMoreTop(message: message)
             }
         }
@@ -1112,6 +1118,12 @@ extension ThreadHistoryViewModel {
     private func log(_ string: String) {
 #if DEBUG
         Logger.viewModels.info("\(string, privacy: .sensitive)")
+#endif
+    }
+    
+    private func logScroll(_ string: String) {
+#if DEBUG
+        Logger.viewModels.info("SCROLL: \(string)")
 #endif
     }
 }

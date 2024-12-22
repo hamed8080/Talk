@@ -261,6 +261,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
     
     func onUnreadCountChanged() {
+        print("onUnreadCountChanged \(viewModel?.thread.unreadCount ?? 0)")
         moveToBottom.updateUnreadCount()
     }
 

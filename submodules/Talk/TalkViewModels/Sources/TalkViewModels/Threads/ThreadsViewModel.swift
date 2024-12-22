@@ -417,6 +417,7 @@ public final class ThreadsViewModel: ObservableObject {
             }
         }
         lazyList.setLoading(false)
+        logUnreadCount("SERVER unreadCount: \(response.result)")
     }
 
     public func updateThreadInfo(_ thread: Conversation) {
@@ -573,6 +574,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].partnerLastSeenMessageId = response.result?.messageId
             animateObjectWillChange()
         }
+        logUnreadCount("SERVER OnSeen: \(response.result)")
     }
 
     /// This method only reduce the unread count if the deleted message has sent after lastSeenMessageTime.
@@ -624,6 +626,12 @@ public final class ThreadsViewModel: ObservableObject {
         let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
         NotificationCenter.logs.post(name: .logs, object: log)
         Logger.viewModels.info("\(string, privacy: .sensitive)")
+#endif
+    }
+    
+    private func logUnreadCount(_ string: String) {
+#if DEBUG
+        Logger.viewModels.info("UNREADCOUNT: \(string, privacy: .sensitive)")
 #endif
     }
 }
