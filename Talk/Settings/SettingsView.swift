@@ -213,46 +213,6 @@ struct UserInformationSection: View {
     }
 }
 
-<<<<<<< HEAD
-=======
-
-struct PreferenceView: View {
-    @State var model = AppSettingsModel.restore()
-
-    var body: some View {
-        List {
-            Section("") {
-                VStack(alignment: .leading, spacing: 2) {
-                    Toggle("Settings.isAutoPlayVideoEnabled".bundleLocalized(), isOn: $model.isAutoPlayVideoEnabled)
-                        .tint(Color.App.accent)
-                }
-            }
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparator(.hidden)
-            
-            if EnvironmentValues.isTalkTest {
-                Section("Tab.contacts") {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
-                        Text("Contacts.Sync.subtitle")
-                            .foregroundColor(.gray)
-                            .font(.iransansCaption3)
-                    }
-                }
-                .listRowBackground(Color.App.bgPrimary)
-                .listRowSeparator(.hidden)
-            }
-        }
-        .background(Color.App.bgPrimary)
-        .listStyle(.plain)
-        .onChange(of: model) { _ in
-            model.save()
-        }
-        .normalToolbarView(title: "Settings.title", type: PreferenceNavigationValue.self)        
-    }
-}
-
->>>>>>> auto_play_video
 struct SettingCallHistorySection: View {
     var body: some View {
         Section {
