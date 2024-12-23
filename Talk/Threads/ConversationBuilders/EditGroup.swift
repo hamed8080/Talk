@@ -45,10 +45,12 @@ struct EditGroup: View {
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
-                showImagePicker = false
-                self.viewModel.image = image
-                self.viewModel.assetResources = assestResources ?? []
-                self.viewModel.animateObjectWillChange()
+                Task { @MainActor in
+                    showImagePicker = false
+                    self.viewModel.image = image
+                    self.viewModel.assetResources = assestResources ?? []
+                    self.viewModel.animateObjectWillChange()
+                }
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) {

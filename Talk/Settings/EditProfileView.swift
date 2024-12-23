@@ -161,9 +161,11 @@ struct EditProfileView: View {
         }
         .sheet(isPresented: $viewModel.showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
-                viewModel.showImagePicker = false
-                self.viewModel.image = image
-                self.viewModel.assetResources = assestResources ?? []
+                Task { @MainActor in
+                    viewModel.showImagePicker = false
+                    self.viewModel.image = image
+                    self.viewModel.assetResources = assestResources ?? []
+                }
             }
         }
         .normalToolbarView(title: "Settings.EditProfile.title", type: EditProfileNavigationValue.self)

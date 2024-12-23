@@ -224,11 +224,13 @@ struct EditCreatedConversationDetail: View {
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
-                viewModel.image = image
-                viewModel.assetResources = assestResources ?? []
-                viewModel.animateObjectWillChange()
-                showImagePicker = false
-                viewModel.startUploadingImage()
+                Task { @MainActor in
+                    viewModel.image = image
+                    viewModel.assetResources = assestResources ?? []
+                    viewModel.animateObjectWillChange()
+                    showImagePicker = false
+                    viewModel.startUploadingImage()
+                }
             }
         }
     }

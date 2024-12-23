@@ -11,9 +11,9 @@ import SwiftUI
 public struct ImagePicker: UIViewControllerRepresentable {
     @Environment(\.presentationMode) private var presentationMode
     let sourceType: UIImagePickerController.SourceType
-    let onImagePicked: (UIImage, [PHAssetResource]?) -> Void
+    let onImagePicked: @Sendable (UIImage, [PHAssetResource]?) -> Void
 
-    public init(sourceType: UIImagePickerController.SourceType, onImagePicked: @escaping (UIImage, [PHAssetResource]?) -> Void) {
+    public init(sourceType: UIImagePickerController.SourceType, onImagePicked: @escaping @Sendable (UIImage, [PHAssetResource]?) -> Void) {
         self.sourceType = sourceType
         self.onImagePicked = onImagePicked
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
@@ -25,9 +25,9 @@ public struct ImagePicker: UIViewControllerRepresentable {
     final public class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
         @Binding private var presentationMode: PresentationMode
         private let sourceType: UIImagePickerController.SourceType
-        private let onImagePicked: (UIImage, [PHAssetResource]?) -> Void
+        private let onImagePicked: @Sendable (UIImage, [PHAssetResource]?) -> Void
 
-        public init(presentationMode: Binding<PresentationMode>, sourceType: UIImagePickerController.SourceType, onImagePicked: @escaping (UIImage, [PHAssetResource]?) -> Void) {
+        public init(presentationMode: Binding<PresentationMode>, sourceType: UIImagePickerController.SourceType, onImagePicked: @escaping @Sendable (UIImage, [PHAssetResource]?) -> Void) {
             _presentationMode = presentationMode
             self.sourceType = sourceType
             self.onImagePicked = onImagePicked
