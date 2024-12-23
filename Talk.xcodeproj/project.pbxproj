@@ -67,6 +67,8 @@
 		052191572B2F262300CC99D1 /* MutualThreadRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052191552B2F262300CC99D1 /* MutualThreadRow.swift */; };
 		0521F85F2B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */; };
 		0521F8602B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */; };
+		052330132CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052330122CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift */; };
+		052330142CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052330122CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift */; };
 		05237DC42C6B216B0056CC49 /* CloseThreadDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05237DC32C6B215A0056CC49 /* CloseThreadDialog.swift */; };
 		05237DC52C6B216C0056CC49 /* CloseThreadDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05237DC32C6B215A0056CC49 /* CloseThreadDialog.swift */; };
 		0524744A2C3A600F006F3ECB /* ChatBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 052474492C3A600F006F3ECB /* ChatBackgroundView.swift */; };
@@ -549,6 +551,7 @@
 		051ED3222B4D75BC00D963A0 /* LeaveThreadDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaveThreadDialog.swift; sourceTree = "<group>"; };
 		052191552B2F262300CC99D1 /* MutualThreadRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutualThreadRow.swift; sourceTree = "<group>"; };
 		0521F85E2B5A4276001B7B7E /* MockAppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAppConfiguration.swift; sourceTree = "<group>"; };
+		052330122CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminLimitHistoryTimeDialog.swift; sourceTree = "<group>"; };
 		05237DC32C6B215A0056CC49 /* CloseThreadDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloseThreadDialog.swift; sourceTree = "<group>"; };
 		052474492C3A600F006F3ECB /* ChatBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBackgroundView.swift; sourceTree = "<group>"; };
 		052551692C24BC7D003171D2 /* CustomConversationNavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomConversationNavigationBar.swift; sourceTree = "<group>"; };
@@ -1063,6 +1066,7 @@
 			isa = PBXGroup;
 			children = (
 				0570CB782AAEE98C001832E9 /* AddParticipantsToThreadView.swift */,
+				052330122CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift */,
 			);
 			path = AddParticipantsToThreadView;
 			sourceTree = "<group>";
@@ -1706,6 +1710,7 @@
 				05551C262AF4C631000F98B6 /* CloseButtonView.swift in Sources */,
 				0570CC672AAEE98F001832E9 /* SyncView.swift in Sources */,
 				052557112BE94A7000DFCE54 /* DetailThreadDescriptionSection.swift in Sources */,
+				052330132CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift in Sources */,
 				054ED7EF2BEB739000F9EDB3 /* OTPNumbers.swift in Sources */,
 				0570CC0F2AAEE98F001832E9 /* FooterView.swift in Sources */,
 				05C27F982AF4AFF60008FE2E /* ConversationPlusContextMenu.swift in Sources */,
@@ -1919,6 +1924,7 @@
 				0570CC682AAEE98F001832E9 /* SyncView.swift in Sources */,
 				052557122BE94A7000DFCE54 /* DetailThreadDescriptionSection.swift in Sources */,
 				054ED7F02BEB739000F9EDB3 /* OTPNumbers.swift in Sources */,
+				052330142CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift in Sources */,
 				0570CC102AAEE98F001832E9 /* FooterView.swift in Sources */,
 				05C27F992AF4AFF60008FE2E /* ConversationPlusContextMenu.swift in Sources */,
 				05E781EF2C2060CA002262AD /* GallleryViewController.swift in Sources */,

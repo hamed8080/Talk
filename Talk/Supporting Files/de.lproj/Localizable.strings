@@ -478,3 +478,8 @@ talk.pod.ir";
 /* ConversationTabs.archived */
 "ArchivedTab.empty" = "Die archivierte Liste ist leer.";
 "ArchivedTab.guide" = "Um den Chat aus dem Archiv zu holen, müssen Sie auf die Registerkarte „Archiv“ gehen. Für einen archivierten Chat gibt es keine Benachrichtigung.";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Meldungen anzeigen";
+"AdminLimitHistoryTimeDialog.title" = "Nur Nachrichten aus einem bestimmten ausgewählten Zeitpunkt anzeigen.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Datum wählen";

@@ -220,11 +220,12 @@ struct SelectedThreadBar: View {
     let isSelected: Bool
 
     var body: some View {
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
         Rectangle()
-            .fill(Color.App.accent)
-            .frame(width: isSelected ? 4 : 0)
+            .fill(isSelected && isIpad ? Color.App.accent : .clear)
+            .frame(width: 4)
             .frame(minHeight: 0, maxHeight: .infinity)
-            .animation(.easeInOut, value: isSelected)
+            .animation(.easeInOut, value: isSelected && isIpad)
     }
 }
 

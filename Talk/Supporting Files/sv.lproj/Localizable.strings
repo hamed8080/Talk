@@ -477,3 +477,8 @@ talk.pod.ir";
 /* ConversationTabs.archived */
 "ArchivedTab.empty" = "Den arkiverade listan är tom.";
 "ArchivedTab.guide" = "För att avarkivera chatten måste du gå till Arkiv-fliken. En arkiverad chatt får inga aviseringar.";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Visa meddelanden";
+"AdminLimitHistoryTimeDialog.title" = "Visa endast meddelanden från en specifik vald tid.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Välj datum";

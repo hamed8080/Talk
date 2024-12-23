@@ -479,3 +479,8 @@ talk.pod.ir";
 /* ConversationTabs.archived */
 "ArchivedTab.empty" = "لیست بایگانی خالی است.";
 "ArchivedTab.guide" = "دسترسی به گفتگوی بایگانی شده برای بررسی یا فعال کردن مجدد ، از سربرگ \"بایگانی\" امکان پذیر هست و تمامی اعلانات روی این گفتگو غیر فعال خواهد شد .";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "مشاهده پیام ها";
+"AdminLimitHistoryTimeDialog.title" = "در صورتی که میخواهید نمایش پیام ها را محدود کنید یک تاریخ انتخاب کنید. درغیر این‌صورت کاربر جدید همه پیام‌ها را مشاهده می‌کند.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "نمایش پیام ها از تاریخ";

@@ -126,9 +126,9 @@ struct ParticipantRowContainer: View {
                 .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
             }
     }
-
+    
     private var isMe: Bool {
-       participant.id == AppState.shared.user?.id
+        participant.id == AppState.shared.user?.id
     }
 }
 
@@ -164,10 +164,27 @@ struct AddParticipantButton: View {
     }
 
     public func addParticipantsToThread(_ contacts: ContiguousArray<Contact>) {
+        if conversation?.type?.isPrivate == true, conversation?.group == true {
+            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+                AdminLimitHistoryTimeDialog(threadId: conversation?.id ?? -1) { historyTime in
+                    if let historyTime = historyTime {
+                        add(contacts, historyTime)
+                    } else {
+                        add(contacts)
+                    }
+                }
+                    .environmentObject(AppState.shared.objectsContainer)
+            )
+        } else {
+            add(contacts)
+        }
+    }
+
+    private func add(_ contacts: ContiguousArray<Contact>, _ historyTime: UInt? = nil) {
         guard let threadId = conversation?.id else { return }
-        let contactIds = contacts.compactMap(\.id)
-        let req = AddParticipantRequest(contactIds: contactIds, threadId: threadId)
-        ChatManager.activeInstance?.conversation.participant.add(req)        
+        let invitees: [Invitee] = contacts.compactMap{ .init(id: $0.user?.username, idType: .username, historyTime: historyTime) }
+        let req = AddParticipantRequest(invitees: invitees, threadId: threadId)
+        ChatManager.activeInstance?.conversation.participant.add(req)
     }
 }
 

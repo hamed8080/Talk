@@ -479,3 +479,8 @@ talk.pod.ir";
 /* ConversationTabs.archived */
 "ArchivedTab.empty" = "La lista de archivos está vacía.";
 "ArchivedTab.guide" = "Para desarchivar un chat, debes ir a la pestaña Archivo. Un chat archivado no recibirá ninguna notificación.";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Mostrar mensajes";
+"AdminLimitHistoryTimeDialog.title" = "Mostrar únicamente mensajes de un período de tiempo específico seleccionado.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Elija fecha";

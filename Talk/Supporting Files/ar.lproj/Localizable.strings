@@ -478,3 +478,7 @@ talk.pod.ir";
 "ArchivedTab.empty" = "قائمة الأرشيف فارغة.";
 "ArchivedTab.guide" = "لإلغاء أرشفة الدردشة، عليك الانتقال إلى علامة التبويب \"الأرشيف\". لن تتلقى الدردشة المؤرشفة أي إشعار.";
 
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "عرض الرسائل";
+"AdminLimitHistoryTimeDialog.title" = "عرض الرسائل من وقت محدد فقط.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "اختر التاريخ";
