@@ -468,3 +468,11 @@ talk.pod.ir";
 "ManageSessions.RemoveAllSessions.subtitle" = "Vill du inaktivera alla enheter utom denna?";
 "ManageSessions.RemoveOneSession.title" = "Uppmärksamhet";
 "ManageSessions.RemoveOneSession.subtitle" = "Vill du inaktivera %@?";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "Alla chattar";
+"ConversationsTabs.archive" = "Arkiv";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "Den arkiverade listan är tom.";
+"ArchivedTab.guide" = "För att avarkivera chatten måste du gå till Arkiv-fliken. En arkiverad chatt får inga aviseringar.";

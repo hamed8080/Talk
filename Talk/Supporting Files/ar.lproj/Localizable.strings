@@ -468,3 +468,12 @@ talk.pod.ir";
 "ManageSessions.RemoveAllSessions.subtitle" = "هل تريد تعطيل جميع الأجهزة باستثناء هذا الجهاز؟";
 "ManageSessions.RemoveOneSession.title" = "تنبيه";
 "ManageSessions.RemoveOneSession.subtitle" = "هل تريد تعطيل %@؟";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "جميع المحادثات";
+"ConversationsTabs.archive" = "كل الأرشيف";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "قائمة الأرشيف فارغة.";
+"ArchivedTab.guide" = "لإلغاء أرشفة الدردشة، عليك الانتقال إلى علامة التبويب \"الأرشيف\". لن تتلقى الدردشة المؤرشفة أي إشعار.";
+
