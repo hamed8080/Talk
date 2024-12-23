@@ -361,6 +361,7 @@ talk.pod.ir";
 "Setting.EditProfile.enterToPodAccount" = "ورود به حساب کاربری پاد";
 "Settings.darkModeEnabled" = "حالت شب";
 "Settings.ManageSessions.title" = "دستگاه های فعال";
+"Settings.isAutoPlayVideoEnabled" = "پخش ویدیو به صورت خودکار";
 
 /* Support */
 "Support.title" = "پیام رسان تاک";

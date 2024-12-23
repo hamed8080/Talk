@@ -360,6 +360,7 @@ talk.pod.ir";
 "Setting.EditProfile.enterToPodAccount" = "Geben Sie Ihr POD-Konto ein";
 "Settings.darkModeEnabled" = "Dunkler Modus";
 "Settings.ManageSessions.title" = "Aktive Sitzungen verwalten";
+"Settings.isAutoPlayVideoEnabled" = "Automatisches Abspielen von Videos";
 
 /* Support */
 "Support.title" = "Talk messenger";

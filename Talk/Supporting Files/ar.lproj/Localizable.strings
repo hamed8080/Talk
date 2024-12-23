@@ -359,6 +359,7 @@ talk.pod.ir";
 "Setting.EditProfile.enterToPodAccount" = "ادخل إلى حساب POD الخاص بك";
 "Settings.darkModeEnabled" = "الوضع الداكن";
 "Settings.ManageSessions.title" = "إدارة الجلسات النشطة";
+"Settings.isAutoPlayVideoEnabled" = "تشغيل الفيديوهات تلقائيا";
 
 /* Support */
 "Support.title" = "Talk messenger";

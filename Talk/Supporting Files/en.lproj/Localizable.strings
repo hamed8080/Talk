@@ -363,6 +363,7 @@ talk.pod.ir";
 "Setting.EditProfile.enterToPodAccount" = "Enter to your POD account";
 "Settings.darkModeEnabled" = "Dark Mode";
 "Settings.ManageSessions.title" = "Manage Active Sessions";
+"Settings.isAutoPlayVideoEnabled" = "Playing videos automatically";
 
 /* Support */
 "Support.title" = "Talk messenger";

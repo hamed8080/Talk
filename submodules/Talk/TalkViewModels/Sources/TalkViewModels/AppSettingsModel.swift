@@ -20,6 +20,7 @@ public struct AppSettingsModel: Codable, Hashable {
 
     static let key = "AppSettingsKey"
     public var isSyncOn: Bool = false
+    public var isAutoPlayVideoEnabled = true
     public var isDarkModeEnabled: Bool? = nil
     public var notificationSettings: NotificationSettingModel = .init()
     public var automaticDownloadSettings: AutomaticDownloadSettingModel = .init()

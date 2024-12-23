@@ -359,6 +359,7 @@ talk.pod.ir";
 "Setting.EditProfile.enterToPodAccount" = "Logga in på ditt POD-konto";
 "Settings.darkModeEnabled" = "Mörkt läge";
 "Settings.ManageSessions.title" = "Hantera aktiva sessioner";
+"Settings.isAutoPlayVideoEnabled" = "Spelar upp videor automatiskt";
 
 /* Support */
 "Support.title" = "Talk messenger";
