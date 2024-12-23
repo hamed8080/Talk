@@ -35,9 +35,11 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
     @Published public var dismiss = false
     private var objectId = UUID().uuidString
     private let CREATE_THREAD_CONVERSATION_BUILDER_KEY: String
-
+    private let UPLOAD_CONVERSATION_IMAGE_KEY: String
+    
     public init() {
         CREATE_THREAD_CONVERSATION_BUILDER_KEY = "CREATE-THREAD-CONVERSATION-BUILDER-KEY-\(objectId)"
+        UPLOAD_CONVERSATION_IMAGE_KEY = "UPLOAD-CONVERSATION-IMAGE-KEY-\(objectId)"
         super.init(isBuilder: true)
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
@@ -47,14 +49,14 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
                 }
             }
             .store(in: &canceableSet)
-
-        NotificationCenter.upload.publisher(for: .upload)
-            .compactMap { $0.object as? UploadEventTypes }
-            .sink { [weak self] value in
-                self?.onUploadEvent(value)
-            }
-            .store(in: &canceableSet)
-
+        
+//        NotificationCenter.upload.publisher(for: .upload)
+//            .compactMap { $0.object as? UploadEventTypes }
+//            .sink { [weak self] value in
+//                self?.onUploadEvent(value)
+//            }
+//            .store(in: &canceableSet)
+        
         $conversationTitle
             .sink { [weak self] newValue in
                 if newValue.count >= 2 {
@@ -63,7 +65,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
             }
             .store(in: &canceableSet)
     }
-
+    
     @MainActor
     public func show(type: StrictThreadTypeCreation) async {
         if contacts.isEmpty {
@@ -72,33 +74,33 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
         show = true
         createConversationType = type
     }
-
-    public func startUploadingImage() {
-        isUploading = true
-        if let image = image {
-            let width = Int(image.size.width)
-            let height = Int(image.size.height)
-            let imageRequest = UploadImageRequest(data: image.pngData() ?? Data(),
-                                                  fileExtension: "png",
-                                                  fileName: assetResources.first?.originalFilename ?? "",
-                                                  isPublic: true,
-                                                  mimeType: "image/png",
-                                                  originalName: assetResources.first?.originalFilename ?? "",
-                                                  hC: height,
-                                                  wC: width
-            )
-            uploadProfileUniqueId = imageRequest.uniqueId
-            ChatManager.activeInstance?.file.upload(imageRequest)
-        }
-    }
-
-    public func cancelUploadImage() {
-        guard let uploadProfileUniqueId = uploadProfileUniqueId else { return }
-        resetImageUploading()
-        animateObjectWillChange()
-        ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadProfileUniqueId, action: .cancel)
-    }
-
+    
+//    public func startUploadingImage() {
+//        isUploading = true
+//        if let image = image {
+//            let width = Int(image.size.width)
+//            let height = Int(image.size.height)
+//            let imageRequest = UploadImageRequest(data: image.pngData() ?? Data(),
+//                                                  fileExtension: "png",
+//                                                  fileName: assetResources.first?.originalFilename ?? "",
+//                                                  isPublic: true,
+//                                                  mimeType: "image/png",
+//                                                  originalName: assetResources.first?.originalFilename ?? "",
+//                                                  hC: height,
+//                                                  wC: width
+//            )
+//            uploadProfileUniqueId = imageRequest.uniqueId
+//            ChatManager.activeInstance?.file.upload(imageRequest)
+//        }
+//    }
+    
+//    public func cancelUploadImage() {
+//        guard let uploadProfileUniqueId = uploadProfileUniqueId else { return }
+//        resetImageUploading()
+//        animateObjectWillChange()
+//        ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadProfileUniqueId, action: .cancel)
+//    }
+    
     public func createGroup() {
         if conversationTitle.count < 2 {
             showTitleError = true
@@ -109,7 +111,6 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
         let invitees = selectedContacts.map { Invitee(id: "\($0.id ?? 0)", idType: .contactId) }
         let calculatedType = isPublic ? type.toPublicType?.threadType ?? StrictThreadTypeCreation.privateGroup.threadType : type.threadType
         let req = CreateThreadRequest(description: threadDescription,
-                                      image: uploadedImageFileMetaData?.file?.link,
                                       invitees: invitees,
                                       title: conversationTitle,
                                       type: calculatedType,
@@ -118,24 +119,59 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
         RequestsManager.shared.append(prepend: CREATE_THREAD_CONVERSATION_BUILDER_KEY, value: req)
         ChatManager.activeInstance?.conversation.create(req)
     }
-
+    
     @MainActor
     public func onCreateGroup(_ response: ChatResponse<Conversation>) async {
         if response.pop(prepend: CREATE_THREAD_CONVERSATION_BUILDER_KEY) != nil {
-            await clear()
+            
             if let conversation = response.result {
-                if #available(iOS 17, *) {
-                    AppState.shared.showThread(conversation, created: true)
-                } else {
-                    /// It will prevent a bug on small deveice can not click on the back button after creation.
-                    Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { _ in
-                        AppState.shared.showThread(conversation, created: true)
-                    }
+                /* Update the conversation image if there is any selected,
+                 and navigate to the conversation without waiting for updating the thread info,
+                 because in this stage we have already created the conversation and if the update therad image failed,
+                 at least user knows that the thread is created.
+                 */
+                if let image = image {
+                    uploadConversationImage(conversation: conversation, image: image)
                 }
+                await navigateToTheConversation(conversation)
             }
         }
     }
-
+    
+    @MainActor
+    private func navigateToTheConversation(_ conversation: Conversation) async {
+        await clear()
+        if #available(iOS 17, *) {
+            AppState.shared.showThread(conversation, created: true)
+        } else {
+            /// It will prevent a bug on small deveice can not click on the back button after creation.
+            Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { _ in
+                AppState.shared.showThread(conversation, created: true)
+            }
+        }
+    }
+    
+    private func uploadConversationImage(conversation: Conversation, image: UIImage) {
+        guard let threadId = conversation.id else { return }
+        var imageRequest: UploadImageRequest?
+        let width = Int(image.size.width)
+        let height = Int(image.size.height)
+        imageRequest = UploadImageRequest(data: image.pngData() ?? Data(),
+                                          fileExtension: "png",
+                                          fileName: assetResources.first?.originalFilename ?? UUID().uuidString,
+                                          isPublic: true,
+                                          mimeType: "image/png",
+                                          originalName: assetResources.first?.originalFilename ?? UUID().uuidString,
+                                          userGroupHash: conversation.userGroupHash,
+                                          hC: height,
+                                          wC: width
+        )
+        uploadProfileUniqueId = imageRequest?.uniqueId
+        let req = UpdateThreadInfoRequest(description: threadDescription, threadId: threadId, threadImage: imageRequest, title: conversation.title ?? "")
+        RequestsManager.shared.append(prepend: UPLOAD_CONVERSATION_IMAGE_KEY, value: req, autoCancel: false)
+        ChatManager.activeInstance?.conversation.updateInfo(req)
+    }
+    
     @MainActor
     public override func clear() async {
         await super.clear()
@@ -152,7 +188,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
         threadDescription = ""
         showTitleError = false
     }
-
+    
     public func resetImageUploading() {
         uploadedImageFileMetaData = nil
         uploadProfileUniqueId = nil
@@ -162,32 +198,32 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
         imageUploadingFailed = false
         assetResources = []
     }
-
+    
     func dimissAnResetDismiss() {
         dismiss = true
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
             self?.dismiss = false
         }
     }
-
-    private func onUploadCompleted(_ uniqueId: String, _ fileMetaData: FileMetaData?, _ data: Data?, _ error: Error?) {
-        /// We have to check the unique id due to if the user update the image in EditConversation the updaload lead to set uploadedImageFileMetaData.
-        if data != nil, error == nil, uniqueId == uploadProfileUniqueId {
-            isUploading = false
-            uploadProfileProgress = nil
-            self.uploadedImageFileMetaData = fileMetaData
-        } else if error != nil {
-            imageUploadingFailed = true
-        }
-    }
-
-    private func onUploadConversationProfile(_ uniqueId: String, _ progress: UploadFileProgress?) {
-        if uniqueId == uploadProfileUniqueId {
-            uploadProfileProgress = progress?.percent ?? 0
-            animateObjectWillChange()
-        }
-    }
-
+    
+//    private func onUploadCompleted(_ uniqueId: String, _ fileMetaData: FileMetaData?, _ data: Data?, _ error: Error?) {
+//        /// We have to check the unique id due to if the user update the image in EditConversation the updaload lead to set uploadedImageFileMetaData.
+//        if data != nil, error == nil, uniqueId == uploadProfileUniqueId {
+//            isUploading = false
+//            uploadProfileProgress = nil
+//            self.uploadedImageFileMetaData = fileMetaData
+//        } else if error != nil {
+//            imageUploadingFailed = true
+//        }
+//    }
+    
+//    private func onUploadConversationProfile(_ uniqueId: String, _ progress: UploadFileProgress?) {
+//        if uniqueId == uploadProfileUniqueId {
+//            uploadProfileProgress = progress?.percent ?? 0
+//            animateObjectWillChange()
+//        }
+//    }
+    
     private func onConversationEvent(_ event: ThreadEventTypes?) async {
         switch event {
         case .created(let response):
@@ -198,39 +234,39 @@ public final class ConversationBuilderViewModel: ContactsViewModel {
             break
         }
     }
-
-    private func onUploadEvent(_ event: UploadEventTypes) {
-        switch event {
-        case .progress(let uniqueId, let progress):
-            onUploadConversationProfile(uniqueId, progress)
-        case .completed(let uniqueId, let fileMetaData, let data, let error):
-            onUploadCompleted(uniqueId, fileMetaData, data, error)
-        default:
-            break
-        }
-    }
-
+    
+//    private func onUploadEvent(_ event: UploadEventTypes) {
+//        switch event {
+//        case .progress(let uniqueId, let progress):
+//            onUploadConversationProfile(uniqueId, progress)
+//        case .completed(let uniqueId, let fileMetaData, let data, let error):
+//            onUploadCompleted(uniqueId, fileMetaData, data, error)
+//        default:
+//            break
+//        }
+//    }
+    
     public func checkPublicName(_ title: String) {
         if titleIsValid {
             isCehckingName = true
             ChatManager.activeInstance?.conversation.isNameAvailable(.init(name: title))
         }
     }
-
+    
     private func onIsNameAvailable(_ response: ChatResponse<PublicThreadNameAvailableResponse>) async{
         if conversationTitle == response.result?.name {
             self.isPublicNameAvailable = true
         }
         isCehckingName = false
     }
-
+    
     public var titleIsValid: Bool {
         if conversationTitle.isEmpty { return false }
         if !isPublic { return true }
         guard let regex = try? Regex("^[a-zA-Z0-9]\\S*$") else { return false }
         return conversationTitle.contains(regex)
     }
-
+    
     deinit {
         print("deinit ConversationBuilderViewModel")
     }

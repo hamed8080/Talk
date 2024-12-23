@@ -228,7 +228,7 @@ struct EditCreatedConversationDetail: View {
                 viewModel.assetResources = assestResources ?? []
                 viewModel.animateObjectWillChange()
                 showImagePicker = false
-                viewModel.startUploadingImage()
+//                viewModel.startUploadingImage()
             }
         }
     }
@@ -289,7 +289,7 @@ struct EditCreatedConversationDetail: View {
                                 .frame(width: 24, height: 24)
                                 .foregroundStyle(Color.App.textSecondary)
                                 .onTapGesture {
-                                    viewModel.cancelUploadImage()
+//                                    viewModel.cancelUploadImage()
                                 }
                         }
                         if let percent = viewModel.uploadProfileProgress {
