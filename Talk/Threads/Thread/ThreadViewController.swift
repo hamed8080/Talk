@@ -36,7 +36,7 @@ final class ThreadViewController: UIViewController {
     private static let loadingViewWidth: CGFloat = 26
     private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
-    private var isVisible: Bool = true
+    private var isViewControllerVisible: Bool = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,7 +49,7 @@ final class ThreadViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        isVisible = true
+        isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
         Task {
             await viewModel?.historyVM.start()
@@ -59,7 +59,7 @@ final class ThreadViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         var hasAnyInstanceInStack = false
-        isVisible = false
+        isViewControllerVisible = false
         navigationController?.viewControllers.forEach({ hostVC in
             hostVC.children.forEach { vc in
                 if vc == self {
@@ -144,20 +144,20 @@ extension ThreadViewController {
             self?.onSendHeightChanged(height)
         }
     }
-
-    private func onSendHeightChanged(_ height: CGFloat) {
+    
+    private func onSendHeightChanged(_ height: CGFloat, duration: Double = 0.25, options: UIView.AnimationOptions = []) {
         let isButtonsVisible = viewModel?.sendContainerViewModel.showPickerButtons ?? false
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let height = (height - safeAreaHeight) + keyboardheight
         if tableView.contentInset.bottom != height {
-            UIView.animate(withDuration: 0.1) { [weak self] in
-                guard let self = self else { return }
-                tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
-            }
-            Task { [weak self] in
-                guard let self = self else { return }
-                try? await Task.sleep(for: .seconds(0.3))
+            tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+            Task {
                 await viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+            }
+            UIView.animate(withDuration: duration, delay: 0, options: options) { [weak self] in
+                self?.view.layoutIfNeeded()
+            } completion: {  completed in
+                if completed {}
             }
         }
     }
@@ -523,7 +523,15 @@ extension ThreadViewController {
     }
 
     func openMoveToDatePicker() {
-        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DatePickerDialogWrapper(viewModel: viewModel))
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+            DatePickerWrapper(hideControls: false) { [weak self] date in
+                Task {
+                    await self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+                }
+            }
+            .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
+        )
     }
 }
 
@@ -718,15 +726,14 @@ struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
 extension ThreadViewController {
     private func registerKeyboard() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
-            Task { [weak self] in
-                await self?.onShowKeyboard(rect)
+            Task { @MainActor in
+                self?.willShowKeyboard(notif: notif)
             }
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { [weak self] in
-                await self?.onHideKeyorad()
+            Task { @MainActor in
+                self?.willHidekeyboard()
             }
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))
@@ -734,18 +741,24 @@ extension ThreadViewController {
         view.addGestureRecognizer(tapGetsure)
     }
     
-    private func onShowKeyboard(_ rect: CGRect?) {
-        if isVisible == false { return }
-        if let rect = rect {
+    private func willShowKeyboard(notif: Notification) {
+        if isViewControllerVisible == false { return }
+        if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+           let animationCurve = notif.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+           let duration = notif.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        {
+            let animationOptions = UIView.AnimationOptions(rawValue: animationCurve << 16)
+            print("rect of keyboard will show: \(rect.size)")
             if rect.size.height <= 69 {
                 hasExternalKeyboard = true
             } else {
                 hasExternalKeyboard = false
             }
 
-            UIView.animate(withDuration: 0.2) {
-                self.sendContainerBottomConstraint?.constant = -rect.height
-                self.keyboardheight = rect.height
+            sendContainerBottomConstraint?.constant = -rect.height
+            keyboardheight = rect.height
+            onSendHeightChanged(sendContainer.frame.height, duration: duration, options: animationOptions)
+            UIView.animate(withDuration: duration, delay: 0 , options: animationOptions) {
                 self.view.layoutIfNeeded()
             } completion: { completed in
                 if completed {
@@ -754,12 +767,13 @@ extension ThreadViewController {
             }
         }
     }
-    
-    private func onHideKeyorad() {
-        if isVisible == false { return }
+        
+    private func willHidekeyboard() {
+        if isViewControllerVisible == false { return }
         sendContainerBottomConstraint?.constant = 0
         keyboardheight = 0
         hasExternalKeyboard = false
+        onSendHeightChanged(sendContainer.frame.height)
         UIView.animate(withDuration: 0.2) {
             self.view.layoutIfNeeded()
         }

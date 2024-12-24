@@ -130,7 +130,11 @@ struct PictureRowView: View {
             .onTapGesture {
                 onTapped()
             }
-            .customContextMenu(id: message.id, self: self.environmentObject(downloadVM)) {
+            .newCustomContextMenu {
+                PictureRowView(message: message, itemWidth: itemWidth)
+                    .disabled(true)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } menus: {
                 contextMenuView
             }
     }

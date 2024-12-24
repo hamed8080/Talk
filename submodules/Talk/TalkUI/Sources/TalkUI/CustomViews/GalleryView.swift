@@ -19,7 +19,7 @@ public struct GalleryView: View {
         ZStack {
             progress
                 .disabled(true)
-            GalleryImageViewData()
+            GalleryImageViewData(forceLeftToRight: true)
                 .environment(\.layoutDirection, .leftToRight)
                 .environmentObject(viewModel)
             textView
@@ -84,13 +84,14 @@ public struct GalleryView: View {
 }
 
 struct GalleryImageViewData: View {
+    let forceLeftToRight: Bool
     @EnvironmentObject var viewModel: GalleryViewModel
     @State var image: UIImage?
 
     var body: some View {
         ZStack {
             if let image {
-                GalleryImageView(uiimage: image, viewModel: viewModel)
+                GalleryImageView(uiimage: image, viewModel: viewModel, forceLeftToRight: forceLeftToRight)
                     .transition(.opacity)
             }
         }
@@ -108,10 +109,12 @@ public struct GalleryImageView: View {
     @EnvironmentObject var offsetVM: GalleyOffsetViewModel
     @EnvironmentObject var appOverlayVM: AppOverlayViewModel
     @GestureState private var scaleBy: CGFloat = 1.0
+    private let forceLeftToRight: Bool
 
-    public init(uiimage: UIImage, viewModel: GalleryViewModel? = nil) {
+    public init(uiimage: UIImage, viewModel: GalleryViewModel? = nil, forceLeftToRight: Bool) {
         self.uiimage = uiimage
         self.viewModel = viewModel
+        self.forceLeftToRight = forceLeftToRight
     }
 
     public var body: some View {
@@ -130,7 +133,7 @@ public struct GalleryImageView: View {
     var dragGesture: some Gesture {
         DragGesture(minimumDistance: 10, coordinateSpace: .local)
             .onChanged { value in
-                offsetVM.onDragChanged(value)
+                offsetVM.onDragChanged(value, forcedLeftToRight: forceLeftToRight)
             }
             .onEnded { value in
                 offsetVM.onDragEnded(value)

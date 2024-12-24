@@ -39,10 +39,12 @@ public final class NavigationModel: ObservableObject {
         }
     }
 
-    public func remove() {
+    public func remove(innerBack: Bool = false) {
         if pathsTracking.count > 0 {
             popLastPathTracking()
-            if pathsTracking.count == 0, paths.count > 0 {
+            if innerBack {
+                popLastPath()
+            } else if pathsTracking.count == 0, paths.count > 0 {
                 popLastPath()
             }
         }
@@ -126,7 +128,7 @@ public extension NavigationModel {
         if threadId != nil {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
-        remove()
+        remove(innerBack: false)
         if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.threadId == threadId {
             popLastPathTracking()
             popLastPath()

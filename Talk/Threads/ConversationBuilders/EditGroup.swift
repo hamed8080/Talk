@@ -156,8 +156,7 @@ struct EditGroup: View {
                                 .frame(width: 73, height: 73)
                         }
                     } else {
-                        let config = ImageLoaderConfig(url: viewModel.thread.computedImageURL ?? "", userName: String.splitedCharacter(viewModel.thread.computedTitle))
-                        ImageLoaderView(imageLoader: .init(config: config))
+                        ImageLoaderView(conversation: viewModel.thread)
                             .scaledToFit()
                             .id(viewModel.thread.id)
                             .font(.iransansBoldCaption2)

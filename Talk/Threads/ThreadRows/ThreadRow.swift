@@ -91,13 +91,14 @@ struct ThreadRow: View {
                 Label("General.delete", systemImage: "trash")
             }
         }
-        .customContextMenu(
-            id: thread.id,
-            self: ThreadRowSelfContextMenu(thread: thread, viewModel: viewModel),
-            addedX: 8,
-            disable: isInForwardMode == true
-        ) {
+        .onTapGesture {
             onTap?()
+        }
+        .newCustomContextMenu {
+            ThreadRow(thread: thread, onTap: nil)
+                .padding(4)
+                .background(ThreadListRowBackground(thread: thread))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
         } menus: {
             ThreadRowContextMenu(thread: thread, viewModel: viewModel)
         }
@@ -219,11 +220,12 @@ struct SelectedThreadBar: View {
     let isSelected: Bool
 
     var body: some View {
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
         Rectangle()
-            .fill(Color.App.accent)
-            .frame(width: isSelected ? 4 : 0)
+            .fill(isSelected && isIpad ? Color.App.accent : .clear)
+            .frame(width: 4)
             .frame(minHeight: 0, maxHeight: .infinity)
-            .animation(.easeInOut, value: isSelected)
+            .animation(.easeInOut, value: isSelected && isIpad)
     }
 }
 

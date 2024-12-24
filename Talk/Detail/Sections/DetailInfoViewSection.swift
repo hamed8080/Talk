@@ -19,13 +19,11 @@ struct DetailInfoViewSection: View {
     @StateObject private var fullScreenImageLoader: ImageLoaderViewModel
     // We have to use Thread ViewModel.thread as a reference when an update thread info will happen the only object that gets an update is this.
     private var thread: Conversation { threadVM.thread }
+    @State private var cachedImage: UIImage?
+    @State private var showDownloading: Bool = false
 
     init(viewModel: ThreadDetailViewModel, threadVM: ThreadViewModel) {
-        let config = ImageLoaderConfig(url: viewModel.thread?.computedImageURL ?? "",
-                                       size: .ACTUAL,
-                                       metaData: viewModel.thread?.metadata,
-                                       userName: String.splitedCharacter(viewModel.thread?.title ?? ""),
-                                       forceToDownloadFromServer: true)
+        let config = DetailInfoViewSection.fullScreenAvatarConfig(viewModel: viewModel)
         self._fullScreenImageLoader = .init(wrappedValue: .init(config: config))
         self.threadVM = threadVM
     }
@@ -47,15 +45,20 @@ struct DetailInfoViewSection: View {
     }
 
     private var imageLink: String {
-        thread.computedImageURL ?? viewModel.participantDetailViewModel?.participant.image ?? ""
+        let image = thread.computedImageURL ?? viewModel.participantDetailViewModel?.participant.image ?? ""
+        return image.replacingOccurrences(of: "http://", with: "https://")
     }
-
-    private var imageVM: ImageLoaderViewModel {
-        let config = ImageLoaderConfig(url: imageLink,
-                                       metaData: thread.metadata,
-                                       userName: String.splitedCharacter(thread.title ?? viewModel.participantDetailViewModel?.participant.name ?? ""))
-        let defaultLoader = ImageLoaderViewModel(config: config)
-        return defaultLoader
+    
+    private static func fullScreenAvatarConfig(viewModel: ThreadDetailViewModel) -> ImageLoaderConfig {
+        // Prepare image config of either the thread or user to be fetched forcefully
+        let image = viewModel.thread?.computedImageURL ?? viewModel.participantDetailViewModel?.participant.image
+        let httpsImage = image?.replacingOccurrences(of: "http://", with: "https://")
+        let config = ImageLoaderConfig(url: httpsImage ?? "",
+                                       size: .ACTUAL,
+                                       metaData: viewModel.thread?.metadata,
+                                       userName: String.splitedCharacter(viewModel.thread?.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        return config
     }
 
     private var avatarVM: ImageLoaderViewModel {
@@ -77,15 +80,34 @@ struct DetailInfoViewSection: View {
                 if thread.type == .selfThread {
                     SelfThreadImageView(imageSize: 64, iconSize: 28)
                 }
-            }
-            .onTapGesture {
-                fullScreenImageLoader.fetch()
-            }
-            .onReceive(fullScreenImageLoader.$image) { newValue in
-                if newValue.size.width > 0 {
-                    appOverlayVM.galleryImageView = newValue
+                if showDownloading {
+                    ProgressView()
                 }
             }
+            .onTapGesture {
+                onTapAvatarAction()
+            }
+            .onReceive(fullScreenImageLoader.$image) { newValue in
+                if newValue.size.width > 0, cachedImage == nil {
+                    onDonwloadAavtarCompleted(image: newValue)
+                }
+            }
+    }
+    
+    private func onTapAvatarAction() {
+        // We use cache image because in init fullScreenImageLoader we always set forcetodownload for image to true
+        if cachedImage == nil {
+            showDownloading = true
+            fullScreenImageLoader.fetch()
+        } else {
+            appOverlayVM.galleryImageView = cachedImage
+        }
+    }
+    
+    private func onDonwloadAavtarCompleted(image: UIImage) {
+        appOverlayVM.galleryImageView = image
+        showDownloading = false
+        cachedImage = image
     }
 
     private var threadTitle: some View {

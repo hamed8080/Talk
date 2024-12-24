@@ -19,9 +19,8 @@ struct TagParticipantRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    if let thread = tagParticipant.conversation {
-                        let config = ImageLoaderConfig(url: tagParticipant.conversation?.computedImageURL ?? "", metaData: thread.metadata, userName: String.splitedCharacter( tagParticipant.conversation?.title ?? ""))
-                        ImageLoaderView(imageLoader: .init(config: config))
+                    if let conversation = tagParticipant.conversation {
+                        ImageLoaderView(conversation: conversation)
                             .id("\(tagParticipant.conversation?.computedImageURL ?? "")\(tagParticipant.conversation?.id ?? 0)")
                             .font(.system(size: 16).weight(.heavy))
                             .foregroundColor(.white)
@@ -29,7 +28,7 @@ struct TagParticipantRow: View {
                             .background(Color(uiColor: String.getMaterialColorByCharCode(str: tagParticipant.conversation?.title ?? "")))
                             .clipShape(RoundedRectangle(cornerRadius:(14)))
                         VStack(alignment: .leading) {
-                            Text(thread.title ?? "")
+                            Text(conversation.title ?? "")
                                 .font(.iransansBody)
                                 .foregroundColor(Color.App.textSecondary)
                         }

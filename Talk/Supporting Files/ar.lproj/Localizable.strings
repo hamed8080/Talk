@@ -74,6 +74,7 @@
 "General.thirdSentVerb" = "%@ أرسلت";
 "General.noDescription" = "بدون وصف!";
 "General.noResult" = "لا توجد نتيجة";
+"General.unknown" = "غير معروف";
 
 /* Tabs */
 "Tab.chats" = "المحادثات";
@@ -357,6 +358,8 @@ talk.pod.ir";
 "Setting.EditProfile.bioHintMore" = "أدخل قليلاً عن نفسك...";
 "Setting.EditProfile.enterToPodAccount" = "ادخل إلى حساب POD الخاص بك";
 "Settings.darkModeEnabled" = "الوضع الداكن";
+"Settings.ManageSessions.title" = "إدارة الجلسات النشطة";
+"Settings.isAutoPlayVideoEnabled" = "تشغيل الفيديوهات تلقائيا";
 
 /* Support */
 "Support.title" = "Talk messenger";
@@ -449,3 +452,33 @@ talk.pod.ir";
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "إرسال الموقع المحدد";
+
+/* ManageSessions */
+"ManageSessions.type" = "نوع الجهاز";
+"ManageSessions.deviceName" = "الاسم";
+"ManageSessions.deviceType" = "نوع الجهاز";
+"ManageSessions.os" = "نظام التشغيل";
+"ManageSessions.osVersion" = "إصدار نظام التشغيل";
+"ManageSessions.ip" = "عنوان IP";
+"ManageSessions.lastActivity" = "آخر نشاط";
+"ManageSessions.location" = "الموقع";
+"ManageSessions.removeAllDescription" = "يمكنك إزالة جميع الأجهزة التي سجلت الدخول عليها دفعة واحدة.";
+"ManageSessions.removeAll" = "إزالة الكل";
+"ManageSessions.removeOnce" = "إزالة الجلسة";
+"ManageSessions.RemoveAllSessions.title" = "تنبيه";
+"ManageSessions.RemoveAllSessions.subtitle" = "هل تريد تعطيل جميع الأجهزة باستثناء هذا الجهاز؟";
+"ManageSessions.RemoveOneSession.title" = "تنبيه";
+"ManageSessions.RemoveOneSession.subtitle" = "هل تريد تعطيل %@؟";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "جميع المحادثات";
+"ConversationsTabs.archive" = "كل الأرشيف";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "قائمة الأرشيف فارغة.";
+"ArchivedTab.guide" = "لإلغاء أرشفة الدردشة، عليك الانتقال إلى علامة التبويب \"الأرشيف\". لن تتلقى الدردشة المؤرشفة أي إشعار.";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "عرض الرسائل";
+"AdminLimitHistoryTimeDialog.title" = "عرض الرسائل من وقت محدد فقط.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "اختر التاريخ";

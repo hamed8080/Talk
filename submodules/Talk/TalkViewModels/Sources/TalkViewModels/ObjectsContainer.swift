@@ -124,7 +124,9 @@ public final class ObjectsContainer: ObservableObject {
     }
 
     private func fetchUserProfile(user: User?) {
-        let config = ImageLoaderConfig(url: user?.image ?? "", size: .LARG, userName: String.splitedCharacter(user?.name ?? ""))
+        let image = user?.image ?? ""
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        let config = ImageLoaderConfig(url: httpsImage, size: .LARG, userName: String.splitedCharacter(user?.name ?? ""))
         if userProfileImageVM == nil {
             userProfileImageVM = .init(config: config)
         } else {

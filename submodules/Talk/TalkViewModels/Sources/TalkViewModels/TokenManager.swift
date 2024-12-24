@@ -47,7 +47,7 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
 
     private func pkceURLRequest(refreshToken: String, codeVerifier: String) -> URLRequest {
         let clientId = "88413l69cd4051a039cf115ee4e073"
-        let url = URL(string: AppRoutes.pckeToken)!
+        let url = URL(string: AppRoutes(serverType: .main).ssoToken)!
         var urlReq = URLRequest(url: url)
         urlReq.url?.append(queryItems: [.init(name: "refreshToken", value: refreshToken)])
         urlReq.httpMethod = "POST"
@@ -96,6 +96,7 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
             await onNewRefreshToken(ssoToken)
         } catch {
             onRefreshTokenError(error: error)
+            throw error
         }
     }
     

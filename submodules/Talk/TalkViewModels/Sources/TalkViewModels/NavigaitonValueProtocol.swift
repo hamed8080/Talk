@@ -146,3 +146,9 @@ public struct LoadTestsNavigationValue: NavigaitonValueProtocol {
 
     public init() {}
 }
+
+public struct ManageSessionsNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "Settings.ManageSessions.title"
+    public var navType: NavigationType { .manageSessions(self) }
+    public init() {}
+}

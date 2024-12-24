@@ -117,7 +117,11 @@ struct VoiceRowView: View {
                 await downloadVM.setup()
             }
         }
-        .customContextMenu(id: message.id, self: self.environmentObject(audioVM).environmentObject(downloadVM)) {
+        .newCustomContextMenu {
+            VoiceRowView(message: message)
+                .disabled(true)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } menus: {
             VStack {
                 ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
                     Task {

@@ -37,11 +37,10 @@ struct SettingsView: View {
                 StickyHeaderSection(header: "", height: 10)
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
-                DarkModeSection()
                 SettingLanguageSection()
-                SettingLogSection()
+                SettingSettingSection()
                 if EnvironmentValues.isTalkTest {
-                    SettingSettingSection()
+                    SettingLogSection()
                     BlockedMessageSection()
                     // SettingCallHistorySection()
                     // SettingSavedMessagesSection()
@@ -214,32 +213,6 @@ struct UserInformationSection: View {
     }
 }
 
-
-struct PreferenceView: View {
-    @State var model = AppSettingsModel.restore()
-
-    var body: some View {
-        List {
-            Section("Tab.contacts") {
-                VStack(alignment: .leading, spacing: 2) {
-                    Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
-                    Text("Contacts.Sync.subtitle")
-                        .foregroundColor(.gray)
-                        .font(.iransansCaption3)
-                }
-            }
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparator(.hidden)
-        }
-        .background(Color.App.bgPrimary)
-        .listStyle(.plain)
-        .onChange(of: model) { _ in
-            model.save()
-        }
-        .normalToolbarView(title: "Settings.title", type: PreferenceNavigationValue.self)        
-    }
-}
-
 struct SettingCallHistorySection: View {
     var body: some View {
         Section {
@@ -270,15 +243,13 @@ struct SettingLogSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        if EnvironmentValues.isTalkTest {
-            ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
-                let value = LogNavigationValue()
-                navModel.append(value: value)
-            }
-            .listRowInsets(.zero)
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparatorTint(Color.App.dividerPrimary)
+        ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
+            let value = LogNavigationValue()
+            navModel.append(value: value)
         }
+        .listRowInsets(.zero)
+        .listRowBackground(Color.App.bgPrimary)
+        .listRowSeparatorTint(Color.App.dividerPrimary)
     }
 }
 
@@ -327,48 +298,6 @@ struct SavedMessageSection: View {
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
-    }
-}
-
-struct DarkModeSection: View {
-    @Environment(\.colorScheme) var currentSystemScheme
-    @State var isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? false
-
-    var body: some View {
-        HStack {
-            HStack {
-                Image(systemName: "circle.righthalf.filled")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 16, height: 16)
-                    .frame(width: 28, height: 28)
-                    .foregroundColor(.white)
-                    .background(Color.App.color1)
-                    .clipShape(RoundedRectangle(cornerRadius:(8)))
-
-                Text("Settings.darkModeEnabled".bundleLocalized())
-            }
-
-            Spacer()
-            Toggle("", isOn: $isDarkModeEnabled)
-            .tint(Color.App.accent)
-            .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
-            .offset(x: 8)
-        }
-        .padding(.top, 4)
-        .padding(.leading)
-        .listSectionSeparator(.hidden)
-        .listRowInsets(.zero)
-        .listRowBackground(Color.App.bgPrimary)
-        .listRowSeparatorTint(Color.App.dividerPrimary)
-        .onChange(of: isDarkModeEnabled) { value in
-            var model = AppSettingsModel.restore()
-            model.isDarkModeEnabled = value
-            model.save()
-        }
-        .onAppear {
-            isDarkModeEnabled = currentSystemScheme == .dark
-        }
     }
 }
 

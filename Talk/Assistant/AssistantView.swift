@@ -29,7 +29,7 @@ struct AssistantView: View {
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
                 NavigationBackButton(automaticDismiss: false) {
-                    AppState.shared.objectsContainer.navVM.remove()
+                    AppState.shared.objectsContainer.navVM.remove(innerBack: true)
                 }
             }
 
@@ -120,8 +120,7 @@ struct AddAssistantRow: View {
 
     var body: some View {
         HStack {
-            let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: contact.firstName)
-            ImageLoaderView(imageLoader: .init(config: config))
+            ImageLoaderView(contact: contact)
                 .id("\(contact.image ?? "")\(contact.id ?? 0)")
                 .font(.iransansBoldBody)
                 .foregroundColor(.white)

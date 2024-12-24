@@ -229,7 +229,7 @@ struct EditCreatedConversationDetail: View {
                     viewModel.assetResources = assestResources ?? []
                     viewModel.animateObjectWillChange()
                     showImagePicker = false
-                    viewModel.startUploadingImage()
+//                    viewModel.startUploadingImage()
                 }
             }
         }
@@ -291,7 +291,7 @@ struct EditCreatedConversationDetail: View {
                                 .frame(width: 24, height: 24)
                                 .foregroundStyle(Color.App.textSecondary)
                                 .onTapGesture {
-                                    viewModel.cancelUploadImage()
+//                                    viewModel.cancelUploadImage()
                                 }
                         }
                         if let percent = viewModel.uploadProfileProgress {
@@ -359,8 +359,7 @@ struct ‌BuilderContactRow: View {
             HStack(spacing: 0) {
                 BuilderContactRowRadioButton(contact: contact)
                     .padding(.trailing, isInSelectionMode ? 8 : 0)
-                let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: String.splitedCharacter(contact.firstName ?? ""))
-                ImageLoaderView(imageLoader: .init(config: config))
+                ImageLoaderView(contact: contact)
                     .id("\(contact.image ?? "")\(contact.id ?? 0)")
                     .font(.iransansBody)
                     .foregroundColor(Color.App.textPrimary)

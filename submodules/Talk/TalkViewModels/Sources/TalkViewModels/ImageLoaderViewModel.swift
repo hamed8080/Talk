@@ -199,14 +199,30 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     private func getHashCode() async -> String? {
         let parsedMetadata = await getMetaData()
-        let oldHashCode = await getOldURLHash()
-        return parsedMetadata?.fileHash ?? oldHashCode
+        if let hashCode = parsedMetadata?.fileHash {
+            return hashCode
+        }
+        if let oldHashCode = await getOldURLHash() {
+            return oldHashCode
+        }
+        
+        return  getHashByLastPath()
     }
 
     @AppBackgroundActor
     private func getOldURLHash() async -> String? {
         guard let url = await getURLHistoryActor(), let comp = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
         return comp.queryItems?.first(where: { $0.name == "hash" })?.value
+    }
+    
+    private func getHashByLastPath() -> String? {
+        guard let url = getURL() else { return nil }
+        let isPodspaceFile = url.absoluteString.contains("https://podspace.pod.ir/api/files/")
+        let isPodspaceImage = url.absoluteString.contains("https://podspace.pod.ir/api/images/")
+        if isPodspaceFile || isPodspaceImage {
+            return url.lastPathComponent
+        }
+        return nil
     }
 
     private func getCachedFileURL() async -> URL? {

@@ -18,10 +18,10 @@ public class GalleyOffsetViewModel: ObservableObject {
     public weak var appOverlayVM: AppOverlayViewModel?
     @Published public var heightOfScreen: CGFloat = .zero
 
-    public func onDragChanged(_ value: DragGesture.Value) {
+    public func onDragChanged(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
         isDragging = true
         if endScale > 1 {
-            scrollInZoomMode(value)
+            scrollInZoomMode(value, forcedLeftToRight: forcedLeftToRight)
         }
     }
 
@@ -72,8 +72,13 @@ public class GalleyOffsetViewModel: ObservableObject {
         }
     }
 
-    private func scrollInZoomMode(_ value: DragGesture.Value) {
-        let width = value.translation.width + previousDragOffset.width
+    private func scrollInZoomMode(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
+        var width: CGFloat = 0
+        if !forcedLeftToRight {
+            width = -value.translation.width + previousDragOffset.width
+        } else {
+            width = value.translation.width + previousDragOffset.width
+        }
         let height = value.translation.height + previousDragOffset.height
         dragOffset = .init(width: width, height: height)
     }
@@ -93,15 +98,29 @@ public class GalleyOffsetViewModel: ObservableObject {
     }
 
     public func dismiss() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            dragOffset.height += heightOfScreen - dragOffset.height
-            containerYOffset = dragOffset.height
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.appOverlayVM?.isPresented = false
-            self?.appOverlayVM?.clear()
-            self?.resetZoom()
-            self?.resetOffset()
+        if #available(iOS 17.0, *) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                dragOffset.height += heightOfScreen - dragOffset.height
+                containerYOffset += dragOffset.height
+            } completion: {
+                DispatchQueue.main.async { [weak self] in
+                    self?.appOverlayVM?.isPresented = false
+                    self?.appOverlayVM?.clear()
+                    self?.resetZoom()
+                    self?.resetOffset()
+                }
+            }
+        } else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                dragOffset.height += heightOfScreen - dragOffset.height
+                containerYOffset = dragOffset.height
+                DispatchQueue.main.async { [weak self] in
+                    self?.appOverlayVM?.isPresented = false
+                    self?.appOverlayVM?.clear()
+                    self?.resetZoom()
+                    self?.resetOffset()
+                }
+            }
         }
     }
 }

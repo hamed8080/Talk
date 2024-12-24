@@ -133,6 +133,8 @@ struct NavigationTypeView: View {
             ThreadDetailView()
                 .id(model.viewModel.thread?.id)
                 .environmentObject(model.viewModel)
+        case .manageSessions(_):
+            ManageSessionsView()
         }
     }
 }
