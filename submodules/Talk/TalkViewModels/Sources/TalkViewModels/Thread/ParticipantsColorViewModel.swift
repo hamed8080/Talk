@@ -10,11 +10,11 @@ import SwiftUI
 
 @HistoryActor
 public final class ParticipantsColorViewModel: @unchecked Sendable {
-    var participantsColor: [Int: UIColor] = [:]
+    private var participantsColor: [Int: UIColor] = [:]
     private var reservedColors: [Int] = []
     nonisolated public init() { }
 
-    func random() -> UIColor {
+    private func random() -> UIColor {
         let number = Int.random(in: 1...7)
         let emptySlots = (1...7).filter { number in
             return !reservedColors.contains(where: { $0 == number })

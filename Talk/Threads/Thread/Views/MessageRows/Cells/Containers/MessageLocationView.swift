@@ -69,7 +69,7 @@ final class MessageLocationView: UIImageView {
     }
 
     private func setImage(fileURL: URL?, withAnimation: Bool = false) {
-        Task { @HistoryActor in
+        Task { @AppBackgroundActor in
             if let scaledImage = fileURL?.imageScale(width: 800)?.image {
                 await MainActor.run {
                     if withAnimation {

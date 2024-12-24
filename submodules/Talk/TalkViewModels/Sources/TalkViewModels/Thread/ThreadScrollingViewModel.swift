@@ -83,7 +83,7 @@ public final class ThreadScrollingViewModel {
     }
     
     public func disableExcessiveLoading() {
-        task = Task { @HistoryActor [weak self] in
+        task = Task.detached { [weak self] in
             await self?.setIsProgramaticallyScrolling(true)
             try? await Task.sleep(for: .seconds(1))
             await self?.setIsProgramaticallyScrolling(false)

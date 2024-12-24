@@ -171,6 +171,10 @@ extension UIHistoryTableView {
 extension UIHistoryTableView {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         Task {
+            if viewModel?.scrollVM.getIsProgramaticallyScrolling() == true {
+                print("Reject did scroll to, isProgramaticallyScroll is true")
+                return
+            }
             await viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)
         }
     }

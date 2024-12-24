@@ -287,7 +287,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
                              subtitle: metadata?.file?.originalName ?? "")
     }
     
-    @HistoryActor
+    @AppBackgroundActor
     private func metadata(message: (any HistoryMessageProtocol)?) async -> FileMetaData? {
         message?.fileMetaData
     }
