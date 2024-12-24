@@ -8,6 +8,7 @@
 import Foundation
 import PhotosUI
 import SwiftUI
+
 public struct ImagePicker: UIViewControllerRepresentable {
     @Environment(\.presentationMode) private var presentationMode
     let sourceType: UIImagePickerController.SourceType
@@ -18,7 +19,7 @@ public struct ImagePicker: UIViewControllerRepresentable {
         self.onImagePicked = onImagePicked
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         if status != .authorized {
-            PHPhotoLibrary.requestAuthorization {_ in }
+            PHPhotoLibrary.requestAuthorization(for: .readWrite) { @Sendable _ in }
         }
     }
 
