@@ -2243,7 +2243,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 195;
+				MARKETING_VERSION = 199;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2278,7 +2278,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 195;
+				MARKETING_VERSION = 199;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
