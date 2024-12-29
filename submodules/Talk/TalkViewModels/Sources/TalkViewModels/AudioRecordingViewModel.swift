@@ -112,9 +112,9 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
             let recordingSession = AVAudioSession.sharedInstance()
             try recordingSession.setCategory(.playAndRecord, mode: .default)
             try recordingSession.setActive(true)
-            recordingSession.requestRecordPermission { granted in
+            recordingSession.requestRecordPermission { @Sendable granted in
                 Task { [weak self] in
-                    self?.onPermission(granted: granted)
+                    await self?.onPermission(granted: granted)
                 }
             }
         } catch {

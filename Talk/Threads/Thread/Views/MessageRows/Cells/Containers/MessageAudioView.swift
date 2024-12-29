@@ -143,9 +143,14 @@ final class MessageAudioView: UIView {
             
             playbackSpeedButton.widthAnchor.constraint(equalToConstant: 52),
             playbackSpeedButton.heightAnchor.constraint(equalToConstant: 28),
-            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
             playbackSpeedButton.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor, constant: -4),
         ])
+        
+        if isMe {
+            playbackSpeedButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin).isActive = true
+        } else {
+            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin).isActive = true
+        }
         registerObservers()
     }
 
