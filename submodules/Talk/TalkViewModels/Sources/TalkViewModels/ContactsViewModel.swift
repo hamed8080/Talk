@@ -229,7 +229,8 @@ public class ContactsViewModel: ObservableObject {
     }
 
     public func deselectContacts() {
-        selectedContacts = [] 
+        selectedContacts = []
+        searchContactString = ""
     }
 
     public func delete(indexSet: IndexSet) {
