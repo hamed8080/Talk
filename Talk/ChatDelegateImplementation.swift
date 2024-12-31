@@ -116,7 +116,8 @@ final class ChatDelegateImplementation: ChatDelegate {
         Task { @MainActor in
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
-                AppState.shared.connectionStatus = EnvironmentValues.isTalkTest ? .unauthorized : .connecting
+                // If the chat was connected and we refresh token during 10 seconds period successfully, it means we are still connected to the server so the sate is connected even after refreshing the token. However, if we weren't connected during refresh token it means that we weren't connected so we will move to the connecting stage.
+                AppState.shared.connectionStatus = AppState.shared.connectionStatus == .connected ? .connected : .connecting
             } catch {
                 if let error = error as? AppErrors, error == AppErrors.revokedToken {
                     await self.logout()
