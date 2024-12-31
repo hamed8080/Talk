@@ -122,6 +122,7 @@ final class MessageImageView: UIImageView {
 
     private func attachOrDetachEffectView(canShow: Bool) {
         if canShow, effectView.superview == nil {
+            effectView.layer.opacity = 1.0
             addSubview(effectView)
             bringSubviewToFront(effectView)
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
@@ -157,6 +158,7 @@ final class MessageImageView: UIImageView {
 
     private func attachOrDetachProgressView(canShow: Bool) {
         if canShow, stack.superview == nil {
+            stack.layer.opacity = 1.0
             addSubview(stack)
             stack.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
             stack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
@@ -189,6 +191,8 @@ final class MessageImageView: UIImageView {
         }
         guard let image = viewModel.fileState.preloadImage else { return }
         self.image = image
+        attachOrDetachEffectView(canShow: true)
+        attachOrDetachProgressView(canShow: true)
     }
 
     @objc func onTap(_ sender: UIGestureRecognizer) {
