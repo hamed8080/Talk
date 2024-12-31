@@ -41,7 +41,9 @@ public class CustomConversationNavigationBar: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         
         titlebutton.translatesAutoresizingMaskIntoConstraints = false
-        titlebutton.setTitle(viewModel?.thread.titleRTLString, for: .normal)
+        let title = viewModel?.thread.titleRTLString ?? ""
+        let replacedEmoji = title.stringToScalarEmoji()
+        titlebutton.setTitle(replacedEmoji, for: .normal)
         titlebutton.titleLabel?.font = UIFont.uiiransansBoldBody
         titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"

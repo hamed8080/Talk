@@ -6,33 +6,34 @@
 //
 
 import Foundation
+import ChatModels
 import UIKit
 
-@MainActor
+@AppBackgroundActor
 public class ThreadAvatarManager {
-    private var queue = DispatchQueue(label: "ThreadAvatarManagerSerialQueue")
+    @MainActor
     private var avatarsViewModelsQueue: [ImageLoaderViewModel] = []
     private var cachedAvatars: [String: UIImage] = [:]
     private weak var viewModel: ThreadViewModel?
     private let maxCache = 50
 
+    @MainActor
     public init() {}
 
+    @MainActor
     public func setup(viewModel: ThreadViewModel) {
-        self.viewModel = viewModel
+        Task { @AppBackgroundActor in
+            self.viewModel = viewModel
+        }
     }
 
     public func addToQueue(_ viewModel: MessageRowViewModel) {
-        queue.async { [weak self] in
-            Task { @MainActor in
-                self?.addOrUpdate(viewModel)
-            }
-        }
+        addOrUpdate(viewModel)
     }
 
     private func addOrUpdate(_ viewModel: MessageRowViewModel) {
         let participant = viewModel.message.participant
-        guard let link = participant?.image,
+        guard let link = httpsImage(participant),
               let participantId = participant?.id
         else { return }
         if let image = cachedAvatars[link] {
@@ -43,42 +44,52 @@ public class ThreadAvatarManager {
     }
 
     public func getImage(_ viewModel: MessageRowViewModel) -> UIImage? {
-        queue.sync {
-            let participant = viewModel.message.participant
-            guard let link = participant?.image else { return nil }
-            return cachedAvatars[link]
-        }
+        let participant = viewModel.message.participant
+        guard let link = httpsImage(participant) else { return nil }
+        return cachedAvatars[link]
     }
 
     public func updateRow(_ image: UIImage, _ participantId: Int) {
-        DispatchQueue.main.async { [weak self] in
-            self?.viewModel?.delegate?.updateAvatar(image: image, participantId: participantId)
+        Task {
+            let delegate = await viewModel?.delegate
+            await MainActor.run { [weak self] in
+                delegate?.updateAvatar(image: image, participantId: participantId)
+            }
         }
     }
 
     private func create(_ viewModel: MessageRowViewModel) {
-        guard self.viewModel?.thread.group == true, !viewModel.calMessage.isMe, let url = viewModel.message.participant?.image else { return }
-        if isInQueue(url) { return }
-        releaseFromBottom()
-        let config = ImageLoaderConfig(url: url)
-        let vm = ImageLoaderViewModel(config: config)
-        avatarsViewModelsQueue.append(vm)
-        vm.onImage = { [weak self, weak vm] image in
-            self?.cachedAvatars[url] = image
-            self?.updateRow(image, viewModel.message.participant?.id ?? -1)
-            if let vm = vm {
-                self?.removeViewModel(vm)
+        Task { @MainActor in
+            guard await self.viewModel?.thread.group == true, !viewModel.calMessage.isMe, let url = await httpsImage(viewModel.message.participant) else { return }
+            if await isInQueue(url) { return }
+            await releaseFromBottom()
+            let config = ImageLoaderConfig(url: url)
+            let vm = ImageLoaderViewModel(config: config)
+            avatarsViewModelsQueue.append(vm)
+            let participantId = viewModel.message.participant?.id ?? -1
+            vm.onImage = { [weak self, weak vm] image in
+                Task {
+                    await self?.onOnImage(url: url, image: image, participantId: participantId)
+                    if let vm = vm {
+                        await self?.removeViewModel(vm)
+                    }
+                }
             }
-        }
-        Task { [weak vm] in
-            vm?.fetch()
+            vm.fetch()
         }
     }
-
+    
+    private func onOnImage(url: String, image: UIImage, participantId: Int) async {
+        cachedAvatars[url] = image
+        await updateRow(image, participantId)
+    }
+    
+    @MainActor
     private func isInQueue(_ url: String) -> Bool {
         avatarsViewModelsQueue.contains(where: { $0.config.url == url })
     }
 
+    @MainActor
     private func removeViewModel(_ viewModel: ImageLoaderViewModel) {
         viewModel.clear()
         avatarsViewModelsQueue.removeAll(where: {$0.config.url == viewModel.config.url})
@@ -88,5 +99,9 @@ public class ThreadAvatarManager {
         if cachedAvatars.count > maxCache, let firstKey = cachedAvatars.first?.key {
             cachedAvatars.removeValue(forKey: firstKey)
         }
+    }
+    
+    private func httpsImage(_ participant: Participant?) -> String? {
+        participant?.image?.replacingOccurrences(of: "http://", with: "https://")
     }
 }

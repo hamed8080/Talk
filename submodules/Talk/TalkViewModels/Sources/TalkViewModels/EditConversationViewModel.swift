@@ -47,7 +47,10 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
         CHANGE_TO_PUBLIC_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         EDIT_GROUP_ADMINS_KEY = "EDIT-GROUP-ADMINS-\(objectId)"
         self.threadVM = threadVM
-        editTitle = thread.title?.replacingOccurrences(of: NSRegularExpression.emojiRegEx, with: "\\\\u{$1}", options: .regularExpression) ?? ""
+        
+        let title = thread.titleRTLString ?? ""
+        let replacedEmoji = title.stringToScalarEmoji()
+        editTitle = replacedEmoji
         threadDescription = thread.description ?? ""
         isPublic = thread.type?.isPrivate == false
         registerObservers()

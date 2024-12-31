@@ -139,6 +139,7 @@ public final class ThreadsViewModel: ObservableObject {
         }
         var threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil}) ?? []
         threads.enumerated().forEach { index, thread in
+            threads[index].title = thread.title?.stringToScalarEmoji()
             threads[index].reactionStatus = thread.reactionStatus ?? .enable
         }
         let pinThreads = response.result?.filter({$0.pin == true})
@@ -422,8 +423,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func updateThreadInfo(_ thread: Conversation) {
         if let threadId = thread.id, let index = firstIndex(threadId) {
-            let title = thread.title ?? ""
-            let replacedEmoji = title.replacingOccurrences(of: NSRegularExpression.emojiRegEx, with: "\\\\u{$1}", options: .regularExpression)
+            let replacedEmoji = thread.titleRTLString.stringToScalarEmoji()
             /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
             /// So to update the UI properly we have to set it to link.
             var arrItem = threads[index]
@@ -524,6 +524,8 @@ public final class ThreadsViewModel: ObservableObject {
     /// There is a chance another user join to this public group, so we have to check if the thread is already exists.
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) {
         if let conversation = response.result {
+            var conversaiton = conversation
+            conversaiton.title = conversaiton.title?.stringToScalarEmoji()
             if !threads.contains(where: {$0.id == conversation.id}) {
                 threads.append(conversation)
                 if conversation.participants?.first?.id == AppState.shared.user?.id {

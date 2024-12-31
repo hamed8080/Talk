@@ -32,7 +32,7 @@ struct ThreadRowActionMenu: View {
             }
         }
 
-        if !isDetailView {
+        if !isDetailView, !thread.closed {
             ContextMenuButton(title: archiveTitle, image: archiveImage) {
                 onArchiveUnArchiveTapped()
             }

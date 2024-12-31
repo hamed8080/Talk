@@ -187,7 +187,8 @@ public final class MessageContainerStackView: UIStackView {
             tailImageView.removeFromSuperview()
             singleEmojiView.set(viewModel)
             addArrangedSubview(singleEmojiView)
-            backgroundColor = nil
+            let isSingleEmojiWithAttachment: Bool = !viewModel.calMessage.rowType.isBareSingleEmoji
+            backgroundColor = isSingleEmojiWithAttachment ? (viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!) : nil
         } else {
             singleEmojiView.removeFromSuperview()
             backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!

@@ -112,7 +112,7 @@ struct DetailInfoViewSection: View {
 
     private var threadTitle: some View {
         HStack {
-            let threadName = viewModel.participantDetailViewModel?.participant.contactName ?? thread.computedTitle
+            let threadName = viewModel.participantDetailViewModel?.participant.contactName ?? thread.titleRTLString.stringToScalarEmoji()
             Text(threadName)
                 .font(.iransansBody)
                 .foregroundStyle(Color.App.textPrimary)

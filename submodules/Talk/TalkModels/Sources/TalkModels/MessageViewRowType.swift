@@ -15,3 +15,10 @@ public struct MessageViewRowType: Sendable {
     public var isSingleEmoji = false
     public init() {}
 }
+
+public extension MessageViewRowType {
+    var isBareSingleEmoji: Bool {
+        if isFile || isImage || isAudio || isMap || isReply || isVideo || isForward { return false }
+        return true
+    }
+}

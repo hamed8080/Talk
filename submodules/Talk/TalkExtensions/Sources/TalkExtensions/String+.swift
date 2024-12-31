@@ -100,8 +100,8 @@ public extension String {
 
     var isEmptyOrWhiteSpace: Bool { trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
-    static func splitedCharacter(_ string: String) -> String {
-        let splited = string.split(separator: " ")
+    static func splitedCharacter(_ string: String) -> String {        
+        let splited = string.replacingOccurrences(of: "\u{200f}", with: "").split(separator: " ")
         if let first = splited.first?.first {
             var second: String = ""
             if splited.indices.contains(1), let last = splited[1].first {
@@ -203,5 +203,25 @@ public extension String {
             }
         }
         return true
+    }
+    
+    func stringToScalarEmoji() -> String {
+        let regex = try! NSRegularExpression(pattern: NSRegularExpression.emojiRegEx)
+        var result = self
+        
+        // Find all matches for the pattern
+        let matches = regex.matches(in: self, range: NSRange(self.startIndex..<self.endIndex, in: self))
+        for match in matches.reversed() { // Reversed to prevent indexing issues during string modification
+            if let hexCodeRange = Range(match.range(at: 1), in: result) {
+                let hexCode = String(result[hexCodeRange])
+                if let scalarValue = UInt32(hexCode, radix: 16), let scalar = UnicodeScalar(scalarValue) {
+                    let emoji = String(scalar)
+                    if let fullMatchRange = Range(match.range, in: result) {
+                        result.replaceSubrange(fullMatchRange, with: emoji) // Replace the escape sequence with emoji
+                    }
+                }
+            }
+        }
+        return result
     }
 }

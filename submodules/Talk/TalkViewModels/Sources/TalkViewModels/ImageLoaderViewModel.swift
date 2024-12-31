@@ -33,7 +33,7 @@ public struct ImageLoaderConfig: Sendable {
 @MainActor
 public final class ImageLoaderViewModel: ObservableObject {
     @Published public private(set) var image: UIImage = .init()
-    public var onImage: ((UIImage) -> Void)?
+    public var onImage: (@Sendable (UIImage) -> Void)?
     private(set) var fileMetadata: String?
     public private(set) var cancelable: Set<AnyCancellable> = []
     private var uniqueId: String?

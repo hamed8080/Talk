@@ -153,6 +153,7 @@ final class ReplyInfoView: UIView {
     }
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {
+        if viewModel?.message.replyInfo?.deleted == true { return }
         Task {
             if isReplyPrivately {
                 moveToReplyPrivately()
