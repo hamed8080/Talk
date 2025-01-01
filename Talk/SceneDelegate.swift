@@ -14,6 +14,7 @@ import BackgroundTasks
 import TalkModels
 import Logger
 
+@MainActor
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDelegate {
     var window: UIWindow?
     private var backgroundTaskID: UIBackgroundTaskIdentifier?
@@ -97,7 +98,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         /// We request only 10 seconds, to keep the socket open.
         /// More than this value leads to iOS getting suspicious and terminating the app afterward.
         Timer.scheduledTimer(withTimeInterval: min(10, UIApplication.shared.backgroundTimeRemaining), repeats: false) { [weak self] _ in
-            self?.endBGTask()
+            Task { @MainActor in
+                self?.endBGTask()
+            }
         }
     }
 
