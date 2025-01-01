@@ -21,6 +21,7 @@ public class ContextMenuContainerView: UIView {
     var indexPath: IndexPath?
     private weak var delegate: ContextMenuDelegate?
     private var vc: UIViewController? { delegate as? UIViewController }
+    private var contentViewHeightConstraint: NSLayoutConstraint?
 
     public init(delegate: ContextMenuDelegate) {
         self.delegate = delegate
@@ -71,13 +72,14 @@ public class ContextMenuContainerView: UIView {
         ])
 
         // Constraints for contentView
+        contentViewHeightConstraint = contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 2000)
+        contentViewHeightConstraint?.isActive = true // Set height to 2000
         NSLayoutConstraint.activate([
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 2000) // Set height to 2000
         ])
     }
 
@@ -85,6 +87,8 @@ public class ContextMenuContainerView: UIView {
         self.indexPath = indexPath
         changeSizeIfNeeded()
         scrollView.contentSize = .init(width: view.bounds.width, height: view.subviews.map({$0.frame.height}).reduce(0, +))
+        let contentViewHeight = max(2000, scrollView.contentSize.height)
+        contentViewHeightConstraint?.constant = contentViewHeight
         view.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(view)
         NSLayoutConstraint.activate([
@@ -94,6 +98,11 @@ public class ContextMenuContainerView: UIView {
             view.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             view.widthAnchor.constraint(equalTo: contentView.widthAnchor)
         ])
+
+        let bottomOffset = CGPoint(x: 0, y: (scrollView.contentSize.height - scrollView.bounds.size.height) + safeAreaInsets.bottom)
+        if bottomOffset.y > 0 {
+            scrollView.setContentOffset(bottomOffset, animated: true)
+        }
     }
 
     public func show() {
