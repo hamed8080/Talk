@@ -645,24 +645,23 @@ extension ThreadViewController: HistoryScrollDelegate {
 //        if let scrollTo = scrollTo {
 //            self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
 //        }
-
         if let scrollTo = scrollTo {
             UIView.performWithoutAnimation {
                 tableView.performBatchUpdates {
                     // Insert the sections and rows without animation
                     tableView.insertSections(sections, with: animate)
                     tableView.insertRows(at: rows, with: animate)
-                } completion: { completed in
+                } completion: { [weak self] completed in
                     DispatchQueue.main.async {
-                        self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
+                        self?.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
                     }
                 }
             }
         } else {
-            tableView.performBatchUpdates {
+            tableView.performBatchUpdates { [weak self] in
                 // Insert the sections and rows without animation
-                tableView.insertSections(sections, with: animate)
-                tableView.insertRows(at: rows, with: animate)
+                self?.tableView.insertSections(sections, with: animate)
+                self?.tableView.insertRows(at: rows, with: animate)
             }
         }
     }
@@ -695,7 +694,8 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
         viewModel?.historyVM.isUpdating = true
-        tableView.performBatchUpdates {
+        tableView.performBatchUpdates { [weak self] in
+            guard let self = self else { return }
             for indexPath in indexPaths {
                 let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
                 if let cell = cell, let viewModel = viewModel?.historyVM.mSections.viewModelWith(indexPath) {

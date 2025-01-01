@@ -112,9 +112,15 @@ public final class EditMessagePlaceholderView: UIStackView {
         nameLabel.text = editMessage?.participant?.name
         nameLabel.setIsHidden(editMessage?.participant?.name == nil)
 
-        if isImage, let image = viewModel?.historyVM.mSections.messageViewModel(for: editMessage?.uniqueId ?? "")?.calMessage.fileURL?.imageScale(width: 36)?.image {
-            messageImageView.image = UIImage(cgImage: image)
-            messageImageView.setIsHidden(false)
+        if isImage, let fileURL = viewModel?.historyVM.mSections.messageViewModel(for: editMessage?.uniqueId ?? "")?.calMessage.fileURL {
+            Task.detached {
+                if let scaledImage = fileURL.imageScale(width: 36)?.image {
+                    await MainActor.run {
+                        self.messageImageView.image = UIImage(cgImage: scaledImage)
+                        self.messageImageView.setIsHidden(false)
+                    }
+                }
+            }
         } else if isFileType, let iconName = iconName {
             messageImageView.image = UIImage(systemName: iconName)
             messageImageView.setIsHidden(false)

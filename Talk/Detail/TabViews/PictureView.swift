@@ -165,6 +165,7 @@ struct DownloadPictureButtonView: View {
     let itemWidth: CGFloat
     @EnvironmentObject var viewModel: DownloadFileViewModel
     private var message: Message? { viewModel.message }
+    @State private var scaledImage: UIImage?
 
     var body: some View {
         switch viewModel.state {
@@ -179,8 +180,8 @@ struct DownloadPictureButtonView: View {
 
     @ViewBuilder
     private var scaledImageView: some View {
-        if let fileURL = viewModel.fileURL, let scaledImage = fileURL.imageScale(width: 128)?.image {
-            Image(cgImage: scaledImage)
+        if let scaledImage = scaledImage {
+            Image(uiImage: scaledImage)
                 .resizable()
                 .frame(width: itemWidth, height: itemWidth)
                 .scaledToFit()
@@ -224,13 +225,23 @@ struct DownloadPictureButtonView: View {
     private func prepareThumbnail() async {
         await viewModel.setup()
         if viewModel.isInCache {
+            let scaledImage = await scaledImag(url: viewModel.fileURL)
             viewModel.state = .completed
+            self.scaledImage = scaledImage
             viewModel.animateObjectWillChange()
         } else {
             if message?.isImage == true, !viewModel.isInCache, viewModel.thumbnailData == nil {
                 viewModel.downloadBlurImage(quality: 1.0, size: .MEDIUM)
             }
         }
+    }
+    
+    @AppBackgroundActor
+    private func scaledImag(url: URL?) async -> UIImage? {
+        if let fileURL = url, let scaledImage = fileURL.imageScale(width: 128)?.image {
+            return UIImage(cgImage: scaledImage)
+        }
+        return nil
     }
 }
 

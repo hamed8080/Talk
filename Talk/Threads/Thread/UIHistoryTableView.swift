@@ -14,6 +14,7 @@ import TalkModels
 @MainActor
 class UIHistoryTableView: UITableView {
     private weak var viewModel: ThreadViewModel?
+    private let revealAnimation = RevealAnimation()
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -77,6 +78,10 @@ extension UIHistoryTableView: UITableViewDelegate {
         }
         return nil
     }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        revealAnimation.reveal(for: view)
+    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         ConversationHistoryCellFactory.reuse(tableView, indexPath, viewModel)
@@ -84,6 +89,7 @@ extension UIHistoryTableView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = UIColor.clear
+        revealAnimation.reveal(for: cell)
         viewModel?.historyVM.mSections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)

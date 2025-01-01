@@ -199,14 +199,22 @@ public final class DownloadFileManager {
     private func updateReplyImageOnStateChange(messageId: Int, state: MessageFileState, vm: DownloadFileViewModel) async {
         guard state.state == .thumbnail || state.state == .completed else { return }
         var replyImage: UIImage? = nil
-        if state.state == .completed, let scaledCompletedImage = vm.fileURL?.imageScale(width: 48)?.0 {
-            let image = UIImage(cgImage: scaledCompletedImage)
+        if state.state == .completed, let scaledCompletedImage = await scaledImage(url: vm.fileURL) {
+            let image = scaledCompletedImage
             replyImage = image
         } else if state.state == .thumbnail {
             replyImage = state.preloadImage
         }
         guard let replyImage = replyImage else { return }
         await updateAllReplyMessageImages(image: replyImage, messageId: messageId)
+    }
+    
+    @AppBackgroundActor
+    private func scaledImage(url: URL?) async -> UIImage? {
+        if let scaledImage = url?.imageScale(width: 48)?.image {
+            return UIImage(cgImage: scaledImage)
+        }
+        return nil
     }
 
     private func onFileChanged(message: Message) async {

@@ -12,6 +12,7 @@ import ChatModels
 import TalkModels
 import Chat
 
+@MainActor
 final class MessageImageView: UIImageView {
     // Views
     private let stack = UIStackView()
@@ -104,7 +105,9 @@ final class MessageImageView: UIImageView {
         let state = viewModel.fileState.state
         let canShow = state != .completed
         if let fileURL = viewModel.calMessage.fileURL {
-            setImage(fileURL: fileURL)
+            Task {
+                await setImage(fileURL: fileURL)
+            }
         } else {
             setPreloadImage(viewModel: viewModel)
         }
@@ -167,21 +170,25 @@ final class MessageImageView: UIImageView {
         }
     }
 
-    private func setImage(fileURL: URL, animate: Bool = false) {
-        Task { @AppBackgroundActor in
-            if let scaledImage = fileURL.imageScale(width: 300)?.image {
-                let image = scaledImage
-                await MainActor.run {
-                    if animate {
-                        UIView.transition(with: self, duration: 0.5, options: .transitionCrossDissolve) {
-                            self.image = UIImage(cgImage: image)
-                        }
-                    } else {
-                        self.image = UIImage(cgImage: image)
-                    }
+    private func setImage(fileURL: URL, animate: Bool = false) async {
+        if let scaledImage = await scaledImage(url: fileURL) {
+            let image = scaledImage
+            if animate {
+                UIView.transition(with: self, duration: 0.5, options: .transitionCrossDissolve) {
+                    self.image = image
                 }
+            } else {
+                self.image = image
             }
         }
+    }
+    
+    @AppBackgroundActor
+    private func scaledImage(url: URL) async -> UIImage? {
+        if let scaledImage = url.imageScale(width: 300)?.image {
+            return UIImage(cgImage: scaledImage)
+        }
+        return nil
     }
 
     // Thumbnail or placeholder image
@@ -214,7 +221,9 @@ final class MessageImageView: UIImageView {
             updateProgress(viewModel: viewModel)
             removeProgressViewByHidingAnimation()
             removeEffectViewByHidingAnimation()
-            setImage(fileURL: fileURL, animate: true)
+            Task {
+                await setImage(fileURL: fileURL, animate: true)
+            }
         }
     }
 
@@ -223,7 +232,8 @@ final class MessageImageView: UIImageView {
             updateProgress(viewModel: viewModel)
             removeProgressViewByHidingAnimation()
             removeEffectViewByHidingAnimation()
-            setImage(fileURL: fileURL)
+            Task {
+                await setImage(fileURL: fileURL)}
         }
     }
 

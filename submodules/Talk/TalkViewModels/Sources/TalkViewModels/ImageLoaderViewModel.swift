@@ -69,34 +69,40 @@ public final class ImageLoaderViewModel: ObservableObject {
         image.size.width > 0
     }
 
-    private func setImage(data: Data) async {
+    @AppBackgroundActor
+    private func setImage(data: Data, configSize: ImageSize) async {
         var image: UIImage? = nil
-        if config.size == .ACTUAL {
+        if configSize == .ACTUAL {
             autoreleasepool {
                 image = UIImage(data: data) ?? UIImage()
             }
         } else {
-            guard let cgImage = data.imageScale(width: config.size == .SMALL ? 128 : 256)?.image else { return }
+            guard let cgImage = data.imageScale(width: configSize == .SMALL ? 128 : 256)?.image else { return }
             autoreleasepool {
                 image = UIImage(cgImage: cgImage)
             }
         }
 
         if let image = image {
-            updateImage(image: image)
+            await MainActor.run {
+                updateImage(image: image)
+            }
         }
     }
 
-    private func setCachedImage(fileURL: URL) async {
+    @AppBackgroundActor
+    private func setCachedImage(fileURL: URL, configSize: ImageSize) async {
         var image: UIImage? = nil
-        if config.size == .ACTUAL, let data = fileURL.data {
+        if configSize == .ACTUAL, let data = fileURL.data {
             image = UIImage(data: data) ?? UIImage()
         } else {
-            guard let cgImage = fileURL.imageScale(width: config.size == .SMALL ? 128 : 256)?.image else { return }
+            guard let cgImage = fileURL.imageScale(width: configSize == .SMALL ? 128 : 256)?.image else { return }
             image = UIImage(cgImage: cgImage)
         }
         if let image = image {
-            updateImage(image: image)
+            await MainActor.run {
+                updateImage(image: image)
+            }
         }
     }
 
@@ -122,7 +128,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         } else if isPodURL() {
             await downloadRestImageFromPodURL()
         } else if let fileURL = await getCachedFileURL() {
-            await setCachedImage(fileURL: fileURL)
+            await setCachedImage(fileURL: fileURL, configSize: config.size)
         }
     }
 
@@ -146,13 +152,14 @@ public final class ImageLoaderViewModel: ObservableObject {
         } else {
             guard let url = url else { return }
             response.pop(prepend: IMAGE_LOADER_KEY)
-            await setCachedImage(fileURL: url)
+            await setCachedImage(fileURL: url, configSize: config.size)
         }
     }
 
+    @AppBackgroundActor
     private func update(data: Data) async {
         guard isRealImage(data) else { return }
-        await setImage(data: data)
+        await setImage(data: data, configSize: config.size)
     }
 
     private func storeInCache(data: Data) {
@@ -253,7 +260,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         URL(string: await config.url)
     }
 
-    private func isRealImage(_ data: Data) -> Bool {
+    private nonisolated func isRealImage(_ data: Data) -> Bool {
         return UIImage(data: data) != nil
     }
 

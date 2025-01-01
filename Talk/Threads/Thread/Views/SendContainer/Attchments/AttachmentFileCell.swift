@@ -11,6 +11,7 @@ import TalkUI
 import TalkModels
 import SwiftUI
 
+@MainActor
 public final class AttachmentFileCell: UITableViewCell {
     public var viewModel: ThreadViewModel!
     public var attachment: AttachmentFile!
@@ -98,10 +99,21 @@ public final class AttachmentFileCell: UITableViewCell {
         if icon != nil || isVideo {
             let image = UIImage(systemName: isVideo ? "film.fill" : icon ?? "")
             imgIcon.set(image: image ?? .init(), inset: .init(all: 6))
-        } else if !isVideo, let cgImage = imageItem?.data.imageScale(width: 28)?.image {
-            let image = UIImage(cgImage: cgImage)
-            imgIcon.set(image: image, inset: .init(all: 0))
+        } else if !isVideo {
+            Task {
+                if let scaledImage = await scaledImage(data: imageItem?.data) {
+                    imgIcon.set(image: scaledImage, inset: .init(all: 0))
+                }
+            }
         }
+    }
+    
+    @AppBackgroundActor
+    private func scaledImage(data: Data?) async -> UIImage? {
+        if let cgImage = data?.imageScale(width: 28)?.image {
+            return UIImage(cgImage: cgImage)
+        }
+        return nil
     }
 
     @objc private func removeTapped(_ sender: UIButton) {

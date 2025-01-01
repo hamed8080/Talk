@@ -13,6 +13,7 @@ import SwiftUI
 import TalkUI
 import Combine
 
+@MainActor
 class ThreadNavigationPlayer: UIView {
     private let timerLabel = UILabel()
     private let titleLabel = UILabel()
