@@ -71,7 +71,7 @@ public final class EmptyThreadView: UIView {
     }
 
     private func prepareIU(_ imageView: UIImageView, _ label: UILabel) {
-        Task {
+        Task.detached {
             let image = UIImage(systemName: "text.bubble")
             let text = "Thread.noMessage".bundleLocalized()
             await MainActor.run {

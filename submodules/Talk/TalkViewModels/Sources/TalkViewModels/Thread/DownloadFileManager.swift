@@ -134,11 +134,6 @@ public final class DownloadFileManager {
         downloadVMS.removeAll(where: {$0.message?.id == messageId})
     }
 
-    private func realImage(vm: DownloadFileViewModel) -> UIImage? {
-        guard let cgImage = vm.fileURL?.imageScale(width: 420)?.image else { return nil }
-        return UIImage(cgImage: cgImage)
-    }
-
     private func blurImage(vm: DownloadFileViewModel) -> UIImage? {
         guard let data = vm.thumbnailData, vm.state == .thumbnail else { return nil }
         return UIImage(data: data)

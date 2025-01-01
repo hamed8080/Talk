@@ -8,6 +8,7 @@
 import UIKit
 import TalkViewModels
 
+@MainActor
 class ChatBackgroundView: UIImageView {
     private let gradinetLayer = CAGradientLayer()
 
@@ -23,7 +24,6 @@ class ChatBackgroundView: UIImageView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-
         configure()
     }
 
@@ -35,7 +35,8 @@ class ChatBackgroundView: UIImageView {
         image = UIImage(named: "chat_bg")
         contentMode = .scaleAspectFill
 
-        gradinetLayer.colors = AppSettingsModel.restore().isDarkModeEnabled == true ? darkColors : lightColors
+        let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? (traitCollection.userInterfaceStyle == .dark)
+        gradinetLayer.colors = isDarkModeEnabled ? darkColors : lightColors
         gradinetLayer.startPoint = .init(x: 0, y: 0)
         gradinetLayer.endPoint = .init(x: 0, y: 1)
         layer.addSublayer(gradinetLayer)

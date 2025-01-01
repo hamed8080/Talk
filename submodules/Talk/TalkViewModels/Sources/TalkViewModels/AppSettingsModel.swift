@@ -7,12 +7,13 @@
 import Foundation
 import Combine
 
+@MainActor
 public struct AppSettingsModel: Codable, Hashable, Sendable {
-    public static func == (lhs: AppSettingsModel, rhs: AppSettingsModel) -> Bool {
+    nonisolated public static func == (lhs: AppSettingsModel, rhs: AppSettingsModel) -> Bool {
         lhs.hashValue == rhs.hashValue
     }
 
-    public func hash(into hasher: inout Hasher) {
+    nonisolated public func hash(into hasher: inout Hasher) {
         hasher.combine(isSyncOn)
         hasher.combine(notificationSettings.data)
         hasher.combine(automaticDownloadSettings.data)
@@ -24,12 +25,10 @@ public struct AppSettingsModel: Codable, Hashable, Sendable {
     public var isDarkModeEnabled: Bool? = nil
     public var notificationSettings: NotificationSettingModel = .init()
     public var automaticDownloadSettings: AutomaticDownloadSettingModel = .init()
-
+    
     public func save() {
         UserDefaults.standard.setValue(codable: self, forKey: AppSettingsModel.key)
-        Task { @MainActor in
-            NotificationCenter.appSettingsModel.post(name: .appSettingsModel, object: self)
-        }
+        NotificationCenter.appSettingsModel.post(name: .appSettingsModel, object: self)
     }
 
     public static func restore() -> AppSettingsModel {

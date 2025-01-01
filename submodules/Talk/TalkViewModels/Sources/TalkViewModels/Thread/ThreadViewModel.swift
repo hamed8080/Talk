@@ -329,12 +329,9 @@ public final class ThreadViewModel {
 
     // MARK: Setting Observer
     private func setAppSettingsModel() {
-        Task { [weak self] in
-            guard let self = self else { return }
-            model = AppSettingsModel.restore()
-            canDownloadImages = canDownloadImagesInConversation()
-            canDownloadFiles = canDownloadFilesInConversation()
-        }
+        model = AppSettingsModel.restore()
+        canDownloadImages = canDownloadImagesInConversation()
+        canDownloadFiles = canDownloadFilesInConversation()
     }
 
     private func canDownloadImagesInConversation() -> Bool {

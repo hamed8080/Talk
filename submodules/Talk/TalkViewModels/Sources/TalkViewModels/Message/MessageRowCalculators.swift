@@ -295,6 +295,10 @@ class MessageRowCalculators {
             if newSizes.width == 0 {
                 newSizes.width = ThreadViewModel.maxAllowedWidth
             }
+            let minWidth: CGFloat = 148 - 8 // It will prevent cutting progressView as much as possible.
+            if newSizes.width < minWidth {
+                newSizes.width = minWidth
+            }
             return newSizes
         }
         return nil

@@ -116,7 +116,7 @@ final class MessageImageView: UIImageView {
             fileSizeLabel.text = viewModel.calMessage.computedFileSize
         }
 
-        widthConstraint.constant = (viewModel.calMessage.sizes.imageWidth ?? 128) - 8 // -8 for parent stack view margin
+        widthConstraint.constant = (viewModel.calMessage.sizes.imageWidth ?? 0) - 8 // -8 for parent stack view margin
         heightConstraint.constant = viewModel.calMessage.sizes.imageHeight ?? 128
     }
 
