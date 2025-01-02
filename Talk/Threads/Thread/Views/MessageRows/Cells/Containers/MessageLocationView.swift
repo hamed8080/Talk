@@ -68,6 +68,7 @@ final class MessageLocationView: UIImageView {
     }
     
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isMap { return }
         Task {
             await setImage(fileURL: viewModel.calMessage.fileURL, withAnimation: true)
         }

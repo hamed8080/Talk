@@ -10,13 +10,12 @@ import TalkModels
 import ChatCore
 import ChatModels
 
-public typealias MessageType = any HistoryMessageProtocol
-public typealias MessageIndex = Array<MessageType>.Index
+public typealias MessageIndex = Array<HistoryMessageType>.Index
 public typealias SectionIndex = Array<MessageSection>.Index
 public typealias HistoryResponse = ChatResponse<[Message]>
 
 extension ThreadHistoryViewModel {
-    func canSetSeen(for message: any HistoryMessageProtocol, newMessageId: Int, isMeId: Int) -> Bool {
+    func canSetSeen(for message: HistoryMessageType, newMessageId: Int, isMeId: Int) -> Bool {
         let notDelivered = message.delivered ?? false == false
         let notSeen = message.seen ?? false == false
         let isValidToChange = (message.id ?? 0 < newMessageId) && (notSeen || notDelivered) && message.ownerId == isMeId

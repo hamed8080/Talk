@@ -19,7 +19,7 @@ import Photos
 extension MessageContainerStackView {
 
     public func menu(model: ActionModel, indexPath: IndexPath?, onMenuClickedDismiss: @escaping () -> Void ) -> CustomMenu {
-        let message: any HistoryMessageProtocol = model.message
+        let message: HistoryMessageType = model.message
         let threadVM = model.threadVM
         let viewModel = model.viewModel
 
@@ -177,7 +177,7 @@ private extension MessageContainerStackView {
     }
 
     func onSaveVideoAction(_ model: ActionModel) {
-        Task {
+        Task { @AppBackgroundActor in
             guard let url = await model.viewModel.message.makeTempURL() else { return }
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
@@ -209,7 +209,7 @@ private extension MessageContainerStackView {
                 try? await Task.sleep(for: .milliseconds(500))
                 if let threadVM = model.threadVM {
                     let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
-                    await newVM.performaCalculation()
+                    await newVM.performaCalculation(mainData: newVM.getMainData())
                     await MainActor.run {
                         model.threadVM?.historyVM.mSections[indexPath.section].vms[indexPath.row] = newVM
                         model.threadVM?.delegate?.reloadData(at: indexPath)

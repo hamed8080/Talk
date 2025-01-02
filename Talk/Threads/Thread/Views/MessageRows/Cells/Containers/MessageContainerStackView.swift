@@ -215,7 +215,7 @@ public final class MessageContainerStackView: UIStackView {
 public struct ActionModel {
     let viewModel: MessageRowViewModel
     var threadVM: ThreadViewModel? { viewModel.threadVM }
-    var message: any HistoryMessageProtocol { viewModel.message }
+    var message: HistoryMessageType { viewModel.message }
 }
 
 // MARK: Upadate methods

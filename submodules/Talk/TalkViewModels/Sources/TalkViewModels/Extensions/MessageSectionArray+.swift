@@ -7,16 +7,18 @@
 
 import Foundation
 import Chat
+import TalkModels
 
-public typealias MyIndicies = (message: MessageType, indexPath: IndexPath)
+public typealias MyIndicies = (message: HistoryMessageType, indexPath: IndexPath)
 
 extension ContiguousArray where Element == MessageSection {
-    internal func sectionIndexByUniqueId(_ message: MessageType) -> SectionIndex? {
+    internal func sectionIndexByUniqueId(_ message: HistoryMessageType) -> SectionIndex? {
         sectionIndexByUniqueId(message.uniqueId ?? "")
     }
 
     internal func sectionIndexByUniqueId(_ uniqueId: String) -> SectionIndex? {
-        firstIndex(where: { $0.vms.contains(where: {$0.message.uniqueId == uniqueId }) })
+        if isEmpty { return nil }
+        return firstIndex(where: { $0.vms.contains(where: {$0.message.uniqueId == uniqueId }) })
     }
 
     internal func insertedIndices(insertTop: Bool, beforeSectionCount: Int, _ viewModels: [MessageRowViewModel]) -> (sections: IndexSet, rows: [IndexPath]) {
@@ -34,6 +36,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func viewModelWith(_ indexPath: IndexPath) -> MessageRowViewModel? {
+        if isEmpty { return nil }
         if indices.contains(indexPath.section), self[indexPath.section].vms.indices.contains(indexPath.row) {
             return self[indexPath.section].vms[indexPath.row]
         } else {
@@ -41,27 +44,32 @@ extension ContiguousArray where Element == MessageSection {
         }
     }
 
-    internal func sectionIndexByMessageId(_ message: MessageType) -> SectionIndex? {
+    internal func sectionIndexByMessageId(_ message: HistoryMessageType) -> SectionIndex? {
         sectionIndexByMessageId(message.id ?? 0)
     }
 
     internal func sectionIndexByMessageId(_ id: Int) -> SectionIndex? {
-        firstIndex(where: { $0.vms.contains(where: {$0.message.id == id }) })
+        if isEmpty { return nil }
+        return firstIndex(where: { $0.vms.contains(where: {$0.message.id == id }) })
     }
 
     internal func sectionIndexByDate(_ date: Date) -> SectionIndex? {
-        firstIndex(where: { Calendar.current.isDate(date, inSameDayAs: $0.date)})
+        if isEmpty { return nil }
+        return firstIndex(where: { Calendar.current.isDate(date, inSameDayAs: $0.date)})
     }
 
     internal func messageIndex(_ messageId: Int, in section: SectionIndex) -> MessageIndex? {
-        self[section].vms.firstIndex(where: { $0.id == messageId })
+        if isEmpty { return nil }
+        return self[section].vms.firstIndex(where: { $0.id == messageId })
     }
 
     private func messageIndex(_ uniqueId: String, in section: SectionIndex) -> MessageIndex? {
-        self[section].vms.firstIndex(where: { $0.message.uniqueId == uniqueId })
+        if isEmpty { return nil }
+        return self[section].vms.firstIndex(where: { $0.message.uniqueId == uniqueId })
     }
 
     internal func message(for id: Int?) -> MyIndicies? {
+        if isEmpty { return nil }
         guard
             let id = id,
             let sectionIndex = sectionIndexByMessageId(id),
@@ -72,6 +80,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func indicesByMessageUniqueId(_ uniqueId: String) -> IndexPath? {
+        if isEmpty { return nil }
         guard
             let sectionIndex = sectionIndexByUniqueId(uniqueId),
             let messageIndex = messageIndex(uniqueId, in: sectionIndex)
@@ -80,6 +89,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     internal func findIncicesBy(uniqueId: String?, _ id: Int?) -> IndexPath? {
+        if isEmpty { return nil }
         guard
             uniqueId?.isEmpty == false,
             let sectionIndex = firstIndex(where: { $0.vms.contains(where: { $0.message.uniqueId == uniqueId || $0.id == id }) }),
@@ -89,6 +99,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func indexPath(for viewModel: MessageRowViewModel) -> IndexPath? {
+        if isEmpty { return nil }
         guard
             let sectionIndex = firstIndex(where: { $0.vms.contains(where: { $0.id == viewModel.id }) }),
             let messageIndex = self[sectionIndex].vms.firstIndex(where: { $0.id == viewModel.id })
@@ -97,6 +108,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func viewModelAndIndexPath(for id: Int?) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
+        if isEmpty { return nil }
         guard
             let id = id,
             let sectionIndex = sectionIndexByMessageId(id),
@@ -113,6 +125,7 @@ extension ContiguousArray where Element == MessageSection {
 
     @discardableResult
     public func indexPathBy(messageUniqueId uniqueId: String) -> IndexPath? {
+        if isEmpty { return nil }
         var row: Int?
         var sectionIndex: Int?
         for (sIndex, section) in enumerated() {
@@ -142,6 +155,7 @@ extension ContiguousArray where Element == MessageSection {
      */
     @discardableResult
     public func viewModelAndIndexPath(viewModelUniqueId uniqueId: String) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
+        if isEmpty { return nil }
         var sectionIndex = count - 1
         var rowIndex: Int? = nil
         while sectionIndex >= 0 {
@@ -158,6 +172,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func isLastSeenMessageExist(thread: Conversation?) -> Bool {
+        if isEmpty { return false }
         let lastSeenId = thread?.lastSeenMessageId
         if lastSeenIsGreaterThanLastMessage(thread: thread) { return true }
         guard let lastSeenId = lastSeenId else { return false }
@@ -178,6 +193,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func viewModel(_ thread: Conversation, _ response: ChatResponse<MessageResponse>) -> MessageRowViewModel? {
+        if isEmpty { return nil }
         guard
             thread.id == response.result?.threadId,
             let messageId = response.result?.messageId,
@@ -187,7 +203,7 @@ extension ContiguousArray where Element == MessageSection {
         return vm
     }
 
-    public func indexPathsForUpload(requests: [MessageType], beforeSectionCount: Int) -> (indices: [IndexPath], sectionIndex: IndexSet?) {
+    public func indexPathsForUpload(requests: [HistoryMessageType], beforeSectionCount: Int) -> (indices: [IndexPath], sectionIndex: IndexSet?) {
         var indicies: [IndexPath] = []
         for request in requests {
             if let uniqueId = request.uniqueId, let indexPath = indicesByMessageUniqueId(uniqueId) {
@@ -203,6 +219,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func previousIndexPath(_ currentIndexPath: IndexPath) -> IndexPath? {
+        if isEmpty { return nil }
         // Check for end of the list
         if currentIndexPath.row == 0, currentIndexPath.section == 0 {
             return nil
@@ -225,6 +242,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func nextIndexPath(_ currentIndexPath: IndexPath) -> IndexPath? {
+        if isEmpty { return nil }
         // Check for end of the list
         if currentIndexPath.section == count - 1 {
             return nil
@@ -246,6 +264,7 @@ extension ContiguousArray where Element == MessageSection {
     }
 
     public func sameUserPrevIndex(_ message: Message) -> IndexPath? {
+        if isEmpty { return nil }
         guard
             let uniqueId = message.uniqueId,
             let indexPath = indexPathBy(messageUniqueId: uniqueId),

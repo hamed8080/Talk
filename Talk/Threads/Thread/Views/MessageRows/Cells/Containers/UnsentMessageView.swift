@@ -51,6 +51,7 @@ final class UnsentMessageView: UIView {
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isUnSent { return }
         let canShow = viewModel.message.isUnsentMessage
         btnCancel.setIsHidden(!canShow)
         btnResend.setIsHidden(!canShow)

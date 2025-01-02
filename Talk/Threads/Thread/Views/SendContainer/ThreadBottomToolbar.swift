@@ -136,12 +136,12 @@ public final class ThreadBottomToolbar: UIStackView {
         }
     }
 
-    public func openEditMode(_ message: (any HistoryMessageProtocol)?) {
+    public func openEditMode(_ message: HistoryMessageType?) {
         editMessagePlaceholderView.set(stack: self)
         viewModel?.sendContainerViewModel.setText(newValue: message?.message ?? "")
     }
 
-    public func openReplyMode(_ message: (any HistoryMessageProtocol)?) {
+    public func openReplyMode(_ message: HistoryMessageType?) {
         replyPlaceholderView.set(stack: self)
     }
 

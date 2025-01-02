@@ -30,7 +30,7 @@ public final class UploadFileManager {
         }
     }
 
-    public func register(message: any HistoryMessageProtocol, viewModelUniqueId: String) {
+    public func register(message: HistoryMessageType, viewModelUniqueId: String) {
         queue.sync {
             let isInQueue = uploadVMS.contains(where: {$0.key == viewModelUniqueId})
             let isFileOrMap = message is UploadProtocol
@@ -86,7 +86,7 @@ public final class UploadFileManager {
         }
     }
 
-    private func onUploadChanged(_ vm: UploadFileViewModel, _ message: any HistoryMessageProtocol, viewModelUniqueId: String) async {
+    private func onUploadChanged(_ vm: UploadFileViewModel, _ message: HistoryMessageType, viewModelUniqueId: String) async {
         let isCompleted = vm.state == .completed
         let isUploading = vm.state == .uploading
         let progress = min(CGFloat(vm.uploadPercent) / 100, 1.0)
@@ -107,12 +107,13 @@ public final class UploadFileManager {
                                               blurRadius: blurRadius,
                                               preloadImage: preloadImage
         )
-        await changeStateTo(state: fileState, viewModelUniqueId: viewModelUniqueId)
+        await changeStateTo(state: fileState, metaData: vm.fileMetaData, viewModelUniqueId: viewModelUniqueId)
     }
 
     @HistoryActor
-    private func changeStateTo(state: MessageFileState, viewModelUniqueId: String) async {
+    private func changeStateTo(state: MessageFileState, metaData: FileMetaData?, viewModelUniqueId: String) async {
         let tuple = await viewModel?.historyVM.mSections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
+        tuple?.vm.message.metadata = metaData?.jsonString
         let fileURL = await tuple?.vm.message.fileURL
         await MainActor.run {
             guard let tuple = tuple else { return }

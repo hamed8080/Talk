@@ -21,7 +21,7 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
 
     public let uniqueId: String = UUID().uuidString
     public var id: Int { message.id ?? -1 }
-    public var message: any HistoryMessageProtocol
+    public var message: HistoryMessageType
     public var isInvalid = false
 
     @MainActor public var reactionsModel: ReactionRowsCalculated = .init(rows: [], topPadding: 0)
@@ -30,18 +30,17 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     public var calMessage = MessageRowCalculatedData()
     public private(set) var fileState: MessageFileState = .init()
 
-    public init(message: any HistoryMessageProtocol, viewModel: ThreadViewModel) {
+    public init(message: HistoryMessageType, viewModel: ThreadViewModel) {
         self.message = message
         self.threadVM = viewModel
     }
 
-    public func recalculateWithAnimation() async {
-        await performaCalculation()
+    public func recalculateWithAnimation(mainData: MainRequirements) async {
+        await performaCalculation(mainData: mainData)
     }
-
-    @AppBackgroundActor
-    public func performaCalculation(appendMessages: [any HistoryMessageProtocol] = []) async {
-        let mainData = await getMainData()
+    
+    @HistoryActor
+    public func performaCalculation(appendMessages: [HistoryMessageType] = [], mainData: MainRequirements) async {
         calMessage = await MessageRowCalculators.calculate(message: message, mainData: mainData, appendMessages: appendMessages)
         if calMessage.fileURL != nil {
             fileState.state = .completed
@@ -49,9 +48,9 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
             fileState.iconState = message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? ""
         }
     }
-
+    
     @MainActor
-    public func register() async {
+    public func register() {
         if message is UploadProtocol {
             threadVM?.uploadFileManager.register(message: message, viewModelUniqueId: uniqueId)
         }
@@ -60,7 +59,7 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
         }
         
         if calMessage.isReplyImage && fileState.replyImage == nil {
-            await threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
+            threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
         }
     }
 
@@ -70,6 +69,10 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
         if state.state == .completed {
             calMessage.fileURL = fileURL
         }
+    }
+    
+    nonisolated public func setFileStateNonIsloated(_ state: MessageFileState) {
+        fileState = state
     }
 
     @MainActor
@@ -105,7 +108,7 @@ public extension MessageRowViewModel {
 
 // MARK: Upload Completion
 public extension MessageRowViewModel {
-    func swapUploadMessageWith(_ message: any HistoryMessageProtocol) {
+    func swapUploadMessageWith(_ message: HistoryMessageType) {
         self.message = message
         Task {
             calMessage.fileURL = await message.fileURL
@@ -235,7 +238,7 @@ public extension MessageRowViewModel {
     @HistoryActor
     func setReaction(reactions: ReactionInMemoryCopy) async {
         isInvalid = false
-        let reactionsModel = await MessageRowCalculators.calulateReactions(reactions: reactions)
+        let reactionsModel = MessageRowCalculators.calulateReactions(reactions: reactions)
         await MainActor.run { [weak self] in
             guard let self = self else { return }
             self.reactionsModel = reactionsModel
@@ -257,7 +260,8 @@ public extension MessageRowViewModel {
             guard let self = self else { return }
             message.pinned = false
             message.pinTime = nil
-            await recalculateWithAnimation()
+            let mainData = await getMainData()
+            await recalculateWithAnimation(mainData: mainData)
         }
     }
 
@@ -266,15 +270,15 @@ public extension MessageRowViewModel {
             guard let self = self else { return }
             message.pinned = true
             message.pinTime = time
-            await recalculateWithAnimation()
+            let mainData = await getMainData()
+            await recalculateWithAnimation(mainData: mainData)
         }
     }
 }
 
-extension MessageRowViewModel {
-    
+public extension MessageRowViewModel {    
     @MainActor
-    func getMainData() async -> MainRequirements {
+    func getMainData() -> MainRequirements {
         return MainRequirements(appUserId: AppState.shared.user?.id,
                                 thread: threadVM?.thread,
                                 participantsColorVM: threadVM?.participantsColorVM,

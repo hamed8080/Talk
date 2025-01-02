@@ -13,7 +13,6 @@ import OSLog
 
 @MainActor
 public final class ThreadUnsentMessagesViewModel {
-    public typealias MessageType = any HistoryMessageProtocol
     public weak var viewModel: ThreadViewModel?
     private var thread: Conversation? { viewModel?.thread }
     private var cancelable: Set<AnyCancellable> = []
@@ -82,7 +81,7 @@ public final class ThreadUnsentMessagesViewModel {
         for row in rows {
             if !self.rowViewModels.contains(where: {$0.uniqueId == row.uniqueId}) {
                 let vm = MessageRowViewModel(message: row, viewModel: viewModel)
-                await vm.performaCalculation()
+                await vm.performaCalculation(mainData: vm.getMainData())
                 self.rowViewModels.append(vm)
             }
         }
@@ -113,7 +112,7 @@ public final class ThreadUnsentMessagesViewModel {
         }
     }
 
-    public func resendUnsetMessage(_ message: MessageType) {
+    public func resendUnsetMessage(_ message: HistoryMessageType) {
         switch message {
         case let req as SendTextMessage:
             Task { @ChatGlobalActor in

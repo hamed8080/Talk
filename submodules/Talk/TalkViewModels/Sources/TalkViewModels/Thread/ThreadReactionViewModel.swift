@@ -142,7 +142,7 @@ public final class ThreadReactionViewModel {
         clearReactionsOnReconnect()
     }
 
-    internal func fetchReactions(messages: [Message]) async {
+    internal func fetchReactions(messages: [Message]) {
         guard threadVM?.searchedMessagesViewModel.isInSearchMode == false else { return}
         let messageIds = messages
             .filter({$0.id ?? -1 > 0})

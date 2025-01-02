@@ -33,7 +33,7 @@ public final class ThreadUploadMessagesViewModel {
             .store(in: &cancelable)
     }
 
-    internal func append(_ requests: [any HistoryMessageProtocol]) {
+    internal func append(_ requests: [HistoryMessageType]) {
         if requests.isEmpty { return }
         Task { [weak self] in
             guard let self = self, let historyVM = viewModel?.historyVM else { return }

@@ -22,7 +22,7 @@ class RevealAnimation {
         view.layer.opacity = 0.0
         UIView.animate(
             withDuration: 0.25,
-            delay: 0.5,
+            delay: 0.4,
             options: .curveEaseInOut,
             animations: {
                 view.layer.opacity = 1.0
@@ -30,7 +30,7 @@ class RevealAnimation {
         )
         
         if revealTimer == nil {
-            revealTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+            revealTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false) { [weak self] _ in
                 Task { @MainActor in
                     self?.shouldAnimateCellsOnAppear = false // stop to reanimate
                     self?.revealTimer = nil

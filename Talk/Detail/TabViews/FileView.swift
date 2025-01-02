@@ -73,6 +73,8 @@ struct FileRowView: View {
     @Environment(\.dismiss) var dismiss
     @State var shareDownloadedFile = false
     @EnvironmentObject var downloadViewModel: DownloadFileViewModel
+    @State private var tempURL: URL?
+    @State private var fileMetaData: FileMetaData?
 
     var body: some View {
         HStack {
@@ -99,7 +101,13 @@ struct FileRowView: View {
         .background(Color.App.bgPrimary)
         .contentShape(Rectangle())
         .sheet(isPresented: $shareDownloadedFile) {
-            ActivityViewControllerWrapper(activityItems: [message.tempURL], title: message.fileMetaData?.file?.originalName)
+            if let tempURL = tempURL {
+                ActivityViewControllerWrapper(activityItems: [tempURL], title: fileMetaData?.file?.originalName)
+            }
+        }
+        .task {
+            let metaData = await getFileMetaData(message: message)
+            self.fileMetaData = metaData
         }
         .onAppear {
             Task {
@@ -108,9 +116,11 @@ struct FileRowView: View {
         }
         .onTapGesture {
             if downloadViewModel.state == .completed {
-                Task {
+                Task { @AppBackgroundActor in
                     _ = await message.makeTempURL()
+                    let tempURL = message.tempURL
                     await MainActor.run {
+                        self.tempURL = tempURL
                         shareDownloadedFile.toggle()
                     }
                 }
@@ -136,6 +146,11 @@ struct FileRowView: View {
             .background(MixMaterialBackground())
             .clipShape(RoundedRectangle(cornerRadius:((12))))
         }
+    }
+    
+    @AppBackgroundActor
+    private func getFileMetaData(message: Message?) -> FileMetaData? {
+        message?.fileMetaData
     }
 }
 

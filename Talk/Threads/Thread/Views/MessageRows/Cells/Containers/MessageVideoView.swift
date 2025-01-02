@@ -32,7 +32,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     private var playerVC: AVPlayerViewController?
     private var videoPlayerVM: VideoPlayerViewModel?
     private weak var viewModel: MessageRowViewModel?
-    private var message: (any HistoryMessageProtocol)? { viewModel?.message }
+    private var message: HistoryMessageType? { viewModel?.message }
     private static let playIcon: UIImage = UIImage(systemName: "play.fill")!
 
     // Constraints
@@ -195,6 +195,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isVideo { return }
         updateProgress(viewModel: viewModel)
         fileNameLabelTrailingConstarint.constant = progressButtonSize
         if let fileURL = viewModel.calMessage.fileURL {
@@ -206,6 +207,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isVideo { return }
         updateProgress(viewModel: viewModel)
         if let fileURL = viewModel.calMessage.fileURL {
             prepareUIForPlayback(url: fileURL)
@@ -278,7 +280,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         playerVC?.perform(NSSelectorFromString("exitFullScreenAnimated:completionHandler:"), with: animated, with: nil)
     }
 
-    private func makeViewModel(url: URL, message: (any HistoryMessageProtocol)?) async {
+    private func makeViewModel(url: URL, message: HistoryMessageType?) async {
         let metadata = await metadata(message: message)
         if url.absoluteString == videoPlayerVM?.fileURL.absoluteString ?? "" { return }
         self.videoPlayerVM = VideoPlayerViewModel(fileURL: url,
@@ -288,7 +290,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     }
     
     @AppBackgroundActor
-    private func metadata(message: (any HistoryMessageProtocol)?) async -> FileMetaData? {
+    private func metadata(message: HistoryMessageType?) async -> FileMetaData? {
         message?.fileMetaData
     }
 }

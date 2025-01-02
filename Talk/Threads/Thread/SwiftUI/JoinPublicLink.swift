@@ -13,7 +13,7 @@ import Chat
 
 struct JoinPublicLink: View {
     let viewModel: MessageRowViewModel
-    private var message: any HistoryMessageProtocol { viewModel.message }
+    private var message: HistoryMessageType { viewModel.message }
 
     var body: some View {
         Button {
@@ -47,7 +47,7 @@ struct JoinPublicLink: View {
 
 
 struct JoinToPublicConversationDialog: View {
-    let message: any HistoryMessageProtocol
+    let message: HistoryMessageType
     var appOverlayVM: AppOverlayViewModel {AppState.shared.objectsContainer.appOverlayVM}
 
     var body: some View {

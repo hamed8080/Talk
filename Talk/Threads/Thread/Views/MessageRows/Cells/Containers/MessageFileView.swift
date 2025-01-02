@@ -25,7 +25,7 @@ final class MessageFileView: UIStackView {
 
     // Models
     private weak var viewModel: MessageRowViewModel?
-    private var message: (any HistoryMessageProtocol)? { viewModel?.message }
+    private var message: HistoryMessageType? { viewModel?.message }
 
     // Sizes
     private let progressButtonSize: CGFloat = 36
@@ -124,16 +124,19 @@ final class MessageFileView: UIStackView {
     }
 
     public func updateProgress(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isFile { return }
         let progress = viewModel.fileState.progress
         progressButton.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressButton.setProgressVisibility(visible: canShowProgress)
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isFile { return }
         updateProgress(viewModel: viewModel)
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isFile { return }
         updateProgress(viewModel: viewModel)
     }
 

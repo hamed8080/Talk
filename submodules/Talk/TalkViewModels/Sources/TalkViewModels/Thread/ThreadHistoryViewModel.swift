@@ -53,6 +53,8 @@ public final class ThreadHistoryViewModel {
     // MARK: Computed Properties
     private var thread: Conversation = Conversation()
     private var threadId: Int = -1
+    
+    private var start: DispatchTime = .now()
 
     // MARK: Initializer
     nonisolated public init() {}
@@ -60,7 +62,7 @@ public final class ThreadHistoryViewModel {
 
 
 extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
-    func onStableVisibleMessages(_ messages: [MessageType]) async {
+    func onStableVisibleMessages(_ messages: [HistoryMessageType]) async {
         let invalidVisibleMessages = await getInvalidVisibleMessages().compactMap({$0 as? Message})
         if invalidVisibleMessages.count > 0 {
             await viewModel?.reactionViewModel.fetchReactions(messages: invalidVisibleMessages)
@@ -69,7 +71,7 @@ extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
 }
 
 extension ThreadHistoryViewModel {
-    internal func getInvalidVisibleMessages() async -> [MessageType] {
+    internal func getInvalidVisibleMessages() async -> [HistoryMessageType] {
         var invalidMessages: [Message] =  []
         let list = await visibleTracker.visibleMessages.compactMap({$0 as? Message})
         for message in list {
@@ -259,12 +261,19 @@ extension ThreadHistoryViewModel {
             log("The message id to move to is not exist in the list")
         }
 
-        await showCenterLoading(true)
-        await showTopLoading(false)
-
-        await removeAllSections()
-        await delegate?.reload()
-
+        centerLoading = true
+        topLoading = false
+        sections.removeAll()
+        
+        Task.detached { [weak self] in
+            guard let self = self else { return }
+            await MainActor.run {
+                viewModel?.delegate?.startCenterAnimation(true)
+                viewModel?.delegate?.startTopAnimation(false)
+                mSections.removeAll()
+                delegate?.reload()
+            }
+        }
         middleFetcher?.completion = { [weak self] response in
             Task { [weak self] in
                 await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
@@ -276,20 +285,26 @@ extension ThreadHistoryViewModel {
     private func onMoveToTime(_ response: HistoryResponse, messageId: Int, highlight: Bool) async {
         let messages = response.result ?? []
         await delegate?.onScenario()
-        // Update the UI and fetch reactions the rows at top part.
-        await delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
         await onMoreTop(response, isMiddleFetcher: true)
         // If messageId is equal to thread.lastMessageVO?.id it means we are going to open up the thread at the bottom of it so there is
         if messageId == thread.lastMessageVO?.id {
             hasNextBottom = false
-            await setIsAtBottom(newValue: true)
         } else {
             await setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
         }
-        let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
-        await highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
-        await showCenterLoading(false)
-        await fetchReactions(messages: messages)
+        centerLoading = false
+        let lastMessageVOId = thread.lastMessageVO?.id
+        await MainActor.run {
+            // Update the UI and fetch reactions the rows at top part.
+            delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
+            if messageId == lastMessageVOId {
+                setIsAtBottom(newValue: true)
+            }
+            let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
+            highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
+            viewModel?.delegate?.startCenterAnimation(false)
+            fetchReactions(messages: messages)
+        }
     }
 
     /// Search for a message with an id in the messages array, and if it can find the message, it will redirect to that message locally, and there is no request sent to the server.
@@ -419,7 +434,7 @@ extension ThreadHistoryViewModel {
         await appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
         await viewModel?.scrollVM.disableExcessiveLoading()
-        await setHasMoreTop(response)
+        setHasMoreTopNonAsync(response)
         let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, viewModels)
 
         let moveToMessage = await viewModel?.scrollVM.lastContentOffsetY ?? 0 < 24
@@ -429,21 +444,24 @@ extension ThreadHistoryViewModel {
         }
         await delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .top(topVMBeforeJoin: topVMBeforeJoin))
-
         await detectLastMessageDeleted(wasEmptyBeforeInsert: wasEmpty, sortedMessages: sortedMessages)
-
-        // Register for downloading thumbnails or read cached version
-        for vm in viewModels {
-            await vm.register()
+   
+        topLoading = false
+        await MainActor.run {
+            // Register for downloading thumbnails or read cached version
+            for vm in viewModels {
+                vm.register()
+            }
+            viewModel?.delegate?.startTopAnimation(false)
+            if !isMiddleFetcher {
+                fetchReactions(messages: viewModels.compactMap({$0.message}))
+            }
         }
-        await showTopLoading(false)
-        if !isMiddleFetcher {
-            await fetchReactions(messages: viewModels.compactMap({$0.message}))
-        }
+        
         await prepareAvatars(viewModels)
     }
 
-    private func detectLastMessageDeleted(wasEmptyBeforeInsert: Bool, sortedMessages: [any HistoryMessageProtocol]) async {
+    private func detectLastMessageDeleted(wasEmptyBeforeInsert: Bool, sortedMessages: [HistoryMessageType]) async {
         if wasEmptyBeforeInsert, await isLastMessageEqualToLastSeen(), await !isLastMessageExistInSortedMessages(sortedMessages) {
             let lastSortedMessage = sortedMessages.last
             await MainActor.run {
@@ -493,36 +511,22 @@ extension ThreadHistoryViewModel {
         await prepareAvatars(viewModels)
     }
 
-    public func loadMoreTop(message: MessageType) async {
+    public func loadMoreTop(message: HistoryMessageType) async {
         if let time = message.time {
             await moreTop(prepend: keys.MORE_TOP_KEY, time)
         }
     }
 
-    public func loadMoreBottom(message: MessageType) async {
+    public func loadMoreBottom(message: HistoryMessageType) async {
         if let time = message.time {
             // We add 1 milliseceond to prevent duplication and fetch the message itself.
             await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
         }
     }
 
-    private func makeCalculateViewModelsFor(_ messages: [any HistoryMessageProtocol]) async -> [MessageRowViewModel] {
-        guard let viewModel = await viewModel else { return [] }
-        return await withTaskGroup(of: MessageRowViewModel.self) { group in
-            for message in messages {
-                group.addTask {
-                    let vm = MessageRowViewModel(message: message, viewModel: viewModel)
-                    await vm.performaCalculation(appendMessages: messages)
-                    return vm
-                }
-            }
-
-            var viewModels: [MessageRowViewModel] = []
-            for await vm in group {
-                viewModels.append(vm)
-            }
-            return viewModels
-        }
+    private func makeCalculateViewModelsFor(_ messages: [HistoryMessageType]) async -> [MessageRowViewModel] {
+        let mainData = await getMainData()
+        return await MessageRowCalculators.batchCalulate(messages, mainData: mainData, viewModel: viewModel)
     }
 }
 
@@ -735,16 +739,17 @@ extension ThreadHistoryViewModel {
     private func insertOrUpdateMessageViewModelOnNewMessage(_ message: Message, _ viewModel: ThreadViewModel) async -> MessageRowViewModel {
         let beforeSectionCount = sections.count
         let vm: MessageRowViewModel
+        let mainData = await getMainData()
         if let indexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "") {
             // Update a message sent by Me
             vm = sections[indexPath.section].vms[indexPath.row]
             vm.swapUploadMessageWith(message)
-            await vm.performaCalculation()
+            await vm.performaCalculation(mainData: mainData)
             await delegate?.reloadData(at: indexPath) // Do not call reload(at:) the item it will lead to call endDisplay
         } else {
             // A new message comes from server
             vm = MessageRowViewModel(message: message, viewModel: viewModel)
-            await vm.performaCalculation(appendMessages: [message])
+            await vm.performaCalculation(appendMessages: [message], mainData: mainData)
             await appendSort([vm])
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, [vm])
             await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
@@ -769,7 +774,8 @@ extension ThreadHistoryViewModel {
             vm.message.message = message.message
             vm.message.time = message.time
             vm.message.edited = true
-            await vm.performaCalculation()
+            let mainData = await getMainData()
+            await vm.performaCalculation(mainData: mainData)
             guard let indexPath = sections.indexPath(for: vm) else { return }
             await MainActor.run {
                 delegate?.edited(indexPath)
@@ -802,8 +808,8 @@ extension ThreadHistoryViewModel {
               let indexPath = sections.indexPath(for: vm)
         else { return }
         vm.message.delivered = true
-        await vm.performaCalculation()
-        await vm.performaCalculation()
+        let mainData = await getMainData()
+        await vm.performaCalculation(mainData: mainData)
         await MainActor.run {
             delegate?.delivered(indexPath)
         }
@@ -815,7 +821,8 @@ extension ThreadHistoryViewModel {
         else { return }
         vm.message.delivered = true
         vm.message.seen = true
-        await vm.performaCalculation()
+        let mainData = await getMainData()
+        await vm.performaCalculation(mainData: mainData)
         await MainActor.run {
             delegate?.seen(indexPath)
         }
@@ -835,7 +842,8 @@ extension ThreadHistoryViewModel {
         let result = response.result
         vm.message.id = result?.messageId
         vm.message.time = result?.messageTime
-        await vm.performaCalculation()
+        let mainData = await getMainData()
+        await vm.performaCalculation(mainData: mainData)
         await MainActor.run {
             delegate?.sent(indexPath)
         }
@@ -884,7 +892,7 @@ extension ThreadHistoryViewModel {
         return
     }
 
-    fileprivate func updateMessage(_ message: MessageType, _ indexPath: IndexPath?) -> MessageRowViewModel? {
+    fileprivate func updateMessage(_ message: HistoryMessageType, _ indexPath: IndexPath?) -> MessageRowViewModel? {
         guard let indexPath = indexPath else { return nil }
         let vm = sections[indexPath.section].vms[indexPath.row]
         let isUploading = vm.message is  UploadProtocol || vm.fileState.isUploading
@@ -897,7 +905,7 @@ extension ThreadHistoryViewModel {
         return vm
     }
 
-    public func injectMessagesAndSort(_ requests: [any HistoryMessageProtocol]) async {
+    public func injectMessagesAndSort(_ requests: [HistoryMessageType]) async {
         let viewModels = await makeCalculateViewModelsFor(requests)
         await appendSort(viewModels)
         for vm in viewModels {
@@ -938,7 +946,7 @@ extension ThreadHistoryViewModel {
     }
 
     @MainActor
-    public func deleteMessages(_ messages: [MessageType], forAll: Bool = false) async {
+    public func deleteMessages(_ messages: [HistoryMessageType], forAll: Bool = false) async {
         let messagedIds = messages.compactMap(\.id)
         let threadId = await threadId
         Task { @ChatGlobalActor in
@@ -957,7 +965,8 @@ extension ThreadHistoryViewModel {
         let unreadMessage = UnreadMessage(id: LocalId.unreadMessageBanner.rawValue, time: time, uniqueId: "\(LocalId.unreadMessageBanner.rawValue)")
         let indexPath = tuples.indexPath
         let vm = MessageRowViewModel(message: unreadMessage, viewModel: viewModel)
-        await vm.performaCalculation()
+        let mainData = await getMainData()
+        await vm.performaCalculation(mainData: mainData)
         sections[indexPath.section].vms.append(vm)
         await MainActor.run { [weak self, sections] in
             guard let self = self else { return }
@@ -1117,22 +1126,27 @@ extension ThreadHistoryViewModel {
 
     private func log(_ string: String) {
 #if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
+        Task.detached {
+            Logger.viewModels.info("\(string, privacy: .sensitive)")
+        }
 #endif
     }
     
     private func logScroll(_ string: String) {
 #if DEBUG
-        Logger.viewModels.info("SCROLL: \(string)")
+        Task.detached {
+            Logger.viewModels.info("SCROLL: \(string)")
+        }
 #endif
     }
 }
 
 // MARK: Reactions
 extension ThreadHistoryViewModel {
-    private func fetchReactions(messages: [MessageType]) async {
-        if await viewModel?.searchedMessagesViewModel.isInSearchMode == false {
-            await viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
+    @MainActor
+    private func fetchReactions(messages: [HistoryMessageType]) {
+        if viewModel?.searchedMessagesViewModel.isInSearchMode == false {
+            viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
         }
     }
 }
@@ -1144,6 +1158,13 @@ extension ThreadHistoryViewModel {
             hasNextTop = response.hasNext
             isFetchedServerFirstResponse = true
             await showTopLoading(false)
+        }
+    }
+    
+    private func setHasMoreTopNonAsync(_ response: ChatResponse<[Message]>) {
+        if !response.cache {
+            hasNextTop = response.hasNext
+            isFetchedServerFirstResponse = true
         }
     }
 
@@ -1200,7 +1221,7 @@ extension ThreadHistoryViewModel {
         return unseenMessages ?? []
     }
     
-    private func setSeenForAllOlderMessages(newMessage: MessageType, myId: Int) async {
+    private func setSeenForAllOlderMessages(newMessage: HistoryMessageType, myId: Int) async {
         let unseenMessages = unseenMessages(myId: myId)
         let isNotMe = !newMessage.isMe(currentUserId: myId)
         if isNotMe, unseenMessages.count > 0 {
@@ -1214,7 +1235,8 @@ extension ThreadHistoryViewModel {
         if let indexPath = sections.indexPath(for: vm) {
             vm.message.delivered = true
             vm.message.seen = true
-            await vm.performaCalculation()
+            let mainData = await getMainData()
+            await vm.performaCalculation(mainData: mainData)
             await MainActor.run {
                 delegate?.seen(indexPath)
             }
@@ -1244,9 +1266,10 @@ extension ThreadHistoryViewModel {
     }
 
     private func updateAllRows() async {
+        let mainData = await getMainData()
         for section in sections {
             for vm in section.vms {
-                await vm.recalculateWithAnimation()
+                await vm.recalculateWithAnimation(mainData: mainData)
             }
         }
     }
@@ -1256,7 +1279,6 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     func prepareAvatars(_ viewModels: [MessageRowViewModel]) async {
         // A delay to scroll to position and layout all rows properply
-        try? await Task.sleep(for: .seconds(0.2))
         let filtered = viewModels.filter({$0.calMessage.isLastMessageOfTheUser})
         for vm in filtered {
             await viewModel?.avatarManager.addToQueue(vm)
@@ -1280,6 +1302,14 @@ public extension ThreadHistoryViewModel {
     @MainActor
     func getSections() async -> ContiguousArray<MessageSection> {
         return await sections
+    }
+    
+    @MainActor
+    func getMainData() -> MainRequirements {
+        return MainRequirements(appUserId: AppState.shared.user?.id,
+                                thread: viewModel?.thread,
+                                participantsColorVM: viewModel?.participantsColorVM,
+                                isInSelectMode: viewModel?.selectedMessagesViewModel.isInSelectMode ?? false)
     }
 }
 
@@ -1331,7 +1361,7 @@ extension ThreadHistoryViewModel {
         return thread?.lastMessageVO?.id ?? 0 == thread?.lastSeenMessageId ?? 0
     }
     
-    private func isLastMessageExistInSortedMessages(_ sortedMessages: [any HistoryMessageProtocol]) async -> Bool {
+    private func isLastMessageExistInSortedMessages(_ sortedMessages: [HistoryMessageType]) async -> Bool {
         let lastMessageId = await viewModel?.thread.lastMessageVO?.id
         return sortedMessages.contains(where: {$0.id == lastMessageId})
     }
@@ -1341,7 +1371,7 @@ extension ThreadHistoryViewModel {
     }
 
     private func canMoveToMessageLocally(_ messageId: Int) -> String? {
-        sections.message(for: messageId)?.message.uniqueId
+        return sections.message(for: messageId)?.message.uniqueId
     }
 
     private func hasThreadNeverOpened() -> Bool {

@@ -29,6 +29,8 @@ public protocol HistoryMessageProtocol: Hashable, Sendable {
     var callHistory: CallHistory? { get set }
 }
 
+public typealias HistoryMessageType = any HistoryMessageProtocol
+
 public class HistoryMessageBaseCalss: HistoryMessageProtocol, @unchecked Sendable {
     public static func == (lhs: HistoryMessageBaseCalss, rhs: HistoryMessageBaseCalss) -> Bool {
         lhs.uniqueId == rhs.uniqueId

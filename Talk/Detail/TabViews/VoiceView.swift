@@ -163,17 +163,8 @@ struct DownloadedVoicePlayer: View {
 
     var body: some View {
         Button {
-            do {
-                let convrtedURL = message.convertedFileURL
-                let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
-                try viewModel.setup(message: message,
-                                    fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
-                                    ext: convertedExist ? "mp4" : message.fileMetaData?.file?.mimeType?.ext,
-                                    title: message.fileMetaData?.name,
-                                    subtitle: message.fileMetaData?.file?.originalName ?? "")
-                viewModel.toggle()
-            } catch {
-                failed = true
+            Task {
+                await playVoice()
             }
         } label: {
             ZStack {
@@ -198,6 +189,32 @@ struct DownloadedVoicePlayer: View {
         }
         .frame(width: 48, height: 48)
         .padding(4)
+    }
+    
+    private func playVoice() async {
+        do {
+            let convrtedURL = await convertedFileURL(message: message)
+            let fileMetaData = await fileMetaData(message: message)
+            let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
+            try viewModel.setup(message: message,
+                                fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
+                                ext: convertedExist ? "mp4" : fileMetaData?.file?.mimeType?.ext,
+                                title: fileMetaData?.name,
+                                subtitle: fileMetaData?.file?.originalName ?? "")
+            viewModel.toggle()
+        } catch {
+            failed = true
+        }
+    }
+    
+    @AppBackgroundActor
+    private func convertedFileURL(message: HistoryMessageType) -> URL? {
+        message.convertedFileURL
+    }
+    
+    @AppBackgroundActor
+    private func fileMetaData(message: HistoryMessageType) -> FileMetaData? {
+        message.fileMetaData
     }
 }
 

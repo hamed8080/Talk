@@ -7,14 +7,14 @@ import Foundation
 public final class UploadFileViewModel: ObservableObject {
     @Published public private(set) var uploadPercent: Int64 = 0
     @Published public var state: UploadFileState = .paused
-    public var message: any HistoryMessageProtocol
+    public var message: HistoryMessageType
     var locationThreadId: Int? { message.threadId }
     var threadId: Int? { message.conversation?.id ?? locationThreadId }
     public var uploadUniqueId: String?
     public private(set) var cancelable: Set<AnyCancellable> = []
     public private(set) var fileMetaData: FileMetaData?
 
-    public init(message: any HistoryMessageProtocol) {
+    public init(message: HistoryMessageType) {
         self.message = message
         NotificationCenter.upload.publisher(for: .upload)
             .compactMap { $0.object as? UploadEventTypes }

@@ -52,7 +52,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: any HistoryMessageProtocol) async {
+    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) async {
         if isAtBottomOfTheList || message.isMe(currentUserId: AppState.shared.user?.id), let uniqueId = message.uniqueId {
             disableExcessiveLoading()
             scrollTo(uniqueId, animate: true)
@@ -68,7 +68,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func lastMessageOrLastUploadingMessage() -> (any HistoryMessageProtocol)? {
+    public func lastMessageOrLastUploadingMessage() -> HistoryMessageType? {
         let hasUploadMessages = viewModel?.uploadMessagesViewModel.hasAnyUploadMessage() ?? false
         if hasUploadMessages {
             return viewModel?.uploadMessagesViewModel.lastUploadingViewModel()?.message

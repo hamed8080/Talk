@@ -469,7 +469,7 @@ extension ThreadViewController: BottomToolbarDelegate {
         cancelAudioRecordingButton.setIsHidden(!show)
     }
 
-    func openEditMode(_ message: (any HistoryMessageProtocol)?) {
+    func openEditMode(_ message: HistoryMessageType?) {
         sendContainer.openEditMode(message)
         // We only check if we select a message to edit. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
         if message != nil {
@@ -477,7 +477,7 @@ extension ThreadViewController: BottomToolbarDelegate {
         }
     }
 
-    func openReplyMode(_ message: (any HistoryMessageProtocol)?) {
+    func openReplyMode(_ message: HistoryMessageType?) {
         // We only check if we select a message to reply. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
         if message != nil {
             focusOnTextView(focus: true)

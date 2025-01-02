@@ -57,7 +57,7 @@ public final class DownloadFileManager {
         downloadVMS.first(where: {$0.message?.id == messageId})
     }
 
-    public func isContains(_ message: any HistoryMessageProtocol) -> Bool {
+    public func isContains(_ message: HistoryMessageType) -> Bool {
         return downloadVMS.contains(where: { $0.uniqueId == message.uniqueId })
     }
 
@@ -93,7 +93,7 @@ public final class DownloadFileManager {
         }
     }
     
-    public func register(message: any HistoryMessageProtocol) {
+    public func register(message: HistoryMessageType) {
         if isContains(message) { return }
         let isFileType = message.isFileType
         let isUploading = message is UploadFileWithLocationMessage
@@ -114,7 +114,7 @@ public final class DownloadFileManager {
         return (mtd, isImage, isVideo, isMap)
     }
 
-    public func registerIfReplyImage(vm: MessageRowViewModel) async {
+    public func registerIfReplyImage(vm: MessageRowViewModel) {
         if let replyInfo = vm.message.replyInfo, let replyMessageId = replyInfo.repliedToMessageId {
             if messagesWithReplyImage[replyMessageId] == nil {
                 messagesWithReplyImage[replyMessageId] = []

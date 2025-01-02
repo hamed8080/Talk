@@ -207,6 +207,7 @@ final class MessageImageView: UIImageView {
     }
 
     public func updateProgress(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isImage { return }
         let progress = viewModel.fileState.progress
         progressView.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressView.setProgressVisibility(visible: canShowProgress)
@@ -217,6 +218,7 @@ final class MessageImageView: UIImageView {
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isImage { return }
         if let fileURL = viewModel.calMessage.fileURL {
             updateProgress(viewModel: viewModel)
             removeProgressViewByHidingAnimation()
@@ -228,6 +230,7 @@ final class MessageImageView: UIImageView {
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isImage { return }
         if let fileURL = viewModel.calMessage.fileURL {
             updateProgress(viewModel: viewModel)
             removeProgressViewByHidingAnimation()

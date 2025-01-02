@@ -13,6 +13,7 @@ import TalkModels
 import Combine
 import DSWaveformImage
 
+@MainActor
 final class MessageAudioView: UIView {
     // Views
     private let fileSizeLabel = UILabel()
@@ -31,7 +32,7 @@ final class MessageAudioView: UIView {
     // Models
     private var cancellableSet = Set<AnyCancellable>()
     private weak var viewModel: MessageRowViewModel?
-    private var message: (any HistoryMessageProtocol)? { viewModel?.message }
+    private var message: HistoryMessageType? { viewModel?.message }
     private var audioVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
     private let prerenderImage = UIImage(named: "waveform")
     private var playbackSpeed: PlaybackSpeed = .one
@@ -188,7 +189,9 @@ final class MessageAudioView: UIView {
         maskLayer.path = path
         audioVM.seek(to)
         seekTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            self?.isSeeking = false
+            Task { @MainActor in
+                self?.isSeeking = false
+            }
         }
     }
     
@@ -224,11 +227,13 @@ final class MessageAudioView: UIView {
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
         startGenerateWaveformTask()
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
     }
 
@@ -285,7 +290,8 @@ final class MessageAudioView: UIView {
     }
     
     private func generateWaveform() async {
-        guard let url = fileURLOrConvertedURL() else { return }
+        let fileURL = viewModel?.calMessage.fileURL
+        guard let url = await fileURLOrConvertedURL(message: message, fileURL: fileURL) else { return }
         let waveformImageDrawer = WaveformImageDrawer()
         do {
             let image = try await waveformImageDrawer.waveformImage(
@@ -313,19 +319,22 @@ final class MessageAudioView: UIView {
         }
     }
     
-    private func fileURLOrConvertedURL() -> URL? {
-        convertedAudioURL() ?? tempAudioURL()
+    @AppBackgroundActor
+    private func fileURLOrConvertedURL(message: HistoryMessageType?, fileURL: URL?) -> URL? {
+        convertedAudioURL(message: message) ?? tempAudioURL(fileURL: fileURL)
     }
     
-    private func convertedAudioURL() -> URL? {
+    @AppBackgroundActor
+    private func convertedAudioURL(message: HistoryMessageType?) -> URL? {
         if  let convertedURL = message?.convertedFileURL, FileManager.default.fileExists(atPath: convertedURL.path()) {
             return convertedURL
         }
         return nil
     }
     
-    private func tempAudioURL() -> URL? {
-        if let fileURL = viewModel?.calMessage.fileURL {
+    @AppBackgroundActor
+    private func tempAudioURL(fileURL: URL?) -> URL? {
+        if let fileURL = fileURL {
             let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("WaveformGenerator.wav")
             try? FileManager.default.copyItem(at: fileURL, to: tempURL)
             return tempURL

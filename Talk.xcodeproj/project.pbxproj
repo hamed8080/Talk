@@ -485,8 +485,8 @@
 		AC39BF052D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */; };
 		AC6F9BDC2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
 		AC6F9BDD2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
-		ACB5BBE82D255FE800233C08 /* CellRevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* CellRevealAnimation.swift */; };
-		ACB5BBE92D255FE800233C08 /* CellRevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* CellRevealAnimation.swift */; };
+		ACB5BBE82D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
+		ACB5BBE92D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
 		ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 		ACF914712CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 /* End PBXBuildFile section */
@@ -770,7 +770,7 @@
 		AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkModeSection.swift; sourceTree = "<group>"; };
 		AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsSection.swift; sourceTree = "<group>"; };
 		AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsView.swift; sourceTree = "<group>"; };
-		ACB5BBE72D255FE800233C08 /* CellRevealAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellRevealAnimation.swift; sourceTree = "<group>"; };
+		ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealAnimation.swift; sourceTree = "<group>"; };
 		ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleEmojiCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1322,7 +1322,7 @@
 				05EA77A52BBC651F00FFB9C2 /* CameraCapturer.swift */,
 				052474492C3A600F006F3ECB /* ChatBackgroundView.swift */,
 				05807A152CBA8BCA00B6B433 /* DatePickerView.swift */,
-				ACB5BBE72D255FE800233C08 /* CellRevealAnimation.swift */,
+				ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */,
 			);
 			path = Extra;
 			sourceTree = "<group>";
@@ -1490,7 +1490,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					0570CB162AAEE02A001832E9 = {
@@ -1579,7 +1579,7 @@
 				0570CBE32AAEE98F001832E9 /* HomeContentView.swift in Sources */,
 				050B29182AB40DC20072706C /* ToolbarView.swift in Sources */,
 				059548332C5A60C800F10C1E /* CustomizeReactionsViewController.swift in Sources */,
-				ACB5BBE82D255FE800233C08 /* CellRevealAnimation.swift in Sources */,
+				ACB5BBE82D255FE800233C08 /* RevealAnimation.swift in Sources */,
 				051D1BFF2BA0369100676CBD /* SelectMessageRadio.swift in Sources */,
 				0594FE692B0387920031AADF /* UnsentMessageView.swift in Sources */,
 				05729A562B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */,
@@ -1794,7 +1794,7 @@
 				0570CBE42AAEE98F001832E9 /* HomeContentView.swift in Sources */,
 				050B29192AB40DC20072706C /* ToolbarView.swift in Sources */,
 				059548342C5A60C800F10C1E /* CustomizeReactionsViewController.swift in Sources */,
-				ACB5BBE92D255FE800233C08 /* CellRevealAnimation.swift in Sources */,
+				ACB5BBE92D255FE800233C08 /* RevealAnimation.swift in Sources */,
 				051D1C002BA0369100676CBD /* SelectMessageRadio.swift in Sources */,
 				0594FE6A2B0387920031AADF /* UnsentMessageView.swift in Sources */,
 				05729A572B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */,

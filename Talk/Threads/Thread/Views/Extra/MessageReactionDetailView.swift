@@ -13,13 +13,13 @@ import TalkExtensions
 import TalkModels
 
 struct MessageReactionDetailView: View {
-    let message: any HistoryMessageProtocol 
+    let message: HistoryMessageType
     private let row: ReactionRowsCalculated.Row
     private var messageId: Int { message.id ?? -1 }
     @EnvironmentObject var tabVM: ReactionTabParticipantsViewModel
     @State private var tabs: [TabItem] = []
 
-    init(message: any HistoryMessageProtocol, row: ReactionRowsCalculated.Row) {
+    init(message: HistoryMessageType, row: ReactionRowsCalculated.Row) {
         self.message = message
         self.row = row
     }

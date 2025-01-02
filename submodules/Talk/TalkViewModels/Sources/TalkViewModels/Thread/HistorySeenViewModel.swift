@@ -38,7 +38,7 @@ public final class HistorySeenViewModel {
         setupOnSceneBecomeActiveObserver()
     }
 
-    internal func onAppear(_ message: any HistoryMessageProtocol) async {
+    internal func onAppear(_ message: HistoryMessageType) async {
         logSeen("OnAppear message: \(message.message ?? "") Type: \(message.type ?? .unknown) id: \(message.id ?? 0)")
         if await !canReduce(for: message) {
             logSeen("Can't reduce message: \(message.message ?? "") Type: \(message.type ?? .unknown) id: \(message.id ?? 0)")
@@ -55,7 +55,7 @@ public final class HistorySeenViewModel {
 
     /// We use isProgramaticallyScroll false to only not sending scrolling up when the user really scrolling
     /// If we don't do that it will result in not sending seen for threads with messages lower than 10, on opening the thread.
-    private func canReduce(for message: any HistoryMessageProtocol) async -> Bool {
+    private func canReduce(for message: HistoryMessageType) async -> Bool {
         if await scrollupAndNotPorgramatically() { return false }
         return await hasUnreadAndLastMessageIsBiggerLastSeen(messageId: message.id)
     }
@@ -77,7 +77,7 @@ public final class HistorySeenViewModel {
 
     /// We reduce it locally to keep the UI Sync and user feels it really read the message.
     /// However, we only send seen request with debouncing
-    private func reduceUnreadCountLocaly(_ message: any HistoryMessageProtocol) {
+    private func reduceUnreadCountLocaly(_ message: HistoryMessageType) {
         if let newUnreadCount = newLocalUnreadCount(for: message) {
             setUnreadCount(newUnreadCount: newUnreadCount)
             logSeen("Reduced localy to: \(newUnreadCount)")
@@ -86,7 +86,7 @@ public final class HistorySeenViewModel {
         }
     }
 
-    private func newLocalUnreadCount(for message: any HistoryMessageProtocol) -> Int? {
+    private func newLocalUnreadCount(for message: HistoryMessageType) -> Int? {
         let messageId = message.id ?? -1
         let currentUnreadCount = unreadCount()
         if currentUnreadCount > 0, messageId >= thread.lastSeenMessageId ?? 0 {
@@ -165,7 +165,7 @@ public final class HistorySeenViewModel {
     }
 
     @AppBackgroundActor
-    private func logMessageApperance(_ message: any HistoryMessageProtocol, appeard: Bool, isUp: Bool? = nil) {
+    private func logMessageApperance(_ message: HistoryMessageType, appeard: Bool, isUp: Bool? = nil) {
 #if DEBUG
         let dir = isUp == true ? "UP" : (isUp == false ? "DOWN" : "")
         let messageId = message.id ?? 0

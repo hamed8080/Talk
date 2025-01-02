@@ -11,7 +11,6 @@ import TalkModels
 
 @MainActor
 public final class DeleteMessagesViewModelModel {
-    public typealias MessageType = any HistoryMessageProtocol
     public weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init() }
     public var deleteForMe: Bool = true
@@ -22,8 +21,8 @@ public final class DeleteMessagesViewModelModel {
     public var isVstackLayout: Bool = false
     public var isSelfThread: Bool { viewModel?.thread.type == .selfThread }
     /// 86_400_000 is equal to the number of milliseconds in a day
-    public var pastDeleteTimeForOthers: [MessageType] = []
-    public var notPastDeleteTime: [MessageType] = []
+    public var pastDeleteTimeForOthers: [HistoryMessageType] = []
+    public var notPastDeleteTime: [HistoryMessageType] = []
 
     private var isGroup: Bool { thread.group == true }
     private var isAdmin: Bool { thread.admin == true }
@@ -124,7 +123,7 @@ public final class DeleteMessagesViewModelModel {
     }
 
     @MainActor
-    private func getSelectedMessages() async -> [MessageType] {
+    private func getSelectedMessages() async -> [HistoryMessageType] {
         viewModel?.selectedMessagesViewModel.getSelectedMessages().compactMap({$0.message}) ?? []
     }
 
