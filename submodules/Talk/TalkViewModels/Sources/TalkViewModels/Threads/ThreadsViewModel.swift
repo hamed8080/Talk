@@ -154,7 +154,7 @@ public final class ThreadsViewModel: ObservableObject {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: userDefaultSortedPins)
         }
-        await appendThreads(threads: threads)
+        appendThreads(threads: threads)
         updatePresentedViewModels(threads)
         await MainActor.run {
             if hasAnyResults {
@@ -276,7 +276,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     @MainActor
-    public func appendThreads(threads: [Conversation]) async {
+    public func appendThreads(threads: [Conversation]) {
         threads.forEach { thread in
             if var oldThread = self.threads.first(where: { $0.id == thread.id }) {
                 oldThread.updateValues(thread)

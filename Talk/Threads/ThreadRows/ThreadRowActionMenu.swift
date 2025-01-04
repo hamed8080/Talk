@@ -77,7 +77,7 @@ struct ThreadRowActionMenu: View {
 
         if isDetailView, thread.group == true, thread.type?.isChannelType == false, thread.admin == true {
             Divider()
-            ContextMenuButton(title: "Thread.closeThread", image: "lock") {
+            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock") {
                 onCloseConversationTapped()
             }
         }
@@ -160,7 +160,7 @@ struct ThreadRowActionMenu: View {
     }
 
     private var deleteTitle: String {
-        let deleteKey = thread.group == false ? "" : String(localized: "Thread.delete")
+        let deleteKey = thread.group == false ? "" : "Thread.delete".bundleLocalized()
         let key = thread.type?.isChannelType == true ? "Thread.channel" : thread.group == true ? "Thread.group" : ""
         let groupLocalized = String(format: deleteKey, String(localized: .init(key), bundle: Language.preferedBundle))
         let p2pLocalized = String(localized: .init("Genreal.deleteConversation"), bundle: Language.preferedBundle)

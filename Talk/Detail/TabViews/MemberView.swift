@@ -91,7 +91,7 @@ struct ParticipantRowContainer: View {
                     showPopover.toggle()
                 }
             }
-            .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .bottom) {
+            .popover(isPresented: $showPopover, attachmentAnchor: .point(.center), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
                     if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == false {
                         ContextMenuButton(title: "Participant.addAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.plus") {

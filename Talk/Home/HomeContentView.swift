@@ -146,7 +146,7 @@ struct HomePreview: View {
             .task {
                 AppState.shared.connectionStatus = .connected
                 TokenManager.shared.setIsLoggedIn(isLoggedIn: true)
-                await container.threadsVM.appendThreads(threads: MockData.generateThreads(count: 10))
+                container.threadsVM.appendThreads(threads: MockData.generateThreads(count: 10))
                 container.animateObjectWillChange()
             }
     }
