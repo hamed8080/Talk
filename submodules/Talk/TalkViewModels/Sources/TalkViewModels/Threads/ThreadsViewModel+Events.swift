@@ -86,7 +86,7 @@ extension ThreadsViewModel {
         switch event {
         case .systemMessage(let chatResponse):
             guard let result = chatResponse.result else { return }
-            if let eventVM = threadEventModels.first(where: {$0.threadId == chatResponse.subjectId}) {
+            if let eventVM = threads.first(where: {$0.id == chatResponse.subjectId})?.eventVM as? ThreadEventViewModel {
                 eventVM.startEventTimer(result)
             }
         default:
@@ -136,9 +136,9 @@ extension ThreadsViewModel {
                 updateThreadInfo(thread)
             }
         case .mute(let response):
-            onMuteThreadChanged(mute: true, threadId: response.result)
+            await onMuteThreadChanged(mute: true, threadId: response.result)
         case .unmute(let response):
-            onMuteThreadChanged(mute: false, threadId: response.result)
+            await onMuteThreadChanged(mute: false, threadId: response.result)
         case .changedType(let response):
             onChangedType(response)
         case .spammed(let response):
@@ -146,15 +146,15 @@ extension ThreadsViewModel {
         case .unreadCount(let response):
             await onUnreadCounts(response)
         case .pin(let response):
-            onPin(response)
+            await onPin(response)
         case .unpin(let response):
-            onUNPin(response)
+            await onUNPin(response)
         case .userRemoveFormThread(let response):
             onUserRemovedByAdmin(response)
         case .lastSeenMessageUpdated(let response):
             onLastSeenMessageUpdated(response)
         case .joined(let response):
-            onJoinedToPublicConversation(response)
+            await onJoinedToPublicConversation(response)
         case .left(let response):
             onLeftThread(response)
         case .closed(let response):
@@ -182,7 +182,9 @@ extension ThreadsViewModel {
     func onMessageEvent(_ event: MessageEventTypes) async {
         switch event {
         case .new(let chatResponse):
-            onNewMessage(chatResponse)
+            Task {
+                await onNewMessage(chatResponse)
+            }
         case .cleared(let chatResponse):
             onClear(chatResponse)
         case .seen(let response):

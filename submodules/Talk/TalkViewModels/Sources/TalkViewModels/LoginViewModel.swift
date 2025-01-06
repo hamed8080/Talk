@@ -70,21 +70,24 @@ public final class LoginViewModel: ObservableObject {
         var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: selectedServerType).handshake)!)
         urlReq.httpBody = req.parameterData
         urlReq.method = .post
-        Task {
+        Task { @AppBackgroundActor in
             do {
                 let resp = try await session.data(for: urlReq)
                 let decodecd = try JSONDecoder().decode(HandshakeResponse.self, from: resp.0)
-                if let keyId = decodecd.keyId {
-                    isLoading = false                    
-                    requestOTP(identity: text, keyId: keyId)
-                }
+                
                 await MainActor.run {
+                    if let keyId = decodecd.keyId {
+                        isLoading = false
+                        requestOTP(identity: text, keyId: keyId)
+                    }
                     expireIn = decodecd.client?.accessTokenExpiryTime ?? 60
+                    startTimer()
                 }
-                startTimer()
             } catch {
-                isLoading = false
-                showError(.failed)
+                await MainActor.run {
+                    isLoading = false
+                    showError(.failed)
+                }
             }
         }
     }
@@ -96,15 +99,16 @@ public final class LoginViewModel: ObservableObject {
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
-        Task {
+        Task { @AppBackgroundActor in
             do {
                 let resp = try await session.data(for: urlReq)
                 let result = try JSONDecoder().decode(AuthorizeResponse.self, from: resp.0)
-                isLoading = false
-                if result.errorMessage != nil {
-                    showError(.failed)
-                } else {
-                    await MainActor.run {
+                await MainActor.run {
+                    isLoading = false
+                    if result.errorMessage != nil {
+                        showError(.failed)
+                    } else {
+                        
                         if !resend {
                             state = .verify
                         }
@@ -112,8 +116,10 @@ public final class LoginViewModel: ObservableObject {
                     }
                 }
             } catch {
-                isLoading = false
-                showError(.failed)
+                await MainActor.run {
+                    isLoading = false
+                    showError(.failed)
+                }
             }
         }
     }
@@ -140,7 +146,7 @@ public final class LoginViewModel: ObservableObject {
         Task {
             do {
                 let resp = try await session.data(for: urlReq)
-                var ssoToken = try JSONDecoder().decode(SSOTokenResponse.self, from: resp.0)
+                var ssoToken = try await decodeSSOToken(data: resp.0)
                 ssoToken.keyId = keyId
                 showSuccessAnimation = true
                 try? await Task.sleep(for: .seconds(0.5))
@@ -154,11 +160,18 @@ public final class LoginViewModel: ObservableObject {
                 }
             }
             catch {
-                isLoading = false
-                doHaptic(failed: true)
-                showError(.verificationCodeIncorrect)
+                await MainActor.run {
+                    isLoading = false
+                    doHaptic(failed: true)
+                    showError(.verificationCodeIncorrect)
+                }
             }
         }
+    }
+    
+    @AppBackgroundActor
+    private func decodeSSOToken(data: Data) throws -> SSOTokenResponse {
+        try JSONDecoder().decode(SSOTokenResponse.self, from: data)
     }
 
     public func resetState() {

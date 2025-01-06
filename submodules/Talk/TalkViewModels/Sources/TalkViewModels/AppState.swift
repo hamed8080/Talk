@@ -270,7 +270,7 @@ public extension AppState {
             .first(where: {
                 ($0.partner == coreUserId || ($0.participants?.contains(where: {$0.coreUserId == coreUserId}) ?? false))
                 && $0.group == false && $0.type == .normal}
-            )
+            )?.toStruct()
     }
 
     private func updateThreadIdIfIsInForwarding(_ thread: Conversation?) {
@@ -283,12 +283,12 @@ public extension AppState {
     /// It will search through the Conversation array to prevent creation of new refrence.
     /// If we don't use object refrence in places that needs to open the thread there will be a inconsistensy in data such as reply privately.
     private func getRefrenceObject(_ conversation: Conversation?) -> Conversation? {
-        objectsContainer.threadsVM.threads.first{ $0.id == conversation?.id}
+        objectsContainer.threadsVM.threads.first{ $0.id == conversation?.id}?.toStruct()
     }
 
     func checkForGroupOffline(tharedId: Int) -> Conversation? {
         objectsContainer.threadsVM.threads
-            .first(where: { $0.group == true && $0.id == tharedId })
+            .first(where: { $0.group == true && $0.id == tharedId })?.toStruct()
     }
 
     func showEmptyThread(userName: String? = nil) {

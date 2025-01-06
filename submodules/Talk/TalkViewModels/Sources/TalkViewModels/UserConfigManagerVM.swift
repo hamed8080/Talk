@@ -80,8 +80,9 @@ public final class UserConfigManagerVM: ObservableObject, @preconcurrency Equata
     public func onUser(_ user: User) {
         Task { @ChatGlobalActor in
             let config = ChatManager.activeInstance?.config
+            let ssoToken = await TokenManager.shared.getSSOTokenFromUserDefaultsAsync()
             await MainActor.run {
-                if let config = config, let ssoToken = TokenManager.shared.getSSOTokenFromUserDefaults() {
+                if let config = config, let ssoToken = ssoToken {
                     addUserInUserDefaultsIfNotExist(userConfig: .init(user: user, config: config, ssoToken: ssoToken))
                 }
             }

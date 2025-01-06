@@ -89,7 +89,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         AppState.shared.lifeCycleState = .background
-        scheduleAppRefreshToken()
+        Task {
+            await scheduleAppRefreshToken()
+        }
 
         self.backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "START_REQUESTING_MORE_BG_TIME") { [weak self] in
             self?.endBGTask()
@@ -111,8 +113,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         }
     }
 
-    private func scheduleAppRefreshToken() {
-        if let ssoToken = TokenManager.shared.getSSOTokenFromUserDefaults(), let createDate = TokenManager.shared.getCreateTokenDate() {
+    private func scheduleAppRefreshToken() async {
+        if let ssoToken = await TokenManager.shared.getSSOTokenFromUserDefaultsAsync(), let createDate = TokenManager.shared.getCreateTokenDate() {
             let timeToStart = createDate.advanced(by: Double(ssoToken.expiresIn - 50)).timeIntervalSince1970 - Date().timeIntervalSince1970
             let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).refreshToken")
             request.earliestBeginDate = Date(timeIntervalSince1970: timeToStart)
@@ -130,7 +132,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         Task { @MainActor in
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
-                scheduleAppRefreshToken() /// Reschedule again when user receive a token.
+                await scheduleAppRefreshToken() /// Reschedule again when user receive a token.
             } catch {
                 if let error = error as? AppErrors, error == AppErrors.revokedToken {
                     await ChatDelegateImplementation.sharedInstance.logout()

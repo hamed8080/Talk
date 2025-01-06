@@ -33,12 +33,17 @@ public final class ManageSessionsViewModel: ObservableObject {
         let token = await getToken()
         req.allHTTPHeaderFields = ["Authorization" : "Bearer \(token)"]
         let (data, _) = try await urlSession.data(for: req)
-        let sessions = try JSONDecoder.instance.decode(SSODevicesList.self, from: data)
+        let sessions = try await decode(data: data)
         await MainActor.run {
             self.sessions.append(contentsOf: sessions.devices)
             self.sessions.sort(by: {($0.current ?? false) == true && ($1.current ?? false) == false})
             isLoading = false
         }
+    }
+    
+    @AppBackgroundActor
+    private func decode(data: Data) throws -> SSODevicesList {
+        return try JSONDecoder.instance.decode(SSODevicesList.self, from: data)
     }
     
     public func removeAllSessions() async throws {

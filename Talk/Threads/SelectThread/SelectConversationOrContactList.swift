@@ -73,10 +73,11 @@ struct SelectConversationTab: View {
     var body: some View {
         List {
             ForEach(conversations) { conversation in
-                ThreadRow(isInForwardMode: true, thread: conversation) {
+                ThreadRow() {
                     onSelect(conversation, nil)
                     dismiss()
                 }
+                .environmentObject(conversation.toClass())
                 .listRowBackground(Color.App.bgPrimary)
                 .onAppear {
                     Task {

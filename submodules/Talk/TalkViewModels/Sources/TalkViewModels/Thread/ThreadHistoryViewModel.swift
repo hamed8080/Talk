@@ -1034,7 +1034,7 @@ extension ThreadHistoryViewModel {
     private func doScrollAction(_ contentOffset: CGPoint , _ contentSize: CGSize) async {
         guard let scrollVM = await viewModel?.scrollVM else { return }
         logScroll("ContentOffset: \(contentOffset) lastContentOffsetY: \(scrollVM.lastContentOffsetY)")
-        if contentOffset.y >= scrollVM.lastContentOffsetY {
+        if contentOffset.y > 0, contentOffset.y >= scrollVM.lastContentOffsetY {
             // scroll down
             logScroll("DOWN")
             scrollVM.scrollingUP = false

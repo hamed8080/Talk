@@ -32,7 +32,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
             .sink{ [weak self] event in
-                self?.onThreadEvent(event)
+                Task {
+                    await self?.onThreadEvent(event)
+                }
             }
             .store(in: &cancelable)
         NotificationCenter.message.publisher(for: .message)
@@ -55,14 +57,14 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         offset = count + offset
     }
 
-    private func onThreadEvent(_ event: ThreadEventTypes?) {
+    private func onThreadEvent(_ event: ThreadEventTypes?) async {
         switch event {
         case .threads(let response):
             onArchives(response)
         case .archive(let response):
-            onArchive(response)
+            await onArchive(response)
         case .unArchive(let response):
-            onUNArchive(response)
+            await onUNArchive(response)
         case .lastMessageDeleted(let response):
             onLastMessageDeleted(response)
         case .lastMessageEdited(let response):
@@ -124,25 +126,25 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         animateObjectWillChange()
     }
 
-    public func onArchive(_ response: ChatResponse<Int>) {
+    public func onArchive(_ response: ChatResponse<Int>) async {
         if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
-            archives.append(conversation)
+            archives.append(conversation.toStruct())
             threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
-            threadsVM.sort()
+            await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
             animateObjectWillChange()
         }
     }
 
-    public func onUNArchive(_ response: ChatResponse<Int>) {
+    public func onUNArchive(_ response: ChatResponse<Int>) async {
         if response.result != nil, response.error == nil, let index = archives.firstIndex(where: {$0.id == response.result}) {
             var conversation = archives[index]
             conversation.isArchive = false
             archives.remove(at: index)
-            threadsVM.threads.append(conversation)
-            threadsVM.sort()
+            threadsVM.threads.append(conversation.toClass())
+            await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
             animateObjectWillChange()
         }

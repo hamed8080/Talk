@@ -66,7 +66,7 @@ struct DetailTopButtonsSection: View {
             .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
                     if let thread = viewModel.thread {
-                        ThreadRowActionMenu(showPopover: $showPopover, isDetailView: true, thread: thread)
+                        ThreadRowActionMenu(showPopover: $showPopover, isDetailView: true, thread: thread.toClass())
                             .environmentObject(AppState.shared.objectsContainer.threadsVM)
                     }
                     if let participant = viewModel.participantDetailViewModel?.participant {

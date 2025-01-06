@@ -1,6 +1,8 @@
 import TalkExtensions
 import SwiftUI
 import Chat
+import TalkViewModels
+import TalkModels
 
 extension Conversation {
     public typealias MessageIconStatus = (icon: UIImage, fgColor: Color)

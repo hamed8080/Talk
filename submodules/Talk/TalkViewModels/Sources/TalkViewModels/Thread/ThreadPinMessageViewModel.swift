@@ -99,13 +99,15 @@ public final class ThreadPinMessageViewModel {
         }
     }
 
+    @AppBackgroundActor
     public func calculate() async {
+        let message = await message
         let hasPinMessage = message != nil
-        let isFileType = fileMetadata != nil
-        let icon = fileMetadata?.file?.mimeType?.systemImageNameForFileExtension
+        let fileMetaData = await fileMetadata(metadataString: message?.metadata)
+        let isFileType = fileMetaData != nil
+        let icon = fileMetaData?.file?.mimeType?.systemImageNameForFileExtension
         let isEnglish = isFileType && Language.isRTL ? false : message?.text?.naturalTextAlignment == .leading
-        let title = messageText
-        let canUnpinMessage = thread.admin == true
+        let title = messageText(text: message?.text, fileName: fileMetaData?.name)
         await MainActor.run {
             self.hasPinMessage = hasPinMessage
             self.icon = icon
@@ -116,18 +118,20 @@ public final class ThreadPinMessageViewModel {
         }
     }
 
-    private var messageText: String {
-        if let text = message?.text, !text.isEmpty {
+    @AppBackgroundActor
+    private func messageText(text: String?, fileName: String?) -> String {
+        if let text = text, !text.isEmpty {
             return text.prefix(150).replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
-        } else if let fileName = fileMetadata?.name {
+        } else if let fileName = fileName {
             return fileName
         } else {
             return ""
         }
     }
 
-    var fileMetadata: FileMetaData? {
-        guard let metdataData = message?.metadata?.data(using: .utf8),
+    @AppBackgroundActor
+    func fileMetadata(metadataString: String?) -> FileMetaData? {
+        guard let metdataData = metadataString?.data(using: .utf8),
               let file = try? JSONDecoder.instance.decode(FileMetaData.self, from: metdataData)
         else { return nil }
         return file
@@ -137,7 +141,7 @@ public final class ThreadPinMessageViewModel {
     public func downloadImageThumbnail() {
         Task { [weak self] in
             guard let self = self else { return }
-            guard let file = fileMetadata,
+            guard let file = await fileMetadata(metadataString: message?.metadata),
                   let hashCode = file.file?.hashCode,
                   file.file?.mimeType == "image/jpeg" || file.file?.mimeType == "image/png"
             else {

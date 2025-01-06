@@ -8,24 +8,13 @@
 import SwiftUI
 import TalkViewModels
 import Chat
+import TalkModels
 
 struct ThreadListRowBackground: View {
-    let thread: Conversation
-    @State private var isSelected: Bool = false
+    let thread: CalculatedConversation
 
     var body: some View {
-        color
-            .onReceive(AppState.shared.objectsContainer.navVM.objectWillChange) { _ in
-                if thread.id == AppState.shared.objectsContainer.navVM.selectedId {
-                    isSelected = true
-                } else if isSelected {
-                    isSelected = false
-                }
-            }
-    }
-
-    var color: Color {
-        isSelected ? Color.App.bgChatSelected : thread.pin == true ? Color.App.bgSecondary : Color.App.bgPrimary
+        thread.isSelected ? Color.App.bgChatSelected : thread.pin == true ? Color.App.bgSecondary : Color.App.bgPrimary
     }
 }
 

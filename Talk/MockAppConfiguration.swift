@@ -29,7 +29,7 @@ class MockAppConfiguration: ChatDelegate {
     var conversationVM: ThreadViewModel!
 
     func makeViewModel(message: Message) -> MessageRowViewModel {
-        AppState.shared.objectsContainer.threadsVM.threads.append(conversation)
+        AppState.shared.objectsContainer.threadsVM.threads.append(conversation.toClass())
         return MessageRowViewModel(message: message, viewModel: conversationVM)
     }
 

@@ -5,17 +5,16 @@
 //  Created by hamed on 6/27/23.
 //
 
-import Combine
 import SwiftUI
 import TalkUI
 import TalkViewModels
+import TalkModels
 import Chat
 
 struct SecondaryMessageView: View {
     let isSelected: Bool
-    var thread: Conversation
+    @EnvironmentObject var thread: CalculatedConversation
     @State private var draft: String = ""
-    @State private var cancelable: AnyCancellable?
 
     var body: some View {
         HStack {

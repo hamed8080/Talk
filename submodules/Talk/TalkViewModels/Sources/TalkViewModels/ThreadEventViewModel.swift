@@ -15,7 +15,8 @@ public final class ThreadEventViewModel: ObservableObject {
     public var threadId: Int
     public var smt: SMT?
     private var lastEventTime = Date()
-    public init(threadId: Int) {
+    
+    public nonisolated init(threadId: Int) {
         self.threadId = threadId
     }
 

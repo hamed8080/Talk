@@ -55,11 +55,12 @@ public final class ImageLoaderViewModel: ObservableObject {
             .store(in: &cancelable)
     }
 
-    @AppBackgroundActor
     private func onDownloadEvent(_ event: DownloadEventTypes) async {
         switch event {
         case .image(let chatResponse, let url):
-            await onGetImage(chatResponse, url)
+            if chatResponse.uniqueId == uniqueId {
+                await onGetImage(chatResponse, url)
+            }
         default:
             break
         }
@@ -114,7 +115,7 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     /// The hashCode decode FileMetaData so it needs to be done on the background thread.
     public func fetch() {
-        Task {
+        Task { @AppBackgroundActor in
             await fetchAsync()
         }
     }
@@ -143,9 +144,7 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     @AppBackgroundActor
     private func onGetImage(_ response: ChatResponse<Data>, _ url: URL?) async {
-        let uniqueId = await uniqueId
-        guard response.uniqueId == uniqueId else { return }
-        if response.uniqueId == uniqueId, !response.cache, let data = response.result {
+        if !response.cache, let data = response.result {
             response.pop(prepend: IMAGE_LOADER_KEY)
             await update(data: data)
             await storeInCache(data: data) // For retrieving Widgetkit images with the help of the app group.
@@ -162,18 +161,25 @@ public final class ImageLoaderViewModel: ObservableObject {
         await setImage(data: data, configSize: config.size)
     }
 
-    private func storeInCache(data: Data) {
-        guard isRealImage(data), let url = getURL() else { return }
+    @AppBackgroundActor
+    private func storeInCache(data: Data) async {
+        let isRealImage = isRealImage(data)
+        guard let url = await getURL() else { return }
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.file.saveFileInGroup(url: url, data: data) { _ in }
         }
     }
 
+    @AppBackgroundActor
     private var headers: [String: String] {
-        token != nil ? ["Authorization": "Bearer \(token ?? "")"] : [:]
+        if let token = token() {
+           return ["Authorization": "Bearer \(token ?? "")"]
+        }
+        return [:]
     }
 
-    private var token: String? {
+    @AppBackgroundActor
+    private func token() -> String? {
         guard let data = UserDefaults.standard.data(forKey: TokenManager.ssoTokenKey),
               let ssoToken = try? JSONDecoder().decode(SSOTokenResponse.self, from: data)
         else {
@@ -198,12 +204,13 @@ public final class ImageLoaderViewModel: ObservableObject {
     }
 
     @AppBackgroundActor
-    private func getMetaData() async ->  FileMetaData? {
+    private func getMetaData() async -> FileMetaData? {
         let metadata = await getMetaDataAsync()
         guard let fileMetadata = metadata?.data(using: .utf8) else { return nil }
         return try? JSONDecoder.instance.decode(FileMetaData.self, from: fileMetadata)
     }
 
+    @AppBackgroundActor
     private func getHashCode() async -> String? {
         let parsedMetadata = await getMetaData()
         if let hashCode = parsedMetadata?.fileHash {
@@ -213,7 +220,7 @@ public final class ImageLoaderViewModel: ObservableObject {
             return oldHashCode
         }
         
-        return  getHashByLastPath()
+        return await getHashByLastPath()
     }
 
     @AppBackgroundActor
@@ -222,8 +229,9 @@ public final class ImageLoaderViewModel: ObservableObject {
         return comp.queryItems?.first(where: { $0.name == "hash" })?.value
     }
     
-    private func getHashByLastPath() -> String? {
-        guard let url = getURL() else { return nil }
+    @AppBackgroundActor
+    private func getHashByLastPath() async -> String? {
+        guard let url = await getURL() else { return nil }
         let isPodspaceFile = url.absoluteString.contains("https://podspace.pod.ir/api/files/")
         let isPodspaceImage = url.absoluteString.contains("https://podspace.pod.ir/api/images/")
         if isPodspaceFile || isPodspaceImage {
@@ -274,7 +282,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         guard let url = await getURL() else { return }
         var request = URLRequest(url: url)
         await setUniqueId("\(request.hashValue)")
-        let headers = await getHeaders()
+        let headers = headers
         headers.forEach { key, value in
             request.addValue(value, forHTTPHeaderField: key)
         }
@@ -287,10 +295,6 @@ public final class ImageLoaderViewModel: ObservableObject {
     
     private func getMetaDataAsync() async -> String? {
         return config.metaData ?? fileMetadata
-    }
-    
-    private func getHeaders() async -> [String: String] {
-        return headers
     }
     
     @MainActor

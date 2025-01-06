@@ -15,9 +15,10 @@ struct ArchivesView: View {
 
     var body: some View {
         List(viewModel.archives) { thread in
-            ThreadRow(thread: thread) {
+            ThreadRow() {
                 AppState.shared.objectsContainer.navVM.append(thread: thread)
             }
+            .environmentObject(thread.toClass())
             .listRowInsets(.init(top: 16, leading: 8, bottom: 16, trailing: 8))
             .listRowSeparatorTint(Color.App.dividerSecondary)
             .listRowBackground(Color.App.bgPrimary)

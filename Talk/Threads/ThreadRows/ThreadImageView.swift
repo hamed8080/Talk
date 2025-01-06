@@ -9,62 +9,34 @@ import Chat
 import SwiftUI
 import TalkUI
 import TalkViewModels
+import TalkModels
 
 struct ThreadImageView: View {
-    @State var thread: Conversation
-    let threadsVM: ThreadsViewModel
-    @State private var computedImageURL: String?
-    @State var splitedTitle = ""
-    @State var materialBackground: UIColor = .clear
+    @EnvironmentObject var thread: CalculatedConversation
 
     var body: some View {
         ZStack {
             if thread.type == .selfThread {
                 SelfThreadImageView(imageSize: 54, iconSize: 27)
-            } else if let image = computedImageURL {
+            } else if let image = thread.computedImageURL {
                 ImageLoaderView(
-                    imageLoader: threadsVM.avatars(for: image, metaData: thread.metadata, userName: splitedTitle),
+                    imageLoader: AppState.shared.objectsContainer.threadsVM.avatars(for: image, metaData: thread.metadata, userName: thread.splitedTitle),
                     textFont: .iransansBoldBody
                 )
-                .id("\(computedImageURL ?? "")\(thread.id ?? 0)")
+                .id("\(thread.computedImageURL ?? "")\(thread.id ?? 0)")
                 .font(.iransansBoldBody)
                 .foregroundColor(.white)
                 .frame(width: 54, height: 54)
-                .background(Color(uiColor: materialBackground))
+                .background(Color(uiColor: thread.materialBackground))
                 .clipShape(RoundedRectangle(cornerRadius:(24)))
             } else {
-                Text(verbatim: splitedTitle)
-                    .id("\(computedImageURL ?? "")\(thread.id ?? 0)")
+                Text(verbatim: thread.splitedTitle)
+                    .id("\(thread.computedImageURL ?? "")\(thread.id ?? 0)")
                     .font(.iransansBoldSubheadline)
                     .foregroundColor(.white)
                     .frame(width: 54, height: 54)
-                    .background(Color(uiColor: materialBackground))
+                    .background(Color(uiColor: thread.materialBackground))
                     .clipShape(RoundedRectangle(cornerRadius:(24)))
-            }
-        }.task {
-             calculate(thread: thread)
-        }
-//        .onReceive(thread.objectWillChange) { _ in /// update an image of a thread by another device
-//            if computedImageURL != self.thread.computedImageURL {
-//                self.computedImageURL = thread.computedImageURL
-//            }
-//            Task {
-//                await calculate()
-//            }
-//        }
-    }
-
-    /// We use a detached Task as of computedImageURL, use metadata decoder, and it should not be on the main thread.
-    private func calculate(thread: Conversation) {
-        Task.detached {
-            let materialBackground = String.getMaterialColorByCharCode(str: thread.title ?? "")
-            let splitedTitle = String.splitedCharacter(thread.computedTitle)
-            let computedImageURL = thread.computedImageURL
-            let https = computedImageURL?.replacingOccurrences(of: "http://", with: "https://")
-            await MainActor.run {
-                self.materialBackground = materialBackground
-                self.splitedTitle = splitedTitle
-                self.computedImageURL = https
             }
         }
     }

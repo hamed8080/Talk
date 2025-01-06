@@ -11,11 +11,12 @@ import TalkViewModels
 import ActionableContextMenu
 import TalkModels
 import Chat
+import TalkModels
 
 struct ThreadRowActionMenu: View {
     @Binding var showPopover: Bool
     var isDetailView: Bool = false
-    var thread: Conversation
+    var thread: CalculatedConversation
     @EnvironmentObject var viewModel: ThreadsViewModel
     private var canAddParticipant: Bool { thread.group ?? false && thread.admin ?? false == true }
 
@@ -86,35 +87,35 @@ struct ThreadRowActionMenu: View {
     private func onPinUnpinTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.togglePin(thread)
+            viewModel.togglePin(thread.toStruct())
         }
     }
 
     private func onMuteUnmuteTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.toggleMute(thread)
+            viewModel.toggleMute(thread.toStruct())
         }
     }
 
     private func onClearHistoryTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.clearHistory(thread)
+            viewModel.clearHistory(thread.toStruct())
         }
     }
 
     private func onAddToFolderTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.showAddThreadToTag(thread)
+            viewModel.showAddThreadToTag(thread.toStruct())
         }
     }
 
     private func onSpamTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.spamPV(thread)
+            viewModel.spamPV(thread.toStruct())
         }
     }
 
@@ -122,7 +123,7 @@ struct ThreadRowActionMenu: View {
         showPopover = false
         delayActionOnHidePopover {
             let isUnarchived = thread.isArchive == false || thread.isArchive == nil
-            AppState.shared.objectsContainer.archivesVM.toggleArchive(thread)
+            AppState.shared.objectsContainer.archivesVM.toggleArchive(thread.toStruct())
             if isUnarchived {
                 showArchivePopupIfNeeded()
             }
@@ -132,14 +133,14 @@ struct ThreadRowActionMenu: View {
     private func onInviteTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.showAddParticipants(thread)
+            viewModel.showAddParticipants(thread.toStruct())
         }
     }
 
     private func onLeaveConversationTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread))
+            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread.toStruct()))
         }
     }
 
@@ -149,7 +150,7 @@ struct ThreadRowActionMenu: View {
     }
 
     private func onCloseConversationTapped() {
-        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread))
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread.toStruct()))
         showPopover = false
     }
 

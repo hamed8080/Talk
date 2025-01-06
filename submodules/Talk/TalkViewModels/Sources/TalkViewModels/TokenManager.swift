@@ -17,18 +17,17 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
     public static let shared = TokenManager()
     @Published public var secondToExpire: Double = 0
     @Published public private(set) var isLoggedIn = false // to update login logout ui
-    public static let ssoTokenKey = "ssoTokenKey"
+    public nonisolated static let ssoTokenKey = "ssoTokenKey"
     public static let ssoTokenCreateDate = "ssoTokenCreateDate"
     public let session: URLSession
     public var isInFetchingRefreshToken = false
 
     private init(session: URLSession = .shared) {
         self.session = session
-        getSSOTokenFromUserDefaults() // need first time app luanch to set hasToken
     }
 
     public func getPKCENewTokenWithRefreshToken() async {
-        guard let ssoTokenModel = getSSOTokenFromUserDefaults(),
+        guard let ssoTokenModel = await getSSOTokenFromUserDefaultsAsync(),
               let codeVerifier = ssoTokenModel.codeVerifier
         else { return }
         do {
@@ -37,12 +36,17 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
             let resp = try await session.data(for: urlReq)
             let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: resp)
             post(log: log)
-            var ssoToken = try JSONDecoder().decode(SSOTokenResponse.self, from: resp.0)
+            var ssoToken = try await decodeSSOToken(data: resp.0)
             ssoToken.codeVerifier = codeVerifier
             await onNewRefreshToken(ssoToken)
         } catch {
             onRefreshTokenError(error: error)
         }
+    }
+    
+    @AppBackgroundActor
+    private func decodeSSOToken(data: Data) throws -> SSOTokenResponse {
+        try JSONDecoder().decode(SSOTokenResponse.self, from: data)
     }
 
     private func pkceURLRequest(refreshToken: String, codeVerifier: String) -> URLRequest {
@@ -79,7 +83,7 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
     }
 
     public func getOTPNewTokenWithRefreshToken() async throws {
-        guard let ssoTokenModel = getSSOTokenFromUserDefaults(),
+        guard let ssoTokenModel = await getSSOTokenFromUserDefaultsAsync(),
               let keyId = ssoTokenModel.keyId
         else { return }
         do {
@@ -91,7 +95,7 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
             }
             let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: tuple)
             post(log: log)
-            var ssoToken = try JSONDecoder().decode(SSOTokenResponse.self, from: tuple.0)
+            var ssoToken = try await decodeSSOToken(data: tuple.0)
             ssoToken.keyId = keyId
             await onNewRefreshToken(ssoToken)
         } catch {
@@ -125,6 +129,16 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
 
     @discardableResult
     public func getSSOTokenFromUserDefaults() -> SSOTokenResponse? {
+        if let data = UserDefaults.standard.data(forKey: TokenManager.ssoTokenKey), let ssoToken = try? JSONDecoder().decode(SSOTokenResponse.self, from: data) {
+            return ssoToken
+        } else {
+            return nil
+        }
+    }
+    
+    @discardableResult
+    @AppBackgroundActor
+    public func getSSOTokenFromUserDefaultsAsync() -> SSOTokenResponse? {
         if let data = UserDefaults.standard.data(forKey: TokenManager.ssoTokenKey), let ssoToken = try? JSONDecoder().decode(SSOTokenResponse.self, from: data) {
             return ssoToken
         } else {
@@ -185,15 +199,18 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
     public func startTokenTimer() {
 #if DEBUG
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.handleTimer()
+            Task { @AppBackgroundActor in
+                let ssoTokenExipreTime = await try? TokenManager.shared.getSSOTokenFromUserDefaultsAsync()?.expiresIn
+                await MainActor.run {
+                    self?.handleTimer(ssoTokenExipreTime)
+                }
             }
         }
 #endif
     }
     
-    private func handleTimer() {
-        if let createDate = TokenManager.shared.getCreateTokenDate(), let ssoTokenExipreTime = TokenManager.shared.getSSOTokenFromUserDefaults()?.expiresIn {
+    private func handleTimer(_ time: Int?) {
+        if let createDate = TokenManager.shared.getCreateTokenDate(), let ssoTokenExipreTime = time {
             let expireIn = createDate.advanced(by: Double(ssoTokenExipreTime)).timeIntervalSince1970 - Date().timeIntervalSince1970
             secondToExpire = Double(expireIn)
         }

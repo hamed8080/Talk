@@ -62,8 +62,8 @@ struct ManageSessionsView: View {
     @ViewBuilder
     private var removeAllSessions: some View {
         VStack(alignment: .center) {
-            Text("ManageSessions.removeAllDescription")
-            Button("ManageSessions.removeAll") {
+            Text("ManageSessions.removeAllDescription".bundleLocalized())
+            Button("ManageSessions.removeAll".bundleLocalized()) {
                 AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
                     RemoveAllSessionDialog()
                         .environmentObject(viewModel)

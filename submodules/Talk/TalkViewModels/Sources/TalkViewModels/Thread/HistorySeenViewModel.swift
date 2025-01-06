@@ -45,7 +45,7 @@ public final class HistorySeenViewModel {
             return
         }
         await logMessageApperance(message, appeard: true, isUp: false)
-        reduceUnreadCountLocaly(message)
+        await reduceUnreadCountLocaly(message)
         if message.id ?? 0 >= lastInQueue, let message = message as? Message {
             lastInQueue = message.id ?? 0
             seenPublisher.send(message)
@@ -77,9 +77,9 @@ public final class HistorySeenViewModel {
 
     /// We reduce it locally to keep the UI Sync and user feels it really read the message.
     /// However, we only send seen request with debouncing
-    private func reduceUnreadCountLocaly(_ message: HistoryMessageType) {
+    private func reduceUnreadCountLocaly(_ message: HistoryMessageType) async {
         if let newUnreadCount = newLocalUnreadCount(for: message) {
-            setUnreadCount(newUnreadCount: newUnreadCount)
+            await setUnreadCount(newUnreadCount: newUnreadCount)
             logSeen("Reduced localy to: \(newUnreadCount)")
         } else {
             logSeen("Can't Reduced localy")
@@ -144,12 +144,13 @@ public final class HistorySeenViewModel {
         threadsVM.threads.first(where: {$0.id == threadId})?.unreadCount ?? 0
     }
     
-    private func setUnreadCount(newUnreadCount: Int) {
+    private func setUnreadCount(newUnreadCount: Int) async {
         threadVM?.thread.unreadCount = newUnreadCount
         if let index = threadsVM.threads.firstIndex(where: {$0.id == threadId}) {
             threadsVM.threads[index].unreadCount = newUnreadCount
+            await ThreadCalculators.reCalculateUnreadCount(threadsVM.threads[index])
+            threadsVM.threads[index].animateObjectWillChange()
         }
-        threadsVM.animateObjectWillChange()
         threadVM?.delegate?.onUnreadCountChanged()
     }
     

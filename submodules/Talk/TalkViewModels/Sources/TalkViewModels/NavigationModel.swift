@@ -165,9 +165,9 @@ public extension NavigationModel {
 }
 
 public extension NavigationModel {
-    func updateConversationInViewModel(_ conversation: Conversation) {
+    func updateConversationInViewModel(_ conversation: CalculatedConversation) {
         if let vm = threadStack.first(where: {$0.viewModel.threadId == conversation.id})?.viewModel {
-            vm.updateConversation(conversation)
+            vm.updateConversation(conversation.toStruct())
         }
     }
 }

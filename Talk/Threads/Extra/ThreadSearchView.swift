@@ -23,9 +23,10 @@ struct ThreadSearchView: View {
                 }
 
                 ForEach(viewModel.searchedConversations) { thread in
-                    ThreadRow(thread: thread) {
+                    ThreadRow() {
                         AppState.shared.objectsContainer.navVM.append(thread: thread)
                     }
+                    .environmentObject(thread.toClass())
                     .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 0))
                     .listRowSeparatorTint(Color.App.dividerSecondary)
                     .listRowBackground(thread.pin == true ? Color.App.bgSecondary : Color.App.bgPrimary)

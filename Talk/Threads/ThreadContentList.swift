@@ -11,6 +11,7 @@ import TalkUI
 import TalkViewModels
 
 struct ThreadContentList: View {
+    static var count = 0
     let container: ObjectsContainer
     @EnvironmentObject var threadsVM: ThreadsViewModel
     private var sheetBinding: Binding<Bool> { Binding(get: { threadsVM.sheetType != nil }, set: { _ in }) }
@@ -18,15 +19,16 @@ struct ThreadContentList: View {
     var body: some View {
         List {
             ForEach(threadsVM.threads) { thread in
-                ThreadRow(thread: thread) {
-                    AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread)
+                ThreadRow() {
+                    AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread.toStruct())
                 }
+                .environmentObject(thread)
                 .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 8))
                 .listRowSeparatorTint(Color.App.dividerSecondary)
                 .listRowBackground(ThreadListRowBackground(thread: thread))
                 .onAppear {
                     Task {
-                        await threadsVM.loadMore(id: thread.id)                        
+                        await threadsVM.loadMore(id: thread.id)
                     }
                 }
             }
@@ -51,7 +53,6 @@ struct ThreadContentList: View {
         }
     }
 
-
     private var loadingView: some View {
         ListLoadingView(isLoading: .constant(threadsVM.lazyList.isLoading && threadsVM.firstSuccessResponse == true))
             .id(UUID())
@@ -72,7 +73,9 @@ private struct Preview: View {
                 .environmentObject(container.threadsVM)
                 .environmentObject(AppState.shared)
                 .task {
-                    container.threadsVM.appendThreads(threads: MockData.generateThreads(count: 5))
+                    for thread in MockData.generateThreads(count: 5) {
+                        await container.threadsVM.calculateAppendSortAnimate(thread)
+                    }
                     if let fileURL = Bundle.main.url(forResource: "new_message", withExtension: "mp3") {
                         try? container.audioPlayerVM.setup(fileURL: fileURL, ext: "mp3", title: "Note")
                         container.audioPlayerVM.toggle()

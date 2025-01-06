@@ -37,10 +37,10 @@ extension ThreadsViewModel: MuteThreadProtocol {
         }
     }
 
-    public func onMuteThreadChanged(mute: Bool, threadId: Int?) {
+    public func onMuteThreadChanged(mute: Bool, threadId: Int?) async {
         if let index = firstIndex(threadId) {
             threads[index].mute = mute
-            sort()
+            await sortInPlace()
             let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
             if activeVM?.viewModel.threadId == threadId {
                 activeVM?.viewModel.thread.mute = mute
