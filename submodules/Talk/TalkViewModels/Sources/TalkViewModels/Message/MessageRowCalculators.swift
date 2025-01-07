@@ -412,6 +412,12 @@ class MessageRowCalculators {
         return nil
     }
 
+    class func calculateReactionWidth(reactionText: String) -> CGFloat {
+        let font = UIFont(name: "IRANSansX-Bold", size: 14) ?? .systemFont(ofSize: 14)
+        let width = reactionText.widthOfString(usingFont: font) + 16 + 4
+        return width
+    }
+    
     class func calulateReactions(reactions: ReactionInMemoryCopy) -> ReactionRowsCalculated {
         var rows: [ReactionRowsCalculated.Row] = []
         let summary = reactions.summary.sorted(by: {$0.count ?? 0 > $1.count ?? 0})
@@ -425,6 +431,7 @@ class MessageRowCalculators {
                                        bottom: hasCount ? 6 : 0,
                                        trailing: hasCount ? 8 : 0)
             let selectedEmojiTabId = "\(summary.sticker?.emoji ?? "all") \(countText)"
+            let width = calculateReactionWidth(reactionText: selectedEmojiTabId)
             rows.append(.init(reactionId: summary.id,
                               edgeInset: edgeInset,
                               sticker: summary.sticker,
@@ -432,7 +439,8 @@ class MessageRowCalculators {
                               countText: countText,
                               isMyReaction: isMyReaction,
                               hasReaction: hasCount,
-                              selectedEmojiTabId: selectedEmojiTabId))
+                              selectedEmojiTabId: selectedEmojiTabId,
+                              width: width))
         }
 
         // Move my reaction to the first item without sorting reactions

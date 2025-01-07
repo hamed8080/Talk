@@ -65,7 +65,6 @@ final class FooterView: UIStackView {
         pinImage.setContentHuggingPriority(.required, for: .vertical)
         pinImage.setContentHuggingPriority(.required, for: .horizontal)
         pinImage.setContentCompressionResistancePriority(.required, for: .horizontal)
-        pinImage.setContentCompressionResistancePriority(.required, for: .horizontal)
         pinImage.isOpaque = true
 
         if isMe {
@@ -84,7 +83,7 @@ final class FooterView: UIStackView {
         timelabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.5)
         timelabel.accessibilityIdentifier = "timelabelFooterView"
         timelabel.isOpaque = true
-        timelabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        timelabel.setContentCompressionResistancePriority(.required + 1, for: .horizontal)
         timelabel.setContentHuggingPriority(.required, for: .horizontal)
         addArrangedSubview(timelabel)
 
@@ -104,7 +103,10 @@ final class FooterView: UIStackView {
         ])
     }
 
+    var viewModel: MessageRowViewModel?
+    
     public func set(_ viewModel: MessageRowViewModel) {
+        self.viewModel = viewModel
         let message = viewModel.message
         setStatusImageOrUploadingAnimation(viewModel: viewModel)
         timelabel.text = viewModel.calMessage.timeString

@@ -118,7 +118,7 @@ struct NavigationTypeView: View {
         case .support(_):
             SupportView()
         case .archives(_):
-            ArchivesView(container: container)
+            ArchivesView()
                 .environmentObject(container.archivesVM)
         case .messageParticipantsSeen(let model):
             MessageParticipantsSeen(message: model.message)

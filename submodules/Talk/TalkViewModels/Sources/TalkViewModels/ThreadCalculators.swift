@@ -17,16 +17,19 @@ public class ThreadCalculators {
     @AppBackgroundActor
     public class func calculate(_ conversations: [Conversation],
                                 _ myId: Int,
-                                _ navSelectedId: Int? = nil) async -> [CalculatedConversation] {
-        return await calculateWithGroup(conversations, myId, navSelectedId)
+                                _ navSelectedId: Int? = nil,
+                                _ nonArchives: Bool = true
+    ) async -> [CalculatedConversation] {
+        return await calculateWithGroup(conversations, myId, navSelectedId, nonArchives)
     }
     
     private class func calculateWithGroup(_ conversations: [Conversation],
                                           _ myId: Int,
-                                          _ navSelectedId: Int? = nil
+                                          _ navSelectedId: Int? = nil,
+                                          _ nonArchives: Bool = true
     )
     async -> [CalculatedConversation] {
-        let sanitizedConversatiosn = sanitizeConversations(conversations)
+        let sanitizedConversatiosn = sanitizeConversations(conversations, nonArchives)
         let convsCal = await withTaskGroup(of: CalculatedConversation.self) { group in
             for conversation in sanitizedConversatiosn {
                 group.addTask {
@@ -42,13 +45,16 @@ public class ThreadCalculators {
         return convsCal
     }
     
-    private class func sanitizeConversations(_ conversations: [Conversation]) -> [Conversation] {
+    private class func sanitizeConversations(_ conversations: [Conversation], _ nonArchives: Bool = true) -> [Conversation] {
         let fixedTitles = fixTitleAndReactionStatus(conversations)
-        let fixedArchives = nonArchives(fixedTitles)
-        return fixedArchives
+        if nonArchives {
+            let fixedArchives = fileterNonArchives(fixedTitles)
+            return fixedArchives
+        }
+        return fixedTitles
     }
     
-    private class func nonArchives(_ conversations: [Conversation]) -> [Conversation] {
+    private class func fileterNonArchives(_ conversations: [Conversation]) -> [Conversation] {
         return conversations.filter({$0.isArchive == false || $0.isArchive == nil}) ?? []
     }
     

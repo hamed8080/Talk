@@ -162,7 +162,8 @@ struct MessageReactionDetailView_Previews: PreviewProvider {
                                              countText: "1",
                                              isMyReaction: true,
                                              hasReaction: true,
-                                             selectedEmojiTabId: "")
+                                             selectedEmojiTabId: "",
+                                             width: 57)
         MessageReactionDetailView(message: Message(id: 1, message: "TEST", conversation: Conversation(id: 1)), row: row)
 
         ReactionParticipantRow(reaction: .init(id: 1, reaction: .like, participant: .init(image: "https://imgv3.fotor.com/images/cover-photo-image/a-beautiful-girl-with-gray-hair-and-lucxy-neckless-generated-by-Fotor-AI.jpg"), time: nil))

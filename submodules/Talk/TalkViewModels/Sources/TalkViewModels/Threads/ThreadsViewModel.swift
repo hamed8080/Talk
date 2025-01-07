@@ -158,15 +158,15 @@ public final class ThreadsViewModel: ObservableObject {
         await MainActor.run {
             self.threads = sorted
             updatePresentedViewModels(threads)
+            lazyList.setHasNext(hasAnyResults)
+            lazyList.setLoading(false)
+            lazyList.setThreasholdIds(ids: threshold)
             if hasAnyResults {
-                lazyList.setHasNext(true)
                 firstSuccessResponse = true
             }
-            lazyList.setLoading(false)
             if firstSuccessResponse {
                 shimmerViewModel.hide()
             }
-            lazyList.setThreasholdIds(ids: threshold)
             objectWillChange.send()
         }
     }

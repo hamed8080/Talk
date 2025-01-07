@@ -23,8 +23,9 @@ public struct ReactionRowsCalculated: Sendable {
         public let isMyReaction: Bool
         public let hasReaction: Bool
         public let selectedEmojiTabId: String
+        public let width: CGFloat
 
-        public init(reactionId: Int, edgeInset: EdgeInsets, sticker: Sticker?, emoji: String, countText: String, isMyReaction: Bool, hasReaction: Bool, selectedEmojiTabId: String) {
+        public init(reactionId: Int, edgeInset: EdgeInsets, sticker: Sticker?, emoji: String, countText: String, isMyReaction: Bool, hasReaction: Bool, selectedEmojiTabId: String, width: CGFloat) {
             self.reactionId = reactionId
             self.edgeInset = edgeInset
             self.sticker = sticker
@@ -33,6 +34,7 @@ public struct ReactionRowsCalculated: Sendable {
             self.isMyReaction = isMyReaction
             self.hasReaction = hasReaction
             self.selectedEmojiTabId = selectedEmojiTabId
+            self.width = width
         }
     }
 }

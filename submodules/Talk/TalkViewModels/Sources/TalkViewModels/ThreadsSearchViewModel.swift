@@ -15,7 +15,7 @@ import OSLog
 
 @MainActor
 public final class ThreadsSearchViewModel: ObservableObject {
-    @Published public var searchedConversations: ContiguousArray<Conversation> = []
+    @Published public var searchedConversations: ContiguousArray<CalculatedConversation> = []
     @Published public var searchedContacts: ContiguousArray<Contact> = []
     @Published public var searchText: String = ""
     private var cancelable: Set<AnyCancellable> = []
@@ -168,7 +168,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onSearch(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_KEY) != nil {
-            searchedConversations.append(contentsOf: threads)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(threads, myId)
+            searchedConversations.append(contentsOf: calThreads)
         }
     }
 
@@ -176,7 +178,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onSearchLoadMore(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_LOAD_MORE_KEY) != nil {
-            searchedConversations.append(contentsOf: threads)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(threads, myId)
+            searchedConversations.append(contentsOf: calThreads)
         }
     }
 
@@ -184,7 +188,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onPublicThreadSearch(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_PUBLIC_THREAD_KEY) != nil {
-            searchedConversations.append(contentsOf: threads)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(threads, myId)
+            searchedConversations.append(contentsOf: calThreads)
         }
     }
 

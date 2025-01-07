@@ -21,7 +21,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private(set) var hasNext: Bool = true
     public var isLoading = false
     private var canLoadMore: Bool { hasNext && !isLoading }
-    public var archives: ContiguousArray<Conversation> = []
+    public var archives: ContiguousArray<CalculatedConversation> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     private var objectId = UUID().uuidString
     private let GET_ARCHIVES_KEY: String
@@ -116,21 +116,26 @@ public final class ArchiveThreadsViewModel: ObservableObject {
 
     public func onArchives(_ response: ChatResponse<[Conversation]>) {
         if !response.cache, let archives = response.result, response.pop(prepend: GET_ARCHIVES_KEY) != nil {
-            archives.forEach{ archive in
-                if !self.archives.contains(where: {$0.id == archive.id}) {
-                    self.archives.append(archive)
-                }
+            let filtered = archives.filter { archive in
+                return !self.archives.contains(where: {$0.id == archive.id})
+            }
+            let myId = AppState.shared.user?.id ?? -1
+            Task {
+                let calThreads = await ThreadCalculators.calculate(filtered, myId, nil, false)
+                self.archives.append(contentsOf: calThreads)
+                isLoading = false
+                animateObjectWillChange()
             }
         }
-        isLoading = false
-        animateObjectWillChange()
     }
 
     public func onArchive(_ response: ChatResponse<Int>) async {
         if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
-            archives.append(conversation.toStruct())
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId)
+            archives.append(calThreads)
             threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
@@ -143,7 +148,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             var conversation = archives[index]
             conversation.isArchive = false
             archives.remove(at: index)
-            threadsVM.threads.append(conversation.toClass())
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId)
+            threadsVM.threads.append(calThreads)
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
             animateObjectWillChange()

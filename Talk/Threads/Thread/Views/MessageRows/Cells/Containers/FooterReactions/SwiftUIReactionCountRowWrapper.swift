@@ -15,13 +15,9 @@ struct SwiftUIReactionCountRowWrapper: UIViewRepresentable {
     let row: ReactionRowsCalculated.Row
     let isMe: Bool
 
-    func makeUIView(context: Context) -> some UIView {
-        let view = ReactionCountRowView(frame: .zero, isMe: isMe)
-        view.prepareContextMenu()
-        view.setValue(row: row)
-        if row.isMyReaction == false {
-            view.backgroundColor = Color.App.accentUIColor?.withAlphaComponent(0.8)
-        }
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.frame = .zero
         return view
     }
 

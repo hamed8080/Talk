@@ -233,6 +233,7 @@ extension ThreadViewController {
 
     private func attachCenterLoading() {
         let width: CGFloat = 28
+        centerLoading.alpha = 1.0
         view.addSubview(centerLoading)
         centerLoading.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
         centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
@@ -703,7 +704,9 @@ extension ThreadViewController: HistoryScrollDelegate {
                 }
             }
             Task {
-                 await self.viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+                if self.viewModel?.scrollVM.getIsProgramaticallyScrolling() == false {
+                    await self.viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+                }
             }
         } completion: { [weak self] completed in
             self?.viewModel?.historyVM.isUpdating = false
