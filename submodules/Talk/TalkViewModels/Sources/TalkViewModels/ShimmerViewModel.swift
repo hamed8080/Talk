@@ -27,13 +27,9 @@ public class ShimmerViewModel: ObservableObject {
     }
 
     public func show() {
-        Task {
-            await MainActor.run {
-                startTimer()
-                withAnimation {
-                    isShowing = true
-                }
-            }
+        startTimer()
+        withAnimation {
+            isShowing = true
         }
     }
 

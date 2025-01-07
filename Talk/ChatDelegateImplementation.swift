@@ -28,7 +28,7 @@ final class ChatDelegateImplementation: ChatDelegate {
     }
 
     func chatState(state: ChatState, currentUser: User?, error _: ChatError?) {
-        Task.detached(priority: .userInitiated) {
+        Task {
             await MainActor.run {
                 NotificationCenter.connect.post(name: .connect, object: state)
                 switch state {

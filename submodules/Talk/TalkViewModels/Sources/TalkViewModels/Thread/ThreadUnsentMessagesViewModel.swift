@@ -81,7 +81,7 @@ public final class ThreadUnsentMessagesViewModel {
         for row in rows {
             if !self.rowViewModels.contains(where: {$0.uniqueId == row.uniqueId}) {
                 let vm = MessageRowViewModel(message: row, viewModel: viewModel)
-                await vm.performaCalculation(mainData: vm.getMainData())
+                await vm.recalculate(mainData: vm.getMainData())
                 self.rowViewModels.append(vm)
             }
         }

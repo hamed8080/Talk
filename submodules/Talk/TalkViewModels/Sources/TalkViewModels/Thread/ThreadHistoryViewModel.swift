@@ -744,12 +744,12 @@ extension ThreadHistoryViewModel {
             // Update a message sent by Me
             vm = sections[indexPath.section].vms[indexPath.row]
             vm.swapUploadMessageWith(message)
-            await vm.performaCalculation(mainData: mainData)
+            await vm.recalculate(mainData: mainData)
             await delegate?.reloadData(at: indexPath) // Do not call reload(at:) the item it will lead to call endDisplay
         } else {
             // A new message comes from server
             vm = MessageRowViewModel(message: message, viewModel: viewModel)
-            await vm.performaCalculation(appendMessages: [message], mainData: mainData)
+            await vm.recalculate(appendMessages: [message], mainData: mainData)
             await appendSort([vm])
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, [vm])
             await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
@@ -775,7 +775,7 @@ extension ThreadHistoryViewModel {
             vm.message.time = message.time
             vm.message.edited = true
             let mainData = await getMainData()
-            await vm.performaCalculation(mainData: mainData)
+            await vm.recalculate(mainData: mainData)
             guard let indexPath = sections.indexPath(for: vm) else { return }
             await MainActor.run {
                 delegate?.edited(indexPath)
@@ -809,7 +809,7 @@ extension ThreadHistoryViewModel {
         else { return }
         vm.message.delivered = true
         let mainData = await getMainData()
-        await vm.performaCalculation(mainData: mainData)
+        await vm.recalculate(mainData: mainData)
         await MainActor.run {
             delegate?.delivered(indexPath)
         }
@@ -822,7 +822,7 @@ extension ThreadHistoryViewModel {
         vm.message.delivered = true
         vm.message.seen = true
         let mainData = await getMainData()
-        await vm.performaCalculation(mainData: mainData)
+        await vm.recalculate(mainData: mainData)
         await MainActor.run {
             delegate?.seen(indexPath)
         }
@@ -843,7 +843,7 @@ extension ThreadHistoryViewModel {
         vm.message.id = result?.messageId
         vm.message.time = result?.messageTime
         let mainData = await getMainData()
-        await vm.performaCalculation(mainData: mainData)
+        await vm.recalculate(mainData: mainData)
         await MainActor.run {
             delegate?.sent(indexPath)
         }
@@ -966,7 +966,7 @@ extension ThreadHistoryViewModel {
         let indexPath = tuples.indexPath
         let vm = MessageRowViewModel(message: unreadMessage, viewModel: viewModel)
         let mainData = await getMainData()
-        await vm.performaCalculation(mainData: mainData)
+        await vm.recalculate(mainData: mainData)
         sections[indexPath.section].vms.append(vm)
         await MainActor.run { [weak self, sections] in
             guard let self = self else { return }
@@ -1236,7 +1236,7 @@ extension ThreadHistoryViewModel {
             vm.message.delivered = true
             vm.message.seen = true
             let mainData = await getMainData()
-            await vm.performaCalculation(mainData: mainData)
+            await vm.recalculate(mainData: mainData)
             await MainActor.run {
                 delegate?.seen(indexPath)
             }

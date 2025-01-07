@@ -209,7 +209,7 @@ private extension MessageContainerStackView {
                 try? await Task.sleep(for: .milliseconds(500))
                 if let threadVM = model.threadVM {
                     let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
-                    await newVM.performaCalculation(mainData: newVM.getMainData())
+                    await newVM.recalculate(mainData: newVM.getMainData())
                     await MainActor.run {
                         model.threadVM?.historyVM.mSections[indexPath.section].vms[indexPath.row] = newVM
                         model.threadVM?.delegate?.reloadData(at: indexPath)

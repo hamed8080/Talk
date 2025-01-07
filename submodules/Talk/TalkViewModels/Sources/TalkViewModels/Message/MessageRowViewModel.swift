@@ -36,12 +36,13 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     }
 
     public func recalculateWithAnimation(mainData: MainRequirements) async {
-        await performaCalculation(mainData: mainData)
+        await recalculate(mainData: mainData)
     }
     
     @HistoryActor
-    public func performaCalculation(appendMessages: [HistoryMessageType] = [], mainData: MainRequirements) async {
+    public func recalculate(appendMessages: [HistoryMessageType] = [], mainData: MainRequirements) async {
         calMessage = await MessageRowCalculators.calculate(message: message, mainData: mainData, appendMessages: appendMessages)
+        calMessage = await MessageRowCalculators.calculateColorAndFileURL(mainData: mainData, message: message, calculatedMessage: calMessage)
         if calMessage.fileURL != nil {
             fileState.state = .completed
             fileState.showDownload = false
