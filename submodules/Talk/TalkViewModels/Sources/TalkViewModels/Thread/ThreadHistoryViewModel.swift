@@ -416,6 +416,7 @@ extension ThreadHistoryViewModel {
         if await !canLoadMoreTop() { return }
         await showTopLoading(true)
         let req = await makeRequest(toTime: toTime, offset: nil)
+        log("SendMoreTopRequest")
         doRequest(req, prepend)
     }
 
@@ -478,6 +479,7 @@ extension ThreadHistoryViewModel {
         if await !canLoadMoreBottom() { return }
         await showBottomLoading(true)
         let req = await makeRequest(fromTime: fromTime, offset: nil)
+        log("SendMoreBottomRequest")
         doRequest(req, prepend)
     }
 
@@ -1064,7 +1066,10 @@ extension ThreadHistoryViewModel {
                 logScroll("LoadMoreBottom")
                 await loadMoreBottom(message: message)
             }
-        } else {
+        } else if contentOffset.y > 0 {
+            /// We have to check if contentOffset.y is greater than zero
+            /// due to we have set contentInset and contentOffset would start from a negative value,
+            /// if we are at top of the table view
             // scroll up
             logScroll("UP")
             scrollVM.scrollingUP = true
@@ -1207,12 +1212,12 @@ extension ThreadHistoryViewModel {
 
     private func canLoadMoreTop() async -> Bool {
         let isProgramaticallyScroll = await viewModel?.scrollVM.getIsProgramaticallyScrolling() == true
-        return hasNextTop && !topLoading && !isProgramaticallyScroll
+        return hasNextTop && !topLoading && !isProgramaticallyScroll && !bottomLoading
     }
 
     private func canLoadMoreBottom() async -> Bool {
         let isProgramaticallyScroll = await viewModel?.scrollVM.getIsProgramaticallyScrolling() == true
-        return hasNextBottom && !bottomLoading && !isProgramaticallyScroll
+        return hasNextBottom && !bottomLoading && !isProgramaticallyScroll && !topLoading
     }
 
     public func setIsEmptyThread() async {
