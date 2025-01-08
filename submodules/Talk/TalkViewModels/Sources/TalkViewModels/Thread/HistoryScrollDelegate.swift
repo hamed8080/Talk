@@ -18,7 +18,6 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     // Reload data only not the cell
     func reloadData(at: IndexPath)
     func inserted(at: IndexPath)
-    func inserted(at: [IndexPath])
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate :UITableView.RowAnimation, _ scrollTo: IndexPath?)
     func removed(at: IndexPath)
     func removed(at: [IndexPath])

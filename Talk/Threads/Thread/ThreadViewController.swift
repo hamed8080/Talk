@@ -612,67 +612,28 @@ extension ThreadViewController: HistoryScrollDelegate {
         tableView.endUpdates()
     }
     
-    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate :UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
+    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
         inserted(sections: sections, rows: rows, animate: animate, scrollTo: scrollTo)
     }
 
-    private func inserted(sections: IndexSet, rows: [IndexPath], animate :UITableView.RowAnimation = .top, scrollTo: IndexPath?) {
-
-        // Save the current content offset and content height
-//        let beforeOffsetY = tableView.contentOffset.y
-//        let beforeContentHeight = tableView.contentSize.height
-//        print("before offset y is: \(beforeOffsetY)")
-//
-//        // Begin table view updates
-//        tableView.beginUpdates()
-//
-//        // Insert the sections and rows without animation
-//        tableView.insertSections(sections, with: .middle)
-//        tableView.insertRows(at: rows, with: .middle)
-//
-//        // Calculate the new content size and offset
-//        let afterContentHeight = tableView.contentSize.height
-//        let offsetChange = afterContentHeight - beforeContentHeight
-//
-//        // Update the content offset to keep the visible content stationary
-//        let newOffsetY = beforeOffsetY + offsetChange
-//        print("new offset y is: \(newOffsetY)")
-//        tableView.contentOffset.y = newOffsetY
-//        tableView.setContentOffset(.init(x: 0, y: newOffsetY), animated: true)
-
-        // End table view updates
-//        tableView.endUpdates()
-//
-//        if let scrollTo = scrollTo {
-//            self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
-//        }
+    private func inserted(sections: IndexSet, rows: [IndexPath], animate: UITableView.RowAnimation = .top, scrollTo: IndexPath?) {
         if let scrollTo = scrollTo {
             UIView.performWithoutAnimation {
-                tableView.performBatchUpdates {
-                    // Insert the sections and rows without animation
-                    tableView.insertSections(sections, with: animate)
-                    tableView.insertRows(at: rows, with: animate)
-                } completion: { [weak self] completed in
-                    DispatchQueue.main.async {
-                        self?.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
-                    }
-                }
+                tableView.beginUpdates()
+                tableView.insertSections(sections, with: .none)
+                tableView.insertRows(at: rows, with: .none)
+                tableView.endUpdates()
             }
+            tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
         } else {
             tableView.performBatchUpdates { [weak self] in
                 // Insert the sections and rows without animation
-                self?.tableView.insertSections(sections, with: animate)
-                self?.tableView.insertRows(at: rows, with: animate)
+                self?.tableView.insertSections(sections, with: .none)
+                self?.tableView.insertRows(at: rows, with: .none)
             }
         }
     }
-
-    func inserted(at: [IndexPath]) {
-        tableView.beginUpdates()
-        tableView.insertRows(at: at, with: .fade)
-        tableView.endUpdates()
-    }
-
+    
     func removed(at: IndexPath) {
         guard let viewModel = viewModel else { return }
         tableView.beginUpdates()

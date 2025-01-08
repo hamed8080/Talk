@@ -43,7 +43,7 @@ public final class ThreadUploadMessagesViewModel {
             if let sectionSet = tuple.sectionIndex {
                 viewModel?.delegate?.inserted(sectionSet, tuple.indices, .left, nil)
             } else {
-                viewModel?.delegate?.inserted(at: tuple.indices)
+                viewModel?.delegate?.inserted(IndexSet(), tuple.indices, .left, nil)
             }
             // Sleep for better animation when we insert something at the end of the list in upload for multiple items.
             try? await Task.sleep(for: .seconds(0.2))

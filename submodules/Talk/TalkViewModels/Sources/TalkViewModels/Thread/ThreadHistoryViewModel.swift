@@ -1066,10 +1066,9 @@ extension ThreadHistoryViewModel {
                 logScroll("LoadMoreBottom")
                 await loadMoreBottom(message: message)
             }
-        } else if contentOffset.y > 0 {
-            /// We have to check if contentOffset.y is greater than zero
-            /// due to we have set contentInset and contentOffset would start from a negative value,
-            /// if we are at top of the table view
+        } else {
+            /// There is a chance if we are at the top of a table view and due to we have negative value at top because of contentInset
+            /// it will start to fetch the data however, if we are at end of the top list it won't get triggered.
             // scroll up
             logScroll("UP")
             scrollVM.scrollingUP = true
