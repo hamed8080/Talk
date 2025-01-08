@@ -9,18 +9,20 @@ import Chat
 import SwiftUI
 import TalkUI
 import TalkViewModels
+import TalkModels
 
 struct ThreadContentList: View {
     static var count = 0
     let container: ObjectsContainer
     @EnvironmentObject var threadsVM: ThreadsViewModel
     private var sheetBinding: Binding<Bool> { Binding(get: { threadsVM.sheetType != nil }, set: { _ in }) }
+    @State private var twoRowTappedAtSameTime = false
 
     var body: some View {
         List {
             ForEach(threadsVM.threads) { thread in
                 ThreadRow() {
-                    AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread.toStruct())
+                    onTap(thread)
                 }
                 .environmentObject(thread)
                 .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 8))
@@ -59,6 +61,16 @@ struct ThreadContentList: View {
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(.zero)
+    }
+    
+    private func onTap(_ thread: CalculatedConversation) {
+        if !twoRowTappedAtSameTime {
+            twoRowTappedAtSameTime = true
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
+                twoRowTappedAtSameTime = false
+            }
+            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread.toStruct())
+        }
     }
 }
 
