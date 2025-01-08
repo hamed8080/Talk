@@ -63,27 +63,27 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func onNewMessage(_ response: ChatResponse<Message>) async {
         if let message = response.result, let index = firstIndex(message.conversation?.id) {
-            let old = threads[index]
-            let updated = old.updateOnNewMessage(response, meId: myId)
+            let reference = threads[index]
+            let old = reference.toStruct()
+            let updated = reference.updateOnNewMessage(response, meId: myId)
             threads[index] = updated
-
             if updated.pin == false {
                 await sortInPlace()
             }
             recalculateAndAnimate(updated)
-            updateActiveConversationOnNewMessage(response, updated, old)
+            updateActiveConversationOnNewMessage(response, updated.toStruct(), old)
         }
         getNotActiveThreads(response.result?.conversation)
     }
 
-    private func updateActiveConversationOnNewMessage(_ response: ChatResponse<Message>, _ updatedConversation: CalculatedConversation, _ oldConversation: CalculatedConversation?) {
+    private func updateActiveConversationOnNewMessage(_ response: ChatResponse<Message>, _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
         let newMSG = response.result
         let isMeJoinedPublic = newMSG?.messageType == .participantJoin && newMSG?.participant?.id == myId
         if response.subjectId == activeVM?.threadId, let message = newMSG, !isMeJoinedPublic {
             activeVM?.updateUnreadCount(updatedConversation.unreadCount)
             Task {
-                await activeVM?.historyVM.onNewMessage(message, oldConversation?.toStruct(), updatedConversation.toStruct())
+                await activeVM?.historyVM.onNewMessage(message, oldConversation, updatedConversation)
             }
         }
     }

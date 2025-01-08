@@ -862,15 +862,37 @@ extension ThreadHistoryViewModel {
         }
         await onDeleteMessage(indices)
         await setIsEmptyThread()
+        await setDeletedIfWasReply(messageId: response.result?.id ?? -1)
     }
     
     @MainActor
     private func onDeleteMessage(_ indices: IndexPath) async {
-        mSections[indices.section].vms.remove(at: indices.row)
-        if mSections[indices.section].vms.count == 0 {
-            mSections.remove(at: indices.section)
-        }
+        mSections = await sections
         delegate?.removed(at: indices)
+    }
+    
+    private func setDeletedIfWasReply(messageId: Int) async {
+        let deletedReplyInfoVMS = sections.compactMap { section in
+            section.vms.filter { $0.message.replyInfo?.id == messageId }
+        }
+        .flatMap{$0}
+        if deletedReplyInfoVMS.isEmpty { return }
+        
+        var indicesToReload: [IndexPath] = []
+        for vm in deletedReplyInfoVMS {
+            vm.message.replyInfo = .init()
+            vm.message.replyInfo?.deleted = true
+            await vm.recalculate(mainData: getMainData())
+            if let indexPath = sections.findIncicesBy(uniqueId: vm.message.uniqueId, vm.message.id) {
+                indicesToReload.append(indexPath)
+            }
+        }
+        await MainActor.run { [sections] in
+            mSections = sections
+            for indexPath in indicesToReload {
+                delegate?.reloadData(at: indexPath)
+            }
+        }
     }
 }
 
@@ -1039,6 +1061,7 @@ extension ThreadHistoryViewModel {
             logScroll("DOWN")
             scrollVM.scrollingUP = false
             if contentOffset.y > contentSize.height - threshold, let message = sections.last?.vms.last?.message {
+                logScroll("LoadMoreBottom")
                 await loadMoreBottom(message: message)
             }
         } else {

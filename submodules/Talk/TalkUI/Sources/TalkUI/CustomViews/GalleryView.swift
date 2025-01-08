@@ -126,8 +126,10 @@ public struct GalleryImageView: View {
             .scaleEffect(offsetVM.endScale, anchor: .center)
             .simultaneousGesture(doubleTapGesture.exclusively(before: zoomGesture.simultaneously(with: dragGesture)))
             .offset(offsetVM.dragOffset)
-            .animation(.easeInOut, value: scaleBy)
-            .animation(.easeInOut, value: offsetVM.dragOffset)
+            .animation(.bouncy, value: scaleBy)
+            .animation(.bouncy, value: offsetVM.endScale)
+            .animation(.smooth, value: offsetVM.dragOffset)
+            .statusBarHidden()
     }
 
     var dragGesture: some Gesture {
