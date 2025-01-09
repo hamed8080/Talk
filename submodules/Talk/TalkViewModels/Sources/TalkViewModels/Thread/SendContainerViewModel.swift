@@ -25,6 +25,7 @@ public final class SendContainerViewModel {
     public var height: CGFloat = 0
     private let draftManager = DraftManager.shared
     public var onTextChanged: ((String?) -> Void)?
+    private let RTLMarker = "\u{200f}"
 
     public init() {}
 
@@ -37,14 +38,11 @@ public final class SendContainerViewModel {
     }
 
     private func onTextMessageChanged(_ newValue: String) {
-        if Language.isRTL && textMessage.first != "\u{200f}" {
-            setText(newValue: "\u{200f}\(textMessage)")
-        }
         viewModel?.mentionListPickerViewModel.text = textMessage
         if !isTextEmpty() {
             viewModel?.sendStartTyping(textMessage)
         }
-        let isRTLChar = textMessage.count == 1 && textMessage.first == "\u{200f}"
+        let isRTLChar = textMessage.count == 1 && textMessage.first == Character(RTLMarker)
         if !isTextEmpty() && !isRTLChar {
             setDraft(newText: newValue)
         } else {
@@ -59,7 +57,7 @@ public final class SendContainerViewModel {
     }
 
     public func isTextEmpty() -> Bool {
-        let sanitizedText = textMessage.replacingOccurrences(of: "\u{200f}", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let sanitizedText = textMessage.replacingOccurrences(of: RTLMarker, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
         return sanitizedText.isEmpty
     }
 
@@ -73,13 +71,13 @@ public final class SendContainerViewModel {
     }
 
     public func getText() -> String {
-        textMessage.replacingOccurrences(of: "\u{200f}", with: "")
+        textMessage.replacingOccurrences(of: RTLMarker, with: "")
     }
 
     public func setText(newValue: String) {
         textMessage = newValue
         onTextMessageChanged(newValue)
-        onTextChanged?(getText())
+        onTextChanged?(newValue)
     }
 
     public func setEditMessage(message: Message?) {

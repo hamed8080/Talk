@@ -98,7 +98,8 @@ public final class MainSendButtons: UIStackView {
         hStack.layoutMargins = .init(top: -4, left: 8, bottom: 0, right: 8)//-4 to move textfield higher to make the cursor center in the textfield.
         hStack.isLayoutMarginsRelativeArrangement = true
 
-        registerTextChange()
+        
+        
         multilineTextField.translatesAutoresizingMaskIntoConstraints = false
         multilineTextField.accessibilityIdentifier = "multilineTextFieldMainSendButtons"
         multilineTextField.setContentHuggingPriority(.required, for: .horizontal)
@@ -127,11 +128,16 @@ public final class MainSendButtons: UIStackView {
             btnEmoji.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
         ])
 
+        /// Prepare draft mode.
+        prepareDraft()
+        
+        registerTextChange()
+        
         prepareUI()
     }
 
     private func prepareUI() {
-        Task {
+        Task.detached {
             let sendImage: UIImage?
             if #available(iOS 13.0, *) {
                 let config = UIImage.SymbolConfiguration(pointSize: 8, weight: .medium, scale: .small)
@@ -143,7 +149,8 @@ public final class MainSendButtons: UIStackView {
             let cameraImage = UIImage(systemName: "camera")
             let micImage = UIImage(systemName: "mic")
             let toogleImage = UIImage(systemName: "paperclip")
-            await MainActor.run {
+            await MainActor.run { [weak self] in
+                guard let self = self else { return }
                 btnSend.imageView.image = sendImage
                 btnEmoji.imageView.image = emojiImage
                 btnCamera.imageView.image = cameraImage
@@ -157,14 +164,6 @@ public final class MainSendButtons: UIStackView {
     }
 
     private func registerTextChange() {
-        // Set draf text
-        if !viewModel.isTextEmpty() {
-            multilineTextField.text = viewModel.getText()
-            multilineTextField.hidePlaceholder()
-            let isEmpty = multilineTextField.text.isEmpty
-            btnSend.showWithAniamtion(!isEmpty)
-            btnMic.showWithAniamtion(isEmpty)
-        }
         multilineTextField.onTextChanged = { [weak self] text in
             self?.viewModel.setText(newValue: text ?? "")
         }
@@ -181,6 +180,21 @@ public final class MainSendButtons: UIStackView {
                 multilineTextField.hidePlaceholder()
             } else {
                 multilineTextField.showPlaceholder()
+            }
+        }
+    }
+    
+    private func prepareDraft() {
+        if !viewModel.isTextEmpty() {
+            multilineTextField.setTextAndDirection(viewModel.getText()) 
+            multilineTextField.hidePlaceholder()
+            let isEmpty = multilineTextField.text.isEmpty
+            btnSend.showWithAniamtion(!isEmpty)
+            btnMic.showWithAniamtion(isEmpty)
+            /// We need a delay to get the correct frame width after showing,
+            /// and then we can calculate the right height if the text is too long in draft mode.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                self?.multilineTextField.updateHeightIfNeeded()
             }
         }
     }
