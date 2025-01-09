@@ -9,7 +9,8 @@ import SwiftUI
 import UIKit
 import TalkModels
 
-public final class SendContainerTextView: UITextView, UITextViewDelegate {
+public final class SendContainerTextView: UIView, UITextViewDelegate {
+    private var textView: UITextView = UITextView()
     public var mention: Bool = false
     public var onTextChanged: ((String?) -> Void)?
     private let placeholderLabel = UILabel()
@@ -18,7 +19,7 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
     private let RTLMarker = "\u{200f}"
 
     public init() {
-        super.init(frame: .zero, textContainer: nil)
+        super.init(frame: .zero)
         configureView()
     }
 
@@ -31,18 +32,19 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
         placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
         /// It should always remain forceLeftToRight due to textAlignment problems it can result in.
         semanticContentAttribute = .forceLeftToRight
-        textContainerInset = .init(top: 12, left: 0, bottom: 0, right: 0)
-        delegate = self
-        isEditable = true
-        font = UIFont(name: "IRANSansX", size: 16)
-        isSelectable = true
         isUserInteractionEnabled = true
-        isScrollEnabled = true
         backgroundColor = Color.App.bgSendInputUIColor
-        textColor = UIColor(named: "text_primary")
-        returnKeyType = .default
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textAlignment = Language.isRTL ? .right : .left
+
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.textContainerInset = .init(top: 12, left: 0, bottom: 0, right: 0)
+        textView.delegate = self
+        textView.isEditable = true
+        textView.isSelectable = true
+        textView.isScrollEnabled = true
+        textView.returnKeyType = .default
+        textView.textAlignment = Language.isRTL ? .right : .left
+        addSubview(textView)
 
         placeholderLabel.text = "Thread.SendContainer.typeMessageHere".bundleLocalized()
         placeholderLabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.7)
@@ -50,10 +52,17 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
         placeholderLabel.textAlignment = Language.isRTL ? .right : .left
         placeholderLabel.isUserInteractionEnabled = false
         addSubview(placeholderLabel)
+        
         heightConstraint = heightAnchor.constraint(equalToConstant: initSize)
 
         NSLayoutConstraint.activate([
             heightConstraint,
+            textView.widthAnchor.constraint(equalTo: widthAnchor, constant: 0),
+            textView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            textView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            textView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            textView.heightAnchor.constraint(equalTo: heightAnchor),
+            
             placeholderLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -8),
             placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
             placeholderLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -72,9 +81,6 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
     }
 
     public func textViewDidChange(_ uiView: UITextView) {
-        /// Change range of User mention instantly when user write @
-        replaceMentionColors(uiView)
-        
         let newHeight = calculateHeight()
         recalculateHeight(newHeight: newHeight)
     
@@ -82,63 +88,65 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
         setTextDirection(isEmpty)
         
         /// Notice others the text has changed.
-        onTextChanged?(text)
+        onTextChanged?(textView.attributedText.string)
         
-        /// Show empty textLabel if text is Empty
-        placeholderLabel.isHidden = !isEmpty
+        /// Show the placeholder if the text is empty or is a rtl marker
+        showPlaceholder(isEmptyText())
     }
     
     private func setTextDirection(_ isEmpty: Bool) {
         if Language.isRTL {
             if isEmpty {
-                self.text = RTLMarker
-                textAlignment = .right
+                textView.attributedText = getTextAttributes(RTLMarker)
+                textView.textAlignment = .right
             } else if isFirstCharacterRTL() {
                 /// Replace old RTLMarker to prevent duplication
-                let nonRTLText = text.replacingOccurrences(of: RTLMarker, with: "") ?? ""
-                self.text = "\(RTLMarker)\(nonRTLText)"
-                textAlignment = .right
+                let nonRTLText = string.replacingOccurrences(of: RTLMarker, with: "") ?? ""
+                textView.attributedText = getTextAttributes("\(RTLMarker)\(nonRTLText)")
+                textView.textAlignment = .right
             } else {
                 /// Remove any RTLMarker if previous text had a RTLMarker.
-                let nonRTLText = text.replacingOccurrences(of: RTLMarker, with: "") ?? ""
-                text = nonRTLText
-                textAlignment = .left
+                let nonRTLText = string.replacingOccurrences(of: RTLMarker, with: "") ?? ""
+                textView.attributedText = getTextAttributes(nonRTLText)
+                textView.textAlignment = .left
             }
         } else {
-            textAlignment = .natural
-        }
-    }
-    
-    private func replaceMentionColors(_ uiView: UITextView) {
-        if uiView.text != text {
-            let attributes = NSMutableAttributedString(string: text)
-            text.matches(char: "@")?.forEach { match in
-                attributes.addAttributes([NSAttributedString.Key.foregroundColor: UIColor(named: "blue") ?? .blue, NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16)], range: match.range)
-            }
-            uiView.attributedText = attributes
+            textView.textAlignment = .natural
         }
     }
 
     private func isFirstCharacterRTL() -> Bool {
-        guard let char = text?.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
+        guard let char = string.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
         return char.isEnglishCharacter == false
     }
 
-    private func isEmptyText() -> Bool {
-        let isRTLChar = text.count == 1 && text.first == Character(RTLMarker)
-        return text.isEmpty || isRTLChar
+    public func isEmptyText() -> Bool {
+        let isRTLChar = string.count == 1 && string.first == Character(RTLMarker)
+        return string.isEmpty || isRTLChar
     }
 
-    public func hidePlaceholder() {
-        placeholderLabel.isHidden = true
+    private func showPlaceholder(_ show: Bool) {
+        if show && placeholderLabel.alpha == 0.0 {
+            // From hide to show
+            doPlaceHolderAnimation(1.0)
+        } else if !show && placeholderLabel.alpha == 1.0 {
+            // From show to hide
+            doPlaceHolderAnimation(0.0)
+        }
     }
-
-    public func showPlaceholder() {
-        placeholderLabel.isHidden = false
+    
+    private func doPlaceHolderAnimation(_ toAlpha: Double) {
+        UIView.animate(withDuration: 0.15) { [weak self] in
+            self?.placeholderLabel.alpha = toAlpha
+        } completion: { completed in
+            if completed {
+                self.placeholderLabel.isHidden = toAlpha == 0.0
+            }
+        }
     }
 
     private func calculateHeight() -> CGFloat {
-        let fittedSize = sizeThatFits(CGSize(width: frame.size.width, height: CGFloat.greatestFiniteMagnitude)).height
+        let fittedSize = textView.sizeThatFits(CGSize(width: frame.size.width, height: CGFloat.greatestFiniteMagnitude)).height
         let minValue: CGFloat = initSize
         let maxValue: CGFloat = 192
         let newSize = min(max(fittedSize, minValue), maxValue)
@@ -153,7 +161,32 @@ public final class SendContainerTextView: UITextView, UITextViewDelegate {
     }
     
     public func setTextAndDirection(_ text: String) {
-        self.text = text
-        textViewDidChange(self)
+        let attr = getTextAttributes(text)
+        textView.attributedText = attr
+        showPlaceholder(isEmptyText())
+        textViewDidChange(textView)
     }
+    
+    private func getTextAttributes(_ text: String) -> NSAttributedString {
+        let attr = NSMutableAttributedString(string: text)
+        
+        /// Add default color and font for all text it will ovverde by other attributes if needed
+        let allRange = NSRange(text.startIndex..., in: text)
+        attr.addAttribute(.foregroundColor, value: UIColor(named: "text_primary") ?? .black, range: allRange)
+        attr.addAttribute(.font, value: UIFont(name: "IRANSansX", size: 16), range: allRange)
+        
+        
+        /// Add mention blue color and default system font due to all user names must be in english.
+        text.matches(char: "@")?.forEach { match in
+            attr.addAttribute(.foregroundColor, value: UIColor(named: "blue") ?? .blue, range: match.range)
+            attr.addAttribute(.font, value: UIFont.systemFont(ofSize: 16), range: match.range)
+        }
+        
+        return attr
+    }
+    
+    public var string: String {
+        textView.attributedText.string
+    }
+    
 }

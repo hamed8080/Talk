@@ -54,6 +54,7 @@ public final class SendContainerViewModel {
         setText(newValue: "")
         editMessage = nil
         isInEditMessageMode = false
+        onTextChanged?(textMessage)
     }
 
     public func isTextEmpty() -> Bool {
@@ -68,6 +69,7 @@ public final class SendContainerViewModel {
             text.removeSubrange(lastIndex..<text.endIndex)
         }
         setText(newValue: "\(text)@\(userName) ") // To hide participants dialog
+        onTextChanged?(textMessage)
     }
 
     public func getText() -> String {
@@ -77,7 +79,6 @@ public final class SendContainerViewModel {
     public func setText(newValue: String) {
         textMessage = newValue
         onTextMessageChanged(newValue)
-        onTextChanged?(newValue)
     }
 
     public func setEditMessage(message: Message?) {

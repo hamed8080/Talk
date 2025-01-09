@@ -165,30 +165,28 @@ public final class MainSendButtons: UIStackView {
 
     private func registerTextChange() {
         multilineTextField.onTextChanged = { [weak self] text in
-            self?.viewModel.setText(newValue: text ?? "")
+            guard let self = self else { return }
+            viewModel.setText(newValue: text ?? "")
+            let isEmpty = threadVM?.sendContainerViewModel.isTextEmpty() == true
+            btnSend.showWithAniamtion(!isEmpty)
+            btnMic.showWithAniamtion(isEmpty)
         }
 
         viewModel.onTextChanged = { [weak self] newValue in
             guard let self = self else { return }
-            multilineTextField.text = newValue
+            multilineTextField.setTextAndDirection(newValue ?? "")
             multilineTextField.updateHeightIfNeeded()
 
             let isEmpty = threadVM?.sendContainerViewModel.isTextEmpty() == true
             btnSend.showWithAniamtion(!isEmpty)
             btnMic.showWithAniamtion(isEmpty)
-            if viewModel.isTextEmpty() == false {
-                multilineTextField.hidePlaceholder()
-            } else {
-                multilineTextField.showPlaceholder()
-            }
         }
     }
     
     private func prepareDraft() {
         if !viewModel.isTextEmpty() {
-            multilineTextField.setTextAndDirection(viewModel.getText()) 
-            multilineTextField.hidePlaceholder()
-            let isEmpty = multilineTextField.text.isEmpty
+            multilineTextField.setTextAndDirection(viewModel.getText())
+            let isEmpty = multilineTextField.isEmptyText()
             btnSend.showWithAniamtion(!isEmpty)
             btnMic.showWithAniamtion(isEmpty)
             /// We need a delay to get the correct frame width after showing,
@@ -281,8 +279,8 @@ public final class MainSendButtons: UIStackView {
     }
 
     public func onViewModelChanged() {
-        if viewModel.getText() != multilineTextField.text {
-            multilineTextField.text = viewModel.getText() // When sending a message and we want to clear out the txetfield
+        if viewModel.getText() != multilineTextField.string {
+            multilineTextField.setTextAndDirection(viewModel.getText())  // When sending a message and we want to clear out the txetfield
         }
         animateMainButtons()
     }
