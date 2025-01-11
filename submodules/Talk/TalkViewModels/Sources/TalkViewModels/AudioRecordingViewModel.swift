@@ -69,28 +69,36 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         guard let url = recordingOutputPath else { return }
         deleteFile()
         do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord)
-            try session.setActive(true)
-
-            let settings = [
-                AVFormatIDKey: Int(kAudioFormatLinearPCM),
-                AVSampleRateKey: 44100,
-                AVNumberOfChannelsKey: 2,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
-            ]
-            audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-            audioRecorder.record()
+            Task { [self] in
+                await try activateSession()
+                let settings = [
+                    AVFormatIDKey: Int(kAudioFormatLinearPCM),
+                    AVSampleRateKey: 44100,
+                    AVNumberOfChannelsKey: 2,
+                    AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+                ]
+                audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+                audioRecorder.record()
+            }
         } catch {
             stop()
         }
     }
-
+    
+    @AppBackgroundActor
+    private func activateSession() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playAndRecord)
+        try session.setActive(true)
+    }
+    
     public func stop() {
-        isRecording = false
-        audioRecorder.stop()
-        timer?.invalidate()
-        try? AVAudioSession.sharedInstance().setActive(false)
+        Task(priority: .background) {
+            isRecording = false
+            audioRecorder.stop()
+            timer?.invalidate()
+            try? AVAudioSession.sharedInstance().setActive(false)
+        }
     }
 
     public func cancel() {
