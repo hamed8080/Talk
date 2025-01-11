@@ -526,6 +526,8 @@ class MessageRowCalculators {
             return uploadReplyTitle
         } else if let text = message.message, !text.isEmpty {
             return text
+        } else if let mapText = (message as? UploadFileWithLocationMessage)?.locationRequest.textMessage {
+            return mapText
         } else {
             return nil
         }
