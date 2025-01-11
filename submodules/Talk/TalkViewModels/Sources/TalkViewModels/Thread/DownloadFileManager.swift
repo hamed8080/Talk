@@ -83,11 +83,9 @@ public final class DownloadFileManager {
     private func automaticDownloadIfNeeded(_ downloadFileVM: DownloadFileViewModel, _ types: DownloadManagerTypes) {
         Task {
             await downloadFileVM.setup()
-            if types.isImage, downloadFileVM.state != .completed {
+            if types.isImage, downloadFileVM.state != .completed, !types.isMap {
                 downloadFileVM.downloadBlurImage()
-            }
-
-            if types.isMap {
+            } else if types.isMap {
                 downloadFileVM.startDownload()
             }
         }

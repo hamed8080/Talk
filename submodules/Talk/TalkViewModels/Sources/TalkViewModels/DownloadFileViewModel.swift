@@ -54,18 +54,18 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     /// It should be on the background thread because it decodes metadata in message.url.
     public func setup() async {
         if let url = url {
-            Task { @ChatGlobalActor in
-                let isInCache = ChatManager.activeInstance?.file.isFileExist(url) ?? false || ChatManager.activeInstance?.file.isFileExistInGroup(url) ?? false
-                await MainActor.run {
-                    self.isInCache = isInCache
-                    if isInCache {
-                        state = .completed
-                        thumbnailData = nil
-                        animateObjectWillChange()
-                    }
-                }
+            isInCache = await isFileExist(url: url)
+            if isInCache {
+                state = .completed
+                thumbnailData = nil
+                animateObjectWillChange()
             }
         }
+    }
+    
+    @ChatGlobalActor
+    private func isFileExist(url: URL) -> Bool {
+        return ChatManager.activeInstance?.file.isFileExist(url) ?? false || ChatManager.activeInstance?.file.isFileExistInGroup(url) ?? false
     }
 
     public func setObservers() {
@@ -122,6 +122,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     private func downloadFile() {
         Task { [weak self] in
             guard let self = self else { return }
+            let fileHashCode = await getHashCode()
             state = .downloading
             let req = FileRequest(hashCode: fileHashCode, conversationId: message?.threadId ?? message?.conversation?.id)
             uniqueId = req.uniqueId
@@ -137,6 +138,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     private func downloadImage() {
         Task { [weak self] in
             guard let self = self else { return }
+            let fileHashCode = await getHashCode()
             state = .downloading
             let req = ImageRequest(hashCode: fileHashCode, size: .ACTUAL, conversationId: message?.threadId ?? message?.conversation?.id)
             uniqueId = req.uniqueId
@@ -147,7 +149,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             animateObjectWillChange()
         }
     }
-
+    
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
     public func downloadBlurImage(quality: Float = 0.02, size: ImageSize = .SMALL) {
         guard let threadId = message?.threadId ?? message?.conversation?.id else { return }
@@ -155,11 +157,26 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         let message = message
         Task { @AppBackgroundActor [weak self] in
             guard let self = self else { return }
-            let hashCode = await message?.fileHashCode ?? ""
+            let hashCode = await getHashCode()
             let req = ImageRequest(hashCode: hashCode, quality: quality, size: size, thumbnail: true, conversationId: threadId)
             if let data = await thumbnailVM?.downloadThumbnail(req: req) {
                 await setThumbnail(data: data)
             }
+        }
+    }
+    
+    /// We will test to see if fileHashCode inside init has been set or not,
+    /// If it has been set, we can use it properly and it has decoded on the background thread,
+    /// If not we have got to decode it on the main thread with message file
+    /// There is a chance to upload a file for example a map where it takes time to decode on AppBackgroundActor actor so it immediately call this function and start downloading a file/image with an empty hashcode.
+    @AppBackgroundActor
+    private func getHashCode() async -> String {
+        let fileHashCode = await fileHashCode
+        if !fileHashCode.isEmpty {
+            return fileHashCode
+        } else {
+            let copied = await message
+            return copied?.fileHashCode ?? ""
         }
     }
 

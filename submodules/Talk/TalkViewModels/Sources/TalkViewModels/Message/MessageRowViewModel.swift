@@ -92,21 +92,6 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     }
 }
 
-// MARK: Prepare download managers
-public extension MessageRowViewModel {
-    func prepareForTumbnailIfNeeded() {
-        if fileState.state != .completed && fileState.state != .thumbnail {
-            manageDownload() // Start downloading thumbnail for the first time
-        }
-    }
-
-    func downloadMap() {
-        if calMessage.rowType.isMap && fileState.state != .completed {
-            manageDownload() // Start downloading thumbnail for the first time
-        }
-    }
-}
-
 // MARK: Upload Completion
 public extension MessageRowViewModel {
     func swapUploadMessageWith(_ message: HistoryMessageType) {
