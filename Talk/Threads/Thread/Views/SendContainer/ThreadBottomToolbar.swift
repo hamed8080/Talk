@@ -87,9 +87,11 @@ public final class ThreadBottomToolbar: UIStackView {
         ])
     }
 
-    public func showMainButtons(_ show: Bool) {
+    public func showMainButtons(_ show: Bool, withRemoveAnimaiton: Bool = true) {
         if !show {
-            mainSendButtons.removeFromSuperViewWithAnimation()
+            // withRemoveAnimation prevents having two views in the stack and leads to a really tall view and a bad animation.
+            mainSendButtons.removeFromSuperViewWithAnimation(withAimation: withRemoveAnimaiton)
+            mainSendButtons.removeFromSuperview()
         } else if mainSendButtons.superview == nil {
             mainSendButtons.alpha = 0.0
             insertArrangedSubview(mainSendButtons, at: 0)
@@ -159,7 +161,7 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func openRecording(_ show: Bool) {
         viewModel?.attachmentsViewModel.clear()
-        showMainButtons(!show)
+        showMainButtons(!show, withRemoveAnimaiton: false)
         audioRecordingView.show(show, stack: self) // Reset to show RecordingView again
     }
 

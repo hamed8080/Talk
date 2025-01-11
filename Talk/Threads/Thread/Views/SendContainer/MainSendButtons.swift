@@ -227,6 +227,7 @@ public final class MainSendButtons: UIStackView {
         // Check if it is began then show the UI unless we don't call it twice.
         if sender.state != .began { return }
         threadVM?.delegate?.showRecording(true)
+        threadVM?.delegate?.showPickerButtons(false)
     }
 
     @objc private func showPopup(_ sender: UIGestureRecognizer) {

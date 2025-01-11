@@ -44,6 +44,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.isScrollEnabled = true
         textView.returnKeyType = .default
         textView.textAlignment = Language.isRTL ? .right : .left
+        textView.backgroundColor = Color.App.bgSendInputUIColor
         addSubview(textView)
 
         placeholderLabel.text = "Thread.SendContainer.typeMessageHere".bundleLocalized()
@@ -178,8 +179,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         
         /// Add mention blue color and default system font due to all user names must be in english.
         text.matches(char: "@")?.forEach { match in
-            attr.addAttribute(.foregroundColor, value: UIColor(named: "blue") ?? .blue, range: match.range)
-            attr.addAttribute(.font, value: UIFont.systemFont(ofSize: 16), range: match.range)
+            attr.addAttribute(.foregroundColor, value: UIColor(named: "accent") ?? .blue, range: match.range)
+            attr.addAttribute(.font, value: UIFont.systemFont(ofSize: 16, weight: .bold), range: match.range)
         }
         
         return attr

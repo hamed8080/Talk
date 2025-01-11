@@ -89,14 +89,18 @@ public extension UIView {
         }
     }
 
-    func removeFromSuperViewWithAnimation() {
-        UIView.animate(withDuration: 0.2) { [weak self] in
-            guard let self = self else { return }
-            alpha = 0.0
-        } completion: { completed in
-            if completed {
-                self.removeFromSuperview()
+    func removeFromSuperViewWithAnimation(withAimation: Bool = true) {
+        if withAimation {
+            UIView.animate(withDuration: 0.2) { [weak self] in
+                guard let self = self else { return }
+                alpha = 0.0
+            } completion: { completed in
+                if completed {
+                    self.removeFromSuperview()
+                }
             }
+        } else {
+            self.removeFromSuperview()
         }
     }
 }
