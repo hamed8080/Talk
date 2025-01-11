@@ -649,6 +649,7 @@ public final class ThreadsViewModel: ObservableObject {
         let calThreads = await ThreadCalculators.calculate([thread], myId)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
+        threads = sorted
         animateObjectWillChange()
     }
     
