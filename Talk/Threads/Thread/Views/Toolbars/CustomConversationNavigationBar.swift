@@ -30,7 +30,9 @@ public class CustomConversationNavigationBar: UIView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
-        registerObservers()
+        Task {
+            await registerObservers()
+        }
     }
 
     required init(coder: NSCoder) {
@@ -197,13 +199,14 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func refetchImageOnUpdateInfo() {
-        fetchImageOnUpdateInfo()
+        Task {
+            await fetchImageOnUpdateInfo()
+        }
     }
 
-    public func fetchImageOnUpdateInfo() {
-        guard let image = viewModel?.thread.image else { return }
-        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
-        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: httpsImage, metaData: nil, userName: nil) {
+    public func fetchImageOnUpdateInfo() async {
+        guard let link = await getImageLink() else { return }
+        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: link, metaData: nil, userName: nil) {
             self.imageLoader = imageViewModel
 
             // Set first time opening the thread image from cahced version inside avatarVMS
@@ -231,18 +234,23 @@ public class CustomConversationNavigationBar: UIView {
             self.threadTitleSupplementary.text = splitedText
         }
     }
-
-    private func registerObservers() {
+    
+    private func registerObservers() async {
         // Initial image from avatarVMS inside the thread
-        let image = viewModel?.thread.image
-        let httpsImage = image?.replacingOccurrences(of: "http://", with: "https://")
-        if let httpsImage = httpsImage, let _ = viewModel?.threadsViewModel?.avatars(for: httpsImage, metaData: nil, userName: nil) {
-            fetchImageOnUpdateInfo()
+        let link = await getImageLink()
+        if let link = link, let _ = viewModel?.threadsViewModel?.avatars(for: link, metaData: nil, userName: nil) {
+            await fetchImageOnUpdateInfo()
         } else {
-            Task {
-                await setSplitedText()
-            }
+            await setSplitedText()
         }
+    }
+    
+    @AppBackgroundActor
+    private func getImageLink() async -> String? {
+        let copiedThread = await viewModel?.thread
+        let image = await viewModel?.thread.image ?? copiedThread?.metaData?.file?.link
+        let httpsImage = image?.replacingOccurrences(of: "http://", with: "https://")
+        return httpsImage
     }
 
     private func updateThreadImage() {
