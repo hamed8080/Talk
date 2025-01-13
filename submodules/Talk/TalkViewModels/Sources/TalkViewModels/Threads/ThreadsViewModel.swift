@@ -670,6 +670,14 @@ public final class ThreadsViewModel: ObservableObject {
         Logger.viewModels.info("UNREADCOUNT: \(string, privacy: .sensitive)")
 #endif
     }
+    
+    public func setSelected(for conversationId: Int, selected: Bool) {
+        if let thread = threads.first(where: {$0.id == conversationId}) {
+            /// Select / Deselect a thread to remove/add bar and selected background color
+            thread.isSelected = selected
+            thread.animateObjectWillChange()
+        }
+    }
 }
 
 public struct CallToJoin {

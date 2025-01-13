@@ -11,7 +11,7 @@ import Chat
 import TalkModels
 
 struct ThreadListRowBackground: View {
-    let thread: CalculatedConversation
+    @EnvironmentObject var thread: CalculatedConversation
 
     var body: some View {
         thread.isSelected ? Color.App.bgChatSelected : thread.pin == true ? Color.App.bgSecondary : Color.App.bgPrimary
@@ -20,6 +20,7 @@ struct ThreadListRowBackground: View {
 
 struct ThreadListRowBackground_Previews: PreviewProvider {
     static var previews: some View {
-        ThreadListRowBackground(thread: .init(id: 1))
+        ThreadListRowBackground()
+            .environmentObject(CalculatedConversation(id: 1))
     }
 }

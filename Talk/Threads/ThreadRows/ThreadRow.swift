@@ -50,7 +50,7 @@ struct ThreadRow: View {
             ThreadRow(onTap: nil)
                 .padding(4)
                 .environmentObject(thread)
-                .background(ThreadListRowBackground(thread: thread))
+                .background(ThreadListRowBackground().environmentObject(thread))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         } menus: {
             ThreadRowContextMenu(thread: thread, viewModel: AppState.shared.objectsContainer.threadsVM)

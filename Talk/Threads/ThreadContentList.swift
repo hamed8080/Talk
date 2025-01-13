@@ -27,7 +27,7 @@ struct ThreadContentList: View {
                 .environmentObject(thread)
                 .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 8))
                 .listRowSeparatorTint(Color.App.dividerSecondary)
-                .listRowBackground(ThreadListRowBackground(thread: thread))
+                .listRowBackground(ThreadListRowBackground().environmentObject(thread))
                 .onAppear {
                     Task {
                         await threadsVM.loadMore(id: thread.id)
@@ -69,6 +69,8 @@ struct ThreadContentList: View {
             Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
                 twoRowTappedAtSameTime = false
             }
+            /// to update isSeleted for bar and background color
+            threadsVM.setSelected(for: thread.id ?? -1, selected: true)
             AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread.toStruct())
         }
     }
