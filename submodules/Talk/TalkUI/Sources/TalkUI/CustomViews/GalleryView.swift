@@ -72,17 +72,16 @@ public struct GalleryImageItem: View {
         .contentShape(Rectangle())
     }
     
+    @ViewBuilder
     private var progress: some View {
-        CircularProgressView(percent: $viewModel.percent, config: .normal)
-            .frame(maxWidth: 128)
-            .frame(height: canShowDownloaingProgress ? 96 : 0)
-            .padding(canShowDownloaingProgress ? 0 : 8)
-            .environment(\.layoutDirection, .leftToRight)
-            .animation(.smooth, value: viewModel.percent)
-    }
-    
-    private var canShowDownloaingProgress: Bool {
-        viewModel.state == .downloading || viewModel.state == .undefined
+        if viewModel.state == .downloading {
+            CircularProgressView(percent: $viewModel.percent, config: .normal)
+                .frame(maxWidth: 128)
+                .frame(height: 96)
+                .padding(8)
+                .environment(\.layoutDirection, .leftToRight)
+                .animation(.smooth, value: viewModel.percent)
+        }
     }
     
     @ViewBuilder

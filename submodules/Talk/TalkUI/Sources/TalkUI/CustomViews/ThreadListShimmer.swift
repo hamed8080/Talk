@@ -16,7 +16,7 @@ public struct ThreadListShimmer: View {
         if viewModel.isShowing {
             List {
                 ForEach(1...20, id: \.self) { id in
-                    ThreadRowShimmer(id: id)
+                    ThreadRowShimmer()
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                 }
@@ -30,14 +30,10 @@ public struct ThreadListShimmer: View {
 }
 
 struct ThreadRowShimmer: View {
-    private let id: Int
-    private let isUnreadCount: Bool
+    private let isUnreadCount: Bool = Bool.random()
     let color: Color = Color.App.textSecondary.opacity(0.5)
 
-    public init(id: Int) {
-        self.id = id
-        isUnreadCount = Bool.random()
-    }
+    init(){}
 
     var body: some View {
         HStack(spacing: 16) {

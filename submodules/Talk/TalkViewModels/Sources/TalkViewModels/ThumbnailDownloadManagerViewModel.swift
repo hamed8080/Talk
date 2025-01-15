@@ -46,8 +46,8 @@ class ThumbnailDownloadManagerViewModel {
     
     public func downloadThumbnail(req: ImageRequest) async -> Data? {
         typealias ResultType = CheckedContinuation<Data?, Never>
-        return await withCheckedContinuation { (continuation: ResultType) in
-            downloadBlurImage(req: req) { data in
+        return await withCheckedContinuation { [weak self] (continuation: ResultType) in
+            self?.downloadBlurImage(req: req) { data in
                 continuation.resume(with: .success(data))
             }
         }

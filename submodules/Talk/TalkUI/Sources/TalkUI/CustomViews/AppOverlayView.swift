@@ -62,12 +62,12 @@ public struct AppOverlayView<Content>: View where Content: View {
     private var dragGesture: some Gesture {
         DragGesture()
             .onChanged { value in
-                if value.translation.width < 100 {
+                if abs(value.translation.width) < 100 {
                     galleryOffsetVM.onContainerDragChanged(value)
                 }
             }
             .onEnded { endValue in
-                if endValue.translation.width < 100 {
+                if abs(endValue.translation.width) < 100 {
                     galleryOffsetVM.onContainerDragEnded(endValue)
                 }
             }

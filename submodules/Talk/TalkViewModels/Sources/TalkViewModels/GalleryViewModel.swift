@@ -153,4 +153,8 @@ public final class GalleryViewModel: ObservableObject {
             getPictureMessages(toTime: currentImageMessage?.time)
         }
     }
+    
+    deinit {
+        print("GalleryViewModel deinit called")
+    }
 }

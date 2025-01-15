@@ -145,6 +145,8 @@ public class AppOverlayViewModel: ObservableObject {
     }
 
     public func clear() {
+        /// Prevent memory leak by preventing setting type to .none to prevent recalling AppOverlayFactory Views twice.
+        type = .none
         galleryMessage = nil
         galleryImageView = nil
     }
