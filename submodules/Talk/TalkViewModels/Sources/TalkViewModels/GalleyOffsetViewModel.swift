@@ -17,18 +17,18 @@ public class GalleyOffsetViewModel: ObservableObject {
     @Published public var previousDragOffset: CGSize = .zero
     public weak var appOverlayVM: AppOverlayViewModel?
     @Published public var heightOfScreen: CGFloat = .zero
-
+    
     public func onDragChanged(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
         isDragging = true
         if endScale > 1 {
             scrollInZoomMode(value, forcedLeftToRight: forcedLeftToRight)
         }
     }
-
+    
     public func onDragEnded(_ value: DragGesture.Value) {
         isDragging = false
         previousDragOffset = dragOffset
-
+        
         if value.translation.height < 100, endScale <= 1 {
             resetOffset()
         } else if value.translation.height > 100, endScale == 1 {
@@ -36,13 +36,13 @@ public class GalleyOffsetViewModel: ObservableObject {
             dismiss()
         }
     }
-
+    
     public func onContainerDragChanged(_ value: DragGesture.Value) {
         if value.translation.height > 0, endScale == 1 {
             containerYOffset = value.translation.height
         }
     }
-
+    
     public func onContainerDragEnded(_ endValue: DragGesture.Value) {
         if endValue.translation.height > 100, endScale == 1 {
             containerYOffset = endValue.translation.height
@@ -51,7 +51,7 @@ public class GalleyOffsetViewModel: ObservableObject {
             resetOffset()
         }
     }
-
+    
     public func onDoubleTapped() {
         withAnimation(.easeOut) {
             if endScale == 1 {
@@ -62,7 +62,7 @@ public class GalleyOffsetViewModel: ObservableObject {
             }
         }
     }
-
+    
     public func onMagnificationEnded(_ value: GestureStateGesture<MagnificationGesture, CGFloat>.Value) {
         if isDragging { return }
         if value > 1 {
@@ -71,7 +71,7 @@ public class GalleyOffsetViewModel: ObservableObject {
             endScale = max(1, endScale - value)
         }
     }
-
+    
     private func scrollInZoomMode(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
         var width: CGFloat = 0
         if !forcedLeftToRight {
@@ -82,21 +82,21 @@ public class GalleyOffsetViewModel: ObservableObject {
         let height = value.translation.height + previousDragOffset.height
         dragOffset = .init(width: width, height: height)
     }
-
+    
     private func doubleZoom() {
         endScale = 2
     }
-
+    
     private func resetZoom() {
         endScale = 1
     }
-
+    
     private func resetOffset() {
         containerYOffset = .zero
         dragOffset = .zero
         previousDragOffset = .zero
     }
-
+    
     public func dismiss() {
         if #available(iOS 17.0, *) {
             withAnimation(.easeInOut(duration: 0.3)) {

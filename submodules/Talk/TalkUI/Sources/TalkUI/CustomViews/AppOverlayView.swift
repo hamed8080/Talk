@@ -13,12 +13,12 @@ public struct AppOverlayView<Content>: View where Content: View {
     @EnvironmentObject var galleryOffsetVM: GalleyOffsetViewModel
     let content: () -> Content
     let onDismiss: (() -> Void)?
-
+    
     public init(onDismiss: (() -> Void)?, @ViewBuilder content: @escaping () -> Content) {
         self.content = content
         self.onDismiss = onDismiss
     }
-
+    
     public var body: some View {
         ZStack {
             if viewModel.isPresented {
@@ -34,7 +34,7 @@ public struct AppOverlayView<Content>: View where Content: View {
                     .transition(viewModel.transition)
                     .clipShape(RoundedRectangle(cornerRadius:(viewModel.radius)))
             }
-
+            
             if viewModel.showCloseButton && viewModel.isPresented && !viewModel.isError {
                 DismissAppOverlayButton()
             }
@@ -50,7 +50,7 @@ public struct AppOverlayView<Content>: View where Content: View {
             }
         }
     }
-
+    
     var animtion: Animation {
         if viewModel.isPresented && !viewModel.isError {
             return Animation.interactiveSpring(response: 0.2, dampingFraction: 0.6, blendDuration: 0.2)
@@ -58,21 +58,25 @@ public struct AppOverlayView<Content>: View where Content: View {
             return Animation.easeInOut
         }
     }
-
+    
     private var dragGesture: some Gesture {
         DragGesture()
             .onChanged { value in
-                galleryOffsetVM.onContainerDragChanged(value)
+                if value.translation.width < 100 {
+                    galleryOffsetVM.onContainerDragChanged(value)
+                }
             }
             .onEnded { endValue in
-                galleryOffsetVM.onContainerDragEnded(endValue)
+                if endValue.translation.width < 100 {
+                    galleryOffsetVM.onContainerDragEnded(endValue)
+                }
             }
     }
 }
 
 struct DismissAppOverlayButton: View {
     @EnvironmentObject var galleryOffsetVM: GalleyOffsetViewModel
-
+    
     var body: some View {
         GeometryReader { reader in
             VStack {
@@ -99,8 +103,8 @@ struct DismissAppOverlayButton: View {
 
 struct AppOverlayView_Previews: PreviewProvider {
     struct Preview: View {
-       @StateObject var viewModel = AppOverlayViewModel()
-
+        @StateObject var viewModel = AppOverlayViewModel()
+        
         var body: some View {
             AppOverlayView() {
                 //
@@ -114,7 +118,7 @@ struct AppOverlayView_Previews: PreviewProvider {
             }
         }
     }
-
+    
     static var previews: some View {
         Preview()
     }
