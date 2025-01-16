@@ -22,6 +22,7 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     public let uniqueId: String = UUID().uuidString
     public var id: Int { message.id ?? -1 }
     public var message: HistoryMessageType
+    @MainActor
     public var isInvalid = false
 
     @MainActor public var reactionsModel: ReactionRowsCalculated = .init(rows: [], topPadding: 0)
@@ -81,6 +82,7 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
         fileState.replyImage = image
     }
 
+    @MainActor
     func invalid() {
         isInvalid = true
     }
@@ -214,19 +216,20 @@ public extension MessageRowViewModel {
 
     @HistoryActor
     func clearReactions() async {
-        isInvalid = false
         await MainActor.run { [weak self] in
             guard let self = self else { return }
+            isInvalid = false
             reactionsModel = .init()
         }
     }
 
     @HistoryActor
     func setReaction(reactions: ReactionInMemoryCopy) async {
-        isInvalid = false
+        
         let reactionsModel = MessageRowCalculators.calulateReactions(reactions: reactions)
         await MainActor.run { [weak self] in
             guard let self = self else { return }
+            isInvalid = false
             self.reactionsModel = reactionsModel
         }
     }

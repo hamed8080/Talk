@@ -75,7 +75,7 @@ extension ThreadHistoryViewModel {
         var invalidMessages: [Message] =  []
         let list = await visibleTracker.visibleMessages.compactMap({$0 as? Message})
         for message in list {
-            if let vm = sections.messageViewModel(for: message.id ?? -1), vm.isInvalid {
+            if let vm = sections.messageViewModel(for: message.id ?? -1), await vm.isInvalid {
                 invalidMessages.append(message)
             }
         }

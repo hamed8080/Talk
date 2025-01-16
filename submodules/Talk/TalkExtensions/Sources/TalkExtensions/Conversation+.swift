@@ -188,6 +188,7 @@ public extension CalculatedConversation {
             isArchive: isArchive)
     }
     
+    @MainActor
     func updateValues(_ newThread: CalculatedConversation) {
         admin = newThread.admin ?? admin
         canEditInfo = newThread.canEditInfo ?? canEditInfo

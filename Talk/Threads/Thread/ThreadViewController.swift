@@ -548,6 +548,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
+        if tableView.numberOfSections == 0 { return }
         if tableView.numberOfRows(inSection: index.section) < index.row + 1 { return }
         tableView.scrollToRow(at: index, at: position, animated: animate)
     }

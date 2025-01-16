@@ -96,41 +96,67 @@ public class ThreadCalculators {
     public class func reCalculate(
         _ classConversation: CalculatedConversation,
         _ myId: Int,
-        _ navSelectedId: Int? = nil) -> CalculatedConversation {
+        _ navSelectedId: Int? = nil)
+    async -> CalculatedConversation {
         let conversation = classConversation.toStruct()
-        classConversation.computedTitle = calculateComputedTitle(conversation)
-        classConversation.titleRTLString = calculateTitleRTLString(classConversation.computedTitle)
-        classConversation.metaData = calculateMetadata(conversation.metadata)
+        let computedTitle = calculateComputedTitle(conversation)
+        let titleRTLString = calculateTitleRTLString(classConversation.computedTitle)
+        let metaData = calculateMetadata(conversation.metadata)
         let avatarTuple = avatarColorName(conversation.title, classConversation.computedTitle)
-        classConversation.materialBackground = avatarTuple.color
-        classConversation.splitedTitle = avatarTuple.splited
-        classConversation.computedImageURL = calculateImageURL(conversation.image, classConversation.metaData)
-        classConversation.addRemoveParticipant = calculateAddOrRemoveParticipant(classConversation, myId)
+        let materialBackground = avatarTuple.color
+        let splitedTitle = avatarTuple.splited
+        let computedImageURL = calculateImageURL(conversation.image, classConversation.metaData)
+        let addRemoveParticipant = calculateAddOrRemoveParticipant(classConversation, myId)
         let isFileType = classConversation.lastMessageVO?.toMessage.isFileType == true
-        classConversation.fiftyFirstCharacter = calculateFifityFirst(classConversation.lastMessageVO?.message ?? "", isFileType)
-        classConversation.participantName = calculateParticipantName(classConversation, myId)
-        classConversation.hasSpaceToShowPin = calculateHasSpaceToShowPin(classConversation)
-        classConversation.sentFileString = sentFileString(classConversation, isFileType, myId)
-        classConversation.createConversationString = createConversationString(classConversation)
-        classConversation.callMessage = callMessage(classConversation)
-        classConversation.isSelected = calculateIsSelected(classConversation, navSelectedId)
+        let fiftyFirstCharacter = calculateFifityFirst(classConversation.lastMessageVO?.message ?? "", isFileType)
+        let participantName = calculateParticipantName(classConversation, myId)
+        let hasSpaceToShowPin = calculateHasSpaceToShowPin(classConversation)
+        let sentFileString = sentFileString(classConversation, isFileType, myId)
+        let createConversationString = createConversationString(classConversation)
+        let callMessage = callMessage(classConversation)
+        let isSelected = calculateIsSelected(classConversation, navSelectedId)
         
-        classConversation.isCircleUnreadCount = conversation.isCircleUnreadCount
+        let isCircleUnreadCount = conversation.isCircleUnreadCount
         let lastMessageIconStatus = iconStatus(conversation, myId)
-        classConversation.iconStatus = lastMessageIconStatus?.icon
-        classConversation.iconStatusColor = lastMessageIconStatus?.color
-        classConversation.unreadCountString = calculateUnreadCountString(conversation.unreadCount) ?? ""
-        classConversation.timeString = calculateThreadTime(conversation.time)
-        classConversation.eventVM = ThreadEventViewModel(threadId: conversation.id ?? -1)
-        
+        let iconStatus = lastMessageIconStatus?.icon
+        let iconStatusColor = lastMessageIconStatus?.color
+        let unreadCountString = calculateUnreadCountString(conversation.unreadCount) ?? ""
+        let timeString = calculateThreadTime(conversation.time)
+        let eventVM = ThreadEventViewModel(threadId: conversation.id ?? -1)
+        await MainActor.run {
+            classConversation.computedTitle = computedTitle
+            classConversation.titleRTLString = titleRTLString
+            classConversation.metaData = metaData
+            classConversation.materialBackground = materialBackground
+            classConversation.splitedTitle = splitedTitle
+            classConversation.computedImageURL = computedImageURL
+            classConversation.addRemoveParticipant = addRemoveParticipant
+            classConversation.fiftyFirstCharacter = fiftyFirstCharacter
+            classConversation.participantName = participantName
+            classConversation.hasSpaceToShowPin = hasSpaceToShowPin
+            classConversation.sentFileString = sentFileString
+            classConversation.createConversationString = createConversationString
+            classConversation.callMessage = callMessage
+            classConversation.isSelected = isSelected
+            classConversation.isCircleUnreadCount = isCircleUnreadCount
+            classConversation.iconStatus = iconStatus
+            classConversation.iconStatusColor = iconStatusColor
+            classConversation.unreadCountString = unreadCountString
+            classConversation.timeString = timeString
+            classConversation.eventVM = eventVM
+        }
         return classConversation
     }
     
     @discardableResult
     @AppBackgroundActor
-    public class func reCalculateUnreadCount(_ classConversation: CalculatedConversation) -> CalculatedConversation {
-        classConversation.unreadCountString = calculateUnreadCountString(classConversation.unreadCount) ?? ""
-        classConversation.isCircleUnreadCount = classConversation.unreadCount ?? 0 < 100
+    public class func reCalculateUnreadCount(_ classConversation: CalculatedConversation) async -> CalculatedConversation {
+        let unreadCountString = calculateUnreadCountString(classConversation.unreadCount) ?? ""
+        let isCircleUnreadCount = classConversation.unreadCount ?? 0 < 100
+        await MainActor.run {
+            classConversation.unreadCountString = unreadCountString
+            classConversation.isCircleUnreadCount = isCircleUnreadCount
+        }
         return classConversation
     }
     
@@ -299,5 +325,4 @@ public class ThreadCalculators {
         }
         return false
     }
-
 }

@@ -49,7 +49,7 @@ public class ThreadAvatarManager {
         return cachedAvatars[link]
     }
 
-    public func updateRow(_ image: UIImage, _ participantId: Int) {
+    private func updateRow(_ image: UIImage, _ participantId: Int) {
         Task {
             let delegate = await viewModel?.delegate
             await MainActor.run { [weak self] in

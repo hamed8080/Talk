@@ -282,11 +282,12 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     @AppBackgroundActor
-    public func appendThreads(newThreads: [CalculatedConversation], oldThreads: ContiguousArray<CalculatedConversation>) -> ContiguousArray<CalculatedConversation> {
+    public func appendThreads(newThreads: [CalculatedConversation], oldThreads: ContiguousArray<CalculatedConversation>)
+    async -> ContiguousArray<CalculatedConversation> {
         var arr = oldThreads
-        newThreads.forEach { thread in
+        for thread in newThreads {
             if var oldThread = oldThreads.first(where: { $0.id == thread.id }) {
-                oldThread.updateValues(thread)
+                await oldThread.updateValues(thread)
             } else {
                 arr.append(thread)
             }

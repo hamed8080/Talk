@@ -11,6 +11,7 @@ import TalkUI
 
 public final class EmptyThreadView: UIView {
     private let vStack = UIStackView()
+    private var vStackWidthConstraint: NSLayoutConstraint?
 
     public init() {
         super.init(frame: .zero)
@@ -56,9 +57,10 @@ public final class EmptyThreadView: UIView {
 
         addSubview(vStack)
 
+        vStackWidthConstraint = vStack.widthAnchor.constraint(equalToConstant: 320)
+        vStackWidthConstraint?.isActive = true
         NSLayoutConstraint.activate([
-            vStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            vStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            vStack.centerXAnchor.constraint(equalTo: centerXAnchor),
             vStack.centerYAnchor.constraint(equalTo: centerYAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -79,5 +81,11 @@ public final class EmptyThreadView: UIView {
                 imageView.image = image
             }
         }
+    }
+    
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        let isLarge = bounds.width > 400
+        vStackWidthConstraint?.constant = isLarge ? 340 : bounds.width - 16
     }
 }
