@@ -14,7 +14,7 @@ import TalkExtensions
 
 struct ThreadLastMessageView: View {
     let isSelected: Bool
-    let thread: CalculatedConversation
+    @EnvironmentObject var thread: CalculatedConversation
     @EnvironmentObject var eventViewModel: ThreadEventViewModel
 
     var body: some View {
@@ -23,7 +23,7 @@ struct ThreadLastMessageView: View {
                 ThreadEventView()
                     .transition(.push(from: .leading))
             } else {
-                NormalLastMessageContainer(isSelected: isSelected, thread: thread)
+                NormalLastMessageContainer(isSelected: isSelected)
             }
         }
         .animation(.easeInOut, value: eventViewModel.isShowingEvent)
@@ -32,7 +32,7 @@ struct ThreadLastMessageView: View {
 
 struct NormalLastMessageContainer: View {
     let isSelected: Bool
-    let thread: CalculatedConversation
+    @EnvironmentObject var thread: CalculatedConversation
     private static let pinImage = Image("ic_pin")
 
     var body: some View {

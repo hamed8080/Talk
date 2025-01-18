@@ -19,7 +19,7 @@ struct SecondaryMessageView: View {
     var body: some View {
         HStack {
             if draft.isEmpty {
-                ThreadLastMessageView(isSelected: isSelected, thread: thread)
+                ThreadLastMessageView(isSelected: isSelected)
                     .id("thread.lastMessageVO?.id ?? 0 -\(thread.lastMessage ?? "")")
             } else {
                 DraftView(draft: draft)

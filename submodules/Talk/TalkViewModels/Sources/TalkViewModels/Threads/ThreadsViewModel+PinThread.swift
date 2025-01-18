@@ -43,6 +43,7 @@ extension ThreadsViewModel: PinThreadProtocol {
         serverSortedPins.insert(response.result?.id ?? -1, at: 0)
         if response.result != nil, let threadIndex = firstIndex(response.result?.id) {
             threads[threadIndex].pin?.toggle()
+            threads[threadIndex].animateObjectWillChange()
             await sortInPlace()
             animateObjectWillChange()
         }
@@ -53,6 +54,7 @@ extension ThreadsViewModel: PinThreadProtocol {
         if response.result != nil, let threadIndex = firstIndex(response.result?.id) {
             serverSortedPins.removeAll(where: {$0 == response.result?.id})
             threads[threadIndex].pin?.toggle()
+            threads[threadIndex].animateObjectWillChange()
             await sortInPlace()
             animateObjectWillChange()
         }

@@ -152,7 +152,7 @@ extension ThreadsViewModel {
         case .userRemoveFormThread(let response):
             onUserRemovedByAdmin(response)
         case .lastSeenMessageUpdated(let response):
-            onLastSeenMessageUpdated(response)
+            await onLastSeenMessageUpdated(response)
         case .joined(let response):
             await onJoinedToPublicConversation(response)
         case .left(let response):
@@ -204,6 +204,7 @@ extension ThreadsViewModel {
         if case let .customizeReactions(response) = event {
             if let index = threads.firstIndex(where: {$0.id == response.subjectId}) {
                 threads[index].reactionStatus = response.result?.reactionStatus
+                threads[index].animateObjectWillChange()
                 animateObjectWillChange()
 
                 // Update Active view model

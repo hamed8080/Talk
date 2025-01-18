@@ -67,6 +67,7 @@ public final class ThreadsViewModel: ObservableObject {
             let old = reference.toStruct()
             let updated = reference.updateOnNewMessage(response, meId: myId)
             threads[index] = updated
+            threads[index].animateObjectWillChange()
             if updated.pin == false {
                 await sortInPlace()
             }
@@ -91,6 +92,7 @@ public final class ThreadsViewModel: ObservableObject {
     func onChangedType(_ response: ChatResponse<Conversation>) {
         if let index = firstIndex(response.result?.id)  {
             threads[index].type = .publicGroup
+            threads[index].animateObjectWillChange()
             animateObjectWillChange()
         }
     }
@@ -453,6 +455,7 @@ public final class ThreadsViewModel: ObservableObject {
             arrItem.description = thread.description
 
             threads[index] = arrItem
+            threads[index].animateObjectWillChange()
 
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
@@ -472,6 +475,7 @@ public final class ThreadsViewModel: ObservableObject {
         if let index = firstIndex(thread.id) {
             threads[index].lastMessage = thread.lastMessage
             threads[index].lastMessageVO = thread.lastMessageVO
+            threads[index].animateObjectWillChange()
             animateObjectWillChange()
         }
     }
@@ -479,12 +483,13 @@ public final class ThreadsViewModel: ObservableObject {
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
             threads.remove(at: index)
+            threads[index].animateObjectWillChange()
             animateObjectWillChange()
         }
     }
 
     /// This method will be called whenver we send seen for an unseen message by ourself.
-    public func onLastSeenMessageUpdated(_ response: ChatResponse<LastSeenMessageResponse>) {
+    public func onLastSeenMessageUpdated(_ response: ChatResponse<LastSeenMessageResponse>) async {
         if let index = firstIndex(response.subjectId) {
             var thread = threads[index]
             if response.result?.unreadCount == 0, thread.mentioned == true {
@@ -497,9 +502,11 @@ public final class ThreadsViewModel: ObservableObject {
                 let newCount = response.result?.unreadCount ?? response.contentCount ?? 0
                 if newCount <= threads[index].unreadCount ?? 0 {
                     thread.unreadCount = newCount
+                    await ThreadCalculators.reCalculateUnreadCount(threads[index])
                 }
             }
             threads[index] = thread
+            threads[index].animateObjectWillChange()
             animateObjectWillChange()
         }
     }
@@ -569,6 +576,7 @@ public final class ThreadsViewModel: ObservableObject {
         guard let threadId = response.result else { return }
         if let index = threads.firstIndex(where: { $0.id == threadId}) {
             threads[index].closed = true
+            threads[index].animateObjectWillChange()
             animateObjectWillChange()
 
             let activeThread = navVM.viewModel(for: threadId)
@@ -596,12 +604,14 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     /// This method only reduce the unread count if the deleted message has sent after lastSeenMessageTime.
-    public func onMessageDeleted(_ response: ChatResponse<Message>) {
+    public func onMessageDeleted(_ response: ChatResponse<Message>) async {
         guard let index = threads.firstIndex(where: { $0.id == response.subjectId }) else { return }
         var thread = threads[index]
         if response.result?.time ?? 0 > thread.lastSeenMessageTime ?? 0, thread.unreadCount ?? 0 >= 1 {
             thread.unreadCount = (thread.unreadCount ?? 0) - 1
+            await ThreadCalculators.reCalculateUnreadCount(threads[index])
             threads[index] = thread
+            threads[index].animateObjectWillChange()
             recalculateAndAnimate(thread)
         }
     }
@@ -619,6 +629,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onPinMessage(_ response: ChatResponse<PinMessage>) {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             threads[threadIndex].pinMessage = response.result
+            threads[threadIndex].animateObjectWillChange()            
             animateObjectWillChange()
         }
     }
@@ -626,6 +637,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onUNPinMessage(_ response: ChatResponse<PinMessage>) {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             threads[threadIndex].pinMessage = nil
+            threads[threadIndex].animateObjectWillChange()
             animateObjectWillChange()
         }
     }
