@@ -34,7 +34,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func uploadCompleted(at: IndexPath, viewModel: MessageRowViewModel)
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool)
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath])
-    func onScenario()
+    func showMoveToButtom(show: Bool)
 }
 
 @MainActor

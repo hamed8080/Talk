@@ -159,7 +159,8 @@ extension ThreadHistoryViewModel {
 
     private func onMoreTopFirstScenario(_ response: HistoryResponse) async {
         await onMoreTop(response)
-        await delegate?.onScenario()
+        let show = await showJumpToButtom()
+        await delegate?.showMoveToButtom(show: show)
         /*
          It'd be better to go to the last message in the sections, instead of finding the item.
          If the last message has been deleted, we can not find the message.
@@ -236,7 +237,8 @@ extension ThreadHistoryViewModel {
         await appendSort(viewModels)
         await delegate?.reload()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
-        await delegate?.onScenario()
+        let show = await showJumpToButtom()
+        await delegate?.showMoveToButtom(show: show)
 
         /// 4- Set whether it has more messages at the bottom or not.
         await setHasMoreBottom(response)
@@ -284,7 +286,6 @@ extension ThreadHistoryViewModel {
 
     private func onMoveToTime(_ response: HistoryResponse, messageId: Int, highlight: Bool) async {
         let messages = response.result ?? []
-        await delegate?.onScenario()
         await onMoreTop(response, isMiddleFetcher: true)
         // If messageId is equal to thread.lastMessageVO?.id it means we are going to open up the thread at the bottom of it so there is
         if messageId == thread.lastMessageVO?.id {
@@ -299,6 +300,8 @@ extension ThreadHistoryViewModel {
             delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
             if messageId == lastMessageVOId {
                 setIsAtBottom(newValue: true)
+            } else {
+                viewModel?.delegate?.showMoveToButtom(show: true)
             }
             let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
             highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
@@ -334,7 +337,8 @@ extension ThreadHistoryViewModel {
         await appendSort(viewModels)
         isFetchedServerFirstResponse = true
         await delegate?.reload()
-        await delegate?.onScenario()
+        let show = await showJumpToButtom()
+        await delegate?.showMoveToButtom(show: show)
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
         await highlightVM.showHighlighted(sortedMessages.last?.uniqueId ?? "", sortedMessages.last?.id ?? -1, highlight: false)
         for vm in viewModels {
@@ -445,7 +449,14 @@ extension ThreadHistoryViewModel {
         }
         await delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .top(topVMBeforeJoin: topVMBeforeJoin))
-        await detectLastMessageDeleted(wasEmptyBeforeInsert: wasEmpty, sortedMessages: sortedMessages)
+        
+        /// We should not detect last message deleted if we are going to fetch with middleFetcher
+        /// because the list is empty before we move to time, so it will calculate it wrongly.
+        /// And if we moveToTime, and start scrolling to top the list is not empty anymore,
+        /// so the wasEmpty is false.
+        if !isMiddleFetcher, wasEmpty {
+            await detectLastMessageDeleted(sortedMessages: sortedMessages)
+        }
    
         topLoading = false
         await MainActor.run {
@@ -462,8 +473,8 @@ extension ThreadHistoryViewModel {
         await prepareAvatars(viewModels)
     }
 
-    private func detectLastMessageDeleted(wasEmptyBeforeInsert: Bool, sortedMessages: [HistoryMessageType]) async {
-        if wasEmptyBeforeInsert, await isLastMessageEqualToLastSeen(), await !isLastMessageExistInSortedMessages(sortedMessages) {
+    private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) async {
+        if await isLastMessageEqualToLastSeen(), await !isLastMessageExistInSortedMessages(sortedMessages) {
             let lastSortedMessage = sortedMessages.last
             await MainActor.run {
                 viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
@@ -1433,5 +1444,12 @@ extension ThreadHistoryViewModel {
     
     public func indexPath(vm: MessageRowViewModel) -> IndexPath? {
         sections.indexPath(for: vm)
+    }
+    
+    @MainActor
+    public func showJumpToButtom() -> Bool {
+        let readAllMeessges = viewModel?.thread.lastMessageVO?.id ?? -1 == viewModel?.thread.lastSeenMessageId ?? 0
+        let hide = readAllMeessges || viewModel?.historyVM.mSections.isEmpty == true
+        return !hide
     }
 }

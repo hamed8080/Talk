@@ -103,10 +103,8 @@ public final class MoveToBottomButton: UIButton {
             }
         }
     }
-
-    public func showIfHasAnyUnreadCount() {
-        let readAllMeessges = viewModel?.thread.lastMessageVO?.id ?? -1 == viewModel?.thread.lastSeenMessageId ?? 0
-        let hide = readAllMeessges || viewModel?.historyVM.mSections.isEmpty == true
-        setIsHidden(hide)
+    
+    public func show(_ show: Bool) {
+        setIsHidden(!show)
     }
 }

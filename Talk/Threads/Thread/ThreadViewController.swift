@@ -258,8 +258,9 @@ extension ThreadViewController {
 
 // MARK: ThreadViewDelegate
 extension ThreadViewController: ThreadViewDelegate {
-    func onScenario() {
-        moveToBottom.showIfHasAnyUnreadCount()
+    
+    func showMoveToButtom(show: Bool) {
+        moveToBottom.show(show)
     }
     
     func onUnreadCountChanged() {
