@@ -244,6 +244,10 @@ private extension MessageContainerStackView {
 
     func onSelectAction(_ model: ActionModel) {
         model.threadVM?.delegate?.setSelection(true)
+        if let uniqueId = model.message.uniqueId,
+           let indexPath = model.threadVM?.historyVM.mSections.indicesByMessageUniqueId(uniqueId) {
+            model.threadVM?.delegate?.setTableRowSelected(indexPath)
+        }
         cell?.select()
     }
 }

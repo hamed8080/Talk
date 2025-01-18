@@ -270,6 +270,10 @@ extension ThreadViewController: ThreadViewDelegate {
     func onChangeUnreadMentions() {
         unreadMentionsButton.onChangeUnreadMentions()
     }
+    
+    func setTableRowSelected(_ indexPath: IndexPath) {
+        tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+    }
 
     func setSelection(_ value: Bool) {
         tapGetsure.isEnabled = !value
@@ -278,7 +282,7 @@ extension ThreadViewController: ThreadViewDelegate {
         tableView.visibleCells.compactMap{$0 as? MessageBaseCell}.forEach { cell in
             cell.setInSelectionMode(value)
         }
-
+        
         // Assure that the previous item is in select mode or not
         if let cell = prevouisVisibleIndexPath() {
             cell.setInSelectionMode(value)

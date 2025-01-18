@@ -54,6 +54,7 @@ public protocol ChangeUnreadMentionsDelegate {
 
 @MainActor
 public protocol ChangeSelectionDelegate {
+    func setTableRowSelected(_ indexPath: IndexPath)
     func setSelection(_ value: Bool)
     func updateSelectionView()
 }
