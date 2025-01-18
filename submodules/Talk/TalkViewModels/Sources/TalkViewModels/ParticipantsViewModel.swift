@@ -298,6 +298,7 @@ public final class ParticipantsViewModel: ObservableObject {
 
     public func removeParticipant(_ participant: Participant) {
         participants.removeAll(where: { $0.id == participant.id })
+        searchedParticipants.removeAll(where: { $0.id == participant.id })
     }
 
     public func onError(_ response: ChatResponse<Sendable>) {
