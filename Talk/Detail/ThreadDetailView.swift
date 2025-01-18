@@ -18,8 +18,14 @@ struct ThreadDetailView: View {
             ScrollView(.vertical) {
                 VStack(spacing: 0) {
                     DetailSectionContainer()
+                        .id("DetailSectionContainer")
+                    
                     DetailTabContainer()
+                        .id("DetailTabContainer")
                 }
+            }
+            .onAppear {
+                viewModel.scrollViewProxy = proxy
             }
         }
         .navigationBarBackButtonHidden(true)

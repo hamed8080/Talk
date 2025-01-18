@@ -14,7 +14,8 @@ import ActionableContextMenu
 
 struct MemberView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
-
+    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
+    
     var body: some View {
         LazyVStack(spacing: 0) {
             ParticipantSearchView()
@@ -28,6 +29,14 @@ struct MemberView: View {
                 ForEach(viewModel.searchedParticipants) { participant in
                     ParticipantRowContainer(participant: participant, isSearchRow: true)
                 }
+                /// An empty view to pull the view to top even when viewModel.searchedParticipants.count
+                /// but the searchText is not empty.
+                Rectangle()
+                    .fill(.clear)
+                    .frame(height: viewModel.searchedParticipants.count < 10 ? 256 : 0)
+                    .onAppear {
+                        detailViewModel.scrollViewProxy?.scrollTo("DetailTabContainer", anchor: .top)
+                    }
             } else {
                 ForEach(viewModel.sorted) { participant in
                     ParticipantRowContainer(participant: participant, isSearchRow: false)
@@ -192,7 +201,9 @@ struct AddParticipantButton: View {
 
 struct ParticipantSearchView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
+    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
     @State private var showPopover = false
+    @FocusState private var focusState: Bool
 
     var body: some View {
         HStack(spacing: 12) {
@@ -205,6 +216,14 @@ struct ParticipantSearchView: View {
                 TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
                     .frame(minWidth: 0, minHeight: 48)
                     .font(.iransansBody)
+                    .focused($focusState)
+                    .onChange(of: focusState) { focused in
+                        if focused {
+                            withAnimation {
+                                detailViewModel.scrollViewProxy?.scrollTo("DetailTabContainer", anchor: .top)
+                            }
+                        }
+                    }
             }
             Spacer()
 

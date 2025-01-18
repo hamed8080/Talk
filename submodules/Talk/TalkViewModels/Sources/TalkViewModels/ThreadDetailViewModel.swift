@@ -24,6 +24,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     public var editConversationViewModel: EditConversationViewModel?
     private let p2pPartnerFinder = FindPartnerParticipantViewModel()
     public let mutualGroupsVM = MutualGroupViewModel()
+    public var scrollViewProxy: ScrollViewProxy?
 
     public init() {}
 
