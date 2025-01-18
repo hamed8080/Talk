@@ -121,6 +121,7 @@ public final class ImageLoaderViewModel: ObservableObject {
     }
     
     private func fetchAsync() async {
+        if config.url.isEmpty { return }
         let hashCode = await getHashCode()
         isFetching = true
         fileMetadata = config.metaData

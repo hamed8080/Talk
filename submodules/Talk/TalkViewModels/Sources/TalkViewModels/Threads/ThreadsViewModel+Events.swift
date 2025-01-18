@@ -190,7 +190,7 @@ extension ThreadsViewModel {
         case .seen(let response):
             onSeen(response)
         case .deleted(let response):
-            onMessageDeleted(response)
+            await onMessageDeleted(response)
         case .pin(let response):
             onPinMessage(response)
         case .unpin(let response):

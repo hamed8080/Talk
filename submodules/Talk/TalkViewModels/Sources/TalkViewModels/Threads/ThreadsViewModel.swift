@@ -520,7 +520,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func avatars(for imageURL: String, metaData: String?, userName: String?) -> ImageLoaderViewModel {
-        if let avatarVM = avatarsVM[imageURL] {
+        if let avatarVM = avatarsVM[imageURL], !imageURL.isEmpty {
             return avatarVM
         } else {
             let config = ImageLoaderConfig(url: imageURL, metaData: metaData, userName: userName)
