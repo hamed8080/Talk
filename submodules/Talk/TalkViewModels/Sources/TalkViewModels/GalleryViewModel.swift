@@ -72,7 +72,6 @@ public final class GalleryViewModel: ObservableObject {
     @Published public var pictures: ContiguousArray<GalleryImageItemViewModel> = []
     var thread: Conversation? { starter.conversation }
     var threadId: Int? { thread?.id }
-    public var currentImageMessage: Message?
     private var cancelable: Set<AnyCancellable> = .init()
     private var objectId = UUID().uuidString
     private let FETCH_GALLERY_MESSAGES_KEY: String
@@ -82,6 +81,7 @@ public final class GalleryViewModel: ObservableObject {
         FETCH_GALLERY_MESSAGES_KEY = "FETCH-GALLERY-MESSAGES-KEY-\(objectId)"
         self.starter = message
         selectedTabId = message.id
+        loadStarterFileURL()
         getPictureMessages(toTime: message.time?.advanced(by: 1)) // to get the message itself
         getPictureMessages(fromTime: message.time?.advanced(by: 1)) // to do not getting the message itself but get them in advance if user want to scroll to leading side
         NotificationCenter.message.publisher(for: .message)
@@ -99,6 +99,14 @@ public final class GalleryViewModel: ObservableObject {
                 self?.handleScrollFinished()
             }
             .store(in: &cancelable)
+    }
+    
+    private func loadStarterFileURL() {
+        let vm = GalleryImageItemViewModel(message: starter)
+        if !pictures.contains(where: { $0.id == starter.id }) {
+            let vm = GalleryImageItemViewModel(message: starter)
+            pictures.append(vm)
+        }
     }
     
     private func onMessageEvent(_ event: MessageEventTypes){
@@ -141,16 +149,15 @@ public final class GalleryViewModel: ObservableObject {
     }
     
     public func onAppeared(item: GalleryImageItemViewModel) {
-        currentImageMessage = item.message
         downloadImage(item: item)
     }
     
     private func handleScrollFinished() {
-        guard let item = currentImageMessage else { return }
+        guard let item = pictures.first(where: {$0.id == selectedTabId}) else { return }
         if pictures.first?.message.id == item.id {
-            getPictureMessages(fromTime: currentImageMessage?.time)
+            getPictureMessages(fromTime: item.message.time)
         } else if pictures.last?.message.id == item.id {
-            getPictureMessages(toTime: currentImageMessage?.time)
+            getPictureMessages(toTime: item.message.time)
         }
     }
     

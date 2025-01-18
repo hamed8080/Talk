@@ -281,7 +281,7 @@ public final class ThreadsViewModel: ObservableObject {
         sheetType = .tagManagement
     }
     
-    @AppBackgroundActor
+    @MainActor
     public func appendThreads(newThreads: [CalculatedConversation], oldThreads: ContiguousArray<CalculatedConversation>)
     async -> ContiguousArray<CalculatedConversation> {
         var arr = oldThreads

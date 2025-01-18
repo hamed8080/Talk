@@ -31,7 +31,7 @@ public struct GalleryPageView: View {
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .overlay {
-            if showOverlayInZoom, let pictureVM = viewModel.pictures.first(where: { $0.id == viewModel.currentImageMessage?.id})  {
+            if showOverlayInZoom, let pictureVM = viewModel.pictures.first(where: { $0.id == viewModel.selectedTabId})  {
                 GalleryImageItem()
                     .environmentObject(pictureVM)
             }
