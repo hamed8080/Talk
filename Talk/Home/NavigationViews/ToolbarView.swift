@@ -86,8 +86,8 @@ struct ToolbarView<LeadingContentView: View, CenterContentView: View, TrailingCo
         }
         .onReceive(NotificationCenter.forceSearch.publisher(for: .forceSearch)) { newValue in
             if (newValue.object as? String) == searchId {
-                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-                    isInSearchMode.toggle()
+                if isInSearchMode == false {
+                    isInSearchMode = true
                     searchFocus = .search
                 }
             }
