@@ -237,8 +237,9 @@ extension ThreadHistoryViewModel {
         await appendSort(viewModels)
         await delegate?.reload()
         await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
-        let show = await showJumpToButtom()
-        await delegate?.showMoveToButtom(show: show)
+        let isAtBottomOftheList = await viewModel?.scrollVM.isAtBottomOfTheList == true
+        await delegate?.showMoveToButtom(show: isAtBottomOftheList)
+            
 
         /// 4- Set whether it has more messages at the bottom or not.
         await setHasMoreBottom(response)
