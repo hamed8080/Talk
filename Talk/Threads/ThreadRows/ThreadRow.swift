@@ -37,10 +37,14 @@ struct ThreadRow: View {
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
         .animation(.easeInOut, value: thread)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
-            } label: {
-                Label("General.delete", systemImage: "trash")
+            if thread.group == true && (thread.admin == false || thread.admin == nil) {
+                EmptyView()
+            } else {
+                Button(role: .destructive) {
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
+                } label: {
+                    Label("General.delete", systemImage: "trash")
+                }
             }
         }
         .onTapGesture {
