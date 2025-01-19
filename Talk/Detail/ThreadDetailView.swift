@@ -41,6 +41,11 @@ struct ThreadDetailView: View {
         .onAppear {
 //            setupPreviousDetailViewModel()
         }
+        .onDisappear {
+            Task(priority: .background) {
+                viewModel.threadVM?.searchedMessagesViewModel.reset()
+            }
+        }
     }
 
     private func prepareToDismiss() {

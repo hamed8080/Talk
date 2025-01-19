@@ -129,7 +129,7 @@ public final class ThreadSearchMessagesViewModel: ObservableObject {
         }
     }
 
-    private func reset() {
+    public func reset() {
         searchText = ""
         hasMore = true
         isLoading = false
