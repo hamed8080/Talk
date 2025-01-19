@@ -434,6 +434,7 @@ extension ThreadHistoryViewModel {
         let beforeSectionCount = sections.count
         let sortedMessages = messages.sortedByTime()
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        let shouldUpdateOldTopSection = stitchAvatarsOnLoadMoreTop(viewModels)
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
@@ -449,8 +450,11 @@ extension ThreadHistoryViewModel {
             indexPathToScroll = sections.indexPath(for: lastTopMessageVM)
         }
         await delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
-        await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .top(topVMBeforeJoin: topVMBeforeJoin))
         
+        if let row = shouldUpdateOldTopSection, let indexPath = sections.indexPath(for: row) {
+            await delegate?.reload(at: indexPath)
+        }
+                
         /// We should not detect last message deleted if we are going to fetch with middleFetcher
         /// because the list is empty before we move to time, so it will calculate it wrongly.
         /// And if we moveToTime, and start scrolling to top the list is not empty anymore,
@@ -472,6 +476,40 @@ extension ThreadHistoryViewModel {
         }
         
         await prepareAvatars(viewModels)
+    }
+    
+    private func stitchAvatarsOnLoadMoreTop(_ sortedVMS: [MessageRowViewModel]) -> MessageRowViewModel? {
+        let sorted = sortedVMS.sorted(by: {$0.message.id ?? 0 < $1.message.id ?? 0 })
+        guard
+            let sectionFirstMessage = sections.first?.vms.first,
+            let lastSortedMessage = sorted.last
+        else { return nil }
+        
+        var shouldUpdateTopInSection = false
+        if sectionFirstMessage.message.ownerId == lastSortedMessage.message.ownerId {
+            sectionFirstMessage.calMessage.isFirstMessageOfTheUser = false
+            lastSortedMessage.calMessage.isLastMessageOfTheUser = false
+            shouldUpdateTopInSection = true
+        }
+        
+        return shouldUpdateTopInSection ? sectionFirstMessage : nil
+    }
+    
+    private func stitchAvatarsOnLoadMoreBottom(_ sortedVMS: [MessageRowViewModel]) -> MessageRowViewModel? {
+        let sorted = sortedVMS.sorted(by: {$0.message.id ?? 0 < $1.message.id ?? 0 })
+        guard
+            let sectionLastMessage = sections.last?.vms.last,
+            let firstSortedMessage = sorted.first
+        else { return nil }
+        
+        var shouldUpdateBottomInSection = false
+        if sectionLastMessage.message.ownerId == firstSortedMessage.message.ownerId {
+            sectionLastMessage.calMessage.isLastMessageOfTheUser = false
+            firstSortedMessage.calMessage.isFirstMessageOfTheUser = false
+            shouldUpdateBottomInSection = true
+        }
+        
+        return shouldUpdateBottomInSection ? sectionLastMessage : nil
     }
 
     private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) async {
@@ -501,6 +539,7 @@ extension ThreadHistoryViewModel {
         let beforeSectionCount = sections.count
         let sortedMessages = messages.sortedByTime()
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        let shouldUpdateOldBottomSection = stitchAvatarsOnLoadMoreBottom(viewModels)
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
@@ -510,8 +549,11 @@ extension ThreadHistoryViewModel {
         await setHasMoreBottom(response)
         let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
         await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
-        await updateIsLastMessageAndIsFirstMessageFor(viewModels, at: .bottom(bottomVMBeforeJoin: bottomVMBeforeJoin))
 
+        if let row = shouldUpdateOldBottomSection, let indexPath = sections.indexPath(for: row) {
+            await delegate?.reload(at: indexPath)
+        }
+        
         for vm in viewModels {
             await vm.register()
         }
