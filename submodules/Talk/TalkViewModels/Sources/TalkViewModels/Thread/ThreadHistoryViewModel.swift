@@ -1031,6 +1031,10 @@ extension ThreadHistoryViewModel {
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         if message.id == thread.lastMessageVO?.id {
             await setIsAtBottom(newValue: true)
+            /// Hide the move to bottom button if the last message of the thread is visible,
+            /// when we are loading more bottom and we reach to the last message of the thread,
+            /// we have to hide this button.
+            await delegate?.showMoveToButtom(show: false)
         }
         await seenVM?.onAppear(message)
     }
