@@ -31,6 +31,7 @@ public final class ThreadsViewModel: ObservableObject {
     private var isSilentClear = false
     @MainActor public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
+    private var wasDisconnected = false
 
     internal var objectId = UUID().uuidString
     internal let GET_THREADS_KEY: String
@@ -101,6 +102,7 @@ public final class ThreadsViewModel: ObservableObject {
         if status == .connected {
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
+            wasDisconnected = true
             await refresh()
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
@@ -170,6 +172,19 @@ public final class ThreadsViewModel: ObservableObject {
                 shimmerViewModel.hide()
             }
             objectWillChange.send()
+        }
+        
+        await updateActiveThreadAfterDisconnect()
+    }
+    
+    private func updateActiveThreadAfterDisconnect() async {
+        if wasDisconnected,
+           let activeVM = navVM.presentedThreadViewModel?.viewModel,
+           let updatedThread = threads.first(where: {$0.id == activeVM.threadId}) {
+            activeVM.thread = updatedThread.toStruct()
+            activeVM.delegate?.onUnreadCountChanged()
+            activeVM.delegate?.showMoveToButtom(show: updatedThread.unreadCount ?? 0 > 0)
+            wasDisconnected = false
         }
     }
     

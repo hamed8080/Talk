@@ -151,13 +151,19 @@ public class ThreadCalculators {
     @discardableResult
     @AppBackgroundActor
     public class func reCalculateUnreadCount(_ classConversation: CalculatedConversation) async -> CalculatedConversation {
-        let unreadCountString = calculateUnreadCountString(classConversation.unreadCount) ?? ""
-        let isCircleUnreadCount = classConversation.unreadCount ?? 0 < 100
+        let unreadCount = await unreadCountOnMain(classConversation)
+        let unreadCountString = calculateUnreadCountString(unreadCount) ?? ""
+        let isCircleUnreadCount = unreadCount ?? 0 < 100
         await MainActor.run {
             classConversation.unreadCountString = unreadCountString
             classConversation.isCircleUnreadCount = isCircleUnreadCount
         }
         return classConversation
+    }
+    
+    @MainActor
+    private class func unreadCountOnMain(_ classConversation: CalculatedConversation) -> Int? {
+        classConversation.unreadCount
     }
     
     private class func calculateComputedTitle(_ conversation: Conversation) -> String {

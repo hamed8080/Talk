@@ -236,7 +236,6 @@ extension ThreadHistoryViewModel {
             await viewModel?.scrollVM.setIsProgramaticallyScrolling(false)
         }
         await onMoreBottom(response)
-        await delegate?.showMoveToButtom(show: messages.count > 0)
     }
 
     // MARK: Scenario 6
