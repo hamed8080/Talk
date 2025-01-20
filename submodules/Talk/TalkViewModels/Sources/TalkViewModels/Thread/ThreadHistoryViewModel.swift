@@ -198,10 +198,17 @@ extension ThreadHistoryViewModel {
 
     private func onMoreTopSecondScenario(_ response: HistoryResponse) async {
         await onMoreTop(response)
+        await showCenterLoading(false)
         if let uniqueId = thread.lastMessageVO?.uniqueId, let messageId = thread.lastMessageVO?.id {
+            /// Inside onMoreTop we disable excessive loading so we have to wait to move to the right place,
+            /// however we scroll there first and then wait to finish scrolling programatically,
+            /// then scroll again to the bottom of the list, it will always scroll to perfect position
+            /// even after reactions has been set. So it looks perfect on openning a thread,
+            /// where all the messages has been seen.
+            await highlightVM.showHighlighted(uniqueId, messageId, highlight: false)
+            while await viewModel?.scrollVM.getIsProgramaticallyScrolling() == true {}
             await highlightVM.showHighlighted(uniqueId, messageId, highlight: false)
         }
-        await showCenterLoading(false)
     }
 
     // MARK: Scenario 3 or 4 more top/bottom.
