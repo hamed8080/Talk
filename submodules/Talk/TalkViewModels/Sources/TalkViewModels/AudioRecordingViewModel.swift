@@ -93,12 +93,10 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
     }
     
     public func stop() {
-        Task(priority: .background) {
-            isRecording = false
-            audioRecorder.stop()
-            timer?.invalidate()
-            try? AVAudioSession.sharedInstance().setActive(false)
-        }
+        isRecording = false
+        audioRecorder.stop()
+        timer?.invalidate()
+        try? AVAudioSession.sharedInstance().setActive(false)
     }
 
     public func cancel() {

@@ -45,16 +45,18 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
     }
 
     public func play() {
-        isClosed = false
-        isPlaying = true
-        try? AVAudioSession.sharedInstance().setActive(true)
-        player?.prepareToPlay()
-        player?.play()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.onTickTimer()
             }
         }
+        
+        isClosed = false
+        isPlaying = true
+        try? AVAudioSession.sharedInstance().setActive(true)
+        player?.prepareToPlay()
+        player?.play()
+        
         if let timer = timer {
             RunLoop.main.add(timer, forMode: .common)
         }
@@ -64,7 +66,7 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
         let transaction = Transaction(animation: .easeInOut)
         withTransaction(transaction) {
             if duration != currentTime {
-                currentTime = player?.currentTime ?? 0
+                currentTime = (player?.currentTime ?? 0) + 1 // We added plus one to make it more natural with the rhythm.
                 duration = player?.duration ?? 0
             }
         }

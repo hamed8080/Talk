@@ -57,6 +57,7 @@ public final class AudioRecordingView: UIStackView {
         recordingAudioView.setIsHidden(!show)
         recordingAudioView.alpha = 1.0
         recordedAudioView.alpha = 0.0
+        recordedAudioView.clear()
         if !show {
             removeFromSuperViewWithAnimation()
         } else if superview == nil {
@@ -77,7 +78,9 @@ public final class AudioRecordingView: UIStackView {
             self.recordingAudioView.setIsHidden(true)
             self.recordedAudioView.alpha = 1.0
             self.recordedAudioView.setIsHidden(false)
-            self.recordedAudioView.setup()
+            Task {
+                try? await self.recordedAudioView.setup()
+            }
         }
     }
 
