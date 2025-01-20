@@ -55,7 +55,7 @@ class ThumbnailDownloadManagerViewModel {
 
     private func onResponse(_ response: ChatResponse<Data>, _ url: URL?) {
         if response.uniqueId != uniqueId { return }
-        if !response.cache, response.pop(prepend: THUMBNAIL_KEY) != nil, let data = response.result {
+        if response.pop(prepend: THUMBNAIL_KEY) != nil, let data = response.result {
             onDownload?(data)
         }
     }

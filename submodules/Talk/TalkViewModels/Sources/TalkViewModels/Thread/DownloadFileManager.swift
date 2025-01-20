@@ -166,7 +166,7 @@ public final class DownloadFileManager {
             preloadImage = blurImage
             blurRadius = 16
             showDownload = true
-            log("thumbnail created for id: \(messageId) message:\(message.message ?? "")")
+            log("Thumbnail created for id: \(messageId) message:\(message.message ?? "")")
         } else if vm.state == .downloading {
             blurRadius = 16
             showDownload = true
@@ -248,7 +248,12 @@ public final class DownloadFileManager {
         }
         let fileURL = await result.vm.message.fileURL
         await MainActor.run {
-            result.vm.setFileState(state, fileURL: fileURL)
+            /// We have to check if the state is not completed yet,
+            /// cuase if is was finished it will turn an downloaded image
+            /// to blur view if we are getting the reply thumbnail
+            if result.vm.fileState.state != .completed {
+                result.vm.setFileState(state, fileURL: fileURL)
+            }
             let delegate = viewModel?.delegate
             if state.state == .completed {
                 delegate?.downloadCompleted(at: result.indexPath, viewModel: result.vm)
@@ -280,7 +285,7 @@ public final class DownloadFileManager {
 
     private func log(_ string: String) {
 #if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
+        Logger.viewModels.info("DownloadFileManager:\n\(string, privacy: .sensitive)")
 #endif
     }
 }
