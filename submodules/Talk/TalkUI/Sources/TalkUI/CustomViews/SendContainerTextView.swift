@@ -96,6 +96,9 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     }
     
     private func setTextDirection(_ isEmpty: Bool) {
+        /// If we detected the text direction and alignment before, therefore we don't need to update
+        /// It again will lead to an incorrect cursor position after typing and correcting the text.
+        if textView.attributedText.string.count > 2 { return }
         if Language.isRTL {
             if isEmpty {
                 textView.attributedText = getTextAttributes(RTLMarker)
