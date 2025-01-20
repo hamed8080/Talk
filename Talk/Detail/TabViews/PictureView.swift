@@ -180,15 +180,22 @@ struct DownloadPictureButtonView: View {
 
     @ViewBuilder
     private var scaledImageView: some View {
-        if let scaledImage = scaledImage {
-            Image(uiImage: scaledImage)
-                .resizable()
-                .frame(width: itemWidth, height: itemWidth)
-                .scaledToFit()
-                .clipped()
-                .transition(.opacity)
-                .contentShape(RoundedRectangle(cornerRadius: 8))
-        }
+        Image(uiImage: scaledImage ?? UIImage())
+            .resizable()
+            .frame(width: itemWidth, height: itemWidth)
+            .scaledToFit()
+            .clipped()
+            .transition(.opacity)
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+            .onAppear {
+                /// After downloading the image inside the gallery,
+                /// the scaledImage is nil and it shuould be calculate again.
+                if scaledImage == nil {
+                    Task {
+                        await prepareThumbnail()
+                    }
+                }
+            }
     }
 
     private var thumbnailView: some View {
@@ -225,7 +232,7 @@ struct DownloadPictureButtonView: View {
     private func prepareThumbnail() async {
         await viewModel.setup()
         if viewModel.isInCache {
-            let scaledImage = await scaledImag(url: viewModel.fileURL)
+            let scaledImage = await scaledImage(url: viewModel.fileURL)
             viewModel.state = .completed
             self.scaledImage = scaledImage
             viewModel.animateObjectWillChange()
@@ -237,7 +244,7 @@ struct DownloadPictureButtonView: View {
     }
     
     @AppBackgroundActor
-    private func scaledImag(url: URL?) async -> UIImage? {
+    private func scaledImage(url: URL?) async -> UIImage? {
         if let fileURL = url, let scaledImage = fileURL.imageScale(width: 128)?.image {
             return UIImage(cgImage: scaledImage)
         }
