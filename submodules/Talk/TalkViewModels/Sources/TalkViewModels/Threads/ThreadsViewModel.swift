@@ -83,7 +83,6 @@ public final class ThreadsViewModel: ObservableObject {
         let newMSG = response.result
         let isMeJoinedPublic = newMSG?.messageType == .participantJoin && newMSG?.participant?.id == myId
         if response.subjectId == activeVM?.threadId, let message = newMSG, !isMeJoinedPublic {
-            activeVM?.updateUnreadCount(updatedConversation.unreadCount)
             Task {
                 await activeVM?.historyVM.onNewMessage(message, oldConversation, updatedConversation)
             }

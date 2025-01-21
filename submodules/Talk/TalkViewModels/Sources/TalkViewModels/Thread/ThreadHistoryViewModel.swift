@@ -673,6 +673,7 @@ extension ThreadHistoryViewModel {
             await sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
             await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
         }
+        await viewModel?.updateUnreadCount(updatedConversation.unreadCount)
         await setSeenForAllOlderMessages(newMessage: message, myId: await appUserId ?? -1)
         await setIsEmptyThread()
     }
