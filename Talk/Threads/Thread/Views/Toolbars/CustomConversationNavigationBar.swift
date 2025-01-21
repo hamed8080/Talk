@@ -20,7 +20,6 @@ public class CustomConversationNavigationBar: UIView {
     private let subtitleLabel = UILabel()
     private var threadImageButton = UIImageButton(imagePadding: .init(all: 0))
     private var threadTitleSupplementary = UILabel()
-    private let rightTitleImageView = UIImageView()
     private var centerYTitleConstraint: NSLayoutConstraint!
     private let gradientLayer = CAGradientLayer()
     private var cancellableSet: Set<AnyCancellable> = Set()
@@ -45,7 +44,19 @@ public class CustomConversationNavigationBar: UIView {
         titlebutton.translatesAutoresizingMaskIntoConstraints = false
         let title = viewModel?.thread.titleRTLString ?? ""
         let replacedEmoji = title.stringToScalarEmoji()
-        titlebutton.setTitle(replacedEmoji, for: .normal)
+        
+        let attributedString = NSMutableAttributedString(string: replacedEmoji)
+        if viewModel?.thread.isTalk == true {
+            attributedString.append(NSAttributedString(string: " ")) // Space
+            
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = UIImage(named: "ic_approved")
+            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
+            let imageString = NSAttributedString(attachment: imageAttachment)
+            attributedString.append(imageString)
+        }
+
+        titlebutton.setAttributedTitle(attributedString, for: .normal)
         titlebutton.titleLabel?.font = UIFont.uiiransansBoldBody
         titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
@@ -107,18 +118,11 @@ public class CustomConversationNavigationBar: UIView {
             NotificationCenter.closeSideBar.post(name: Notification.Name.closeSideBar, object: nil)
         }
 
-        rightTitleImageView.translatesAutoresizingMaskIntoConstraints = false
-        rightTitleImageView.image = UIImage(named: "ic_approved")
-        rightTitleImageView.contentMode = .scaleAspectFit
-        rightTitleImageView.accessibilityIdentifier = "rightTitleImageViewCustomConversationNavigationBar"
-        rightTitleImageView.setIsHidden(viewModel?.thread.isTalk == false)
-
         addSubview(backButton)
         addSubview(fullScreenButton)
         addSubview(threadImageButton)
         addSubview(threadTitleSupplementary)
         addSubview(titlebutton)
-        addSubview(rightTitleImageView)
         addSubview(subtitleLabel)
 
         centerYTitleConstraint = titlebutton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0)
@@ -144,18 +148,14 @@ public class CustomConversationNavigationBar: UIView {
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
             threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.centerYAnchor),
 
-            titlebutton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titlebutton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 4),
+            titlebutton.trailingAnchor.constraint(equalTo: threadImageButton.leadingAnchor, constant: -4),
             centerYTitleConstraint,
             titlebutton.heightAnchor.constraint(equalToConstant: 16),
 
             subtitleLabel.centerXAnchor.constraint(equalTo: titlebutton.centerXAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titlebutton.bottomAnchor, constant: -4),
             subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 4),
-
-            rightTitleImageView.widthAnchor.constraint(equalToConstant: 16),
-            rightTitleImageView.heightAnchor.constraint(equalToConstant: 16),
-            rightTitleImageView.centerYAnchor.constraint(equalTo: titlebutton.centerYAnchor, constant: -1),
-            rightTitleImageView.leadingAnchor.constraint(equalTo: titlebutton.trailingAnchor, constant: 4),
         ])
     }
 
