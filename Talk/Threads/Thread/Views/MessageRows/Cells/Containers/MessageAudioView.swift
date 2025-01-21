@@ -140,6 +140,7 @@ final class MessageAudioView: UIView {
         updateProgress(viewModel: viewModel)
         fileSizeLabel.text = viewModel.calMessage.computedFileSize
         waveView.setImage(to: viewModel.calMessage.waveForm)
+        timeLabel.text = audioTimerString()
     }
     
     @objc private func onTap(_ sender: UIGestureRecognizer) {
@@ -242,7 +243,9 @@ final class MessageAudioView: UIView {
     }
     
     private func audioTimerString() -> String {
-        isSameFile ? "\(audioVM.currentTime.timerString(locale: Language.preferredLocale) ?? "") / \(audioVM.duration.timerString(locale: Language.preferredLocale) ?? "")" : " " // We use space to prevent the text collapse
+        let duration = (viewModel?.calMessage.voiceDuration ?? 0).timerString(locale: Language.preferredLocale) ?? " "
+        let currentTime = audioVM.currentTime.timerString(locale: Language.preferredLocale) ?? " "
+        return isSameFile ? "\(currentTime) / \(duration)" : " "
     }
     
     var playingIcon: String {

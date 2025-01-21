@@ -11,6 +11,7 @@ import TalkModels
 import Chat
 import UIKit
 import DSWaveformImage
+import AVFoundation
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -182,7 +183,9 @@ class MessageRowCalculators {
         newCal.participantColor = color ?? .clear
         newCal.fileURL = await getFileURL(serverURL: message.url)
         if newCal.rowType.isAudio, let fileURL = newCal.fileURL {
-            newCal.waveForm = await generateWaveForm(fileURL: fileURL, message: message)
+             let tuple = await generateWaveForm(fileURL: fileURL, message: message)
+            newCal.waveForm = tuple.image
+            newCal.voiceDuration = voiceDuration(tuple.url)
         }
         return newCal
     }
@@ -609,21 +612,21 @@ class MessageRowCalculators {
         return rect
     }
     
-    private class func generateWaveForm(fileURL: URL, message: HistoryMessageType) async -> UIImage? {
+    private class func generateWaveForm(fileURL: URL, message: HistoryMessageType) async -> (image: UIImage?, url: URL?) {
         let width: CGFloat = 246
         let height: CGFloat = 24
         
         if let convertedURL = convertedAudioURL(message: message),
            let image = try? await generateWave(url: convertedURL, width: width, height: height) {
-            return image
+            return (image, convertedURL)
         } else if let linkURL = fileURL.createHardLink(for: fileURL, ext: "mp4"),
             let image = try? await generateWave(url: linkURL, width: width, height: height) {
-            return image
+            return (image, linkURL)
         } else if let linkURL = fileURL.createHardLink(for: fileURL, ext: "wav"),
                   let image = try? await generateWave(url: linkURL, width: width, height: height) {
-            return image
+            return (image, linkURL)
         } else {
-            return nil
+            return (nil, nil)
         }
     }
     
@@ -652,6 +655,12 @@ class MessageRowCalculators {
             ),
             renderer: LinearWaveformRenderer()
         )
+    }
+    
+    private class func voiceDuration(_ fileURL: URL?) -> Double? {
+        guard let fileURL = fileURL else { return nil }
+        let asset = AVAsset(url: fileURL)
+        return Double(CMTimeGetSeconds(asset.duration))
     }
 
     class func calculateEstimatedHeight(_ calculatedMessage: MessageRowCalculatedData, _ sizes: MessageRowSizes) -> CGFloat {

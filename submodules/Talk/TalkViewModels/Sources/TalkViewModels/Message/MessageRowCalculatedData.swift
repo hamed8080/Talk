@@ -43,6 +43,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var groupMessageParticipantName: String?
     public var canEdit: Bool = false
     public var waveForm: UIImage?
+    public var voiceDuration: Double?
     // Disk file path
     public var fileURL: URL?
 //    public var textLayer: CATextLayer?
