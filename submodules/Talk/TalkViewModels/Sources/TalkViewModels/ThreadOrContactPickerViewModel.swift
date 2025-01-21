@@ -8,12 +8,13 @@
 import Foundation
 import Combine
 import Chat
+import TalkModels
 
 @MainActor
 public class ThreadOrContactPickerViewModel: ObservableObject {
     private var cancellableSet: Set<AnyCancellable> = .init()
     @Published public var searchText: String = ""
-    public var conversations: ContiguousArray<Conversation> = .init()
+    public var conversations: ContiguousArray<CalculatedConversation> = .init()
     public var contacts:ContiguousArray<Contact> = .init()
     private var isIsSearchMode = false
     @MainActor public var contactsLazyList = LazyListViewModel()
@@ -132,7 +133,13 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(response.hasNext)
             let filtered = (response.result ?? []).filter({$0.closed == false })
-            conversations.append(contentsOf: filtered)
+            var calculatedConversations: [CalculatedConversation] = []
+            let myId = AppState.shared.user?.id
+            for thread in filtered {
+                let calculated = await ThreadCalculators.calculate(thread, myId ?? -1)
+                calculatedConversations.append(calculated)
+            }
+            conversations.append(contentsOf: calculatedConversations)
             animateObjectWillChange()
         }
     }

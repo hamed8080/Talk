@@ -28,9 +28,11 @@ struct SelectConversationOrContactList: View {
             .frame(minWidth: 300, maxWidth: .infinity)/// We have to use a fixed minimum width for a bug tabs goes to the end.
             .environmentObject(viewModel)
             .background(Color.App.bgPrimary)
+            .environment(\.colorScheme, AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light)
             .listStyle(.plain)
             .safeAreaInset(edge: .top, spacing: 0) {
                 SearchInSelectConversationOrContact()
+                    .environment(\.colorScheme, AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light)
                     .environmentObject(viewModel)
             }
             .onAppear {
@@ -68,16 +70,16 @@ struct SelectConversationTab: View {
     @EnvironmentObject var viewModel: ThreadOrContactPickerViewModel
     var onSelect: (Conversation?, Contact?) -> Void
     @Environment(\.dismiss) var dismiss
-    private var conversations: [Conversation] { viewModel.conversations.sorted(by: {$0.type == .selfThread && $1.type != .selfThread }) }
+    private var conversations: [CalculatedConversation] { viewModel.conversations.sorted(by: {$0.type == .selfThread && $1.type != .selfThread }) }
 
     var body: some View {
         List {
             ForEach(conversations) { conversation in
                 ThreadRow() {
-                    onSelect(conversation, nil)
+                    onSelect(conversation.toStruct(), nil)
                     dismiss()
                 }
-                .environmentObject(conversation.toClass())
+                .environmentObject(conversation)
                 .listRowBackground(Color.App.bgPrimary)
                 .onAppear {
                     Task {
