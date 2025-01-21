@@ -125,6 +125,7 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func updateMentionList() {
         mentionTableView.updateMentionList(stack: self)
+        mainSendButtons.updateTextDirection()
     }
 
     private func showPicker(show: Bool) {
@@ -140,7 +141,8 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func openEditMode(_ message: HistoryMessageType?) {
         editMessagePlaceholderView.set(stack: self)
-        viewModel?.sendContainerViewModel.setText(newValue: message?.message ?? "")
+        viewModel?.sendContainerViewModel.setEditText(message)
+        mainSendButtons.updateTextDirection()
     }
 
     public func openReplyMode(_ message: HistoryMessageType?) {

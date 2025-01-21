@@ -180,4 +180,21 @@ public final class SendContainerViewModel {
     public func showRecordingView() -> Bool {
         viewModel?.audioRecoderVM.isRecording == true || viewModel?.audioRecoderVM.recordingOutputPath != nil
     }
+    
+    public func setEditText(_ message: HistoryMessageType?) {
+        guard
+            let message = message as? Message,
+            let text = message.message
+        else { return }
+        let isFirstRTL = isFirstCharacterRTL(string: text)
+        onEditMessageChanged(message)
+        onTextMessageChanged(message.message ?? "")
+        textMessage = isFirstRTL ? "\(RTLMarker)\(text)" : text
+        onTextChanged?(textMessage)
+    }
+    
+    private func isFirstCharacterRTL(string: String) -> Bool {
+        guard let char = string.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
+        return char.isEnglishCharacter == false
+    }
 }

@@ -17,6 +17,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     private var heightConstraint: NSLayoutConstraint!
     private let initSize: CGFloat = 42
     private let RTLMarker = "\u{200f}"
+    private var detectedDirection = false
 
     public init() {
         super.init(frame: .zero)
@@ -98,7 +99,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     private func setTextDirection(_ isEmpty: Bool) {
         /// If we detected the text direction and alignment before, therefore we don't need to update
         /// It again will lead to an incorrect cursor position after typing and correcting the text.
-        if textView.attributedText.string.count > 2 { return }
+        if detectedDirection && !isEmpty { return }
+        detectedDirection = true
         if Language.isRTL {
             if isEmpty {
                 textView.attributedText = getTextAttributes(RTLMarker)
@@ -126,7 +128,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
 
     public func isEmptyText() -> Bool {
         let isRTLChar = string.count == 1 && string.first == Character(RTLMarker)
-        return string.isEmpty || isRTLChar
+        return string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isRTLChar
     }
 
     private func showPlaceholder(_ show: Bool) {
@@ -193,4 +195,20 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.attributedText.string
     }
     
+    public func updateTextDirection() {
+        detectedDirection = false
+        setTextDirection(false)
+    }
+    
+    public func focus() {
+        textView.becomeFirstResponder()
+    }
+    
+    public func unfocus() {
+        textView.resignFirstResponder()
+    }
+    
+    public func reset() {
+        detectedDirection = false
+    }
 }
