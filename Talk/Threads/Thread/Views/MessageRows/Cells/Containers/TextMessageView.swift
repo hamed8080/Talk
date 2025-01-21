@@ -41,6 +41,9 @@ final class TextMessageView: UITextView {
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         setText(viewModel: viewModel)
+        if let textRange = textRange(from: beginningOfDocument, to: endOfDocument) {
+            setBaseWritingDirection(.rightToLeft, for: textRange)
+        }
     }
 
     @objc func onTapJoinGroup(_ sender: UIGestureRecognizer) {
