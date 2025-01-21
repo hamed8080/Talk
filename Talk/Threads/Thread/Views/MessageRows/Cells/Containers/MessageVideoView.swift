@@ -109,6 +109,8 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
 
         fileNameLabelTrailingConstarint = fileNameLabel.trailingAnchor.constraint(equalTo: progressButton.leadingAnchor, constant: -margin)
 
+        bringSubviewToFront(playOverlayView)
+        
         NSLayoutConstraint.activate([
             widthConstraint,
             heightAnchor.constraint(equalToConstant: height),
@@ -196,6 +198,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isVideo { return }
+        bringSubviewToFront(progressButton)
         updateProgress(viewModel: viewModel)
         fileNameLabelTrailingConstarint.constant = progressButtonSize
         if let fileURL = viewModel.calMessage.fileURL {
