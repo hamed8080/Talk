@@ -485,6 +485,8 @@
 		AC39BF052D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */; };
 		AC6F9BDC2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
 		AC6F9BDD2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
+		ACA089972D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */; };
+		ACA089982D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */; };
 		ACB5BBE82D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
 		ACB5BBE92D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
 		ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
@@ -770,6 +772,7 @@
 		AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkModeSection.swift; sourceTree = "<group>"; };
 		AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsSection.swift; sourceTree = "<group>"; };
 		AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsView.swift; sourceTree = "<group>"; };
+		ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveFormView.swift; sourceTree = "<group>"; };
 		ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealAnimation.swift; sourceTree = "<group>"; };
 		ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleEmojiCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1323,6 +1326,7 @@
 				052474492C3A600F006F3ECB /* ChatBackgroundView.swift */,
 				05807A152CBA8BCA00B6B433 /* DatePickerView.swift */,
 				ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */,
+				ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */,
 			);
 			path = Extra;
 			sourceTree = "<group>";
@@ -1612,6 +1616,7 @@
 				0506DE1F2AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0652AE183EA0025B3B7 /* ConversationBuilder.swift in Sources */,
 				0521F85F2B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */,
+				ACA089982D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */,
 				AC39BF052D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */,
 				05E8F50D2C4D3D6600E535C0 /* CancelAudioRecordingButton.swift in Sources */,
 				0570CC4F2AAEE98F001832E9 /* FileView.swift in Sources */,
@@ -1827,6 +1832,7 @@
 				0506DE202AD42AF00009701E /* Talk.docc in Sources */,
 				05DCC0662AE187D80025B3B7 /* ConversationBuilder.swift in Sources */,
 				0521F8602B5A4276001B7B7E /* MockAppConfiguration.swift in Sources */,
+				ACA089972D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */,
 				AC39BF042D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */,
 				05E8F50E2C4D3D6600E535C0 /* CancelAudioRecordingButton.swift in Sources */,
 				0570CC502AAEE98F001832E9 /* FileView.swift in Sources */,

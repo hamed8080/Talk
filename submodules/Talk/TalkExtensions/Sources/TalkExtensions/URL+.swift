@@ -52,4 +52,20 @@ public extension URL {
         }
         return containtsHttpOrHttps
     }
+    
+    public func createHardLink(for fileURL: URL, ext: String) -> URL? {
+        let fileManager = FileManager.default
+        let originalURL = URL(fileURLWithPath: fileURL.path())
+        
+        // Get the directory of the original file
+        let directory = originalURL.deletingLastPathComponent()
+        
+        // Create a new name for the hard link with the specified extension
+        let newFileName = originalURL.lastPathComponent + ".\(ext)"
+        let newFileURL = directory.appendingPathComponent(newFileName)
+        
+        // Create a hard link
+        try? fileManager.linkItem(at: originalURL, to: newFileURL)
+        return newFileURL
+    }
 }

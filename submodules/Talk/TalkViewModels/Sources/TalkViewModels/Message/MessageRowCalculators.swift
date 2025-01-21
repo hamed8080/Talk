@@ -10,6 +10,7 @@ import SwiftUI
 import TalkModels
 import Chat
 import UIKit
+import DSWaveformImage
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -180,6 +181,9 @@ class MessageRowCalculators {
         let color = mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
         newCal.participantColor = color ?? .clear
         newCal.fileURL = await getFileURL(serverURL: message.url)
+        if newCal.rowType.isAudio, let fileURL = newCal.fileURL {
+            newCal.waveForm = await generateWaveForm(fileURL: fileURL, message: message)
+        }
         return newCal
     }
 
@@ -603,6 +607,51 @@ class MessageRowCalculators {
         lm.glyphRange(forBoundingRect: CGRect(origin: .zero, size: size), in: tc)
         let rect = lm.usedRect(for: tc)
         return rect
+    }
+    
+    private class func generateWaveForm(fileURL: URL, message: HistoryMessageType) async -> UIImage? {
+        let width: CGFloat = 246
+        let height: CGFloat = 24
+        
+        if let convertedURL = convertedAudioURL(message: message),
+           let image = try? await generateWave(url: convertedURL, width: width, height: height) {
+            return image
+        } else if let linkURL = fileURL.createHardLink(for: fileURL, ext: "mp4"),
+            let image = try? await generateWave(url: linkURL, width: width, height: height) {
+            return image
+        } else if let linkURL = fileURL.createHardLink(for: fileURL, ext: "wav"),
+                  let image = try? await generateWave(url: linkURL, width: width, height: height) {
+            return image
+        } else {
+            return nil
+        }
+    }
+    
+    private class func convertedAudioURL(message: HistoryMessageType?) -> URL? {
+        if let convertedURL = message?.convertedFileURL, FileManager.default.fileExists(atPath: convertedURL.path()) {
+            return convertedURL
+        }
+        return nil
+    }
+    
+    private class func generateWave(url: URL, width: CGFloat, height: CGFloat) async throws -> UIImage {
+        let waveformImageDrawer = WaveformImageDrawer()
+        return try await waveformImageDrawer.waveformImage(
+            fromAudioAt: url,
+            with: .init(
+                size: .init(width: width, height: height),
+                style: .striped(
+                    .init(
+                        color: UIColor.gray,
+                        width: 2,
+                        spacing: 4,
+                        lineCap: .round
+                    )
+                ),
+                shouldAntialias: true
+            ),
+            renderer: LinearWaveformRenderer()
+        )
     }
 
     class func calculateEstimatedHeight(_ calculatedMessage: MessageRowCalculatedData, _ sizes: MessageRowSizes) -> CGFloat {

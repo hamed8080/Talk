@@ -42,6 +42,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var canShowIconFile: Bool = false
     public var groupMessageParticipantName: String?
     public var canEdit: Bool = false
+    public var waveForm: UIImage?
     // Disk file path
     public var fileURL: URL?
 //    public var textLayer: CATextLayer?
