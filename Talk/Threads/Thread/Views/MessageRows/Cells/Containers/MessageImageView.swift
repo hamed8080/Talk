@@ -204,6 +204,7 @@ final class MessageImageView: UIImageView {
 
     @objc func onTap(_ sender: UIGestureRecognizer) {
         viewModel?.onTap()
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
     public func updateProgress(viewModel: MessageRowViewModel) {
