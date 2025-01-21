@@ -672,11 +672,6 @@ extension ThreadViewController: HistoryScrollDelegate {
                     cell.reactionsUpdated(viewModel: viewModel)
                 }
             }
-            Task {
-                if self.viewModel?.scrollVM.getIsProgramaticallyScrolling() == false {
-                    await self.viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
-                }
-            }
         } completion: { [weak self] completed in
             self?.viewModel?.historyVM.isUpdating = false
         }

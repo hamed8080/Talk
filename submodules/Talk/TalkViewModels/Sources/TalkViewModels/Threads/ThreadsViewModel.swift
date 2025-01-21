@@ -182,7 +182,6 @@ public final class ThreadsViewModel: ObservableObject {
            let updatedThread = threads.first(where: {$0.id == activeVM.threadId}) {
             activeVM.thread = updatedThread.toStruct()
             activeVM.delegate?.onUnreadCountChanged()
-            activeVM.delegate?.showMoveToButtom(show: updatedThread.unreadCount ?? 0 > 0)
             wasDisconnected = false
         }
     }
