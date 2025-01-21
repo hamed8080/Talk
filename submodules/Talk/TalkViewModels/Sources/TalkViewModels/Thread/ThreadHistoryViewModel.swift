@@ -406,7 +406,7 @@ extension ThreadHistoryViewModel {
         await delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
         
         if let row = shouldUpdateOldTopSection, let indexPath = sections.indexPath(for: row) {
-            await delegate?.reload(at: indexPath)
+            await delegate?.reloadData(at: indexPath)
         }
                 
         /// We should not detect last message deleted if we are going to fetch with middleFetcher
@@ -486,7 +486,7 @@ extension ThreadHistoryViewModel {
             let indexPath = sections.indexPath(for: bottomVMBeforeJoin)
         else { return }
         bottomVMBeforeJoin.calMessage.isLastMessageOfTheUser = false
-        await delegate?.reload(at: indexPath)
+        await delegate?.reloadData(at: indexPath)
     }
 
     private func moreBottom(prepend: String, _ fromTime: UInt?) async {
@@ -515,7 +515,7 @@ extension ThreadHistoryViewModel {
         await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
 
         if let row = shouldUpdateOldBottomSection, let indexPath = sections.indexPath(for: row) {
-            await delegate?.reload(at: indexPath)
+            await delegate?.reloadData(at: indexPath)
         }
         
         for vm in viewModels {
@@ -662,6 +662,7 @@ extension ThreadHistoryViewModel {
     public func onNewMessage(_ message: Message, _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
         if let viewModel = await viewModel, await isLastMessageInsideTheSections(oldConversation) {
             let bottomVMBeforeJoin = sections.last?.vms.last
+            thread = updatedConversation
             await MainActor.run {
                 self.viewModel?.thread = updatedConversation
             }
