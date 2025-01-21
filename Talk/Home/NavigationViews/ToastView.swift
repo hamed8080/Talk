@@ -135,6 +135,7 @@ public final class ToastUIView: UIStackView {
         messageLabel.textColor = messageColor
         messageLabel.font = messageFont
         messageLabel.text = String(localized: .init(message))
+        messageLabel.numberOfLines = 5
         hStack.addArrangedSubview(messageLabel)
         addArrangedSubview(hStack)
 

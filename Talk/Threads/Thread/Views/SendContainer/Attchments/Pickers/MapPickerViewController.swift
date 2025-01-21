@@ -152,8 +152,8 @@ final class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObje
 
     override init() {
         super.init()
-        region = .init(center: CLLocationCoordinate2D(latitude: 51.507222,
-                                                      longitude: -0.1275),
+        region = .init(center: CLLocationCoordinate2D(latitude: 35.701002,
+                                                      longitude: 51.377188),
                        span: MKCoordinateSpan(latitudeDelta: 0.005,
                                               longitudeDelta: 0.005))
         manager.delegate = self
@@ -199,6 +199,11 @@ extension MapPickerViewController: MKMapViewDelegate {
 
         // Add the annotation to the map
         mapView.addAnnotation(annotation)
+    }
+    
+    public func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+        let coordinate = mapView.centerCoordinate
+        locationManager.currentLocation = .init(name: String(localized: .init("Map.mayLocation"), bundle: Language.preferedBundle), description: String(localized: .init("Map.hereIAm"), bundle: Language.preferedBundle), location: coordinate)
     }
 }
 
