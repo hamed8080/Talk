@@ -48,7 +48,8 @@ public class IncommingMessagesQueue {
         // Process the batch of messages
         let messages = messages.compactMap({$0.result})
         log("Processing \(messages.count) messages for thread \(subjectId)")
-        await viewModel?.onNewMessage(messages, conversationId: subjectId)
+        let sorted = messages.sorted(by: { $0.id ?? 0 < $1.id ?? 0} )
+        await viewModel?.onNewMessage(sorted, conversationId: subjectId)
     }
     
     func log(_ string: String) {
