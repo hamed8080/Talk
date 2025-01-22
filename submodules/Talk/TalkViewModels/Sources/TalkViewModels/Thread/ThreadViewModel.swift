@@ -57,6 +57,7 @@ public final class ThreadViewModel {
     public var model: AppSettingsModel = .init()
     public var canDownloadImages: Bool = false
     public var canDownloadFiles: Bool = false
+    public var isDeletingLastMessage = false
 
     public weak var delegate: ThreadViewDelegate?
 
@@ -202,7 +203,11 @@ public final class ThreadViewModel {
     // MARK: Events
     private func onThreadEvent(_ event: ThreadEventTypes?) {
         switch event {
-        case .lastMessageDeleted(let response), .lastMessageEdited(let response):
+        case .lastMessageDeleted(let response):
+            if let thread = response.result {
+                onLastMessageDeleted(thread)
+            }
+        case.lastMessageEdited(let response):
             if let thread = response.result {
                 onLastMessageChanged(thread)
             }        
@@ -251,12 +256,27 @@ public final class ThreadViewModel {
             unreadMentionsViewModel.fetchAllUnreadMentions()
         }
     }
-
+    
     private func onLastMessageChanged(_ thread: Conversation) {
         if thread.id == threadId {
             self.thread.lastMessage = thread.lastMessage
             self.thread.lastMessageVO = thread.lastMessageVO
             setUnreadCount(thread.unreadCount)
+        }
+    }
+    
+    private func onLastMessageDeleted(_ thread: Conversation) {
+        if thread.id == threadId {
+            isDeletingLastMessage = true
+            self.thread.lastMessage = thread.lastMessage
+            self.thread.lastMessageVO = thread.lastMessageVO
+            setUnreadCount(thread.unreadCount)
+            Task.detached {
+                try? await Task.sleep(for: .milliseconds(1000))
+                await MainActor.run {
+                    self.isDeletingLastMessage = false
+                }
+            }
         }
     }
 

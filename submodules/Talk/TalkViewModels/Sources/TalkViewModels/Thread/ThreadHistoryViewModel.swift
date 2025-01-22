@@ -1021,7 +1021,7 @@ extension ThreadHistoryViewModel {
 
     @MainActor
     private func setIsAtBottom(newValue: Bool) {
-        if viewModel?.scrollVM.isAtBottomOfTheList != newValue {
+        if viewModel?.scrollVM.isAtBottomOfTheList != newValue, viewModel?.isDeletingLastMessage == false {
             viewModel?.scrollVM.isAtBottomOfTheList = newValue
             viewModel?.delegate?.lastMessageAppeared(newValue)
         }
