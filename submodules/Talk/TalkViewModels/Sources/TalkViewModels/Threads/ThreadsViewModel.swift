@@ -83,9 +83,6 @@ public final class ThreadsViewModel: ObservableObject {
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
-//        let newMSG = response.result
-//        let isMeJoinedPublic = newMSG?.messageType == .participantJoin && newMSG?.participant?.id == myId
-//        if response.subjectId == activeVM?.threadId, let message = newMSG, !isMeJoinedPublic {
         if updatedConversation.id == activeVM?.threadId {
             Task {
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)

@@ -182,6 +182,13 @@ extension ThreadsViewModel {
     func onMessageEvent(_ event: MessageEventTypes) async {
         switch event {
         case .new(let chatResponse):
+            let message = chatResponse.result ?? .init()
+            let myId = AppState.shared.user?.id ?? -1
+            let isMeJoinedPublic = message.messageType == .participantJoin && message.participant?.id == myId
+            if !isMeJoinedPublic {
+                await onNewMessage([message], conversationId: message.conversation?.id ?? -1)
+            }
+        case .forward(let chatResponse):
             incQueue.onMessageEvent(chatResponse)
         case .cleared(let chatResponse):
             onClear(chatResponse)

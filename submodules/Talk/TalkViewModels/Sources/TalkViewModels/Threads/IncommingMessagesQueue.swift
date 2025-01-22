@@ -15,7 +15,7 @@ import OSLog
 public class IncommingMessagesQueue {
     private var messageSubjects: [Int: PassthroughSubject<ChatResponse<Message>, Never>] = [:]
     private var cancellables: Set<AnyCancellable> = []
-    private let batchInterval: TimeInterval = 0.5 // Interval to batch messages
+    private let batchInterval: TimeInterval = 1.0 // Interval to batch messages
     private let maxBatchSize: Int = 50 // Maximum number of messages per batch
     public weak var viewModel: ThreadsViewModel?
 
@@ -47,10 +47,8 @@ public class IncommingMessagesQueue {
     private func processBatch(_ messages: [ChatResponse<Message>], for subjectId: Int) async {
         // Process the batch of messages
         let messages = messages.compactMap({$0.result})
-        let myId = AppState.shared.user?.id ?? -1
-        let filteredMessages = messages.filter{ $0.messageType != .participantJoin && $0.participant?.id == myId }
-        log("Processing \(filteredMessages.count) messages for thread \(subjectId)")        
-        await viewModel?.onNewMessage(filteredMessages, conversationId: subjectId)
+        log("Processing \(messages.count) messages for thread \(subjectId)")
+        await viewModel?.onNewMessage(messages, conversationId: subjectId)
     }
     
     func log(_ string: String) {
