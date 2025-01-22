@@ -147,7 +147,7 @@ public final class ThreadUnsentMessagesViewModel {
         if let message = response.result, thread?.id == message.conversation?.id {
             Task { [weak self] in
                 guard let self = self else { return }
-                await viewModel?.historyVM.onDeleteMessage(response)
+                await viewModel?.historyVM.onDeleteMessage([response.result ?? .init()], conversationId: response.result?.conversation?.id ?? -1)
                 await viewModel?.historyVM.injectMessagesAndSort([message])
             }
         }

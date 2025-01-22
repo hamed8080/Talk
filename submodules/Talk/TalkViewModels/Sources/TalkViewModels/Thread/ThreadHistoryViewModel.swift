@@ -20,6 +20,8 @@ public final class ThreadHistoryViewModel {
     @MainActor public weak var delegate: HistoryScrollDelegate?
     private var sections: ContiguousArray<MessageSection> = .init()
     @MainActor public var mSections: ContiguousArray<MessageSection> = .init()
+    @MainActor
+    private var deleteQueue = DeleteMessagesQueue()
 
     private var threshold: CGFloat = 800
     private var created: Bool = false
@@ -90,6 +92,9 @@ extension ThreadHistoryViewModel {
         middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: readOnly)
         await setupVisible()
         await setupMain()
+        await MainActor.run {
+            deleteQueue.viewModel = self
+        }
     }
     
     @VisibleActor
@@ -602,7 +607,7 @@ extension ThreadHistoryViewModel {
         case .sent(let response):
             await onSent(response)
         case .deleted(let response):
-            await onDeleteMessage(response)
+            await deleteQueue.onDeleteEvent(response)
         case .pin(let response):
             await onPinMessage(response)
         case .unpin(let response):
@@ -811,25 +816,41 @@ extension ThreadHistoryViewModel {
             delegate?.sent(indexPath)
         }
     }
-
+    
     /// Delete a message with an Id is needed for when the message has persisted before.
     /// Delete a message with a uniqueId is needed for when the message is sent to a request.
-    internal func onDeleteMessage(_ response: ChatResponse<Message>) async {
-        guard let responseThreadId = response.subjectId ?? response.result?.threadId ?? response.result?.conversation?.id,
-              threadId == responseThreadId,
-              let indices = sections.findIncicesBy(uniqueId: response.uniqueId, response.result?.id)
-        else { return }
-        sections[indices.section].vms.remove(at: indices.row)
-        if sections[indices.section].vms.count == 0 {
-            sections.remove(at: indices.section)
+    internal func onDeleteMessage(_ messages: [Message], conversationId: Int) async {
+        guard threadId == conversationId else { return }
+        // We have to update the lastMessageVO to keep moveToBottom hide if the lastMessaegId deleted
+        thread.lastMessageVO = await viewModel?.thread.lastMessageVO
+        var indicies: [IndexPath] = []
+        for message in messages {
+            if let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
+                indicies.append(indexPath)
+            }
         }
-        await onDeleteMessage(indices)
+        /// Do not remove these lines, they are here for a reason.
+        /// We first have to find all indicies to simulate the mSections indexPaths,
+        /// then removing them from sections not ``mSections`` by ``again`` gettig the indexPath,
+        /// We have to get indexPaths twice due to the fact that if not, it will crash the app becasue of wrong indexPath.
+        /// When we delete from top to bottom the index path is going to be greater than total items, so it will crash.
+        for message in messages {
+            if let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
+                sections[indexPath.section].vms.remove(at: indexPath.row)
+                if sections[indexPath.section].vms.count == 0 {
+                    sections.remove(at: indexPath.section)
+                }
+            }
+        }
         await setIsEmptyThread()
-        await setDeletedIfWasReply(messageId: response.result?.id ?? -1)
+        await onDeleteMessage(indicies)
+        for message in messages {
+            await setDeletedIfWasReply(messageId: message.id ?? -1)
+        }
     }
     
     @MainActor
-    private func onDeleteMessage(_ indices: IndexPath) async {
+    private func onDeleteMessage(_ indices: [IndexPath]) async {
         mSections = await sections
         delegate?.removed(at: indices)
     }
