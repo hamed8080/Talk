@@ -660,9 +660,9 @@ extension ThreadHistoryViewModel {
 
     // It will be only called by ThreadsViewModel
     public func onNewMessage(_ message: Message, _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
+        thread = updatedConversation
         if let viewModel = await viewModel, await isLastMessageInsideTheSections(oldConversation) {
             let bottomVMBeforeJoin = sections.last?.vms.last
-            thread = updatedConversation
             await MainActor.run {
                 self.viewModel?.thread = updatedConversation
             }
