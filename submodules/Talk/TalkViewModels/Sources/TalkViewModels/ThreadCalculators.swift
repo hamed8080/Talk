@@ -71,15 +71,15 @@ public class ThreadCalculators {
         classConversation.materialBackground = avatarTuple.color
         classConversation.splitedTitle = avatarTuple.splited
         classConversation.computedImageURL = calculateImageURL(conversation.image, classConversation.metaData)
-        classConversation.addRemoveParticipant = calculateAddOrRemoveParticipant(classConversation, myId)
+        classConversation.addRemoveParticipant = calculateAddOrRemoveParticipant(classConversation.lastMessageVO, myId)
         let isFileType = classConversation.lastMessageVO?.toMessage.isFileType == true
         classConversation.fiftyFirstCharacter = calculateFifityFirst(classConversation.lastMessageVO?.message ?? "", isFileType)
-        classConversation.participantName = calculateParticipantName(classConversation, myId)
-        classConversation.hasSpaceToShowPin = calculateHasSpaceToShowPin(classConversation)
-        classConversation.sentFileString = sentFileString(classConversation, isFileType, myId)
-        classConversation.createConversationString = createConversationString(classConversation)
-        classConversation.callMessage = callMessage(classConversation)
-        classConversation.isSelected = calculateIsSelected(classConversation, navSelectedId)
+        classConversation.participantName = calculateParticipantName(conversation, myId)
+        classConversation.hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
+        classConversation.sentFileString = sentFileString(conversation, isFileType, myId)
+        classConversation.createConversationString = createConversationString(conversation)
+        classConversation.callMessage = callMessage(conversation)
+        classConversation.isSelected = calculateIsSelected(conversation, isSelected: false, isInForwardMode: false, navSelectedId)
         
         classConversation.isCircleUnreadCount = conversation.isCircleUnreadCount
         let lastMessageIconStatus = iconStatus(conversation, myId)
@@ -98,23 +98,24 @@ public class ThreadCalculators {
         _ myId: Int,
         _ navSelectedId: Int? = nil)
     async -> CalculatedConversation {
-        let conversation = classConversation.toStruct()
+        let wasSelected = await wasSelectedOnMain(classConversation)
+        let conversation = await convertToStruct(classConversation)
         let computedTitle = calculateComputedTitle(conversation)
-        let titleRTLString = calculateTitleRTLString(classConversation.computedTitle)
+        let titleRTLString = calculateTitleRTLString(conversation.computedTitle)
         let metaData = calculateMetadata(conversation.metadata)
-        let avatarTuple = avatarColorName(conversation.title, classConversation.computedTitle)
+        let avatarTuple = avatarColorName(conversation.title, conversation.computedTitle)
         let materialBackground = avatarTuple.color
         let splitedTitle = avatarTuple.splited
-        let computedImageURL = calculateImageURL(conversation.image, classConversation.metaData)
-        let addRemoveParticipant = calculateAddOrRemoveParticipant(classConversation, myId)
-        let isFileType = classConversation.lastMessageVO?.toMessage.isFileType == true
-        let fiftyFirstCharacter = calculateFifityFirst(classConversation.lastMessageVO?.message ?? "", isFileType)
-        let participantName = calculateParticipantName(classConversation, myId)
-        let hasSpaceToShowPin = calculateHasSpaceToShowPin(classConversation)
-        let sentFileString = sentFileString(classConversation, isFileType, myId)
-        let createConversationString = createConversationString(classConversation)
-        let callMessage = callMessage(classConversation)
-        let isSelected = calculateIsSelected(classConversation, navSelectedId)
+        let computedImageURL = calculateImageURL(conversation.image, conversation.metaData)
+        let addRemoveParticipant = calculateAddOrRemoveParticipant(conversation.lastMessageVO, myId)
+        let isFileType = conversation.lastMessageVO?.toMessage.isFileType == true
+        let fiftyFirstCharacter = calculateFifityFirst(conversation.lastMessageVO?.message ?? "", isFileType)
+        let participantName = calculateParticipantName(conversation, myId)
+        let hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
+        let sentFileString = sentFileString(conversation, isFileType, myId)
+        let createConversationString = createConversationString(conversation)
+        let callMessage = callMessage(conversation)
+        let isSelected = calculateIsSelected(conversation, isSelected: wasSelected, isInForwardMode: classConversation.isInForwardMode, navSelectedId)
         
         let isCircleUnreadCount = conversation.isCircleUnreadCount
         let lastMessageIconStatus = iconStatus(conversation, myId)
@@ -146,6 +147,16 @@ public class ThreadCalculators {
             classConversation.eventVM = eventVM
         }
         return classConversation
+    }
+    
+    @MainActor
+    private class func wasSelectedOnMain(_ classConversation: CalculatedConversation) -> Bool {
+        classConversation.isSelected
+    }
+    
+    @MainActor
+    private class func convertToStruct(_ classConversation: CalculatedConversation) -> Conversation {
+        classConversation.toStruct()
     }
     
     @discardableResult
@@ -234,15 +245,15 @@ public class ThreadCalculators {
         }
     }
     
-    private class func calculateAddOrRemoveParticipant(_ conversation: CalculatedConversation, _ myId: Int) -> String? {
-        guard conversation.lastMessageVO?.messageType == .participantJoin || conversation.lastMessageVO?.messageType == .participantLeft,
-              let metadata = conversation.lastMessageVO?.metadata?.data(using: .utf8) else { return nil }
+    private class func calculateAddOrRemoveParticipant(_ lastMessageVO: LastMessageVO?, _ myId: Int) -> String? {
+        guard lastMessageVO?.messageType == .participantJoin || lastMessageVO?.messageType == .participantLeft,
+              let metadata = lastMessageVO?.metadata?.data(using: .utf8) else { return nil }
         let addRemoveParticipant = try? JSONDecoder.instance.decode(AddRemoveParticipant.self, from: metadata)
         
         guard let requestType = addRemoveParticipant?.requestTypeEnum else { return nil }
-        let isMe = conversation.lastMessageVO?.participant?.id == myId
+        let isMe = lastMessageVO?.participant?.id == myId
         let effectedName = addRemoveParticipant?.participnats?.first?.name ?? ""
-        let participantName = conversation.lastMessageVO?.participant?.name ?? ""
+        let participantName = lastMessageVO?.participant?.name ?? ""
         let effectedParticipantsName = addRemoveParticipant?.participnats?.compactMap{$0.name}.joined(separator: ", ") ?? ""
         switch requestType {
         case .leaveThread:
@@ -266,7 +277,7 @@ public class ThreadCalculators {
         }
     }
     
-    private class func calculateHasSpaceToShowPin(_ conversation: CalculatedConversation) -> Bool {
+    private class func calculateHasSpaceToShowPin(_ conversation: Conversation) -> Bool {
         let allActive = conversation.pin == true && conversation.mute == true && conversation.unreadCount ?? 0 > 0
         return !allActive
     }
@@ -278,7 +289,7 @@ public class ThreadCalculators {
         return nil
     }
 
-    private class func calculateParticipantName(_ conversation: CalculatedConversation, _ myId: Int) -> String? {
+    private class func calculateParticipantName(_ conversation: Conversation, _ myId: Int) -> String? {
         if let participantName = conversation.lastMessageVO?.participant?.contactName ?? conversation.lastMessageVO?.participant?.name, conversation.group == true {
             let meVerb = String(localized: .init("General.you"), bundle: Language.preferedBundle)
             let localized = String(localized: .init("Thread.Row.lastMessageSender"), bundle: Language.preferedBundle)
@@ -291,7 +302,7 @@ public class ThreadCalculators {
         }
     }
 
-    private class func createConversationString(_ conversation: CalculatedConversation) -> String? {
+    private class func createConversationString(_ conversation: Conversation) -> String? {
         if conversation.lastMessageVO == nil, let creator = conversation.inviter?.name {
             let type = conversation.type
             let key = type?.isChannelType == true ? "Thread.createdAChannel" : "Thread.createdAGroup"
@@ -303,7 +314,7 @@ public class ThreadCalculators {
         }
     }
 
-    private class func sentFileString(_ conversation: CalculatedConversation, _ isFileType: Bool, _ myId: Int) -> String? {
+    private class func sentFileString(_ conversation: Conversation, _ isFileType: Bool, _ myId: Int) -> String? {
         if isFileType {
             let fileStringName = conversation.lastMessageVO?.messageType?.fileStringName ?? "MessageType.file"
             let isMe = conversation.lastMessageVO?.ownerId ?? 0 == myId
@@ -315,7 +326,7 @@ public class ThreadCalculators {
         }
     }
 
-    private class func callMessage(_ conversation: CalculatedConversation) -> Message? {
+    private class func callMessage(_ conversation: Conversation) -> Message? {
         if let message = conversation.lastMessageVO, message.messageType == .endCall || message.messageType == .startCall {
             return message.toMessage
         } else {
@@ -323,10 +334,10 @@ public class ThreadCalculators {
         }
     }
     
-    private class func calculateIsSelected(_ conversation: CalculatedConversation, _ navSelectedId: Int?) -> Bool {
+    private class func calculateIsSelected(_ conversation: Conversation, isSelected: Bool, isInForwardMode: Bool, _ navSelectedId: Int?) -> Bool {
         if navSelectedId == conversation.id {
-            return conversation.isInForwardMode == true ? false : (navSelectedId == conversation.id)
-        } else if conversation.isSelected == true {
+            return isInForwardMode == true ? false : (navSelectedId == conversation.id)
+        } else if isSelected == true {
             return false
         }
         return false

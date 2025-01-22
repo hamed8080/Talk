@@ -47,7 +47,7 @@ extension ThreadsViewModel: PinThreadProtocol {
             await sortInPlace()
             animateObjectWillChange()
         }
-        getNotActiveThreads(response.result)
+        getNotActiveThreads(response.result?.id ?? -1)
     }
 
     public func onUNPin(_ response: ChatResponse<Conversation>) async {

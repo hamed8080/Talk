@@ -32,6 +32,7 @@ public final class ThreadsViewModel: ObservableObject {
     @MainActor public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
+    internal let incQueue = IncommingMessagesQueue()
 
     internal var objectId = UUID().uuidString
     internal let GET_THREADS_KEY: String
@@ -50,6 +51,7 @@ public final class ThreadsViewModel: ObservableObject {
         Task {
             await setupObservers()
         }
+        incQueue.viewModel = self
     }
 
     @MainActor
@@ -62,30 +64,31 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onNewMessage(_ response: ChatResponse<Message>) async {
-        if let message = response.result, let index = firstIndex(message.conversation?.id) {
+    public func onNewMessage(_ messages: [Message], conversationId: Int) async {
+        if let index = firstIndex(conversationId) {
             let reference = threads[index]
             let old = reference.toStruct()
-            let updated = reference.updateOnNewMessage(response, meId: myId)
+            let updated = reference.updateOnNewMessage(messages.last ?? .init(), meId: myId)
             threads[index] = updated
             threads[index].animateObjectWillChange()
             if updated.pin == false {
                 await sortInPlace()
             }
             recalculateAndAnimate(updated)
-            updateActiveConversationOnNewMessage(response, updated.toStruct(), old)
+            updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
         }
-        getNotActiveThreads(response.result?.conversation)
+        getNotActiveThreads(conversationId)
         animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
     }
 
-    private func updateActiveConversationOnNewMessage(_ response: ChatResponse<Message>, _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
+    private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
-        let newMSG = response.result
-        let isMeJoinedPublic = newMSG?.messageType == .participantJoin && newMSG?.participant?.id == myId
-        if response.subjectId == activeVM?.threadId, let message = newMSG, !isMeJoinedPublic {
+//        let newMSG = response.result
+//        let isMeJoinedPublic = newMSG?.messageType == .participantJoin && newMSG?.participant?.id == myId
+//        if response.subjectId == activeVM?.threadId, let message = newMSG, !isMeJoinedPublic {
+        if updatedConversation.id == activeVM?.threadId {
             Task {
-                await activeVM?.historyVM.onNewMessage(message, oldConversation, updatedConversation)
+                await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
         }
     }
@@ -630,8 +633,8 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func getNotActiveThreads(_ conversation: Conversation?) {
-        if let conversationId = conversation?.id, !threads.contains(where: {$0.id == conversationId }) {
+    public func getNotActiveThreads(_ conversationId: Int) {
+        if !threads.contains(where: {$0.id == conversationId }) {
             let req = ThreadsRequest(threadIds: [conversationId])
             RequestsManager.shared.append(prepend: GET_NOT_ACTIVE_THREADS_KEY, value: req)
             Task { @ChatGlobalActor in

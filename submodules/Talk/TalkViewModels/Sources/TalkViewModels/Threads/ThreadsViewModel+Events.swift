@@ -182,7 +182,7 @@ extension ThreadsViewModel {
     func onMessageEvent(_ event: MessageEventTypes) async {
         switch event {
         case .new(let chatResponse):
-            await onNewMessageQueue(chatResponse)
+            incQueue.onMessageEvent(chatResponse)
         case .cleared(let chatResponse):
             onClear(chatResponse)
         case .seen(let response):
@@ -213,24 +213,5 @@ extension ThreadsViewModel {
                 }
             }
         }
-    }
-    
-    public static var delayToAdd: Int = 0
-    private static var lastMessageTimestamp: Date = Date()
-    private static let resetInterval: TimeInterval = 2.0 // 2 seconds
-    private func onNewMessageQueue(_ chatResponse: ChatResponse<Message>) async {
-        let now = Date()
-        // Check if the time since the last message exceeds the reset interval
-        if now.timeIntervalSince(ThreadsViewModel.lastMessageTimestamp) > ThreadsViewModel.resetInterval {
-            ThreadsViewModel.delayToAdd = 0 // Reset the delay
-        }
-        ThreadsViewModel.lastMessageTimestamp = now // Update the last message timestamp
-        
-        let currentDelay = ThreadsViewModel.delayToAdd
-        Task {
-            try? await Task.sleep(for: .milliseconds(currentDelay))
-            await onNewMessage(chatResponse)
-        }
-        ThreadsViewModel.delayToAdd += 50
     }
 }

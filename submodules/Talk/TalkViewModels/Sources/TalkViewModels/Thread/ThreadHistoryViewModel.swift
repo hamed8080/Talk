@@ -659,22 +659,25 @@ extension ThreadHistoryViewModel {
     }
 
     // It will be only called by ThreadsViewModel
-    public func onNewMessage(_ message: Message, _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
+    public func onNewMessage(_ messages: [Message], _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
         thread = updatedConversation
-        if let viewModel = await viewModel, await isLastMessageInsideTheSections(oldConversation) {
-            let bottomVMBeforeJoin = sections.last?.vms.last
-            await MainActor.run {
-                self.viewModel?.thread = updatedConversation
+        let wasAtBottom = await isLastMessageInsideTheSections(oldConversation)
+        if let viewModel = await viewModel, wasAtBottom {
+            for message in messages {
+                let bottomVMBeforeJoin = sections.last?.vms.last
+                await MainActor.run {
+                    self.viewModel?.thread = updatedConversation
+                }
+                let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
+                let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
+                await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
+                await vm.register()
+                await sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
+                await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
             }
-            let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
-            let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
-            await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
-            await vm.register()
-            await sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
-            await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
         }
         await viewModel?.updateUnreadCount(updatedConversation.unreadCount)
-        await setSeenForAllOlderMessages(newMessage: message, myId: await appUserId ?? -1)
+        await setSeenForAllOlderMessages(newMessage: messages.last ?? .init(), myId: await appUserId ?? -1)
         await setIsEmptyThread()
     }
 

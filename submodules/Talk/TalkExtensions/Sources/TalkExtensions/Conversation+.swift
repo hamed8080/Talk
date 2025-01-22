@@ -231,17 +231,16 @@ public extension CalculatedConversation {
         reactionStatus = newThread.reactionStatus
     }
     
-    func updateOnNewMessage(_ response: ChatResponse<Message>, meId: Int?) -> CalculatedConversation {
-        let message = response.result
+    func updateOnNewMessage(_ message: Message, meId: Int?) -> CalculatedConversation {
         var thread = self
-        let isMe = response.result?.participant?.id == meId
+        let isMe = message.participant?.id == meId
         if !isMe {
             thread.unreadCount = (thread.unreadCount ?? 0) + 1
         } else if isMe {
             thread.unreadCount = 0
         }
-        thread.time = message?.time
-        thread.lastMessageVO = message?.toLastMessageVO
+        thread.time = message.time
+        thread.lastMessageVO = message.toLastMessageVO
 
         /*
          We have to set it, because in server chat response when we send a message Message.Conversation.lastSeenMessageId / Message.Conversation.lastSeenMessageTime / Message.Conversation.lastSeenMessageNanos are wrong.
@@ -249,16 +248,16 @@ public extension CalculatedConversation {
          We only do this for ourselves, because the only person who can change these values is ourselves.
          */
         if isMe {
-            thread.lastSeenMessageId = message?.id
-            thread.lastSeenMessageTime = message?.time
-            thread.lastSeenMessageNanos = message?.timeNanos
+            thread.lastSeenMessageId = message.id
+            thread.lastSeenMessageTime = message.time
+            thread.lastSeenMessageNanos = message.timeNanos
         }
-        thread.lastMessage = response.result?.message
+        thread.lastMessage = message.message
         /* We only set the mentioned to "true" because if the user sends multiple
          messages inside a thread but one message has been mentioned.
          The list will set it to false which is wrong.
          */
-        if response.result?.mentioned == true {
+        if message.mentioned == true {
             thread.mentioned = true
         }
 

@@ -173,7 +173,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func onNewMessage(_ response: ChatResponse<Message>) {
         if let message = response.result, let index = archives.firstIndex(where: {$0.id == message.conversation?.id}) {
             let old = archives[index]
-            let updated = old.updateOnNewMessage(response, meId: AppState.shared.user?.id)
+            let updated = old.updateOnNewMessage(response.result ?? .init(), meId: AppState.shared.user?.id)
             archives[index] = updated
             animateObjectWillChange()
         }
