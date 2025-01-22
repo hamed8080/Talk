@@ -76,6 +76,7 @@ public final class ThreadsViewModel: ObservableObject {
             updateActiveConversationOnNewMessage(response, updated.toStruct(), old)
         }
         getNotActiveThreads(response.result?.conversation)
+        animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
     }
 
     private func updateActiveConversationOnNewMessage(_ response: ChatResponse<Message>, _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
@@ -666,7 +667,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     private func recalculateAndAnimate(_ thread: CalculatedConversation) {
         Task {
-            await ThreadCalculators.reCalculate(thread, myId)
+            await ThreadCalculators.reCalculate(thread, myId, AppState.shared.objectsContainer.navVM.selectedId)
             thread.animateObjectWillChange()
         }
     }

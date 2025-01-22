@@ -134,7 +134,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
             let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.reCalculate(conversation, myId)
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, AppState.shared.objectsContainer.navVM.selectedId)
             archives.append(calThreads)
             threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
             await threadsVM.sortInPlace()
@@ -149,7 +149,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             conversation.isArchive = false
             archives.remove(at: index)
             let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.reCalculate(conversation, myId)
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, AppState.shared.objectsContainer.navVM.selectedId)
             threadsVM.threads.append(calThreads)
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
