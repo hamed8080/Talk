@@ -204,10 +204,8 @@ public struct GalleryImageView: View {
     var zoomGesture: some Gesture {
         MagnificationGesture()
             .updating($scaleBy) { value, state, transaction in
-                if value > 1 {
-                    state = value
-                    transaction.animation = .interactiveSpring()
-                }
+                state = value
+                transaction.animation = .interactiveSpring()
             }
             .onEnded{ value in
                 offsetVM.onMagnificationEnded(value)

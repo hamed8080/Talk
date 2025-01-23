@@ -65,11 +65,7 @@ public class GalleyOffsetViewModel: ObservableObject {
     
     public func onMagnificationEnded(_ value: GestureStateGesture<MagnificationGesture, CGFloat>.Value) {
         if isDragging { return }
-        if value > 1 {
-            endScale = value
-        } else {
-            endScale = max(1, endScale - value)
-        }
+        endScale = value
     }
     
     private func scrollInZoomMode(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
