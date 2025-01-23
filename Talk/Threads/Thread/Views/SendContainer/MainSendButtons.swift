@@ -268,7 +268,6 @@ public final class MainSendButtons: UIStackView {
             threadVM?.mentionListPickerViewModel.text = ""
             threadVM?.delegate?.openReplyMode(nil)
             threadVM?.delegate?.openEditMode(nil)
-            multilineTextField.reset()
         }
     }
 
@@ -344,9 +343,5 @@ public final class MainSendButtons: UIStackView {
 
     public func showMicButton(_ show: Bool) {
         btnMic.showWithAniamtion(show)
-    }
-    
-    public func updateTextDirection() {
-        multilineTextField.updateTextDirection()
     }
 }

@@ -11,23 +11,21 @@ import TalkModels
 
 public final class SendContainerTextView: UIView, UITextViewDelegate {
     private var textView: UITextView = UITextView()
-    public var mention: Bool = false
     public var onTextChanged: ((String?) -> Void)?
     private let placeholderLabel = UILabel()
     private var heightConstraint: NSLayoutConstraint!
     private let initSize: CGFloat = 42
     private let RTLMarker = "\u{200f}"
-    private var detectedDirection = false
-
+    
     public init() {
         super.init(frame: .zero)
         configureView()
     }
-
+    
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
         placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -36,7 +34,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         isUserInteractionEnabled = true
         backgroundColor = Color.App.bgSendInputUIColor
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-
+        
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.textContainerInset = .init(top: 12, left: 0, bottom: 0, right: 0)
         textView.delegate = self
@@ -47,16 +45,16 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.textAlignment = Language.isRTL ? .right : .left
         textView.backgroundColor = Color.App.bgSendInputUIColor
         addSubview(textView)
-
+        
         placeholderLabel.text = "Thread.SendContainer.typeMessageHere".bundleLocalized()
         placeholderLabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.7)
-        placeholderLabel.font = UIFont.uiiransansBody
+        placeholderLabel.font = UIFont.uiiransansSubheadline
         placeholderLabel.textAlignment = Language.isRTL ? .right : .left
         placeholderLabel.isUserInteractionEnabled = false
         addSubview(placeholderLabel)
         
         heightConstraint = heightAnchor.constraint(equalToConstant: initSize)
-
+        
         NSLayoutConstraint.activate([
             heightConstraint,
             textView.widthAnchor.constraint(equalTo: widthAnchor, constant: 0),
@@ -71,23 +69,18 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
             placeholderLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }
-
-    func recalculateHeight(newHeight: CGFloat) {
-        if frame.size.height != newHeight {
-            DispatchQueue.main.async {
-                UIView.animate(withDuration: 0.3) { [weak self] in
-                    self?.heightConstraint.constant = newHeight // !! must be called asynchronously
-                }
-            }
-        }
+    
+    public func setTextAndDirection(_ text: String) {
+        textView.attributedText = getTextAttributes(text)
+        showPlaceholder(isEmptyText())
+        textViewDidChange(textView)
     }
-
+    
     public func textViewDidChange(_ uiView: UITextView) {
         let newHeight = calculateHeight()
         recalculateHeight(newHeight: newHeight)
-    
-        let isEmpty = isEmptyText()
-        setTextDirection(isEmpty)
+        
+        updateTextDirection()
         
         /// Notice others the text has changed.
         onTextChanged?(textView.attributedText.string)
@@ -96,69 +89,50 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         showPlaceholder(isEmptyText())
     }
     
-    private func setTextDirection(_ isEmpty: Bool) {
-        /// If we detected the text direction and alignment before, therefore we don't need to update
-        /// It again will lead to an incorrect cursor position after typing and correcting the text.
-        if detectedDirection && !isEmpty { return }
-        detectedDirection = true
-        if Language.isRTL {
-            if isEmpty {
-                textView.attributedText = getTextAttributes(RTLMarker)
-                textView.textAlignment = .right
-            } else if isFirstCharacterRTL() {
-                /// Replace old RTLMarker to prevent duplication
-                let nonRTLText = string.replacingOccurrences(of: RTLMarker, with: "") ?? ""
-                textView.attributedText = getTextAttributes("\(RTLMarker)\(nonRTLText)")
-                textView.textAlignment = .right
-            } else {
-                /// Remove any RTLMarker if previous text had a RTLMarker.
-                let nonRTLText = string.replacingOccurrences(of: RTLMarker, with: "") ?? ""
-                textView.attributedText = getTextAttributes(nonRTLText)
-                textView.textAlignment = .left
-            }
+    private func updateTextDirection() {
+        guard let firstCharacter = string.first else {
+            setAlignment(.right)
+            return
+        }
+        
+        if firstCharacter == Character(RTLMarker) || isFirstCharacterRTL() {
+            setAlignment(.right)
         } else {
-            textView.textAlignment = .natural
+            setAlignment(.left)
         }
     }
-
+    
+    private func setAlignment(_ alignment: NSTextAlignment) {
+        if textView.textAlignment != alignment {
+            textView.textAlignment = alignment
+        }
+    }
+    
     private func isFirstCharacterRTL() -> Bool {
         guard let char = string.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
         return char.isEnglishCharacter == false
     }
-
+    
     public func isEmptyText() -> Bool {
         let isRTLChar = string.count == 1 && string.first == Character(RTLMarker)
         return string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isRTLChar
     }
-
-    private func showPlaceholder(_ show: Bool) {
-        if show && placeholderLabel.alpha == 0.0 {
-            // From hide to show
-            doPlaceHolderAnimation(1.0)
-        } else if !show && placeholderLabel.alpha == 1.0 {
-            // From show to hide
-            doPlaceHolderAnimation(0.0)
-        }
-    }
     
-    private func doPlaceHolderAnimation(_ toAlpha: Double) {
-        UIView.animate(withDuration: 0.15) { [weak self] in
-            self?.placeholderLabel.alpha = toAlpha
+    private func showPlaceholder(_ show: Bool) {
+        UIView.animate(withDuration: 0.15) {
+            self.placeholderLabel.alpha = show ? 1.0 : 0.0
         } completion: { completed in
             if completed {
-                self.placeholderLabel.isHidden = toAlpha == 0.0
+                self.placeholderLabel.isHidden = !show
             }
         }
     }
-
+    
     private func calculateHeight() -> CGFloat {
         let fittedSize = textView.sizeThatFits(CGSize(width: frame.size.width, height: CGFloat.greatestFiniteMagnitude)).height
-        let minValue: CGFloat = initSize
-        let maxValue: CGFloat = 192
-        let newSize = min(max(fittedSize, minValue), maxValue)
-        return newSize
+        return min(max(fittedSize, initSize), 192)
     }
-
+    
     public func updateHeightIfNeeded() {
         let newHeight = calculateHeight()
         if heightConstraint.constant != newHeight {
@@ -166,11 +140,12 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         }
     }
     
-    public func setTextAndDirection(_ text: String) {
-        let attr = getTextAttributes(text)
-        textView.attributedText = attr
-        showPlaceholder(isEmptyText())
-        textViewDidChange(textView)
+    func recalculateHeight(newHeight: CGFloat) {
+        if frame.size.height != newHeight {
+            UIView.animate(withDuration: 0.3) {
+                self.heightConstraint.constant = newHeight // !! must be called asynchronously
+            }
+        }
     }
     
     private func getTextAttributes(_ text: String) -> NSAttributedString {
@@ -195,20 +170,11 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.attributedText.string
     }
     
-    public func updateTextDirection() {
-        detectedDirection = false
-        setTextDirection(false)
-    }
-    
     public func focus() {
         textView.becomeFirstResponder()
     }
     
     public func unfocus() {
         textView.resignFirstResponder()
-    }
-    
-    public func reset() {
-        detectedDirection = false
     }
 }
