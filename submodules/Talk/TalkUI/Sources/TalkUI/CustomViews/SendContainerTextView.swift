@@ -29,7 +29,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
         placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
-        /// It should always remain forceLeftToRight due to textAlignment problems it can result in.
+        /// It should always remain forceLeftToRight to avoid text alignment problems.
         semanticContentAttribute = .forceLeftToRight
         isUserInteractionEnabled = true
         backgroundColor = Color.App.bgSendInputUIColor
@@ -80,6 +80,9 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         let newHeight = calculateHeight()
         recalculateHeight(newHeight: newHeight)
         
+        // Detect mentions and update attributes
+        updateMentionAttributes()
+        
         updateTextDirection()
         
         /// Notice others the text has changed.
@@ -90,7 +93,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     }
     
     private func updateTextDirection() {
-        guard let firstCharacter = string.first else {
+        guard let firstCharacter = string.first, !isEmptyText() else {
             setAlignment(.right)
             return
         }
@@ -148,6 +151,19 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         }
     }
     
+    private func updateMentionAttributes() {
+        // Preserve the current alignment and cursor position
+        let cursorPosition = textView.selectedRange
+        let currentAlignment = textView.textAlignment
+        
+        // Update the text view's attributed text
+        textView.attributedText = getTextAttributes(string)
+
+        // Reapply the preserved alignment and cursor position
+        textView.textAlignment = currentAlignment
+        textView.selectedRange = cursorPosition
+    }
+    
     private func getTextAttributes(_ text: String) -> NSAttributedString {
         let attr = NSMutableAttributedString(string: text)
         
@@ -156,13 +172,17 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         attr.addAttribute(.foregroundColor, value: UIColor(named: "text_primary") ?? .black, range: allRange)
         attr.addAttribute(.font, value: UIFont(name: "IRANSansX", size: 16), range: allRange)
         
-        
-        /// Add mention blue color and default system font due to all user names must be in english.
-        text.matches(char: "@")?.forEach { match in
-            attr.addAttribute(.foregroundColor, value: UIColor(named: "accent") ?? .blue, range: match.range)
-            attr.addAttribute(.font, value: UIFont.systemFont(ofSize: 16, weight: .bold), range: match.range)
+        /// Add mention accent color and default system font due to all user names must be in english.
+        let mentionPattern = "@[A-Za-z0-9._]+"
+        if let regex = try? NSRegularExpression(pattern: mentionPattern, options: []) {
+            let matches = regex.matches(in: text, options: [], range: allRange)
+            for match in matches {
+                attr.addAttributes([
+                    .foregroundColor: UIColor(named: "accent") ?? .blue,
+                    .font: UIFont.systemFont(ofSize: 16, weight: .bold)
+                ], range: match.range)
+            }
         }
-        
         return attr
     }
     
