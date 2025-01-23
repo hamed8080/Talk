@@ -385,6 +385,10 @@ class MessageRowCalculators {
             if newSizes.width < minWidth {
                 newSizes.width = minWidth
             }
+            
+            if newSizes.height <= 48 {
+                newSizes.height = 48
+            }
             return newSizes
         }
         return nil
