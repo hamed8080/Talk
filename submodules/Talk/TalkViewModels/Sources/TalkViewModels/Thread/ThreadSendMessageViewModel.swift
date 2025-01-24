@@ -49,7 +49,7 @@ public final class ThreadSendMessageViewModel {
             sendReplyPrivatelyMessage()
         } else if let replyMessage = viewModel?.replyMessage, let replyMessageId = replyMessage.id {
             sendReplyMessage(replyMessageId)
-        } else if sendVM.isInEditMessageMode {
+        } else if sendVM.mode.type == .edit {
             sendEditMessage()
         } else if attVM.attachments.count > 0 {
             sendAttachmentsMessage()
@@ -247,6 +247,7 @@ public final class ThreadSendMessageViewModel {
                 }
                 self?.navModel = .init()
                 self?.viewModel?.delegate?.showForwardPlaceholder(show: false)
+                self?.sendVM.clear()
             }
         }
         sendAttachmentsMessage()

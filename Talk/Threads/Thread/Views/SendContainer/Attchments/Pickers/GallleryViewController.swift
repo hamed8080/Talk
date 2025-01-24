@@ -29,7 +29,6 @@ public final class GallleryViewController: NSObject, PHPickerViewControllerDeleg
         picker.dismiss(animated: true)
         let itemProviders = results.map(\.itemProvider)
         processProviders(itemProviders)
-        viewModel?.delegate?.onItemsPicked(itemsCount: itemProviders.count)
     }
 
     private func processProviders(_ itemProviders: [NSItemProvider]) {

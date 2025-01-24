@@ -14,11 +14,11 @@ import UIKit
 import Combine
 
 public final class MainSendButtons: UIStackView {
-    private let btnToggleAttachmentButtons = UIImageButton(imagePadding: .init(all: 8))
+    private let btnToggleAttachmentButtons = UIImageButton()
     private let btnSend = UIImageButton(imagePadding: .init(all: 10))
-    private let btnMic = UIImageButton(imagePadding: .init(all: 8))
-    private let btnCamera = UIImageButton(imagePadding: .init(all: 8))
-    private var btnEmoji = UIImageButton(imagePadding: .init(all: 8))
+    private let btnMic = UIImageButton()
+    private let btnCamera = UIImageButton()
+//    private var btnEmoji = UIImageButton()
     private let multilineTextField = SendContainerTextView()
     private weak var threadVM: ThreadViewModel?
     private var viewModel: SendContainerViewModel { threadVM?.sendContainerViewModel ?? .init() }
@@ -97,8 +97,6 @@ public final class MainSendButtons: UIStackView {
         hStack.accessibilityIdentifier = "hStackMainSendButtons"
         hStack.layoutMargins = .init(top: -4, left: 8, bottom: 0, right: 8)//-4 to move textfield higher to make the cursor center in the textfield.
         hStack.isLayoutMarginsRelativeArrangement = true
-
-        
         
         multilineTextField.translatesAutoresizingMaskIntoConstraints = false
         multilineTextField.accessibilityIdentifier = "multilineTextFieldMainSendButtons"
@@ -106,11 +104,11 @@ public final class MainSendButtons: UIStackView {
         multilineTextField.setContentCompressionResistancePriority(.required, for: .horizontal)
         hStack.addArrangedSubview(multilineTextField)
 
-        btnEmoji.translatesAutoresizingMaskIntoConstraints = false
-        btnEmoji.imageView.tintColor = Color.App.redUIColor
-        btnEmoji.accessibilityIdentifier = "btnEmojiMainSendButtons"
-        btnEmoji.setIsHidden(true)
-        btnEmoji.setContentHuggingPriority(.required, for: .horizontal)
+//        btnEmoji.translatesAutoresizingMaskIntoConstraints = false
+//        btnEmoji.imageView.tintColor = Color.App.redUIColor
+//        btnEmoji.accessibilityIdentifier = "btnEmojiMainSendButtons"
+//        btnEmoji.setIsHidden(true)
+//        btnEmoji.setContentHuggingPriority(.required, for: .horizontal)
 //        hStack.addArrangedSubview(btnEmoji)
 
         addArrangedSubviews([btnToggleAttachmentButtons, hStack, btnMic, btnCamera, btnSend])
@@ -124,14 +122,16 @@ public final class MainSendButtons: UIStackView {
             btnMic.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
             btnCamera.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
             btnCamera.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnEmoji.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnEmoji.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
+//            btnEmoji.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
+//            btnEmoji.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
         ])
 
         /// Prepare draft mode.
         prepareDraft()
         
         registerTextChange()
+        registerModeChange()
+        registerAttachmentsChange()
         
         prepareUI()
     }
@@ -145,14 +145,14 @@ public final class MainSendButtons: UIStackView {
             } else {
                 sendImage = UIImage(systemName: "arrow.up")
             }
-            let emojiImage = UIImage(named: "emoji")
+//            let emojiImage = UIImage(named: "emoji")
             let cameraImage = UIImage(systemName: "camera")
             let micImage = UIImage(systemName: "mic")
             let toogleImage = UIImage(systemName: "paperclip")
             await MainActor.run { [weak self] in
                 guard let self = self else { return }
                 btnSend.imageView.image = sendImage
-                btnEmoji.imageView.image = emojiImage
+//                btnEmoji.imageView.image = emojiImage
                 btnCamera.imageView.image = cameraImage
                 btnMic.imageView.image = micImage
                 btnToggleAttachmentButtons.imageView.image = toogleImage
@@ -162,33 +162,47 @@ public final class MainSendButtons: UIStackView {
         // It's essential when we open up the thread for the first time in situation like we are forwarding/reply privately
         animateMainButtons()
     }
+    
+    private func registerModeChange() {
+        viewModel.$mode.sink { [weak self] newMode in
+            guard let self = self else { return }
+            showMicButton(viewModel.showAudio(mode: newMode))
+            showCameraButton(viewModel.showCamera(mode: newMode))
+            showSendButton(viewModel.showSendButton(mode: newMode))
+            
+            let isShowPickerButton = newMode.type == .showButtonsPicker
+            threadVM?.delegate?.showPickerButtons(isShowPickerButton)
+            toggleAttchmentButton(show: isShowPickerButton)
+            disableButtonPicker(disable: viewModel.disableButtonPicker(mode: newMode))
+        }
+        .store(in: &cancellableSet)
+    }
+    
+    private func registerAttachmentsChange() {
+        threadVM?.attachmentsViewModel.$attachments.sink { [weak self] attachments in
+            guard let self = self else { return }
+            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+            viewModel.mode = .init(type: .voice, attachmentsCount: attachments.count)
+        }
+        .store(in: &cancellableSet)
+    }
 
     private func registerTextChange() {
         multilineTextField.onTextChanged = { [weak self] text in
             guard let self = self else { return }
             viewModel.setText(newValue: text ?? "")
-            let isEmpty = threadVM?.sendContainerViewModel.isTextEmpty() == true
-            btnSend.showWithAniamtion(!isEmpty)
-            btnMic.showWithAniamtion(isEmpty)
         }
 
         viewModel.onTextChanged = { [weak self] newValue in
             guard let self = self else { return }
             multilineTextField.setTextAndDirection(newValue ?? "")
             multilineTextField.updateHeightIfNeeded()
-
-            let isEmpty = threadVM?.sendContainerViewModel.isTextEmpty() == true
-            btnSend.showWithAniamtion(!isEmpty)
-            btnMic.showWithAniamtion(isEmpty)
         }
     }
     
     private func prepareDraft() {
         if !viewModel.isTextEmpty() {
             multilineTextField.setTextAndDirection(viewModel.getText())
-            let isEmpty = multilineTextField.isEmptyText()
-            btnSend.showWithAniamtion(!isEmpty)
-            btnMic.showWithAniamtion(isEmpty)
             /// We need a delay to get the correct frame width after showing,
             /// and then we can calculate the right height if the text is too long in draft mode.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
@@ -216,10 +230,11 @@ public final class MainSendButtons: UIStackView {
     }
 
     @objc private func toggleMode(_ sender: UIGestureRecognizer) {
-        viewModel.toggleVideorecording()
-        let isRecording = viewModel.isInVideoRecordingMode()
-        btnCamera.showWithAniamtion(isRecording)
-        btnMic.showWithAniamtion(!isRecording)
+        let currentValueIsVideo = viewModel.mode.type == .video
+        let isNewValueVideo = !currentValueIsVideo
+        viewModel.mode = .init(type: isNewValueVideo ? .video : .voice)
+        btnCamera.showWithAniamtion(isNewValueVideo)
+        btnMic.showWithAniamtion(!isNewValueVideo)
     }
 
     @objc private func startRecording(_ sender: UIGestureRecognizer) {
@@ -227,7 +242,7 @@ public final class MainSendButtons: UIStackView {
         // Check if it is began then show the UI unless we don't call it twice.
         if sender.state != .began { return }
         threadVM?.delegate?.showRecording(true)
-        threadVM?.delegate?.showPickerButtons(false)
+        viewModel.mode = .init(type: .voice)
     }
 
     @objc private func showPopup(_ sender: UIGestureRecognizer) {
@@ -272,10 +287,9 @@ public final class MainSendButtons: UIStackView {
     }
 
     @objc private func onBtnToggleAttachmentButtonsTapped() {
-        let currentValue = threadVM?.sendContainerViewModel.showPickerButtons == true
-        let newState = !currentValue
-        threadVM?.delegate?.showPickerButtons(newState) // toggle
-        toggleAttchmentButton(show: newState)
+        let isShowingButtonsPicker = threadVM?.sendContainerViewModel.mode.type == .showButtonsPicker
+        viewModel.mode = .init(type: isShowingButtonsPicker ? .voice : .showButtonsPicker)
+        toggleAttchmentButton(show: !isShowingButtonsPicker)
         onViewModelChanged()
     }
 
@@ -289,9 +303,9 @@ public final class MainSendButtons: UIStackView {
     private func animateMainButtons() {
         UIView.animate(withDuration: 0.2) { [weak self] in
             guard let self = self else { return }
-            btnMic.setIsHidden(!viewModel.showAudio())
-            btnCamera.showWithAniamtion(viewModel.showCamera())
-            btnSend.showWithAniamtion(viewModel.showSendButton())
+            btnMic.setIsHidden(!viewModel.showAudio(mode: viewModel.mode))
+            btnCamera.showWithAniamtion(viewModel.showCamera(mode: viewModel.mode))
+            btnSend.showWithAniamtion(viewModel.showSendButton(mode: viewModel.mode))
         }
     }
 
@@ -302,6 +316,11 @@ public final class MainSendButtons: UIStackView {
             btnToggleAttachmentButtons.imageView.image = attImage
         }
     }
+    
+    private func disableButtonPicker(disable: Bool) {
+        btnToggleAttachmentButtons.isUserInteractionEnabled = !disable
+        btnToggleAttachmentButtons.alpha = disable ? 0.3 : 1.0
+    }
 
     private func openTakeVideoPicker() {
         let captureObject = CameraCapturer(isVideo: true) { [weak self] image, url, resources in
@@ -309,9 +328,8 @@ public final class MainSendButtons: UIStackView {
             let fileName = "video-\(Date().fileDateString).mov"
             let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
-            self.cameraCapturer = nil
-            /// It will call delegate and then this file again to show send button.
-            threadVM?.delegate?.onItemsPicked(itemsCount: 1)
+            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+            viewModel.mode = .init(type: .voice, attachmentsCount: 1)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
@@ -326,8 +344,8 @@ public final class MainSendButtons: UIStackView {
                                  originalFilename: "image-\(Date().fileDateString).jpg")
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             self.cameraCapturer = nil
-            /// It will call delegate and then this file again to show send button.
-            threadVM?.delegate?.onItemsPicked(itemsCount: 1)
+            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+            viewModel.mode = .init(type: .voice, attachmentsCount: 1)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
@@ -341,16 +359,15 @@ public final class MainSendButtons: UIStackView {
         }
     }
 
-    public func showSendButton(_ show: Bool) {
+    private func showSendButton(_ show: Bool) {
         btnSend.showWithAniamtion(show)
     }
 
-    public func showMicButton(_ show: Bool) {
+    private func showMicButton(_ show: Bool) {
         btnMic.showWithAniamtion(show)
     }
     
-    public func showCameraButton(_ show: Bool) {
+    private func showCameraButton(_ show: Bool) {
         btnCamera.showWithAniamtion(show)
-        viewModel.setIsVideoRecording(isRecording: show)
     }
 }

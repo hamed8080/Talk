@@ -16,8 +16,8 @@ public protocol AttachmentDelegate: AnyObject {
 }
 
 @MainActor
-public final class AttachmentsViewModel {
-    public private(set)var attachments: [AttachmentFile] = []
+public final class AttachmentsViewModel: ObservableObject {
+    @Published public private(set)var attachments: [AttachmentFile] = []
     public private(set) var isExpanded: Bool = false
     private var allImageItems: ContiguousArray<ImageItem> = []
     private var selectedFileUrls: [URL] = []
@@ -146,9 +146,7 @@ public final class AttachmentsViewModel {
 
     private func resetSendContainerIfIsEmpty() {
         if viewModel?.sendContainerViewModel.isTextEmpty() == true, attachments.count == 0 {
-            viewModel?.delegate?.showSendButton(false)
-            viewModel?.delegate?.showMicButton(true)
-            viewModel?.delegate?.showCameraButton(false)
+            viewModel?.sendContainerViewModel.mode = .init(type: .voice)
         }
     }
 

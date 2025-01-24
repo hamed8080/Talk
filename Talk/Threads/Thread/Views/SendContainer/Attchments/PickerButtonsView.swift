@@ -101,7 +101,7 @@ public final class PickerButtonsView: UIStackView {
     }
 
     public func closePickerButtons() {
-        threadVM?.delegate?.showPickerButtons(false)
+        viewModel?.mode = .init(type: .voice)
     }
 
     public func show(_ show: Bool, stack: UIStackView) {

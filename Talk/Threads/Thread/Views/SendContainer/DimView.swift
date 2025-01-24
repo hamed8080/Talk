@@ -45,6 +45,6 @@ class DimView: UIView {
     }
 
     @objc private func onTap() {
-        viewModel?.delegate?.showPickerButtons(false)
+        viewModel?.sendContainerViewModel.mode = .init(type: .voice)
     }
 }

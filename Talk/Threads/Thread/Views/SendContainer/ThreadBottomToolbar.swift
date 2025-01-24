@@ -107,18 +107,6 @@ public final class ThreadBottomToolbar: UIStackView {
         viewModel?.scrollVM.disableExcessiveLoading()
     }
 
-    public func showSendButton(_ show: Bool) {
-        mainSendButtons.showSendButton(show)
-    }
-
-    public func showMicButton(_ show: Bool) {
-        mainSendButtons.showMicButton(show)
-    }
-    
-    public func showCameraButton(_ show: Bool) {
-        mainSendButtons.showCameraButton(show)        
-    }
-
     public func showSelectionBar(_ show: Bool) {
         selectionView.show(show: show, stack: self)
     }

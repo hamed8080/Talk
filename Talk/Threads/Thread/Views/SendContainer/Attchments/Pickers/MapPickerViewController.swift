@@ -121,7 +121,8 @@ public final class MapPickerViewController: UIViewController {
     private func submitTapped() {
         if let location = locationManager.currentLocation {
             viewModel?.attachmentsViewModel.append(attachments: [.init(type: .map, request: location)])
-            viewModel?.delegate?.onItemsPicked(itemsCount: 1)
+            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+            viewModel?.sendContainerViewModel.mode = .init(type: .voice, attachmentsCount: 1)
         }
     }
 

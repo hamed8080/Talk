@@ -147,7 +147,7 @@ extension ThreadViewController {
     }
     
     private func onSendHeightChanged(_ height: CGFloat, duration: Double = 0.25, options: UIView.AnimationOptions = []) {
-        let isButtonsVisible = viewModel?.sendContainerViewModel.showPickerButtons ?? false
+        let isButtonsVisible = viewModel?.sendContainerViewModel.mode.type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let height = (height - safeAreaHeight) + keyboardheight
         if tableView.contentInset.bottom != height {
@@ -442,6 +442,7 @@ extension ThreadViewController: ThreadViewDelegate {
 }
 
 extension ThreadViewController: BottomToolbarDelegate {
+    
     func showMainButtons(_ show: Bool) {
         sendContainer.showMainButtons(show)
     }
@@ -452,28 +453,9 @@ extension ThreadViewController: BottomToolbarDelegate {
     }
 
     func showPickerButtons(_ show: Bool) {
-        viewModel?.sendContainerViewModel.showPickerButtons(show)
         sendContainer.showPickerButtons(show)
         configureDimView()
         dimView.show(show)
-    }
-    
-    func showSendButton(_ show: Bool) {
-        sendContainer.showSendButton(show)
-    }
-
-    func showMicButton(_ show: Bool) {
-        sendContainer.showMicButton(show)
-    }
-    
-    func showCameraButton(_ show: Bool) {
-        sendContainer.showCameraButton(show)
-    }
-
-    func onItemsPicked(itemsCount: Int) {
-        showSendButton(itemsCount > 0)
-        showMicButton(itemsCount <= 0)
-        showCameraButton(false)
     }
 
     func showRecording(_ show: Bool) {
