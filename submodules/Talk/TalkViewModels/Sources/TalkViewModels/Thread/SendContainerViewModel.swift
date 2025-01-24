@@ -20,7 +20,7 @@ public final class SendContainerViewModel {
     public var isInEditMessageMode: Bool = false
     /// We will need this for UserDefault purposes because ViewModel.thread is nil when the view appears.
     public private(set) var showPickerButtons: Bool = false
-    public private(set) var isVideoRecordingSelected = false
+    private var isVideoRecordingSelected = false
     private var editMessage: Message?
     public var height: CGFloat = 0
     private let draftManager = DraftManager.shared
@@ -196,5 +196,13 @@ public final class SendContainerViewModel {
     private func isFirstCharacterRTL(string: String) -> Bool {
         guard let char = string.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
         return char.isEnglishCharacter == false
+    }
+    
+    public func setIsVideoRecording(isRecording: Bool) {
+        isVideoRecordingSelected = isRecording
+    }
+    
+    public func isInVideoRecordingMode() -> Bool {
+        isVideoRecordingSelected
     }
 }

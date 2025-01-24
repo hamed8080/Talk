@@ -217,7 +217,7 @@ public final class MainSendButtons: UIStackView {
 
     @objc private func toggleMode(_ sender: UIGestureRecognizer) {
         viewModel.toggleVideorecording()
-        let isRecording = viewModel.isVideoRecordingSelected
+        let isRecording = viewModel.isInVideoRecordingMode()
         btnCamera.showWithAniamtion(isRecording)
         btnMic.showWithAniamtion(!isRecording)
     }
@@ -290,8 +290,8 @@ public final class MainSendButtons: UIStackView {
         UIView.animate(withDuration: 0.2) { [weak self] in
             guard let self = self else { return }
             btnMic.setIsHidden(!viewModel.showAudio())
-            btnCamera.setIsHidden(!viewModel.showCamera())
-            btnSend.setIsHidden(!viewModel.showSendButton())
+            btnCamera.showWithAniamtion(viewModel.showCamera())
+            btnSend.showWithAniamtion(viewModel.showSendButton())
         }
     }
 
@@ -310,6 +310,8 @@ public final class MainSendButtons: UIStackView {
             let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             self.cameraCapturer = nil
+            /// It will call delegate and then this file again to show send button.
+            threadVM?.delegate?.onItemsPicked(itemsCount: 1)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
@@ -324,6 +326,8 @@ public final class MainSendButtons: UIStackView {
                                  originalFilename: "image-\(Date().fileDateString).jpg")
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             self.cameraCapturer = nil
+            /// It will call delegate and then this file again to show send button.
+            threadVM?.delegate?.onItemsPicked(itemsCount: 1)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
@@ -343,5 +347,10 @@ public final class MainSendButtons: UIStackView {
 
     public func showMicButton(_ show: Bool) {
         btnMic.showWithAniamtion(show)
+    }
+    
+    public func showCameraButton(_ show: Bool) {
+        btnCamera.showWithAniamtion(show)
+        viewModel.setIsVideoRecording(isRecording: show)
     }
 }

@@ -148,6 +148,7 @@ public final class AttachmentsViewModel {
         if viewModel?.sendContainerViewModel.isTextEmpty() == true, attachments.count == 0 {
             viewModel?.delegate?.showSendButton(false)
             viewModel?.delegate?.showMicButton(true)
+            viewModel?.delegate?.showCameraButton(false)
         }
     }
 

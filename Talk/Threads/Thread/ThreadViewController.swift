@@ -465,10 +465,15 @@ extension ThreadViewController: BottomToolbarDelegate {
     func showMicButton(_ show: Bool) {
         sendContainer.showMicButton(show)
     }
+    
+    func showCameraButton(_ show: Bool) {
+        sendContainer.showCameraButton(show)
+    }
 
     func onItemsPicked(itemsCount: Int) {
         showSendButton(itemsCount > 0)
         showMicButton(itemsCount <= 0)
+        showCameraButton(false)
     }
 
     func showRecording(_ show: Bool) {

@@ -79,6 +79,7 @@ public protocol BottomToolbarDelegate {
     func showPickerButtons(_ show: Bool)
     func showSendButton(_ show: Bool)
     func showMicButton(_ show: Bool)
+    func showCameraButton(_ show: Bool)
     func onItemsPicked(itemsCount: Int)
     func openEditMode(_ message: HistoryMessageType?)
     func openReplyMode(_ message: HistoryMessageType?)
