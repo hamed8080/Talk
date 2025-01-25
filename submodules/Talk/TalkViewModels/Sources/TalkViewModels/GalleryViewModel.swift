@@ -71,7 +71,7 @@ public final class GalleryViewModel: ObservableObject {
     public var starter: Message
     @Published public var pictures: ContiguousArray<GalleryImageItemViewModel> = []
     var thread: Conversation? { starter.conversation }
-    var threadId: Int? { thread?.id }
+    var threadId: Int? { thread?.id ?? starter.threadId }
     private var cancelable: Set<AnyCancellable> = .init()
     private var objectId = UUID().uuidString
     private let FETCH_GALLERY_MESSAGES_KEY: String
