@@ -55,12 +55,8 @@ public class ContactsViewModel: ObservableObject {
             .sink { [weak self] status in
                 Task { @MainActor [weak self] in
                     guard let self = self else { return }
-                    if self.firstSuccessResponse == false, status == .connected {
+                    if !self.isBuilder, self.firstSuccessResponse == false, status == .connected {
                         await self.getContacts()
-                        Task { @ChatGlobalActor in
-                            ChatManager.activeInstance?.contact.getBlockedList()
-                        }
-                        self.sync()
                     }
                 }
         }
@@ -151,6 +147,7 @@ public class ContactsViewModel: ObservableObject {
     @MainActor
     func onBlockedList(_ response: ChatResponse<[BlockedContactResponse]>) async {
         blockedContacts = .init(response.result ?? [])
+        animateObjectWillChange()
     }
 
     @MainActor
@@ -451,6 +448,12 @@ public class ContactsViewModel: ObservableObject {
             if key.contains("Add-Contact-ContactsViewModel") {
                 lazyList.setLoading(false)
             }
+        }
+    }
+    
+    public func getBlockedList() {
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.getBlockedList()
         }
     }
 }

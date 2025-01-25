@@ -56,6 +56,9 @@ struct BlockedContacts: View {
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .normalToolbarView(title: "Contacts.blockedList", type: BlockedContactsNavigationValue.self)
+        .task {
+            viewModel.getBlockedList()
+        }
     }
 }
 

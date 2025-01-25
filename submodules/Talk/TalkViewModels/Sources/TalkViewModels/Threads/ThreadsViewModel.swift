@@ -189,7 +189,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     @AppBackgroundActor
     private func splitThreshold(_ sorted: ContiguousArray<CalculatedConversation>) -> [Int] {
-        sorted.suffix(10).compactMap{$0.id}
+        sorted.suffix(2).compactMap{$0.id}
     }
 
     /// After connect and reconnect all the threads will be removed from the array

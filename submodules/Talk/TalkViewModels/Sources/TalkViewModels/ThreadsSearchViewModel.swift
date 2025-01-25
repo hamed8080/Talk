@@ -57,6 +57,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             }
             .store(in: &cancelable)
         $searchText
+            .dropFirst() // Drop first to prevent send request for the first time app launches
             .debounce(for: 0.5, scheduler: RunLoop.main)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .removeDuplicates()
@@ -99,7 +100,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             await reset()
             await searchThreads(newValue, new: showUnreadConversations)
             searchContacts(newValue)
-        } else if newValue.count == 0, await !lazyList.canLoadMore() {
+        } else if newValue.count == 0, await !lazyList.isLoading {
             await reset()
         }
     }
