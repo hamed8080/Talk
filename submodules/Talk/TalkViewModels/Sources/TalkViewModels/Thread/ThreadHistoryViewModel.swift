@@ -1159,7 +1159,9 @@ extension ThreadHistoryViewModel {
     @MainActor
     private func fetchReactions(messages: [HistoryMessageType]) {
         if viewModel?.searchedMessagesViewModel.isInSearchMode == false {
-            viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
+            Task {
+                await viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
+            }
         }
     }
 }

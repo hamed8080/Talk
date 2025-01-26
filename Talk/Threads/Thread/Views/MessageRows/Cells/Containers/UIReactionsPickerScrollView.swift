@@ -193,7 +193,8 @@ extension UIReactionsPickerScrollView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let row = rows[indexPath.row]
         if let viewModel = viewModel, let messageId = viewModel.message.id, let sticker = row.sticker {
-            viewModel.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId)
+            let myRow = viewModel.reactionsModel.rows.first(where: {$0.isMyReaction})
+            viewModel.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
             if let indexPath = viewModel.threadVM?.historyVM.mSections.indexPath(for: viewModel) {
                 viewModel.threadVM?.delegate?.dismissContextMenu(indexPath: indexPath)
             }

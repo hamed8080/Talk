@@ -18,7 +18,12 @@ public final class ThreadReactionViewModel {
     private var hasEverDisonnected = false
     private var inQueueToGetReactions: [Int] = []
     public var allowedReactions: [Sticker] = []
-    public init() {}
+    private let objectId = UUID().uuidString
+    private let REACTION_COUNT_LIST_KEY: String
+    
+    public init() {
+        self.REACTION_COUNT_LIST_KEY = "REACTION-COUNT-LIST-KEY-\(objectId)"
+    }
 
     public func setup(viewModel: ThreadViewModel) {
         self.threadVM = viewModel
@@ -41,7 +46,9 @@ public final class ThreadReactionViewModel {
                     self?.hasEverDisonnected = true
                 }
                 if status == .connected && self?.hasEverDisonnected == true {
-                    self?.onReconnected()
+                    Task {
+                        await self?.onReconnected()
+                    }
                 }
             }
             .store(in: &cancelable)
@@ -65,15 +72,14 @@ public final class ThreadReactionViewModel {
     }
 
     /// Add/Remove/Replace
-    public func reaction(_ sticker: Sticker, messageId: Int) {
+    public func reaction(_ sticker: Sticker, messageId: Int, myReactionId: Int?, myReactionSticker: Sticker?) {
         let threadId = threadId
         Task { @ChatGlobalActor in
-            let myReaction = ChatManager.activeInstance?.reaction.inMemoryReaction.currentReaction(messageId)
-            if myReaction?.reaction == sticker, let reactionId = myReaction?.id {
+            if myReactionSticker == sticker, let reactionId = myReactionId {
                 let req = DeleteReactionRequest(reactionId: reactionId, conversationId: threadId)
                 ChatManager.activeInstance?.reaction.delete(req)
-            } else if let reacrionId = myReaction?.id {
-                let req = ReplaceReactionRequest(messageId: messageId, conversationId: threadId, reactionId: reacrionId, reaction: sticker)
+            } else if let reactionId = myReactionId {
+                let req = ReplaceReactionRequest(messageId: messageId, conversationId: threadId, reactionId: reactionId, reaction: sticker)
                 ChatManager.activeInstance?.reaction.replace(req)
             } else {
                 let req = AddReactionRequest(messageId: messageId,
@@ -82,20 +88,6 @@ public final class ThreadReactionViewModel {
                 )
                 ChatManager.activeInstance?.reaction.add(req)
             }
-        }
-    }
-
-    public func getReactionSummary(_ messageIds: [Int], conversationId: Int) {
-        let threadId = threadId
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.reaction.count(.init(messageIds: messageIds, conversationId: threadId))
-        }
-    }
-
-    public func getCurrentUserReaction(for messageId: Int) {
-        let threadId = threadId
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.reaction.reaction(.init(messageId: messageId, conversationId: threadId))
         }
     }
 
@@ -114,51 +106,57 @@ public final class ThreadReactionViewModel {
     @MainActor
     func onReactionEvent(_ event: ReactionEventTypes) async {
         switch event {
-        case .inMemoryUpdate(let copies):
-            await updateReactions(reactions: copies)
         case .add(let chatResponse):
-            scrollToLastMessageIfLastMessageReacionChanged(chatResponse)
+            await onAddedReaction(chatResponse)
         case .replace(let chatResponse):
-            scrollToLastMessageIfLastMessageReacionChanged(chatResponse)
+            await onReplaceReaction(chatResponse)
         case .delete(let chatResponse):
-            scrollToLastMessageIfLastMessageReacionChanged(chatResponse)
+            await onDeleteReaction(chatResponse)
         case .allowedReactions(let chatResponse):
             onAllowedReactions(chatResponse)
+        case .count(let chatResponse):
+            await onReactionCountList(chatResponse)
         default:
             break
         }
     }
 
-    func scrollToLastMessageIfLastMessageReacionChanged(_ response: ChatResponse<ReactionMessageResponse>) {
+    func scrollToLastMessageIfLastMessageReacionChanged(_ response: ChatResponse<ReactionMessageResponse>) async {
         if response.subjectId == threadId, response.result?.messageId == thread?.lastMessageVO?.id {
-            Task {
-                await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
-            }
+            await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }
     }
 
-    func onReconnected() {
+    func onReconnected() async {
         // clear all reactions
-        clearReactionsOnReconnect()
+        await clearReactionsOnReconnect()
     }
 
-    internal func fetchReactions(messages: [Message]) {
+    internal func fetchReactions(messages: [Message]) async {
         guard threadVM?.searchedMessagesViewModel.isInSearchMode == false else { return}
         let messageIds = messages
             .filter({$0.id ?? -1 > 0})
             .filter({$0.reactionableType})
             .compactMap({$0.id})
         inQueueToGetReactions.append(contentsOf: messageIds)
-        threadVM?.reactionViewModel.getReactionSummary(messageIds, conversationId: threadId)
+        await getReactionSummary(messageIds, conversationId: threadId)
+    }
+    
+    @ChatGlobalActor
+    private func getReactionSummary(_ messageIds: [Int], conversationId: Int) async {
+        await ChatManager.activeInstance?.reaction.count(.init(messageIds: messageIds, conversationId: threadId))
     }
 
-    internal func updateReactions(reactions: [ReactionInMemoryCopy]) async {
+    internal func onReactionCountList(_ response: ChatResponse<[ReactionCountList]>) async {
         // We have to check if the response count is greater than zero because there is a chance to get reactions of zero count.
         // And we need to remove older reactions if any of them were removed.
-        guard let historyVM = threadVM?.historyVM, reactions.count > 0 else { return }
+        guard
+            let reactions = response.result,
+            let historyVM = threadVM?.historyVM, reactions.count > 0
+        else { return }
         for copy in reactions {
             inQueueToGetReactions.removeAll(where: {$0 == copy.messageId})
-            if let vm = historyVM.mSections.messageViewModel(for: copy.messageId) {
+            if let vm = historyVM.mSections.messageViewModel(for: copy.messageId ?? -1) {
                 await vm.setReaction(reactions: copy)
             }
         }
@@ -179,15 +177,76 @@ public final class ThreadReactionViewModel {
         }
     }
 
-    internal func clearReactionsOnReconnect() {
-        Task { [weak self] in
-            await self?.threadVM?.historyVM.getSections().forEach { section in
-                section.vms.forEach { vm in
-                    vm.invalid()
-                }
+    internal func clearReactionsOnReconnect() async {
+        await threadVM?.historyVM.getSections().forEach { section in
+            section.vms.forEach { vm in
+                vm.invalid()
             }
-            await self?.fetchVisibleReactionsOnReconnect()
         }
+        await fetchVisibleReactionsOnReconnect()
+    }
+    
+    private func onDeleteReaction(_ response: ChatResponse<ReactionMessageResponse>) async {
+        guard
+            let reaction = response.result?.reaction,
+            let messageId = response.result?.messageId
+        else { return }
+        /// Find MessageRowViewModel
+        guard let tuple = vmAndIndex(for: messageId) else { return }
+        
+        /// Recalculate the reaction
+        tuple.vm.reactionDeleted(reaction)
+        
+        /// Reload
+        threadVM?.delegate?.reactionDeleted(indexPath: tuple.indexPath, reaction: reaction)
+        
+        /// Scroll to bottom if last message deleted
+        await scrollToLastMessageIfLastMessageReacionChanged(response)
+    }
+    
+    private func onAddedReaction(_ response: ChatResponse<ReactionMessageResponse>) async {
+        guard
+            let reaction = response.result?.reaction,
+            let messageId = response.result?.messageId
+        else { return }
+        /// Find MessageRowViewModel
+        guard let tuple = vmAndIndex(for: messageId) else { return }
+        
+        /// Recalculate the reaction
+        tuple.vm.reactionAdded(reaction)
+        
+        /// Reload
+        threadVM?.delegate?.reactionAdded(indexPath: tuple.indexPath, reaction: reaction)
+        
+        /// Scroll to bottom if last message deleted
+        await scrollToLastMessageIfLastMessageReacionChanged(response)
+    }
+    
+    private func onReplaceReaction(_ response: ChatResponse<ReactionMessageResponse>) async {
+        guard
+            let reaction = response.result?.reaction,
+            let messageId = response.result?.messageId,
+            let oldSticker = response.result?.oldSticker
+        else { return }
+        /// Find MessageRowViewModel
+        guard let tuple = vmAndIndex(for: messageId) else { return }
+        
+        /// Recalculate the reaction
+        var oldReaction = Reaction(id: reaction.id, reaction: response.result?.oldSticker, participant: reaction.participant)
+        tuple.vm.reactionReplaced(reaction, oldSticker: oldSticker)
+        
+        /// Reload
+        threadVM?.delegate?.reactionReplaced(indexPath: tuple.indexPath, reaction: reaction)
+        
+        /// Scroll to bottom if last message deleted
+        await scrollToLastMessageIfLastMessageReacionChanged(response)
+    }
+    
+    
+    
+    private func vmAndIndex(for messageId: Int?) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
+        guard let messageId = messageId else { return nil }
+        return threadVM?.historyVM.mSections.viewModelAndIndexPath(for: messageId)
     }
 
     internal func fetchVisibleReactionsOnReconnect() async {

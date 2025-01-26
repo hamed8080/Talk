@@ -19,7 +19,6 @@ final class FooterReactionsCountView: UIStackView {
     private weak var viewModel: MessageRowViewModel?
     private let scrollView = UIScrollView()
     private let reactionStack = UIStackView()
-    static let moreButtonId = -2
     private var scrollViewMinWidthConstraint: NSLayoutConstraint?
 
     init(frame: CGRect, isMe: Bool) {
@@ -80,7 +79,7 @@ final class FooterReactionsCountView: UIStackView {
         if rows.count > 3 && isSlimMode {
             scrollViewMinWidthConstraint?.constant = min(200, rows.compactMap{$0.width}.reduce(0, {$0 + $1}))
         } else {
-            scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + $1})
+            scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
         }
         
         // Show item only if index is equal to index or it is type of more reaction button.
@@ -95,18 +94,34 @@ final class FooterReactionsCountView: UIStackView {
         }
         if viewModel.reactionsModel.rows.count > maxReactionsToShow, let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
             moreButton.setIsHidden(false)
-            moreButton.row = .init(reactionId: FooterReactionsCountView.moreButtonId,
-                                   edgeInset: .zero,
-                                   sticker: nil,
-                                   emoji: "",
-                                   countText: "",
-                                   isMyReaction: false,
-                                   hasReaction: false,
-                                   selectedEmojiTabId: "General.all",
-                                   width: 0)
+            moreButton.row = .moreReactionRow
             moreButton.viewModel = viewModel
         } else if let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
             moreButton.setIsHidden(true)
+        }
+    }
+    
+    public func reactionDeleted(_ reaction: Reaction) {
+        if let viewModel = viewModel {
+            UIView.animate(withDuration: 0.20) {
+                self.set(viewModel)
+            }
+        }
+    }
+    
+    public func reactionAdded(_ reaction: Reaction) {
+        if let viewModel = viewModel {
+            UIView.animate(withDuration: 0.20) {
+                self.set(viewModel)
+            }
+        }
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        if let viewModel = viewModel {
+            UIView.animate(withDuration: 0.20) {
+                self.set(viewModel)
+            }
         }
     }
 }

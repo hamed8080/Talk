@@ -654,14 +654,43 @@ extension ThreadViewController: HistoryScrollDelegate {
         tableView.performBatchUpdates { [weak self] in
             guard let self = self else { return }
             for indexPath in indexPaths {
-                let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
-                if let cell = cell, let viewModel = viewModel?.historyVM.mSections.viewModelWith(indexPath) {
-                    cell.reactionsUpdated(viewModel: viewModel)
+                if let tuple = cellFor(indexPath: indexPath) {
+                    tuple.cell.reactionsUpdated(viewModel: tuple.vm)
                 }
             }
         } completion: { [weak self] completed in
             self?.viewModel?.historyVM.isUpdating = false
         }
+    }
+    
+    public func reactionDeleted(indexPath: IndexPath, reaction: Reaction) {
+        if let tuple = cellFor(indexPath: indexPath) {
+            tableView.beginUpdates()
+            tuple.cell.reactionDeleted(reaction)
+            tableView.endUpdates()
+        }
+    }
+    
+    public func reactionAdded(indexPath: IndexPath, reaction: Reaction) {
+        if let tuple = cellFor(indexPath: indexPath) {
+            tableView.beginUpdates()
+            tuple.cell.reactionAdded(reaction)
+            tableView.endUpdates()
+        }
+    }
+    
+    public func reactionReplaced(indexPath: IndexPath, reaction: Reaction) {
+        if let tuple = cellFor(indexPath: indexPath) {
+            tableView.beginUpdates()
+            tuple.cell.reactionReplaced(reaction)
+            tableView.endUpdates()
+        }
+    }
+    
+    private func cellFor(indexPath: IndexPath) -> (vm: MessageRowViewModel, cell: MessageBaseCell)?  {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell else { return nil }
+        guard let vm = viewModel?.historyVM.mSections.viewModelWith(indexPath) else { return nil }
+        return (vm, cell)
     }
 }
 

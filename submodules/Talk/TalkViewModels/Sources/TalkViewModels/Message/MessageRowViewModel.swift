@@ -25,7 +25,7 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     @MainActor
     public var isInvalid = false
 
-    @MainActor public var reactionsModel: ReactionRowsCalculated = .init(rows: [], topPadding: 0)
+    @MainActor public var reactionsModel: ReactionRowsCalculated = .init(rows: [])
     public weak var threadVM: ThreadViewModel?
 
     public var calMessage = MessageRowCalculatedData()
@@ -224,14 +224,28 @@ public extension MessageRowViewModel {
     }
 
     @HistoryActor
-    func setReaction(reactions: ReactionInMemoryCopy) async {
-        
-        let reactionsModel = MessageRowCalculators.calulateReactions(reactions: reactions)
+    func setReaction(reactions: ReactionCountList) async {        
+        let reactionsModel = MessageRowCalculators.calulateReactions(reactions)
         await MainActor.run { [weak self] in
             guard let self = self else { return }
             isInvalid = false
             self.reactionsModel = reactionsModel
         }
+    }
+    
+    @MainActor
+    func reactionDeleted(_ reaction: Reaction) {
+        reactionsModel = MessageRowCalculators.reactionDeleted(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1)
+    }
+    
+    @MainActor
+    func reactionAdded(_ reaction: Reaction) {
+        reactionsModel = MessageRowCalculators.reactionAdded(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1)
+    }
+    
+    @MainActor
+    func reactionReplaced(_ reaction: Reaction, oldSticker: Sticker) {
+        reactionsModel = MessageRowCalculators.reactionReplaced(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1, oldSticker: oldSticker)
     }
 
     func canReact() async -> Bool {

@@ -287,6 +287,18 @@ extension MessageContainerStackView {
     public func reactionsUpdated(viewModel: MessageRowViewModel) {
         footerView.reactionsUpdated(viewModel: viewModel)        
     }
+    
+    public func reactionDeleted(_ reaction: Reaction) {
+        footerView.reactionDeleted(reaction)
+    }
+    
+    public func reactionAdded(_ reaction: Reaction) {
+        footerView.reactionAdded(reaction)
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        footerView.reactionReplaced(reaction)
+    }
 
     public func prepareForContextMenu(userInterfaceStyle: UIUserInterfaceStyle) {
         overrideUserInterfaceStyle = userInterfaceStyle

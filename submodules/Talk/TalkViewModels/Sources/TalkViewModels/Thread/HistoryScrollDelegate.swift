@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import TalkModels
+import Chat
 
 @MainActor
 public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable {
@@ -35,6 +36,9 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool)
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath])
     func showMoveToButtom(show: Bool)
+    func reactionDeleted(indexPath: IndexPath, reaction: Reaction)
+    func reactionAdded(indexPath: IndexPath, reaction: Reaction)
+    func reactionReplaced(indexPath: IndexPath, reaction: Reaction)
 }
 
 @MainActor

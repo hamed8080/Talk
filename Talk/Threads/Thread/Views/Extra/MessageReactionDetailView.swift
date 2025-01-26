@@ -13,14 +13,12 @@ import TalkExtensions
 import TalkModels
 
 struct MessageReactionDetailView: View {
-    let message: HistoryMessageType
     private let row: ReactionRowsCalculated.Row
-    private var messageId: Int { message.id ?? -1 }
     @EnvironmentObject var tabVM: ReactionTabParticipantsViewModel
-    @State private var tabs: [TabItem] = []
+    @StateObject var viewModel: ReactionDetailCountTabsViewModel
 
     init(message: HistoryMessageType, row: ReactionRowsCalculated.Row) {
-        self.message = message
+        _viewModel = StateObject(wrappedValue: .init(messageId: message.id ?? -1, conversationId: message.conversation?.id ?? message.threadId ?? -1))
         self.row = row
     }
 
@@ -33,46 +31,27 @@ struct MessageReactionDetailView: View {
             tabVM.setActiveTab(tabId: selectedTab)
         }
         .background(Color.App.bgPrimary)
-        .navigationTitle("Reactions to: \(message.messageTitle.trimmingCharacters(in: .whitespacesAndNewlines))")
-        .onAppear {
-            tabVM.setActiveTab(tabId: row.selectedEmojiTabId)
-        }
         .task {
-            let tabs = await prepareTabs()
-            await MainActor.run {
-                self.tabs = tabs
-            }
+            tabVM.setActiveTab(tabId: row.selectedEmojiTabId)
+            await viewModel.fetchSummary()
         }
     }
-
-    private func prepareTabs() async -> [TabItem] {
-        let messageId = messageId
-        let summary = await summaryTabs(messageId)
-        if summary.count > 0 {
-            var tabs = summary
-            tabs.insert(allTab, at: 0)
-            return tabs
-        } else {
-            return []
-        }
+    
+    private var tabs: [TabItem] {
+        let summary = summaryTabs()
+        return summary.isEmpty ? [] : [allTab] + summary
     }
-
-    var allTab: TabItem {
+    
+    private var allTab: TabItem {
         return TabItem(
             tabContent: ParticiapntsPageSticker(tabId: "General.all").environmentObject(tabVM),
             title: "General.all",
             showSelectedDivider: true
         )
     }
-
-    @ChatGlobalActor
-    func reactionsSummaryFor(_ messageId: Int) -> [ReactionCount] {
-        ChatManager.activeInstance?.reaction.inMemoryReaction.summary(for: messageId) ?? []
-    }
     
-    func summaryTabs(_ messageId: Int) async -> [TabItem] {
-        let summary = await reactionsSummaryFor(messageId)
-        return summary.compactMap { reaction in
+    func summaryTabs() -> [TabItem] {
+        return viewModel.items.compactMap { reaction in
             let countText = reaction.count?.localNumber(locale: Language.preferredLocale) ?? ""
             let title = "\(reaction.sticker?.emoji ?? "all") \(countText)"
             return TabItem(
@@ -155,13 +134,13 @@ struct ReactionParticipantRow: View {
 
 struct MessageReactionDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        let row = ReactionRowsCalculated.Row(reactionId: 0,
-                                             edgeInset: .zero,
+        let row = ReactionRowsCalculated.Row(myReactionId: 0,
+                                             edgeInset: .defaultReaction,
                                              sticker: .happy,
                                              emoji: "😂",
                                              countText: "1",
+                                             count: 1,
                                              isMyReaction: true,
-                                             hasReaction: true,
                                              selectedEmojiTabId: "",
                                              width: 57)
         MessageReactionDetailView(message: Message(id: 1, message: "TEST", conversation: Conversation(id: 1)), row: row)
