@@ -475,15 +475,14 @@ class MessageRowCalculators {
                 newCalculated.rows.remove(at: index)
             }
         }
+        newCalculated.sortReactions()
         return newCalculated
     }
     
     public class func reactionAdded(_ calculated: ReactionRowsCalculated, _ reaction: Reaction, myId: Int) -> ReactionRowsCalculated {
         var newCalculated = calculated
         let wasMySelf = reaction.participant?.id == myId
-        if calculated.rows.isEmpty {
-            newCalculated.rows.append(ReactionRowsCalculated.Row.firstReaction(reaction, myId, reaction.reaction?.emoji ?? ""))
-        } else if let index = calculated.rows.firstIndex(where: {$0.sticker?.rawValue == reaction.reaction?.rawValue}) {
+        if let index = calculated.rows.firstIndex(where: {$0.sticker?.rawValue == reaction.reaction?.rawValue}) {
             newCalculated.rows = updateReaction(calculated,
                                                 index,
                                                 wasMySelf,
@@ -491,7 +490,10 @@ class MessageRowCalculators {
                                                 reaction.id,
                                                 calculated.rows[index].count + 1,
                                                 reaction.reaction?.emoji ?? "")
+        } else {
+            newCalculated.rows.append(ReactionRowsCalculated.Row.firstReaction(reaction, myId, reaction.reaction?.emoji ?? ""))
         }
+        newCalculated.sortReactions()
         return newCalculated
     }
     
@@ -500,15 +502,17 @@ class MessageRowCalculators {
         var newCalculated = calculated
         /// Reduce old reaction
         if let index = newCalculated.rows.firstIndex(where: {$0.sticker?.rawValue == oldSticker.rawValue}) {
-            newCalculated.rows = updateReaction(newCalculated,
-                                                index,
-                                                wasMySelf,
-                                                false,
-                                                reaction.id,
-                                                newCalculated.rows[index].count - 1,
-                                                oldSticker.emoji)
-            if newCalculated.rows[index].count == 0 {
+            let newValue = newCalculated.rows[index].count - 1
+            if newValue == 0 {
                 newCalculated.rows.remove(at: index)
+            } else {
+                newCalculated.rows = updateReaction(newCalculated,
+                                                    index,
+                                                    wasMySelf,
+                                                    false,
+                                                    reaction.id,
+                                                    newValue,
+                                                    oldSticker.emoji)
             }
         }
         
@@ -521,7 +525,10 @@ class MessageRowCalculators {
                                                 reaction.id,
                                                 newCalculated.rows[index].count + 1,
                                                 reaction.reaction?.emoji ?? "")
+        } else {
+            newCalculated.rows.append(ReactionRowsCalculated.Row.firstReaction(reaction, myId, reaction.reaction?.emoji ?? ""))
         }
+        newCalculated.sortReactions()
         return newCalculated
     }
     
@@ -540,8 +547,7 @@ class MessageRowCalculators {
             rows[index].myReactionId = isMyReaction ? myReactionId : nil
         }
         rows[index].selectedEmojiTabId = "\(emoji ?? "") \(newValue.localNumber(locale: Language.preferredLocale) ?? "")"
-        let sorted = rows.sorted(by: { $0.count > $1.count }).sorted(by: { $0.isMyReaction && !$1.isMyReaction })
-        return sorted
+        return rows
     }
 
     class func calculateIsReplyImage(message: HistoryMessageType) -> Bool {

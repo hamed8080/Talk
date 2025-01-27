@@ -23,6 +23,7 @@ public class ReactionTabParticipantsViewModel: ObservableObject {
     private var offset: Int = 0
     private let count: Int = 15
     private var hasNext = true
+    private var isLoading = false
 
     public init(messageId: Int) {
         self.messageId = messageId
@@ -52,6 +53,7 @@ public class ReactionTabParticipantsViewModel: ObservableObject {
         else { return }
         let groups = Dictionary(grouping: reactions, by: {$0.reaction})
         hasNext = response.result?.reactions?.count ?? 0 >= count
+        isLoading = false
         if canAppendIntoActiveTab(groups) {
             appendToActiveTab(groups.first?.value ?? [])
         } else {
@@ -82,7 +84,8 @@ public class ReactionTabParticipantsViewModel: ObservableObject {
     }
 
     public func loadMoreParticipants() {
-        if !hasNext { return }
+        if !hasNext || isLoading { return }
+        isLoading = true
         offset = offset + count
         viewModel?.getDetail(for: messageId, offset: offset, count: count, sticker: sticker)
     }

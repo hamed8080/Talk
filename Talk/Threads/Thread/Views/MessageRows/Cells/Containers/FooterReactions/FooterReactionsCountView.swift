@@ -72,15 +72,9 @@ final class FooterReactionsCountView: UIStackView {
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        let rows = viewModel.reactionsModel.rows.count > maxReactionsToShow ? Array(viewModel.reactionsModel.rows.prefix(4)) : viewModel.reactionsModel.rows
-
-        /// It will prevent the time label be truncated by reactions view.
-        let isSlimMode = AppState.shared.windowMode.isInSlimMode
-        if rows.count > 3 && isSlimMode {
-            scrollViewMinWidthConstraint?.constant = min(200, rows.compactMap{$0.width}.reduce(0, {$0 + $1}))
-        } else {
-            scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
-        }
+        let rows = rows(viewModel: viewModel)
+        
+        updateWidthConstrain(rows)
         
         // Show item only if index is equal to index or it is type of more reaction button.
         reactionStack.arrangedSubviews.enumerated().forEach { index, view in
@@ -102,26 +96,38 @@ final class FooterReactionsCountView: UIStackView {
     }
     
     public func reactionDeleted(_ reaction: Reaction) {
-        if let viewModel = viewModel {
-            UIView.animate(withDuration: 0.20) {
-                self.set(viewModel)
-            }
-        }
+        updateReactionsWithAnimation(viewModel: viewModel)
     }
     
     public func reactionAdded(_ reaction: Reaction) {
+        updateReactionsWithAnimation(viewModel: viewModel)
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        updateReactionsWithAnimation(viewModel: viewModel)
+    }
+    
+    private func updateReactionsWithAnimation(viewModel: MessageRowViewModel?) {
         if let viewModel = viewModel {
+            let rows = rows(viewModel: viewModel)
+            updateWidthConstrain(rows)
             UIView.animate(withDuration: 0.20) {
                 self.set(viewModel)
             }
         }
     }
     
-    public func reactionReplaced(_ reaction: Reaction) {
-        if let viewModel = viewModel {
-            UIView.animate(withDuration: 0.20) {
-                self.set(viewModel)
-            }
+    private func updateWidthConstrain(_ rows: [ReactionRowsCalculated.Row]) {
+        /// It will prevent the time label be truncated by reactions view.
+        let isSlimMode = AppState.shared.windowMode.isInSlimMode
+        if rows.count > 3 && isSlimMode {
+            scrollViewMinWidthConstraint?.constant = min(200, rows.compactMap{$0.width}.reduce(0, {$0 + $1}))
+        } else {
+            scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
         }
+    }
+    
+    private func rows(viewModel: MessageRowViewModel) -> [ReactionRowsCalculated.Row] {
+        return viewModel.reactionsModel.rows.count > maxReactionsToShow ? Array(viewModel.reactionsModel.rows.prefix(4)) : viewModel.reactionsModel.rows
     }
 }

@@ -43,6 +43,11 @@ public struct ReactionRowsCalculated: Sendable {
             self.width = width
         }
     }
+    
+    public mutating func sortReactions() {
+        let sorted = rows.sorted(by: { $0.count > $1.count }).sorted(by: { $0.isMyReaction && !$1.isMyReaction })
+        self.rows = sorted
+    }
 }
 
 public extension EdgeInsets {
