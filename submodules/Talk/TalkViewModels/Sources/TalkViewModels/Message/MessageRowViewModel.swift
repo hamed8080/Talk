@@ -248,9 +248,10 @@ public extension MessageRowViewModel {
         reactionsModel = MessageRowCalculators.reactionReplaced(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1, oldSticker: oldSticker)
     }
 
-    func canReact() async -> Bool {
+    @MainActor
+    func canReact() -> Bool {
         if calMessage.rowType.isSingleEmoji, calMessage.rowType.isBareSingleEmoji { return false }
-        if await threadVM?.thread.reactionStatus == .disable { return false }
+        if threadVM?.thread.reactionStatus == .disable { return false }
         // Two weeks
         return Date().millisecondsSince1970 < Int64(message.time ?? 0) + (1_209_600_000)
     }

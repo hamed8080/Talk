@@ -14,7 +14,6 @@ fileprivate struct Constants {
     static let space: CGFloat = 8
     static let margin: CGFloat = 8
     static let menuWidth: CGFloat = 256
-    static let reactionWidth: CGFloat = 320
     static let reactionHeight: CGFloat = 50
     static let scaleDownOnTouch: CGFloat = 0.98
     static let scaleDownAnimationDuration = 0.2
@@ -22,17 +21,6 @@ fileprivate struct Constants {
     static let longPressDuration = 0.3
     static let animateToRightVerticalPosition = 0.1
     static let animateToHideOriginalMessageDuration = 0.4
-    
-    struct Sizes {
-        let rectInNav: CGRect
-        let stackBounds: CGRect
-        let originalX: CGFloat
-        let navFrame: CGRect
-        let minTopVertical: CGFloat
-        let maxVertical: CGFloat
-        let menuX: CGFloat
-        let reactionX: CGFloat
-    }
 }
 
 @MainActor
@@ -67,14 +55,12 @@ extension MessageContainerStackView {
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
         if viewModel?.threadVM?.thread.closed == true { return }
         let isBegin = sender.state == .began
-        Task {
-            await openContextAsync(isBegin)
-        }
+        openContextAsync(isBegin)
     }
     
-    private func openContextAsync(_ isBegin: Bool) async {
-        if isBegin, let indexPath = indexpath(), let contentView = await makeContextMenuView(indexPath) {
-            delegate?.showContextMenu(indexPath, contentView: contentView)
+    private func openContextAsync(_ isBegin: Bool)  {
+        if isBegin, let indexPath = indexpath(), let contentView = makeContextMenuView(indexPath) {
+            viewModel?.threadVM?.delegate?.showContextMenu(indexPath, contentView: contentView)
             UIView.animate(withDuration: Constants.animateToHideOriginalMessageDuration) {
                 self.alpha = 0.0
             }
@@ -82,98 +68,144 @@ extension MessageContainerStackView {
         }
     }
     
-    func makeContextMenuView(_ indexPath: IndexPath) async -> UIView? {
+    func makeContextMenuView(_ indexPath: IndexPath) -> UIView? {
         guard let viewModel = viewModel else { return nil }
-        let vc = delegate as? ThreadViewController
-        guard let vc = vc, let tableView = vc.tableView else { return nil }
-        
-        let sizes = calculateRects(tableView, indexPath, vc, isMe: viewModel.calMessage.isMe)
-        
-        let scrollViewContainer = createScrollViewContainer(sizes)
-        
-        let messageContainer = createCopyStackContainer(viewModel, sizes)
-        scrollViewContainer.addSubview(messageContainer)
-        
-        let reactionBarView = await createReaction(viewModel, sizes, messageContainer)
-        scrollViewContainer.addSubview(reactionBarView)
-        
-        let menu = createMenu(viewModel, indexPath, messageContainer, sizes)
-        scrollViewContainer.addSubview(menu)
-        
-        scrollViewContainer.bringSubviewToFront(reactionBarView) // Expand mode in reactions
-        animateToRightVerticalPosition(sizes, reactionBarView, messageContainer, menu)
-        
-        return scrollViewContainer
+        let messsageStackContainer =  MessageContextMenuContentView(frame: .zero,
+                                             messageWidth: cell?.messageContainer.bounds.width ?? 0,
+                                             viewModel: viewModel,
+                                             indexPath: indexPath,
+                                             cell: cell,
+                                             resetOnDismiss: resetOnDismiss,
+                                             userInterfaceStyle: traitCollection.userInterfaceStyle)
+
+        return messsageStackContainer
     }
     
-    private func calculateRects(_ tableView: UIHistoryTableView, _ indexPath: IndexPath, _ vc: ThreadViewController, isMe: Bool) -> Constants.Sizes {
-        let rectIntableView = tableView.rectForRow(at: indexPath)
-        let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
-        let messageStack = cell?.messageContainer
-        let viewInNav = vc.navigationController?.view
-        let stackBounds = messageStack?.bounds ?? .zero
-        let rectInContentView = messageStack?.convert(stackBounds, to: cell?.contentView) ?? .zero
-        let rectInView = tableView.convert(rectIntableView, to: vc.view)
-        var rectInNav = vc.navigationController?.view.convert(rectInView, to: viewInNav) ?? .zero
-        rectInNav.origin.x = rectInContentView.origin.x
-        let originalX = frame.origin.x
-        let navFrame = viewInNav?.frame ?? .zero
-        let minTopVertical = vc.topThreadToolbar.frame.height + 64
-        let maxVertical = vc.sendContainer.frame.height
-        
-        
-        let stackWidthWithMargin = stackBounds.width + Constants.margin
-        let rightXForLargerStack = navFrame.width - stackWidthWithMargin
-        
-        let isStackLargerThanReactoinPicker = stackBounds.width > Constants.reactionWidth
-        let rightXForReactionPickerLarger = navFrame.width - (Constants.reactionWidth + Constants.margin)
-        let xForReaction = isStackLargerThanReactoinPicker ? rightXForLargerStack : rightXForReactionPickerLarger
-        let reactionX: CGFloat = isMe ? xForReaction : originalX
-        
-        let isStackLargerThanMenu = stackBounds.width > Constants.menuWidth
-        let rightXForMenuLarger = navFrame.width - (Constants.menuWidth + Constants.margin)
-        let xForMenu = isStackLargerThanMenu ? rightXForLargerStack : rightXForMenuLarger
-        let menuX: CGFloat = isMe ? xForMenu : originalX
-        
-        return Constants.Sizes(rectInNav: rectInNav,
-                               stackBounds: stackBounds,
-                               originalX: originalX,
-                               navFrame: navFrame,
-                               minTopVertical: minTopVertical,
-                               maxVertical: maxVertical,
-                               menuX: menuX,
-                               reactionX: reactionX
-        )
+    private func indexpath() -> IndexPath? {
+        guard
+            let vm = viewModel,
+            let indexPath = viewModel?.threadVM?.historyVM.mSections.indexPath(for: vm)
+        else { return nil }
+        return indexPath
     }
     
-    private func createScrollViewContainer(_ sizes: Constants.Sizes) -> UIView {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.frame = sizes.navFrame
-        return view
+    public func resetOnDismiss() {
+        UIView.animate(withDuration: Constants.scaleUPAnimationDuration) {
+            self.alpha = 1.0
+        }
     }
+}
+
+fileprivate class MessageContextMenuContentView: UIView {
+    private var reactionsView = UIReactionsPickerScrollView(size: Constants.reactionHeight)
+    private let messageContainer: MessageContainerStackView
+    private var menu = CustomMenu()
+    private let viewModel: MessageRowViewModel
+    private let indexPath: IndexPath
+    private let messageWidth: CGFloat
+    private weak var cell: MessageBaseCell?
+    private var reactionHeightConstraint = NSLayoutConstraint()
+    private let userInterfaceStyle: UIUserInterfaceStyle
     
-    private func createCopyStackContainer(_ viewModel: MessageRowViewModel, _ sizes: Constants.Sizes) -> MessageContainerStackView {
+    init(frame: CGRect,
+         messageWidth: CGFloat,
+         viewModel: MessageRowViewModel,
+         indexPath: IndexPath,
+         cell: MessageBaseCell?,
+         resetOnDismiss: @escaping () -> Void,
+         userInterfaceStyle: UIUserInterfaceStyle) {
+        self.indexPath = indexPath
+        self.viewModel = viewModel
+        self.messageWidth = messageWidth
+        self.cell = cell
         let messageContainer = MessageContainerStackView(frame: .zero, isMe: viewModel.calMessage.isMe)
-        //        messageContainer.frame = .init(origin: sizes.rectInNav.origin, size: sizes.stackBounds.size)
-        messageContainer.frame = .init(origin: .init(x: sizes.rectInNav.origin.x, y: 0), size: sizes.stackBounds.size)
-        messageContainer.set(viewModel)
-        messageContainer.prepareForContextMenu(userInterfaceStyle: traitCollection.userInterfaceStyle)
-        messageContainer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(faketapGesture)))
-        
-        addAnimation(messageContainer)
-        return messageContainer
+        messageContainer.cell = cell
+        self.menu = messageContainer.menu(model: .init(viewModel: viewModel), indexPath: indexPath, onMenuClickedDismiss: resetOnDismiss)
+        self.messageContainer = messageContainer
+        self.userInterfaceStyle = userInterfaceStyle
+        super.init(frame: frame)
+        configureView()
     }
     
-    private func createMenu(_ viewModel: MessageRowViewModel, _ indexPath: IndexPath, _ messageContainer: MessageContainerStackView, _ sizes: Constants.Sizes) -> CustomMenu {
-        let menu = menu(model: .init(viewModel: viewModel), indexPath: indexPath, onMenuClickedDismiss: resetOnDismiss)
-        menu.frame.origin.y = messageContainer.frame.maxY + Constants.margin
-        menu.frame.origin.x = sizes.menuX
-        menu.frame.size.width = Constants.menuWidth
-        menu.frame.size.height = menu.height()
+    private func configureReactionView()  {
+        reactionsView.translatesAutoresizingMaskIntoConstraints = false
+        reactionsView.setup(viewModel)
+        reactionsView.overrideUserInterfaceStyle = userInterfaceStyle
+        let canReact = viewModel.canReact()
+        reactionsView.isUserInteractionEnabled = canReact
+        reactionsView.isHidden = !canReact
+        reactionsView.onExpandModeChanged = { [weak self] expandMode in
+            guard let self = self else { return }
+             UIView.animate(withDuration: 0.25, delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.1) { [weak self] in
+                 guard let self = self else { return }
+                 reactionHeightConstraint.constant = expandMode ? reactionsView.expandHeight() : reactionViewInitialHeight()
+                 layoutIfNeeded()
+            }
+        }
+        addSubview(reactionsView)
+    }
+    
+    private func configureMessageStackContainer() {
+        messageContainer.translatesAutoresizingMaskIntoConstraints = false
+        messageContainer.set(viewModel)
+        messageContainer.prepareForContextMenu(userInterfaceStyle: userInterfaceStyle)
+        messageContainer.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(faketapGesture)))
+        addSubview(messageContainer)
+    }
+    
+    private func configureMenu() {
+        menu.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(menu)
+    }
+    
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    public func configureView() {
+        translatesAutoresizingMaskIntoConstraints = false
+        backgroundColor = .clear
+        bringSubviewToFront(reactionsView) // Expand mode in reactions
         
+        configureReactionView()
+        configureMessageStackContainer()
+        configureMenu()
+        
+        reactionHeightConstraint = reactionsView.heightAnchor.constraint(equalToConstant: reactionViewInitialHeight())
+        NSLayoutConstraint.activate([
+            bottomAnchor.constraint(equalTo: menu.bottomAnchor, constant: 46),
+            
+            // ReactionsView
+            reactionsView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            reactionsView.widthAnchor.constraint(equalToConstant: 320),
+            reactionHeightConstraint,
+            
+            // MessageContainerView
+            messageContainer.widthAnchor.constraint(equalToConstant: messageWidth),
+            messageContainer.topAnchor.constraint(equalTo: reactionsView.bottomAnchor, constant: 8),
+            
+            // Menu
+            menu.widthAnchor.constraint(equalToConstant: Constants.menuWidth),
+            menu.heightAnchor.constraint(equalToConstant: menu.height()),
+            menu.topAnchor.constraint(equalTo: messageContainer.bottomAnchor, constant: 8)
+        ])
+        
+        let myConstraints = [
+            messageContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            reactionsView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            menu.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+        ]
+        let partnerConstraints: [NSLayoutConstraint] = [
+            reactionsView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            messageContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            menu.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+        ]
+        
+        NSLayoutConstraint.activate(viewModel.calMessage.isMe ? myConstraints : partnerConstraints)
+        
+        addAnimation(reactionsView)
+        addAnimation(messageContainer)
         addAnimation(menu)
-        return menu
     }
     
     private func addAnimation(_ view: UIView) {
@@ -194,22 +226,8 @@ extension MessageContainerStackView {
         view.layer.add(springAnim, forKey: "springAnim")
     }
     
-    private func createReaction(_ viewModel: MessageRowViewModel, _ sizes: Constants.Sizes, _ messageContainer: MessageContainerStackView) async -> UIReactionsPickerScrollView {
-        
-        let reactionsView = UIReactionsPickerScrollView(size: Constants.reactionHeight)
-        reactionsView.frame = .init(x: sizes.reactionX,
-                                    y: messageContainer.frame.origin.y - (Constants.reactionHeight + 8),
-                                    width: Constants.reactionWidth,
-                                    height: reactionViewInitialHeight())
-        reactionsView.setup(viewModel)
-        reactionsView.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
-        
-        let canReact = await viewModel.canReact()
-        reactionsView.isUserInteractionEnabled = canReact
-        reactionsView.isHidden = !canReact
-        
-        addAnimation(reactionsView)
-        return reactionsView
+    @objc private func faketapGesture(_ sender: UIGestureRecognizer) {
+        sender.cancelsTouchesInView = true
     }
     
     private func reactionViewInitialHeight() -> CGFloat {
@@ -217,53 +235,7 @@ extension MessageContainerStackView {
     }
     
     private func allowedReactions() -> [Sticker] {
-        if viewModel?.threadVM?.thread.reactionStatus == .enable { return Sticker.allCases.filter({ $0 != .unknown}) }
-        return viewModel?.threadVM?.reactionViewModel.allowedReactions ?? []
-    }
-    
-    private func getRightY(_ sizes: Constants.Sizes, _ messageContainer: MessageContainerStackView, _ menu: CustomMenu) -> CGFloat {
-        var calculatedY: CGFloat = 0
-        let menuHeight = menu.height()
-        
-        if messageContainer.frame.minY < (sizes.minTopVertical - Constants.reactionHeight) {
-            calculatedY = Constants.reactionHeight
-        } else if messageContainer.frame.maxY > sizes.navFrame.height - (menuHeight + Constants.space) {
-            calculatedY = -((messageContainer.frame.maxY + menuHeight + sizes.maxVertical) - sizes.navFrame.height)
-        }
-        
-        return calculatedY
-    }
-    
-    private func animateToRightVerticalPosition(_ sizes: Constants.Sizes, _ reactionView: UIReactionsPickerScrollView, _ messageContainer: MessageContainerStackView, _ menu: CustomMenu) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            UIView.animate(withDuration: Constants.animateToRightVerticalPosition) {
-                let y = self.getRightY(sizes, messageContainer, menu)
-                messageContainer.frame.origin.y += y
-                reactionView.frame.origin.y += y
-                menu.frame.origin.y += y
-            }
-        }
-    }
-    
-    private var delegate: ThreadViewDelegate? {
-        return viewModel?.threadVM?.delegate
-    }
-    
-    private func indexpath() -> IndexPath? {
-        guard
-            let vm = viewModel,
-            let indexPath = viewModel?.threadVM?.historyVM.mSections.indexPath(for: vm)
-        else { return nil }
-        return indexPath
-    }
-    
-    @objc private func faketapGesture(_ sender: UIGestureRecognizer) {
-        sender.cancelsTouchesInView = true
-    }
-    
-    public func resetOnDismiss() {
-        UIView.animate(withDuration: Constants.scaleUPAnimationDuration) {
-            self.alpha = 1.0
-        }
+        if viewModel.threadVM?.thread.reactionStatus == .enable { return Sticker.allCases.filter({ $0 != .unknown}) }
+        return viewModel.threadVM?.reactionViewModel.allowedReactions ?? []
     }
 }

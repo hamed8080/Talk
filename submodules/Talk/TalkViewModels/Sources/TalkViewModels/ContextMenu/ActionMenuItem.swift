@@ -15,7 +15,7 @@ public class ActionMenuItem: UIView {
     private let separator = UIView()
     private let model: ActionItemModel
     private let action: () -> Void
-    static let height: CGFloat = 36
+    static let height: CGFloat = 42
     public weak var contextMenuContainer: ContextMenuContainerView?
 
     public init(model: ActionItemModel, action: @escaping () -> Void) {
