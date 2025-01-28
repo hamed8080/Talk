@@ -48,6 +48,7 @@ struct SettingsView: View {
                     SettingArchivesSection()
                     AutomaticDownloadSection()
                     SettingAssistantSection()
+                    ManualConnectionManagementSection()
                 }
                 LoadTestsSection()
             }
@@ -357,6 +358,20 @@ struct SettingAssistantSection: View {
     var body: some View {
         ListSectionButton(imageName: "person.fill", title: "Settings.assistants", color: Color.App.color1, showDivider: false) {
             let value = AssistantNavigationValue()
+            navModel.append(value: value)
+        }
+        .listRowInsets(.zero)
+        .listRowBackground(Color.App.bgPrimary)
+        .listRowSeparatorTint(Color.App.dividerPrimary)
+    }
+}
+
+struct ManualConnectionManagementSection: View {
+    @EnvironmentObject var navModel: NavigationModel
+    
+    var body: some View {
+        ListSectionButton(imageName: "rectangle.connected.to.line.below", title: "Settings.manageConnection", color: Color.App.color3, showDivider: false) {
+            let value = ManageConnectionNavigationValue()
             navModel.append(value: value)
         }
         .listRowInsets(.zero)

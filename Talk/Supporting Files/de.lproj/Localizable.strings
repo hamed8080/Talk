@@ -361,6 +361,7 @@ talk.pod.ir";
 "Settings.darkModeEnabled" = "Dunkler Modus";
 "Settings.ManageSessions.title" = "Aktive Sitzungen verwalten";
 "Settings.isAutoPlayVideoEnabled" = "Automatisches Abspielen von Videos";
+"Settings.manageConnection" = "Verbindung verwalten";
 
 /* Support */
 "Support.title" = "Talk messenger";

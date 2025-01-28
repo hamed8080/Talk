@@ -47,7 +47,8 @@ final class ChatDelegateImplementation: ChatDelegate {
                     self.log("🟢 chat ready Called\(String(describing: currentUser))")
                     /// Clear old requests in queue when reconnect again
                     RequestsManager.shared.clear()
-                    AppState.shared.connectionStatus = .connected
+                    AppState.shared.objectsContainer.chatRequestQueue.cancellAll()
+                    AppState.shared.connectionStatus = .connected                    
                 case .uninitialized:
                     self.log("Chat object is not initialized.")
                 }

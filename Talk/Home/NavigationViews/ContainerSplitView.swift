@@ -129,6 +129,8 @@ struct NavigationTypeView: View {
             EditProfileView()
         case .loadTests(_):
             LoadTestsView()
+        case .manageConnection(_):
+            ManuallyConnectionManagerView()
         case .threadDetail(let model):
             ThreadDetailView()
                 .id(model.viewModel.thread?.id)

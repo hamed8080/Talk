@@ -147,6 +147,13 @@ public struct LoadTestsNavigationValue: NavigaitonValueProtocol {
     public init() {}
 }
 
+public struct ManageConnectionNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "Manage Connection"
+    public var navType: NavigationType { .manageConnection(self) }
+
+    public init() {}
+}
+
 public struct ManageSessionsNavigationValue: NavigaitonValueProtocol {
     public var title: String = "Settings.ManageSessions.title"
     public var navType: NavigationType { .manageSessions(self) }

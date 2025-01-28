@@ -23,4 +23,5 @@ public enum NavigationType: Hashable, Sendable {
     case editProfile(EditProfileNavigationValue)
     case manageSessions(ManageSessionsNavigationValue)
     case loadTests(LoadTestsNavigationValue)
+    case manageConnection(ManageConnectionNavigationValue)
 }

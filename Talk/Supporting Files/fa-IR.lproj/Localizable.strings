@@ -362,6 +362,7 @@ talk.pod.ir";
 "Settings.darkModeEnabled" = "حالت شب";
 "Settings.ManageSessions.title" = "دستگاه های فعال";
 "Settings.isAutoPlayVideoEnabled" = "پخش ویدیو به صورت خودکار";
+"Settings.manageConnection" = "مدیریت اتصال";
 
 /* Support */
 "Support.title" = "پیام رسان تاک";

@@ -360,6 +360,7 @@ talk.pod.ir";
 "Settings.darkModeEnabled" = "Mörkt läge";
 "Settings.ManageSessions.title" = "Hantera aktiva sessioner";
 "Settings.isAutoPlayVideoEnabled" = "Spelar upp videor automatiskt";
+"Settings.manageConnection" = "Hantera anslutning";
 
 /* Support */
 "Support.title" = "Talk messenger";

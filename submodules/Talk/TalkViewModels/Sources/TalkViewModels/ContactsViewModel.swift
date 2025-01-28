@@ -56,7 +56,7 @@ public class ContactsViewModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self = self else { return }
                     if !self.isBuilder, self.firstSuccessResponse == false, status == .connected {
-                        await self.getContacts()
+                        await self.onConnectedGetContacts()
                     }
                 }
         }
@@ -158,6 +158,14 @@ public class ContactsViewModel: ObservableObject {
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.contact.get(req)
         }
+    }
+    
+    @MainActor
+    public func onConnectedGetContacts() async {
+        lazyList.setLoading(true)
+        let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
+        RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
+        AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getContacts(req: req))
     }
 
     @MainActor

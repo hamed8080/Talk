@@ -66,7 +66,7 @@ extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
     func onStableVisibleMessages(_ messages: [HistoryMessageType]) async {
         let invalidVisibleMessages = await getInvalidVisibleMessages().compactMap({$0 as? Message})
         if invalidVisibleMessages.count > 0 {
-            await viewModel?.reactionViewModel.fetchReactions(messages: invalidVisibleMessages)
+            await viewModel?.reactionViewModel.fetchReactions(messages: invalidVisibleMessages, withQueue: false)
         }
     }
 }
@@ -224,7 +224,7 @@ extension ThreadHistoryViewModel {
         if await canGetNewMessagesAfterConnectionEstablished(status), let lastMessageInListTime = sections.last?.vms.last?.message.time {
             await showBottomLoading(true)
             let req = await makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
-            doRequest(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
+            await doRequestQueue(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
         }
     }
 
@@ -565,6 +565,13 @@ extension ThreadHistoryViewModel {
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.message.history(req)
         }
+    }
+    
+    private func doRequestQueue(_ req: GetHistoryRequest, _ prepend: String, _ store: OnMoveTime? = nil) async {
+        print("called the request")
+        RequestsManager.shared.append(prepend: prepend, value: store ?? req)
+        logHistoryRequest(req: req)
+        await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.history(req: req))
     }
 
     private func makeRequest(fromTime: UInt? = nil, toTime: UInt? = nil, offset: Int?) async -> GetHistoryRequest {
@@ -1160,7 +1167,7 @@ extension ThreadHistoryViewModel {
     private func fetchReactions(messages: [HistoryMessageType]) {
         if viewModel?.searchedMessagesViewModel.isInSearchMode == false {
             Task {
-                await viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}))
+                await viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}), withQueue: false)
             }
         }
     }

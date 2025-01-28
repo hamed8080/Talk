@@ -132,19 +132,23 @@ public final class ThreadReactionViewModel {
         await clearReactionsOnReconnect()
     }
 
-    internal func fetchReactions(messages: [Message]) async {
+    internal func fetchReactions(messages: [Message], withQueue: Bool) async {
         guard threadVM?.searchedMessagesViewModel.isInSearchMode == false else { return}
         let messageIds = messages
             .filter({$0.id ?? -1 > 0})
             .filter({$0.reactionableType})
             .compactMap({$0.id})
         inQueueToGetReactions.append(contentsOf: messageIds)
-        await getReactionSummary(messageIds, conversationId: threadId)
+        await getReactionSummary(messageIds, conversationId: threadId, withQueue: withQueue)
     }
     
     @ChatGlobalActor
-    private func getReactionSummary(_ messageIds: [Int], conversationId: Int) async {
-        await ChatManager.activeInstance?.reaction.count(.init(messageIds: messageIds, conversationId: threadId))
+    private func getReactionSummary(_ messageIds: [Int], conversationId: Int, withQueue: Bool) async {
+        if withQueue {
+            await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.reactionCount(req: .init(messageIds: messageIds, conversationId: threadId)))
+        } else {
+            await ChatManager.activeInstance?.reaction.count(.init(messageIds: messageIds, conversationId: threadId))
+        }
     }
 
     internal func onReactionCountList(_ response: ChatResponse<[ReactionCountList]>) async {
@@ -251,7 +255,7 @@ public final class ThreadReactionViewModel {
 
     internal func fetchVisibleReactionsOnReconnect() async {
         let visibleMessages = await (threadVM?.historyVM.getInvalidVisibleMessages() ?? []).compactMap({$0 as? Message})
-        await fetchReactions(messages: visibleMessages)
+        await fetchReactions(messages: visibleMessages, withQueue: true)
     }
 
     deinit {

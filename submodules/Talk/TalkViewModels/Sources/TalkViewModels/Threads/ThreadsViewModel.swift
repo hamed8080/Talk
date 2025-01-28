@@ -111,15 +111,19 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     @MainActor
-    public func getThreads() async {
+    public func getThreads(withQueue: Bool = false) async {
         if !firstSuccessResponse {
             shimmerViewModel.show()
         }
         lazyList.setLoading(true)
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
         RequestsManager.shared.append(prepend: GET_THREADS_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
+        if withQueue {
+            AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getConversations(req: req))
+        } else {
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.conversation.get(req)
+            }
         }
     }
 
@@ -220,7 +224,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func refresh() async {
         cache = false
         await silentClear()
-        await getThreads()
+        await getThreads(withQueue: true)
         cache = true
     }
 
