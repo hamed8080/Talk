@@ -49,7 +49,7 @@ public class ContextMenuContainerView: UIView {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(scrollView)
 
-        contentView.backgroundColor = .red
+        contentView.backgroundColor = .clear
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideAndCall))
