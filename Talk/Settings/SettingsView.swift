@@ -48,9 +48,7 @@ struct SettingsView: View {
                     SettingArchivesSection()
                     AutomaticDownloadSection()
                     SettingAssistantSection()
-                    ManualConnectionManagementSection()
                 }
-                LoadTestsSection()
             }
 
             Group {
@@ -61,6 +59,11 @@ struct SettingsView: View {
                 SupportSection()
 
                 VersionNumberView()
+                if EnvironmentValues.isTalkTest {
+                    TokenExpireTimeSection()
+                    LoadTestsSection()
+                    ManualConnectionManagementSection()
+                }
             }
             .listRowSeparator(.hidden)
         }
@@ -319,7 +322,6 @@ struct BlockedMessageSection: View {
 }
 
 struct SupportSection: View {
-    @EnvironmentObject var tokenManagerVM: TokenManager
     @EnvironmentObject var navModel: NavigationModel
     @EnvironmentObject var container: ObjectsContainer
 
@@ -338,17 +340,21 @@ struct SupportSection: View {
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
+    }
+}
 
-        if EnvironmentValues.isTalkTest {
-            let secondToExpire = tokenManagerVM.secondToExpire.formatted(.number.precision(.fractionLength(0)))
-            ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", color: Color.App.color3, showDivider: false, shownavigationButton: false)
-                .listRowInsets(.zero)
-                .listRowBackground(Color.App.bgPrimary)
-                .listRowSeparatorTint(Color.clear)
-                .onAppear {
-                    tokenManagerVM.startTokenTimer()
-                }
-        }
+struct TokenExpireTimeSection: View {
+    @EnvironmentObject var tokenManagerVM: TokenManager
+    
+    var body: some View {
+        let secondToExpire = tokenManagerVM.secondToExpire.formatted(.number.precision(.fractionLength(0)))
+        ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", color: Color.App.color3, showDivider: false, shownavigationButton: false)
+            .listRowInsets(.zero)
+            .listRowBackground(Color.App.bgPrimary)
+            .listRowSeparatorTint(Color.clear)
+            .onAppear {
+                tokenManagerVM.startTokenTimer()
+            }
     }
 }
 

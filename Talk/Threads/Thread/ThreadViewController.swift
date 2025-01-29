@@ -623,8 +623,12 @@ extension ThreadViewController: HistoryScrollDelegate {
         } else {
             tableView.performBatchUpdates { [weak self] in
                 // Insert the sections and rows without animation
-                self?.tableView.insertSections(sections, with: .none)
-                self?.tableView.insertRows(at: rows, with: .none)
+                if !sections.isEmpty {
+                    self?.tableView.insertSections(sections, with: .none)
+                }
+                if !rows.isEmpty {
+                    self?.tableView.insertRows(at: rows, with: .none)
+                }
             }
         }
     }

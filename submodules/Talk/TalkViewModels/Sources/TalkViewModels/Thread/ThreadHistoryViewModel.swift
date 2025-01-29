@@ -503,7 +503,6 @@ extension ThreadHistoryViewModel {
     }
 
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
-        let bottomVMBeforeJoin = sections.last?.vms.last
         let messages = response.result ?? []
         let beforeSectionCount = sections.count
         let sortedMessages = messages.sortedByTime()
