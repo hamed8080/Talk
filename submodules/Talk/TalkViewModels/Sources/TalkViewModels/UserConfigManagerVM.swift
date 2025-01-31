@@ -63,10 +63,10 @@ public final class UserConfigManagerVM: ObservableObject, @preconcurrency Equata
 
     public func createChatObjectAndConnect(userId: Int?, config: ChatConfig, delegate: ChatDelegate?) {
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.dispose()
+            await ChatManager.activeInstance?.dispose()
             ChatManager.instance.createOrReplaceUserInstance(userId: userId, config: config)
             ChatManager.activeInstance?.delegate = delegate
-            ChatManager.activeInstance?.connect()
+            await ChatManager.activeInstance?.connect()
         }
     }
 

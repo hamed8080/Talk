@@ -13,7 +13,7 @@ import Logger
 import TalkExtensions
 
 @MainActor
-public final class TokenManager: ObservableObject, @unchecked Sendable {
+public final class TokenManager: ObservableObject {
     public static let shared = TokenManager()
     @Published public var secondToExpire: Double = 0
     @Published public private(set) var isLoggedIn = false // to update login logout ui
@@ -108,7 +108,7 @@ public final class TokenManager: ObservableObject, @unchecked Sendable {
         await MainActor.run {
             saveSSOToken(ssoToken: ssoToken)
             Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.setToken(newToken: ssoToken.accessToken ?? "", reCreateObject: false)
+                await ChatManager.activeInstance?.setToken(newToken: ssoToken.accessToken ?? "", reCreateObject: false)
             }
             if AppState.shared.connectionStatus != .connected {
                 AppState.shared.connectionStatus = .connected

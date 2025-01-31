@@ -35,7 +35,7 @@ struct ManuallyConnectionManagerView: View {
             VStack {
                 SubmitBottomButton(text: "Revoke Token", color: Color.App.red) {
                     Task { @ChatGlobalActor in
-                        ChatManager.activeInstance?.setToken(newToken: "revoked_token", reCreateObject: false)
+                        await ChatManager.activeInstance?.setToken(newToken: "revoked_token", reCreateObject: false)
                     }
                 }
                 
@@ -55,7 +55,7 @@ struct ManuallyConnectionManagerView: View {
 
                 SubmitBottomButton(text: "Close connections", color: Color.App.red) {
                     Task { @ChatGlobalActor in
-                        ChatManager.activeInstance?.dispose()
+                        await ChatManager.activeInstance?.dispose()
                     }
                 }
             }
@@ -65,8 +65,8 @@ struct ManuallyConnectionManagerView: View {
                 let recreate = recreate
                 let token = token
                 Task { @ChatGlobalActor in
-                    ChatManager.activeInstance?.dispose()
-                    ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: recreate)
+                    await ChatManager.activeInstance?.dispose()
+                    await ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: recreate)
                 }
             }
         }

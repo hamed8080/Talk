@@ -9,7 +9,7 @@ import UIKit
 import SwiftUI
 
 @HistoryActor
-public final class ParticipantsColorViewModel: @unchecked Sendable {
+public final class ParticipantsColorViewModel {
     private var participantsColor: [Int: UIColor] = [:]
     private var reservedColors: [Int] = []
     nonisolated public init() { }
