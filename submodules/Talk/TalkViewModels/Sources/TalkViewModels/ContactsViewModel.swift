@@ -162,6 +162,7 @@ public class ContactsViewModel: ObservableObject {
     
     @MainActor
     public func onConnectedGetContacts() async {
+        await try? Task.sleep(200)
         lazyList.setLoading(true)
         let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
         RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
