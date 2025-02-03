@@ -19,6 +19,7 @@ public final class AttachmentFileCell: UITableViewCell {
     private let imgIcon = PaddingUIImageView()
     private let lblTitle = UILabel()
     private let lblSubtitle = UILabel()
+    private let imgIcloudDonwloading = PaddingUIImageView()
     private let btnRemove = UIButton(type: .system)
 
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -56,7 +57,15 @@ public final class AttachmentFileCell: UITableViewCell {
         btnRemove.tintColor = Color.App.textSecondaryUIColor
         btnRemove.accessibilityIdentifier = "btnRemoveAttachmentFileCell"
         btnRemove.addTarget(self, action: #selector(removeTapped), for: .touchUpInside)
-
+        
+        imgIcloudDonwloading.translatesAutoresizingMaskIntoConstraints = false
+        imgIcloudDonwloading.layer.cornerRadius = 6
+        imgIcloudDonwloading.layer.masksToBounds = true
+        imgIcloudDonwloading.accessibilityIdentifier = "imgIcloudDonwloadingAttachmentFileCell"
+        imgIcloudDonwloading.tintColor = Color.App.accentUIColor
+        imgIcloudDonwloading.set(image: UIImage(systemName: "icloud") ?? .init(), inset: .init(all: 2))
+        imgIcloudDonwloading.isHidden = true
+        
         imgIcon.translatesAutoresizingMaskIntoConstraints = false
         imgIcon.layer.cornerRadius = 6
         imgIcon.layer.masksToBounds = true
@@ -73,6 +82,7 @@ public final class AttachmentFileCell: UITableViewCell {
 
         hStack.addArrangedSubview(imgIcon)
         hStack.addArrangedSubview(vStack)
+        hStack.addArrangedSubview(imgIcloudDonwloading)
         hStack.addArrangedSubview(btnRemove)
 
         contentView.addSubview(hStack)
@@ -82,6 +92,9 @@ public final class AttachmentFileCell: UITableViewCell {
             imgIcon.widthAnchor.constraint(equalToConstant: 32),
             imgIcon.heightAnchor.constraint(equalToConstant: 32),
             imgIcon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            imgIcloudDonwloading.trailingAnchor.constraint(equalTo: btnRemove.leadingAnchor, constant: -8),
+            imgIcloudDonwloading.widthAnchor.constraint(equalToConstant: 28),
+            imgIcloudDonwloading.heightAnchor.constraint(equalToConstant: 28),
             btnRemove.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             btnRemove.widthAnchor.constraint(equalToConstant: 28),
             btnRemove.heightAnchor.constraint(equalToConstant: 28),
@@ -95,6 +108,7 @@ public final class AttachmentFileCell: UITableViewCell {
         let imageItem = attachment.request as? ImageItem
         let isVideo = imageItem?.isVideo == true
         let icon = attachment.icon
+        let showIcouldDownloadImage = imageItem?.progress?.isFinished == false && imageItem != nil
 
         if icon != nil || isVideo {
             let image = UIImage(systemName: isVideo ? "film.fill" : icon ?? "")
@@ -106,6 +120,7 @@ public final class AttachmentFileCell: UITableViewCell {
                 }
             }
         }
+        imgIcloudDonwloading.isHidden = !showIcouldDownloadImage
     }
     
     @AppBackgroundActor

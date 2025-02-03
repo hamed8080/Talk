@@ -145,10 +145,6 @@ public final class SendContainerViewModel: ObservableObject {
         (thread.admin == false || thread.admin == nil) &&
         !(mode.type == .edit)
     }
-    
-    public func disableSend() -> Bool {
-        thread.disableSend && !(mode.type == .edit) && !canShowMuteChannelBar()
-    }
 
     public func showSendButton(mode: SendcContainerMode) -> Bool {
         !isTextEmpty() ||

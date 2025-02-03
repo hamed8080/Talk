@@ -176,6 +176,13 @@ public final class MainSendButtons: UIStackView {
             disableButtonPicker(disable: viewModel.disableButtonPicker(mode: newMode))
         }
         .store(in: &cancellableSet)
+        
+        threadVM?.attachmentsViewModel.objectWillChange.sink { [weak self] in
+            guard let self = self else { return }
+            let disable = threadVM?.attachmentsViewModel.attachementsReady == false
+            disableSendButton(disable)
+        }
+        .store(in: &cancellableSet)
     }
     
     private func registerAttachmentsChange() {
@@ -361,6 +368,14 @@ public final class MainSendButtons: UIStackView {
 
     private func showSendButton(_ show: Bool) {
         btnSend.showWithAniamtion(show)
+    }
+    
+    private func disableSendButton(_ disable: Bool) {
+        UIView.animate(withDuration: 0.25) { [weak self] in
+            guard let self = self else { return }
+            btnSend.isUserInteractionEnabled = !disable
+            btnSend.alpha = disable ? 0.5 : 1
+        }
     }
 
     private func showMicButton(_ show: Bool) {

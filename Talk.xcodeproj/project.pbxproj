@@ -428,8 +428,8 @@
 		05DCC0652AE183EA0025B3B7 /* ConversationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DCC0642AE183EA0025B3B7 /* ConversationBuilder.swift */; };
 		05DCC0662AE187D80025B3B7 /* ConversationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DCC0642AE183EA0025B3B7 /* ConversationBuilder.swift */; };
 		05DDC8482AEC240D009F9942 /* ActionableContextMenu in Frameworks */ = {isa = PBXBuildFile; productRef = 05DDC8472AEC240D009F9942 /* ActionableContextMenu */; };
-		05E781EE2C2060CA002262AD /* GallleryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781ED2C2060CA002262AD /* GallleryViewController.swift */; };
-		05E781EF2C2060CA002262AD /* GallleryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781ED2C2060CA002262AD /* GallleryViewController.swift */; };
+		05E781EE2C2060CA002262AD /* GallleryMediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781ED2C2060CA002262AD /* GallleryMediaPickerViewController.swift */; };
+		05E781EF2C2060CA002262AD /* GallleryMediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781ED2C2060CA002262AD /* GallleryMediaPickerViewController.swift */; };
 		05E781F12C2062FA002262AD /* AttchmentButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781F02C2062FA002262AD /* AttchmentButton.swift */; };
 		05E781F22C2062FA002262AD /* AttchmentButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781F02C2062FA002262AD /* AttchmentButton.swift */; };
 		05E781F42C2064C4002262AD /* DocumnetPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781F32C2064C4002262AD /* DocumnetPickerViewController.swift */; };
@@ -744,7 +744,7 @@
 		05DAA4312B29BEBC007427DC /* ContactListSearchBarFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListSearchBarFilterView.swift; sourceTree = "<group>"; };
 		05DAA4342B29BF39007427DC /* ContactListToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListToolbar.swift; sourceTree = "<group>"; };
 		05DCC0642AE183EA0025B3B7 /* ConversationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationBuilder.swift; sourceTree = "<group>"; };
-		05E781ED2C2060CA002262AD /* GallleryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GallleryViewController.swift; sourceTree = "<group>"; };
+		05E781ED2C2060CA002262AD /* GallleryMediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GallleryMediaPickerViewController.swift; sourceTree = "<group>"; };
 		05E781F02C2062FA002262AD /* AttchmentButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttchmentButton.swift; sourceTree = "<group>"; };
 		05E781F32C2064C4002262AD /* DocumnetPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumnetPickerViewController.swift; sourceTree = "<group>"; };
 		05E781F62C20668B002262AD /* ExpandView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandView.swift; sourceTree = "<group>"; };
@@ -1415,7 +1415,7 @@
 			isa = PBXGroup;
 			children = (
 				0570CB7E2AAEE98C001832E9 /* MapPickerViewController.swift */,
-				05E781ED2C2060CA002262AD /* GallleryViewController.swift */,
+				05E781ED2C2060CA002262AD /* GallleryMediaPickerViewController.swift */,
 				05E781F32C2064C4002262AD /* DocumnetPickerViewController.swift */,
 			);
 			path = Pickers;
@@ -1725,7 +1725,7 @@
 				0570CC0F2AAEE98F001832E9 /* FooterView.swift in Sources */,
 				05C27F982AF4AFF60008FE2E /* ConversationPlusContextMenu.swift in Sources */,
 				0595483C2C5A63F300F10C1E /* BackgroundLabelView.swift in Sources */,
-				05E781EE2C2060CA002262AD /* GallleryViewController.swift in Sources */,
+				05E781EE2C2060CA002262AD /* GallleryMediaPickerViewController.swift in Sources */,
 				05745AF32AF2B1B100102193 /* SettingProfileButton.swift in Sources */,
 				052CA3DE2BA4162600E38E19 /* ThreadEventView.swift in Sources */,
 				0570CBF12AAEE98F001832E9 /* ThreadLastMessageView.swift in Sources */,
@@ -1939,7 +1939,7 @@
 				052330142CBCD24200FE3F48 /* AdminLimitHistoryTimeDialog.swift in Sources */,
 				0570CC102AAEE98F001832E9 /* FooterView.swift in Sources */,
 				05C27F992AF4AFF60008FE2E /* ConversationPlusContextMenu.swift in Sources */,
-				05E781EF2C2060CA002262AD /* GallleryViewController.swift in Sources */,
+				05E781EF2C2060CA002262AD /* GallleryMediaPickerViewController.swift in Sources */,
 				0595483D2C5A63F300F10C1E /* BackgroundLabelView.swift in Sources */,
 				05745AF42AF2B1B100102193 /* SettingProfileButton.swift in Sources */,
 				052CA3DF2BA4162600E38E19 /* ThreadEventView.swift in Sources */,
