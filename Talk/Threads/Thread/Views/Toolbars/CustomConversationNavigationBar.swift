@@ -44,8 +44,9 @@ public class CustomConversationNavigationBar: UIView {
         titlebutton.translatesAutoresizingMaskIntoConstraints = false
         let title = viewModel?.thread.titleRTLString ?? ""
         let replacedEmoji = title.stringToScalarEmoji()
+        let replacedDoubleQuotation = replacedEmoji.strinDoubleQuotation()
         
-        let attributedString = NSMutableAttributedString(string: replacedEmoji)
+        let attributedString = NSMutableAttributedString(string: replacedDoubleQuotation)
         if viewModel?.thread.isTalk == true {
             attributedString.append(NSAttributedString(string: " ")) // Space
             

@@ -224,4 +224,8 @@ public extension String {
         }
         return result
     }
+    
+    func strinDoubleQuotation() -> String {
+        self.replacingOccurrences(of: "&#34;", with: "\"")
+    }
 }
