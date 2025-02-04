@@ -252,6 +252,7 @@ extension ThreadViewController {
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
             self.moveToBottom.showWithAniamtion(false)
+            view.bringSubviewToFront(vStackOverlayButtons)
         }
     }
 }
