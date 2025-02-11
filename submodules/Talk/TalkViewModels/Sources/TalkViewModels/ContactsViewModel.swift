@@ -178,7 +178,7 @@ public class ContactsViewModel: ObservableObject {
         } else if searchType == .cellphoneNumber {
             req = ContactsRequest(cellphoneNumber: searchText)
         } else {
-            req = ContactsRequest(query: searchText)
+            req = ContactsRequest(q: searchText)
         }
         RequestsManager.shared.append(prepend: SEARCH_CONTACTS_KEY, value: req)
         Task { @ChatGlobalActor in
@@ -345,6 +345,43 @@ public class ContactsViewModel: ObservableObject {
             ChatManager.activeInstance?.contact.add(req)
         }
     }
+    
+    @MainActor
+    public func updateContact(contactId: Int,
+                              contactValue: String,
+                              firstName: String?,
+                              lastName: String?
+    ) async {
+        lazyList.setLoading(true)
+        let req: UpdateContactRequest
+        let isNumber = ContactsViewModel.isNumber(value: contactValue)
+        let isEmail = ContactsViewModel.isEmail(value: contactValue)
+        if isNumber, contactValue.count < 10 {
+            req = UpdateContactRequest(id: contactId,
+                                 cellphoneNumber: contactValue,
+                                 email: nil,
+                                 username: nil,
+                                 firstName: firstName ?? "",
+                                 lastName: lastName ?? "")
+        } else if isEmail {
+            req = UpdateContactRequest(id: contactId,
+                                 cellphoneNumber: nil,
+                                 email: contactValue,
+                                 username: nil,
+                                 firstName: firstName ?? "",
+                                 lastName: lastName ?? "")
+        } else {
+            req = UpdateContactRequest(id: contactId,
+                                 cellphoneNumber: nil,
+                                 email: nil,
+                                 username: contactValue,
+                                 firstName: firstName ?? "",
+                                 lastName: lastName ?? "")
+        }
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.update(req)
+        }
+    }
 
     public func firstContact(_ contact: Contact) -> Contact? {
         contacts.first { $0.id == contact.id }
@@ -354,6 +391,13 @@ public class ContactsViewModel: ObservableObject {
         let phoneRegex = "^[0-9]*$"
         let phoneTest = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
         let result = phoneTest.evaluate(with: value)
+        return result
+    }
+    
+    public static func isEmail(value: String) -> Bool {
+        let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        let emailTest = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        let result = emailTest.evaluate(with: emailRegex)
         return result
     }
 

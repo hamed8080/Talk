@@ -20,7 +20,7 @@
     {
         "socketAddresss": "wss://msg.pod.ir/ws",
         "ssoHost": "https://accounts.pod.ir",
-        "platformHost": "https://api.pod.ir/srv/core",
+        "platformHost": "https://api.pod.ir/srv/social",
         "fileServer": "https://podspace.pod.ir",
         "peerName": "chat-server",
         "debugToken": null,

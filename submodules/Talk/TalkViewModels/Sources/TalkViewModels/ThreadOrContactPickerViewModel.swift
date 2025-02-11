@@ -103,7 +103,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             ChatManager.activeInstance?.conversation.get(req)
         }
 
-        let contactsReq = ContactsRequest(query: text)
+        let contactsReq = ContactsRequest(q: text)
         RequestsManager.shared.append(prepend: GET_CONTCATS_IN_SELECT_CONTACT_KEY, value: contactsReq)
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.contact.get(contactsReq)

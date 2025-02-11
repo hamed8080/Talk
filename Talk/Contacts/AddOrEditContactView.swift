@@ -140,7 +140,14 @@ struct AddOrEditContactView: View {
 
     func submit() async {
         /// Add or edit use same method.
-        await viewModel.addContact(contactValue: contactValue, firstName: firstName, lastName: lastName)
+        if let id = editContact?.id, isInEditMode {
+            await viewModel.updateContact(contactId: id,
+                                          contactValue: contactValue,
+                                          firstName: firstName,
+                                          lastName: lastName)
+        } else {
+            await viewModel.addContact(contactValue: contactValue, firstName: firstName, lastName: lastName)
+        }
     }
 
     func optioanlAPpend(text: String) -> String {

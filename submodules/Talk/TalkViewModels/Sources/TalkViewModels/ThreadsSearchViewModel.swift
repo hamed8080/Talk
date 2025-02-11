@@ -214,7 +214,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             let searchResultValue = String(searchText[startIndex..<searchText.endIndex])
             req = ContactsRequest(cellphoneNumber: searchResultValue)
         } else {
-            req = ContactsRequest(query: searchText)
+            req = ContactsRequest(q: searchText)
         }
         RequestsManager.shared.append(prepend: SEARCH_CONTACTS_IN_THREADS_LIST_KEY, value: req)
         Task { @ChatGlobalActor in
