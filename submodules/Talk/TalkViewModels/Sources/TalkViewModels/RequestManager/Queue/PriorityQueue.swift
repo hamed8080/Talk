@@ -25,4 +25,12 @@ public struct PriorityQueue<Element: Comparable> {
     public func isEmpty() -> Bool {
         return elements.isEmpty
     }
+    
+    public mutating func remove(at index: Int) {
+        elements.remove(at: index)
+    }
+    
+    public func firstIndex(where predicate: (Element) -> Bool ) -> Int? {
+        elements.firstIndex(where: predicate)
+    }
 }
