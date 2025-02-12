@@ -38,10 +38,10 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         }
         
         // MARK: Registering Launch Handlers for Tasks
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).refreshToken", using: nil) { task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).refreshToken", using: nil) { [weak self] task in
             // Downcast the parameter to an app refresh task as this identifier is used for a refresh request.
             if let task = task as? BGAppRefreshTask {
-                self.handleTaskRefreshToken(task)
+                self?.handleTaskRefreshToken(task)
             }
         }
     }

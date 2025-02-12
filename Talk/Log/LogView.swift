@@ -119,7 +119,7 @@ struct LogView: View {
     private var saveButton: some View {
         Button {
             Task {
-                await viewModel.startExporting()
+                await viewModel.startExporting(logs: viewModel.logs)
             }
         } label: {
             Label {
