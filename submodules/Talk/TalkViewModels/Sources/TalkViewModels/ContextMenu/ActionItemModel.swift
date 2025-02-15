@@ -35,4 +35,5 @@ public extension ActionItemModel {
     nonisolated(unsafe) static let unpin = ActionItemModel(title: "Messages.ActionMenu.unpinMessage", image: "pin.slash")
     nonisolated(unsafe) static let select = ActionItemModel(title: "General.select", image: "checkmark.circle")
     nonisolated(unsafe) static let delete = ActionItemModel(title: "General.delete", image: "trash", color: .systemRed)
+    nonisolated(unsafe) static func debugPrint(id: Int) -> ActionItemModel { ActionItemModel(title: "\(id)", image: "info") }
 }

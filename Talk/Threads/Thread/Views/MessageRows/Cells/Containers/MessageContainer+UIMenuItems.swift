@@ -99,6 +99,14 @@ extension MessageContainerStackView {
             }
             menu.addItem(deleteCacheAction)
         }
+        
+        if EnvironmentValues.isTalkTest {
+            let printMessageDebug = ActionMenuItem(model: .debugPrint(id: model.message.id ?? -1)) { [weak self] in
+                self?.onPrintDebug(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(printMessageDebug)
+        }
 
         let isPinned = message.id == threadVM?.thread.pinMessage?.id && threadVM?.thread.pinMessage != nil
         if threadVM?.thread.admin == true {
@@ -217,6 +225,11 @@ private extension MessageContainerStackView {
                 }
             }
         }
+    }
+    
+    func onPrintDebug(_ model: ActionModel) {
+        UIPasteboard.general.string = "\(model.message.id ?? -1)"
+        dump(model.message)
     }
 
     func onDeleteAction(_ model: ActionModel) {

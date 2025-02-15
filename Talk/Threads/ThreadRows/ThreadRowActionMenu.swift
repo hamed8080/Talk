@@ -57,6 +57,11 @@ struct ThreadRowActionMenu: View {
                     onInviteTapped()
                 }
             }
+            
+            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info") {
+                UIPasteboard.general.string = "\(thread.id ?? -1)"
+                dump(thread)
+            }
         }
 
         Divider()
