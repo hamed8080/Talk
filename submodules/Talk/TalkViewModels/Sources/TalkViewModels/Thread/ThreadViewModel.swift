@@ -387,8 +387,9 @@ public final class ThreadViewModel {
     }
 
     deinit {
-        Task { @MainActor [weak self] in
-            self?.log("deinit called in class ThreadViewModel: \(self?.thread.title ?? "")")
+        let title = thread.title ?? ""
+        Task { @MainActor [weak self, title] in
+            self?.log("deinit called in class ThreadViewModel: \(title)")
         }
     }
 }

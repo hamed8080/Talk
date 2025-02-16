@@ -39,13 +39,13 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden)
                 SettingLanguageSection()
                 SettingSettingSection()
+                SettingArchivesSection()
                 if EnvironmentValues.isTalkTest {
                     SettingLogSection()
                     BlockedMessageSection()
                     // SettingCallHistorySection()
                     // SettingSavedMessagesSection()
                     // SettingCallSection()
-                    SettingArchivesSection()
                     AutomaticDownloadSection()
                     SettingAssistantSection()
                 }
