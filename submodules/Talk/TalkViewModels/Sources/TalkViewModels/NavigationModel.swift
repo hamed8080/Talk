@@ -93,12 +93,12 @@ public extension NavigationModel {
         append(thread: thread)
     }
 
-    func append(thread: Conversation, created: Bool = false) {
+    func append(thread: Conversation) {
         Task { @MainActor in
-            let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
-            Task { @HistoryActor in
-                await viewModel.historyVM.setCreated(created) 
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                try? await Task.sleep(for: .seconds(0.5))
             }
+            let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
             let value = ConversationNavigationValue(viewModel: viewModel)
             append(value: value)
             selectedId = thread.id

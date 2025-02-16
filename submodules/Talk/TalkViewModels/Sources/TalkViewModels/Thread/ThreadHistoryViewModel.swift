@@ -24,7 +24,6 @@ public final class ThreadHistoryViewModel {
     private var deleteQueue = DeleteMessagesQueue()
 
     private var threshold: CGFloat = 800
-    private var created: Bool = false
     private var topLoading = false
     private var centerLoading = false
     private var bottomLoading = false
@@ -1226,11 +1225,7 @@ extension ThreadHistoryViewModel {
             await showCenterLoading(false)
         }
     }
-
-    internal func setCreated(_ created: Bool) {
-        self.created = created
-    }
-
+    
     public func setThreashold(_ threshold: CGFloat) {
         self.threshold = threshold
     }

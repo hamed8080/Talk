@@ -165,7 +165,7 @@ public extension AppState {
 
     func showThread(_ conversation: Conversation, created: Bool = false) {
         isLoading = false
-        objectsContainer.navVM.append(thread: conversation, created: created)
+        objectsContainer.navVM.append(thread: conversation)
     }
 
     func openThread(contact: Contact) {
