@@ -176,7 +176,7 @@ fileprivate class MessageContextMenuContentView: UIView {
             bottomAnchor.constraint(equalTo: menu.bottomAnchor, constant: 46),
             
             // ReactionsView
-            reactionsView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            reactionsView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 16),
             reactionsView.widthAnchor.constraint(equalToConstant: 320),
             reactionHeightConstraint,
             
