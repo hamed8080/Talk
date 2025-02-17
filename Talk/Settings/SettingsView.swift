@@ -353,7 +353,9 @@ struct TokenExpireTimeSection: View {
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.clear)
             .onAppear {
+#if DEBUG
                 tokenManagerVM.startTokenTimer()
+#endif
             }
     }
 }

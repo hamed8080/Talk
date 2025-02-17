@@ -21,11 +21,14 @@ public final class TokenManager: ObservableObject {
     public static let ssoTokenCreateDate = "ssoTokenCreateDate"
     public let session: URLSession
     public var isInFetchingRefreshToken = false
-
+    
     private init(session: URLSession = .shared) {
         self.session = session
+        Task {
+            await self.startRefreshTokenTimerWhenIsInForeground()
+        }
     }
-
+    
     public func getPKCENewTokenWithRefreshToken() async {
         guard let ssoTokenModel = await getSSOTokenFromUserDefaultsAsync(),
               let codeVerifier = ssoTokenModel.codeVerifier
@@ -48,7 +51,7 @@ public final class TokenManager: ObservableObject {
     private func decodeSSOToken(data: Data) throws -> SSOTokenResponse {
         try JSONDecoder().decode(SSOTokenResponse.self, from: data)
     }
-
+    
     private func pkceURLRequest(refreshToken: String, codeVerifier: String) -> URLRequest {
         let clientId = "88413l69cd4051a039cf115ee4e073"
         let url = URL(string: AppRoutes(serverType: .main).ssoToken)!
@@ -59,7 +62,7 @@ public final class TokenManager: ObservableObject {
         urlReq.allHTTPHeaderFields = ["content-type": "application/x-www-form-urlencoded"]
         return urlReq
     }
-
+    
     private func otpURLrequest(refreshToken: String, keyId: String) async -> URLRequest {
         let config = await config()
         let serverType = Config.serverType(config: config) ?? .main
@@ -81,8 +84,8 @@ public final class TokenManager: ObservableObject {
         try await getOTPNewTokenWithRefreshToken()
         isInFetchingRefreshToken = false
     }
-
-    public func getOTPNewTokenWithRefreshToken() async throws {
+    
+    private func getOTPNewTokenWithRefreshToken() async throws {
         guard let ssoTokenModel = await getSSOTokenFromUserDefaultsAsync(),
               let keyId = ssoTokenModel.keyId
         else { return }
@@ -120,13 +123,13 @@ public final class TokenManager: ObservableObject {
             }
         }
     }
-
+    
     private func onRefreshTokenError(error: Error) {
         let log = Log(prefix: "TALK_APP", time: .now, message: error.localizedDescription, level: .error, type: .sent, userInfo: nil)
         post(log: log)
         self.log("error on getNewTokenWithRefreshToken:\(error.localizedDescription)")
     }
-
+    
     @discardableResult
     public func getSSOTokenFromUserDefaults() -> SSOTokenResponse? {
         if let data = UserDefaults.standard.data(forKey: TokenManager.ssoTokenKey), let ssoToken = try? JSONDecoder().decode(SSOTokenResponse.self, from: data) {
@@ -145,12 +148,12 @@ public final class TokenManager: ObservableObject {
             return nil
         }
     }
-
+    
     /// For checking the user is login at application launch
     public func initSetIsLogin() {
         isLoggedIn = getSSOTokenFromUserDefaults() != nil
     }
-
+    
     public func saveSSOToken(ssoToken: SSOTokenResponse) {
         let data = (try? JSONEncoder().encode(ssoToken)) ?? Data()
         let str = String(data: data, encoding: .utf8)
@@ -167,7 +170,7 @@ public final class TokenManager: ObservableObject {
         }
         setIsLoggedIn(isLoggedIn: true)
     }
-
+    
     public func refreshCreateTokenDate() {
         Task.detached(priority: .background) {
             await MainActor.run {
@@ -175,11 +178,11 @@ public final class TokenManager: ObservableObject {
             }
         }
     }
-
+    
     public func getCreateTokenDate() -> Date? {
         UserDefaults.standard.value(forKey: TokenManager.ssoTokenCreateDate) as? Date
     }
-
+    
     public func setIsLoggedIn(isLoggedIn: Bool) {
         Task { [weak self] in
             guard let self = self else { return }
@@ -188,40 +191,56 @@ public final class TokenManager: ObservableObject {
             }
         }
     }
-
+    
     public func clearToken() {
         UserDefaults.standard.removeObject(forKey: TokenManager.ssoTokenKey)
         UserDefaults.standard.removeObject(forKey: TokenManager.ssoTokenCreateDate)
         UserDefaults.standard.synchronize()
         setIsLoggedIn(isLoggedIn: false)
     }
-
-    public func startTokenTimer() {
-#if DEBUG
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @AppBackgroundActor in
-                let ssoTokenExipreTime = await try? TokenManager.shared.getSSOTokenFromUserDefaultsAsync()?.expiresIn
-                await MainActor.run {
-                    self?.handleTimer(ssoTokenExipreTime)
+    
+    private func startRefreshTokenTimerWhenIsInForeground() async {
+        guard let timeToTrigger: TimeInterval = await expireIn() else { return }
+        Timer.scheduledTimer(withTimeInterval: max(1, timeToTrigger - 50), repeats: false) { [weak self] timer in
+            Task { @MainActor in
+                if AppState.shared.isInForeground {
+                    try? await self?.getNewTokenWithRefreshToken()
                 }
             }
         }
-#endif
     }
     
-    private func handleTimer(_ time: Int?) {
-        if let createDate = TokenManager.shared.getCreateTokenDate(), let ssoTokenExipreTime = time {
-            let expireIn = createDate.advanced(by: Double(ssoTokenExipreTime)).timeIntervalSince1970 - Date().timeIntervalSince1970
+    @AppBackgroundActor
+    private func expireIn() async -> TimeInterval? {
+        guard let createDate = await TokenManager.shared.getCreateTokenDate(),
+              let ssoTokenExipreTime = await try? TokenManager.shared.getSSOTokenFromUserDefaultsAsync()?.expiresIn
+        else { return nil }
+        let expireIn = createDate.advanced(by: Double(ssoTokenExipreTime)).timeIntervalSince1970 - Date().timeIntervalSince1970
+        return expireIn
+    }
+    
+#if DEBUG
+    public func startTokenTimer() {
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @AppBackgroundActor in
+                await self?.handleTimer()
+            }
+        }
+    }
+    
+    private func handleTimer() async {
+        if let expireIn = await expireIn() {
             secondToExpire = Double(expireIn)
         }
     }
-
+#endif
+    
     private func post(log: Log) {
 #if DEBUG
         NotificationCenter.logs.post(name: .logs, object: log)
 #endif
     }
-
+    
     private func log(_ message: String) {
 #if DEBUG
         Logger.viewModels.info("\(message)")
