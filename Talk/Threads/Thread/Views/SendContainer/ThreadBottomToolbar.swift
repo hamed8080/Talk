@@ -89,14 +89,12 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func showMainButtons(_ show: Bool, withRemoveAnimaiton: Bool = true) {
         if !show {
-            // withRemoveAnimation prevents having two views in the stack and leads to a really tall view and a bad animation.
-            mainSendButtons.removeFromSuperViewWithAnimation(withAimation: withRemoveAnimaiton)
-            mainSendButtons.removeFromSuperview()
+            removeMainSendButtonWithAnimation(withRemoveAnimation: withRemoveAnimaiton)
         } else if mainSendButtons.superview == nil {
-            mainSendButtons.alpha = 0.0
-            insertArrangedSubview(mainSendButtons, at: 0)
-            UIView.animate(withDuration: 0.2) {
-                self.mainSendButtons.alpha = 1.0
+            if show, viewModel?.sendContainerViewModel.canShowMuteChannelBar() == true {
+                animateToShowChannelMuteBar()
+            } else {
+                animateToShowMainSendButton()
             }
         }
     }
@@ -172,5 +170,26 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func muteChanged() {
         muteBarView.set()
+    }
+    
+    private func animateToShowChannelMuteBar() {
+        UIView.animate(withDuration: 0.2) {
+            self.mainSendButtons.removeFromSuperview()
+            self.muteBarView.set()
+        }
+    }
+    
+    private func animateToShowMainSendButton() {
+        mainSendButtons.alpha = 0.0
+        insertArrangedSubview(mainSendButtons, at: 0)
+        UIView.animate(withDuration: 0.2) {
+            self.mainSendButtons.alpha = 1.0
+        }
+    }
+    
+    private func removeMainSendButtonWithAnimation(withRemoveAnimation: Bool) {
+        // withRemoveAnimation prevents having two views in the stack and leads to a really tall view and a bad animation.
+        mainSendButtons.removeFromSuperViewWithAnimation(withAimation: withRemoveAnimation)
+        mainSendButtons.removeFromSuperview()
     }
 }
