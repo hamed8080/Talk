@@ -106,6 +106,7 @@ fileprivate class MessageContextMenuContentView: UIView {
     private weak var cell: MessageBaseCell?
     private var reactionHeightConstraint = NSLayoutConstraint()
     private let userInterfaceStyle: UIUserInterfaceStyle
+    private var topConstraint: NSLayoutConstraint?
     
     init(frame: CGRect,
          messageWidth: CGFloat,
@@ -172,11 +173,18 @@ fileprivate class MessageContextMenuContentView: UIView {
         configureMenu()
         
         reactionHeightConstraint = reactionsView.heightAnchor.constraint(equalToConstant: reactionViewInitialHeight())
+        
+        /// This delay will fix a crash when a user opens up the context menu fast.
+        /// Do not use safeAreaLayoutGuide.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.topConstraint?.constant = self.safeAreaInsets.top + 16
+        }
+        topConstraint = reactionsView.topAnchor.constraint(equalTo: topAnchor, constant: 28)
+        topConstraint?.isActive = true
         NSLayoutConstraint.activate([
             bottomAnchor.constraint(equalTo: menu.bottomAnchor, constant: 46),
             
             // ReactionsView
-            reactionsView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 16),
             reactionsView.widthAnchor.constraint(equalToConstant: 320),
             reactionHeightConstraint,
             
