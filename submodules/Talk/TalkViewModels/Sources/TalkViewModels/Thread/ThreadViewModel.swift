@@ -112,7 +112,6 @@ public final class ThreadViewModel {
         conversationSubtitle.setup(viewModel: self)
         registerNotifications()
         setAppSettingsModel()
-        threadsViewModel?.getNotActiveThreads(thread.id ?? -1)
     }
 
     public func updateConversation(_ conversation: Conversation) {

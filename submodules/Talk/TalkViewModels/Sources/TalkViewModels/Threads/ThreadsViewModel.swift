@@ -33,11 +33,12 @@ public final class ThreadsViewModel: ObservableObject {
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
     internal let incQueue = IncommingMessagesQueue()
+    internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel(archive: false) }()
 
     internal var objectId = UUID().uuidString
     internal let GET_THREADS_KEY: String
     internal let CHANNEL_TO_KEY: String
-    internal let GET_NOT_ACTIVE_THREADS_KEY: String
+    internal let JOIN_TO_PUBLIC_GROUP_KEY: String
     internal let LEAVE_KEY: String
 
     // MARK: Computed properties
@@ -46,7 +47,7 @@ public final class ThreadsViewModel: ObservableObject {
     public init() {
         GET_THREADS_KEY = "GET-THREADS-\(objectId)"
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
-        GET_NOT_ACTIVE_THREADS_KEY = "GET-NOT-ACTIVE-THREADS-\(objectId)"
+        JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
         Task {
             await setupObservers()
@@ -76,9 +77,10 @@ public final class ThreadsViewModel: ObservableObject {
             }
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
+            animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+        } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
+            await calculateAppendSortAnimate(conversation)
         }
-        getNotActiveThreads(conversationId)
-        animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
@@ -201,23 +203,6 @@ public final class ThreadsViewModel: ObservableObject {
     private func updatePresentedViewModels(_ conversations: ContiguousArray<CalculatedConversation>) {
         conversations.forEach { conversation in
             navVM.updateConversationInViewModel(conversation)
-        }
-    }
-
-    public func onNotActiveThreads(_ response: ChatResponse<[Conversation]>) async {
-        if let threads = response.result?.filter({$0.isArchive == false || $0.isArchive == nil}) {
-            var threads = threads
-            threads.enumerated().forEach { (index, thread) in
-                threads[index].reactionStatus = thread.reactionStatus ?? .enable
-            }
-
-            let presendtedId = navVM.presentedThreadViewModel?.viewModel.thread.id
-            if let thread = response.result?.first(where: {$0.id == presendtedId}) {
-                navVM.presentedThreadViewModel?.viewModel.thread = thread
-            }
-            for thread in threads {
-                await calculateAppendSortAnimate(thread)
-            }
         }
     }
 
@@ -494,6 +479,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].lastMessage = thread.lastMessage
             threads[index].lastMessageVO = thread.lastMessageVO
             threads[index].animateObjectWillChange()
+            recalculateAndAnimate(threads[index])
             animateObjectWillChange()
         }
     }
@@ -502,6 +488,7 @@ public final class ThreadsViewModel: ObservableObject {
         if let id = response.result, let index = self.firstIndex(id) {
             threads.remove(at: index)
             threads[index].animateObjectWillChange()
+            recalculateAndAnimate(threads[index])
             animateObjectWillChange()
         }
     }
@@ -565,16 +552,13 @@ public final class ThreadsViewModel: ObservableObject {
     /// There is a chance another user join to this public group, so we have to check if the thread is already exists.
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) async {
         if let conversation = response.result {
-            var conversaiton = conversation
-            conversaiton.title = conversaiton.title?.stringToScalarEmoji()
-            if !threads.contains(where: {$0.id == conversation.id}) {
-                threads.append(conversation.toClass())
-                if conversation.participants?.first?.id == myId {
-                    AppState.shared.showThread(conversation)
-                }
+            if conversation.participants?.first?.id == myId, response.pop(prepend: JOIN_TO_PUBLIC_GROUP_KEY) != nil {
+                AppState.shared.showThread(conversation)
             }
-            await sortInPlace()
-            animateObjectWillChange()
+            
+            if let id = conversation.id, let conversation = await threadFinder.getNotActiveThreads(id) {
+                await calculateAppendSortAnimate(conversation)
+            }
         }
     }
 
@@ -604,8 +588,10 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func joinPublicGroup(_ publicName: String) {
+        let req = JoinPublicThreadRequest(threadName: publicName)
+        RequestsManager.shared.append(prepend: JOIN_TO_PUBLIC_GROUP_KEY, value: req)
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.join(.init(threadName: publicName))
+            ChatManager.activeInstance?.conversation.join(req)
         }
     }
 
@@ -631,16 +617,6 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index] = thread
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(thread)
-        }
-    }
-
-    public func getNotActiveThreads(_ conversationId: Int) {
-        if !threads.contains(where: {$0.id == conversationId }) {
-            let req = ThreadsRequest(threadIds: [conversationId])
-            RequestsManager.shared.append(prepend: GET_NOT_ACTIVE_THREADS_KEY, value: req)
-            Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.conversation.get(req)
-            }
         }
     }
 
