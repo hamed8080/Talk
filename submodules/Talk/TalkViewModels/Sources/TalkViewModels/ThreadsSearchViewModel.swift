@@ -107,10 +107,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
 
     @MainActor
     private func onUnreadConversationToggled(_ newValue: Bool?) async {
-        if (showUnreadConversations ?? false) == newValue { return } // when the user taps on the close button on the toolbar
         if newValue == true {
             await getUnreadConversations()
-        } else if newValue == false {
+        } else if newValue == false, isInSearchMode {
             await resetUnreadConversations()
         }
     }
