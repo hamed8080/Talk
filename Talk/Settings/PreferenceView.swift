@@ -27,6 +27,7 @@ struct PreferenceView: View {
                 StickyHeaderSection(header: "", height: 10)
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
+                    .sandboxLabel()
                 Section("Tab.contacts") {
                     VStack(alignment: .leading, spacing: 2) {
                         Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
@@ -34,9 +35,11 @@ struct PreferenceView: View {
                             .foregroundColor(.gray)
                             .font(.iransansCaption3)
                     }
+                    .sandboxLabel()
                 }
                 .listRowBackground(Color.App.bgPrimary)
                 .listRowSeparator(.hidden)
+                .sandboxLabel()
             }
         }
         .environment(\.defaultMinListRowHeight, 8)

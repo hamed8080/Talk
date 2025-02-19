@@ -10,6 +10,7 @@ import TalkViewModels
 import ActionableContextMenu
 import TalkModels
 import Chat
+import TalkUI
 
 struct UserActionMenu: View {
     @Binding var showPopover: Bool
@@ -34,11 +35,13 @@ struct UserActionMenu: View {
                 showPopover = false
             }
             .disabled(true)
+            .sandboxLabel()
 
             ContextMenuButton(title: "Thread.export".bundleLocalized(), image: "tray.and.arrow.up") {
                 showPopover = false
             }
             .disabled(true)
+            .sandboxLabel()
         }
 
         if participant.contactId != nil {

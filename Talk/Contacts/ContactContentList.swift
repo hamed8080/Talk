@@ -22,6 +22,7 @@ struct ContactContentList: View {
         List {
             totalContactCountView
             syncView
+                .sandboxLabel()
             creationButtons
             if viewModel.searchedContacts.count > 0 || !viewModel.searchContactString.isEmpty {
                 searchViews
@@ -162,6 +163,7 @@ struct ContactContentList: View {
             }
             .listRowBackground(Color.clear)
             .noSeparators()
+            .sandboxLabel()
         }
     }
 
