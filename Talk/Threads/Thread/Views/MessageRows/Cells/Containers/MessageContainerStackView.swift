@@ -222,6 +222,10 @@ public struct ActionModel {
 extension MessageContainerStackView {
     func edited() {
         guard let viewModel = viewModel else { return }
+        /// We have to call set because if row type changes we have to update the row view
+        ///for example when two emoji converts to a single emoji
+        set(viewModel)
+        
         if viewModel.calMessage.rowType.hasText, textMessageView.superview == nil {
             footerView.removeFromSuperview()
             addArrangedSubview(textMessageView)
