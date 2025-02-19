@@ -75,6 +75,9 @@ struct SplitView: View {
             .environmentObject(appOverlayVM)
             .environmentObject(appOverlayVM.offsetVM)
         }
+        .overlay {
+            BanOverlayView()
+        }
         .onReceive(TokenManager.shared.$isLoggedIn) { isLoggedIn in
             if self.isLoggedIn != isLoggedIn {
                 self.isLoggedIn = isLoggedIn

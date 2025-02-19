@@ -68,7 +68,7 @@
 "General.imageSaved" = "تصویر ذخیره شد.";
 "General.videoSaved" = "ویدیو ذخیره شد.";
 "General.copied" = "کپی شد در کلیپبورد.";
-"General.ban" = "شما توسط سرور به مدت %@ ثانیه بن شدید.";
+"General.ban" = "اکانت شما به مدت %@ ثانیه بلاک شده است.";
 "General.addText" = "افزودن متن";
 "General.you" = "شما";
 "Genral.mineSendVerb" = "%@ فرستادید";
