@@ -52,6 +52,7 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
     }
 
     @objc private func onTapped(_ sender: UITapGestureRecognizer) {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         delegate?.openMoveToDatePicker()
     }
 }
