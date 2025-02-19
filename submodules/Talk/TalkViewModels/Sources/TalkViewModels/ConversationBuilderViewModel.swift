@@ -69,6 +69,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
     
     @MainActor
     public func show(type: StrictThreadTypeCreation) async {
+        searchContactString = ""
         if contacts.isEmpty {
             await getContacts()
         }

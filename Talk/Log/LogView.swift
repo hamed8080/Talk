@@ -52,6 +52,7 @@ struct LogView: View {
     private var searchView: some View {
         TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
             .keyboardType(.default)
+            .submitLabel(.done)
             .padding(4)
             .applyAppTextfieldStyle(topPlaceholder: "", innerBGColor: Color.App.bgSendInput, minHeight: 42, isFocused: true) {
 

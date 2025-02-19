@@ -52,6 +52,7 @@ struct ThreadListSearchBarFilterView: View {
         TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
             .font(.iransansBody)
             .textFieldStyle(.clear)
+            .submitLabel(.done)
             .focused($searchFocus, equals: .saerch)
             .frame(minWidth: 0, maxWidth: nil, minHeight: 0, maxHeight: 38)
             .clipped()

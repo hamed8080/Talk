@@ -22,6 +22,7 @@ struct ManuallyConnectionManagerView: View {
             TextField("token".bundleLocalized(), text: $token)
                 .focused($isFocused)
                 .keyboardType(.phonePad)
+                .submitLabel(.done)
                 .font(.iransansBody)
                 .padding()
                 .applyAppTextfieldStyle(topPlaceholder: "token", isFocused: isFocused) {

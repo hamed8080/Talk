@@ -215,6 +215,7 @@ struct ParticipantSearchView: View {
                     .frame(width: 16, height: 16)
                 TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
                     .frame(minWidth: 0, minHeight: 48)
+                    .submitLabel(.done)
                     .font(.iransansBody)
                     .focused($focusState)
                     .onChange(of: focusState) { focused in

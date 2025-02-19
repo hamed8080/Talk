@@ -75,6 +75,7 @@ struct AddParticipantsToThreadView: View {
                 .frame(height: 48)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
+                .submitLabel(.done)
             Spacer()
             Text("General.add")
                 .frame(height: 30)

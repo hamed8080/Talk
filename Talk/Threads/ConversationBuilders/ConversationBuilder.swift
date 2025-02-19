@@ -32,6 +32,19 @@ struct ConversationBuilder: View {
                             }
                             .padding()
                             .listRowInsets(.zero)
+                        } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
+                            if viewModel.isTypinginSearchString {
+                                ListLoadingView(isLoading: .constant(true))
+                            } else {
+                                Text("General.noResult")
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(Color.App.textSecondary)
+                                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .center)
+                                    .multilineTextAlignment(.center)
+                                    .listRowBackground(Color.App.bgPrimary)
+                                    .listRowSeparator(.hidden)
+                                    .id("General.noResult")
+                            }
                         }
 
                         StickyHeaderSection(header: "Contacts.selectContacts")
@@ -63,6 +76,7 @@ struct ConversationBuilder: View {
                         .frame(height: 48)
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
+                        .submitLabel(.done)
                 }
                 .background(.ultraThinMaterial)
             }
@@ -72,9 +86,10 @@ struct ConversationBuilder: View {
                         .navigationBarBackButtonHidden(true)
                 } label: {
                     SubmitBottomLabel(text: "General.next",
-                                       enableButton: .constant(enabeleButton),
+                                       enableButton: .constant(enableButton),
                                        isLoading: $viewModel.isCreateLoading)
                 }
+                .disabled(!enableButton)
             }
         }
         .environment(\.defaultMinListRowHeight, 24)
@@ -94,7 +109,7 @@ struct ConversationBuilder: View {
         }
     }
 
-    private var enabeleButton: Bool {
+    private var enableButton: Bool {
         viewModel.selectedContacts.count > 1 && !viewModel.lazyList.isLoading
     }
 }
@@ -258,6 +273,7 @@ struct EditCreatedConversationDetail: View {
             .focused($focused, equals: .title)
             .font(.iransansBody)
             .padding()
+            .submitLabel(.done)
             .applyAppTextfieldStyle(topPlaceholder: "", error: error, isFocused: focused == .title) {
                 focused = .title
             }

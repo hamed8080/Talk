@@ -36,6 +36,7 @@ public class ContactsViewModel: ObservableObject {
     private let GET_CONTACTS_KEY: String
     private let SEARCH_CONTACTS_KEY: String
     public var builderScrollProxy: ScrollViewProxy?
+    @Published public var isTypinginSearchString: Bool = false
 
     public init(isBuilder: Bool = false) {
         self.isBuilder = isBuilder
@@ -61,6 +62,12 @@ public class ContactsViewModel: ObservableObject {
                 }
         }
         .store(in: &canceableSet)
+        
+        $searchContactString
+            .sink { [weak self] _ in
+                self?.isTypinginSearchString = true
+            }
+            .store(in: &canceableSet)
         $searchContactString
             .filter { $0.count == 0 }
             .sink { [weak self] newValue in
@@ -74,6 +81,7 @@ public class ContactsViewModel: ObservableObject {
             .filter { $0.count > 1 }
             .sink { [weak self] searchText in
                 Task { [weak self] in
+                    self?.isTypinginSearchString = false
                     await self?.searchContacts(searchText)
                 }
             }
@@ -324,7 +332,8 @@ public class ContactsViewModel: ObservableObject {
             searchedContacts = .init(response.result ?? [])
             try? await Task.sleep(for: .milliseconds(200)) /// To scroll properly
             withAnimation {
-                builderScrollProxy?.scrollTo("SearchRow-\(searchedContacts.first?.id ?? 0)", anchor: .top)
+                let scrollTo = response.result?.isEmpty == true ? "General.noResult" : "SearchRow-\(searchedContacts.first?.id ?? 0)"
+                builderScrollProxy?.scrollTo(scrollTo, anchor: .top)
             }
         }
     }

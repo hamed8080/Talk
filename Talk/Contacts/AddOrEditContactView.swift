@@ -48,6 +48,7 @@ struct AddOrEditContactView: View {
                 TextField("General.firstName".bundleLocalized(), text: $firstName)
                     .focused($focusState, equals: .firstName)
                     .textContentType(.name)
+                    .submitLabel(.next)
                     .padding()
                     .applyAppTextfieldStyle(topPlaceholder: "General.firstName", isFocused: focusState == .firstName) {
                         focusState = .firstName
@@ -55,6 +56,7 @@ struct AddOrEditContactView: View {
                 TextField(optioanlAPpend(text: "General.lastName".bundleLocalized()), text: $lastName)
                     .focused($focusState, equals: .lastName)
                     .textContentType(.familyName)
+                    .submitLabel(.next)
                     .padding()
                     .applyAppTextfieldStyle(topPlaceholder: "General.lastName", isFocused: focusState == .lastName) {
                         focusState = .lastName
@@ -62,6 +64,7 @@ struct AddOrEditContactView: View {
                 TextField("Contacts.Add.phoneOrUserName".bundleLocalized(), text: $contactValue)
                     .focused($focusState, equals: .contactValue)
                     .keyboardType(.default)
+                    .submitLabel(.done)
                     .padding()
                     .applyAppTextfieldStyle(topPlaceholder: "Contacts.Add.phoneOrUserName", error: viewModel.userNotFound ? "Contctas.notFound" : nil, isFocused: focusState == .contactValue) {
                         focusState = .contactValue

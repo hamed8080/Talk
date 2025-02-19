@@ -61,6 +61,7 @@ struct SearchInSelectConversationOrContact: View {
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
                 .font(.iransansSubheadline)
+                .submitLabel(.done)
         }
         .background(.ultraThinMaterial)
     }
