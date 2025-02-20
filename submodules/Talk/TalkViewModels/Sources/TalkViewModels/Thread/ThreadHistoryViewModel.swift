@@ -557,7 +557,6 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
 
     private func doRequest(_ req: GetHistoryRequest, _ prepend: String, _ store: OnMoveTime? = nil) {
-        print("called the request")
         RequestsManager.shared.append(prepend: prepend, value: store ?? req)
         logHistoryRequest(req: req)
         Task { @ChatGlobalActor in
@@ -566,7 +565,6 @@ extension ThreadHistoryViewModel {
     }
     
     private func doRequestQueue(_ req: GetHistoryRequest, _ prepend: String, _ store: OnMoveTime? = nil) async {
-        print("called the request")
         RequestsManager.shared.append(prepend: prepend, value: store ?? req)
         logHistoryRequest(req: req)
         await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.history(req: req))
@@ -1341,12 +1339,18 @@ extension ThreadHistoryViewModel {
         while(!isEnded) {
             if await viewModel?.scrollVM.isEndedDecelerating == true {
                 isEnded = true
+#if DEBUG
                 print("Deceleration has been completed.")
+#endif
             } else if await viewModel == nil {
                 isEnded = true
+#if DEBUG
                 print("ViewModel has been deallocated, thus, the deceleration will end.")
+#endif
             } else {
+#if DEBUG
                 print("Waiting for the deceleration to be completed.")
+#endif
                 try? await Task.sleep(for: .nanoseconds(500000))
             }
         }

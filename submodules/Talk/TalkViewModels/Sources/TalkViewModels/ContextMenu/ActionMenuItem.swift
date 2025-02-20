@@ -123,7 +123,7 @@ fileprivate class SandboxView: UILabel {
     }
 
     private func configureView() {
-        text = "SANDBOOX"
+        text = "SANDBOX"
         textColor = UIColor(named: "accent")
         font = UIFont.preferredFont(forTextStyle: .caption2)
     }

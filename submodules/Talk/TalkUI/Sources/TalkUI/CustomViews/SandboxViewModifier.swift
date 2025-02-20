@@ -12,7 +12,7 @@ struct SandboxViewModifier: ViewModifier {
         content.overlay(alignment: .topTrailing) {
             HStack(alignment: .top) {
                 Spacer()
-                Text("SANDBOOX")
+                Text("SANDBOX")
                     .font(.caption2.bold())
                     .foregroundStyle(Color.App.accent)
                     .padding(4)
@@ -36,7 +36,7 @@ public class SandboxView: UILabel {
     }
 
     private func configureView() {
-        text = "SANDBOOX"
+        text = "SANDBOX"
         textColor = Color.App.accentUIColor
         font = UIFont.preferredFont(forTextStyle: .caption2)
     }

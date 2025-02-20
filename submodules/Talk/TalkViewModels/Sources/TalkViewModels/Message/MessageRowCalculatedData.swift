@@ -24,8 +24,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var fileMetaData: FileMetaData?
     public var isEnglish = true
     public var isReplyImage: Bool = false
-    public var callDateText: String?
-    public var callTypeKey = ""
+    public var callAttributedString: NSAttributedString?
     public var replyLink: String?
     public var participantColor: UIColor? = nil
     public var computedFileSize: String? = nil

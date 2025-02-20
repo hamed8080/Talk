@@ -136,7 +136,6 @@ struct SelectedContactsView: View {
         GeometryReader { reader in
             Color.clear.onAppear {
                 width = reader.size.width
-                print("width offf:\(width)_")
             }
         }
     }

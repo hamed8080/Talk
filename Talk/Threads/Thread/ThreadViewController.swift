@@ -82,9 +82,11 @@ final class ThreadViewController: UIViewController {
         tableView.contentInset.top = topThreadToolbar.frame.height
     }
 
+#if DEBUG
     deinit {
         print("deinit ThreadViewController")
     }
+#endif
 }
 
 // MARK: Configure Views
@@ -265,7 +267,9 @@ extension ThreadViewController: ThreadViewDelegate {
     }
     
     func onUnreadCountChanged() {
+#if DEBUG
         print("onUnreadCountChanged \(viewModel?.thread.unreadCount ?? 0)")
+#endif
         moveToBottom.updateUnreadCount()
     }
 
@@ -739,7 +743,6 @@ extension ThreadViewController {
            let duration = notif.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         {
             let animationOptions = UIView.AnimationOptions(rawValue: animationCurve << 16)
-            print("rect of keyboard will show: \(rect.size)")
             if rect.size.height <= 69 {
                 hasExternalKeyboard = true
             } else {

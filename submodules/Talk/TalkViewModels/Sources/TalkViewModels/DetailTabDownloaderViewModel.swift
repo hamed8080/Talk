@@ -109,8 +109,9 @@ public class DetailTabDownloaderViewModel: ObservableObject {
             return newDownloadVM
         }
     }
-
+#if DEBUG
     deinit {
         print("deinit DetailTabDownloaderViewModel for\(tabName)")
     }
+#endif
 }

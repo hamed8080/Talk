@@ -3,6 +3,7 @@ import Foundation
 import ffmpegkit
 import Chat
 import TalkExtensions
+import OSLog
 
 class OpusConverter {
     private init(path: URL) {}
@@ -63,7 +64,7 @@ class OpusConverter {
             do {
                 try FileManager.default.createDirectory(atPath: convertedDIR.path(), withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("Error creating directory: \(error)")
+                log("Error creating directory: \(error)")
             }
         }
     }
@@ -73,12 +74,20 @@ class OpusConverter {
         if FileManager.default.fileExists(atPath: output.path()) {
             do {
                 try FileManager.default.removeItem(atPath: output.path())
-                print("Existing file removed successfully.")
+                log("Existing file removed successfully.")
             } catch {
-                print("Error removing existing file: \(error)")
+                log("Error removing existing file: \(error)")
                 return
             }
         }
+    }
+    
+    private static func log(_ string: String) {
+#if DEBUG
+        Task.detached {
+            Logger.viewModels.info("\(string, privacy: .sensitive)")
+        }
+#endif
     }
 }
 #endif

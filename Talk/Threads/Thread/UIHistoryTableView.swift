@@ -10,6 +10,7 @@ import UIKit
 import SwiftUI
 import TalkViewModels
 import TalkModels
+import OSLog
 
 @MainActor
 class UIHistoryTableView: UITableView {
@@ -50,6 +51,15 @@ class UIHistoryTableView: UITableView {
         let bgView = ChatBackgroundView(frame: .zero)
         backgroundView = bgView
         backgroundColor = Color.App.bgPrimaryUIColor
+    }
+    
+    private func log(_ string: String) {
+#if DEBUG
+        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
+        Task.detached {
+            logger.info("\(string, privacy: .sensitive)")
+        }
+#endif
     }
 }
 
@@ -178,7 +188,7 @@ extension UIHistoryTableView {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         Task {
             if viewModel?.scrollVM.getIsProgramaticallyScrolling() == true {
-                print("Reject did scroll to, isProgramaticallyScroll is true")
+                log("Reject did scroll to, isProgramaticallyScroll is true")
                 return
             }
             await viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)
@@ -195,7 +205,7 @@ extension UIHistoryTableView {
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        print("deceleration ended has been called")
+        log("deceleration ended has been called")
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
         }
@@ -203,7 +213,7 @@ extension UIHistoryTableView {
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if decelerate == false {
-            print("stop immediately with no deceleration")
+            log("stop immediately with no deceleration")
             Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
                 await self?.viewModel?.scrollVM.isEndedDecelerating = true
             }

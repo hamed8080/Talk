@@ -209,8 +209,10 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
         }
     }
 
+#if DEBUG
     deinit {
         print("deinit ParticipantDetailViewModel")
     }
+#endif
 }
 

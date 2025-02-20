@@ -279,7 +279,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         return conversationTitle.contains(regex)
     }
     
+#if DEBUG
     deinit {
         print("deinit ConversationBuilderViewModel")
     }
+#endif
 }

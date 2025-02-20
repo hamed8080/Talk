@@ -259,7 +259,9 @@ public final class LoginViewModel: ObservableObject {
             await saveTokenAndCreateChatObject(ssoToken)
         case .failure(let error):
             let message = error.localizedDescription
-            print(message)
+        #if DEBUG
+                print(message)
+        #endif
             startNewPKCESession()
         }
     }
