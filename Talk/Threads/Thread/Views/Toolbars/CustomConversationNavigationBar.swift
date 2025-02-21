@@ -42,22 +42,7 @@ public class CustomConversationNavigationBar: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         
         titlebutton.translatesAutoresizingMaskIntoConstraints = false
-        let title = viewModel?.thread.titleRTLString ?? ""
-        let replacedEmoji = title.stringToScalarEmoji()
-        let replacedDoubleQuotation = replacedEmoji.strinDoubleQuotation()
-        
-        let attributedString = NSMutableAttributedString(string: replacedDoubleQuotation)
-        if viewModel?.thread.isTalk == true {
-            attributedString.append(NSAttributedString(string: " ")) // Space
-            
-            let imageAttachment = NSTextAttachment()
-            imageAttachment.image = UIImage(named: "ic_approved")
-            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
-            let imageString = NSAttributedString(attachment: imageAttachment)
-            attributedString.append(imageString)
-        }
-
-        titlebutton.setAttributedTitle(attributedString, for: .normal)
+        titlebutton.setAttributedTitle(titleAttributedStirng, for: .normal)
         titlebutton.titleLabel?.font = UIFont.uiiransansBoldBody
         titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
@@ -167,9 +152,27 @@ public class CustomConversationNavigationBar: UIView {
 
     public func updateTitleTo(_ title: String?) {
         UIView.animate(withDuration: 0.2) {
-            self.titlebutton.setTitle(title, for: .normal)
+            self.titlebutton.setAttributedTitle(self.titleAttributedStirng, for: .normal)
         }
         updateThreadImage()
+    }
+    
+    private var titleAttributedStirng: NSAttributedString {
+        let title = viewModel?.thread.titleRTLString ?? ""
+        let replacedEmoji = title.stringToScalarEmoji()
+        let replacedDoubleQuotation = replacedEmoji.strinDoubleQuotation()
+        
+        let attributedString = NSMutableAttributedString(string: replacedDoubleQuotation)
+        if viewModel?.thread.isTalk == true {
+            attributedString.append(NSAttributedString(string: " ")) // Space
+            
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = UIImage(named: "ic_approved")
+            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
+            let imageString = NSAttributedString(attachment: imageAttachment)
+            attributedString.append(imageString)
+        }
+        return attributedString
     }
 
     public func updateSubtitleTo(_ subtitle: String?) {
