@@ -253,7 +253,7 @@ extension ThreadViewController {
         }
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
-            self.moveToBottom.showWithAniamtion(false)
+            self.moveToBottom.show(false)
             view.bringSubviewToFront(vStackOverlayButtons)
         }
     }
@@ -317,7 +317,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func lastMessageAppeared(_ appeared: Bool) {
-        self.moveToBottom.setVisibility(visible: !appeared)
+        self.moveToBottom.show(!appeared)
         if self.viewModel?.scrollVM.isAtBottomOfTheList == true {
             self.tableView.tableFooterView = nil
         } else {
@@ -626,6 +626,7 @@ extension ThreadViewController: HistoryScrollDelegate {
             }
             tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
         } else {
+            if sections.isEmpty && rows.isEmpty { return }
             tableView.performBatchUpdates { [weak self] in
                 // Insert the sections and rows without animation
                 if !sections.isEmpty {
