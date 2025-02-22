@@ -74,19 +74,22 @@ public final class ThreadReactionViewModel {
     /// Add/Remove/Replace
     public func reaction(_ sticker: Sticker, messageId: Int, myReactionId: Int?, myReactionSticker: Sticker?) {
         let threadId = threadId
+        let isExistInCollection = allowedReactions.contains(where: {$0.emoji == sticker.emoji})
         Task { @ChatGlobalActor in
             if myReactionSticker == sticker, let reactionId = myReactionId {
                 let req = DeleteReactionRequest(reactionId: reactionId, conversationId: threadId)
                 ChatManager.activeInstance?.reaction.delete(req)
-            } else if let reactionId = myReactionId {
-                let req = ReplaceReactionRequest(messageId: messageId, conversationId: threadId, reactionId: reactionId, reaction: sticker)
-                ChatManager.activeInstance?.reaction.replace(req)
-            } else {
-                let req = AddReactionRequest(messageId: messageId,
-                                             conversationId: threadId,
-                                             reaction: sticker
-                )
-                ChatManager.activeInstance?.reaction.add(req)
+            } else if isExistInCollection {
+                if let reactionId = myReactionId {
+                    let req = ReplaceReactionRequest(messageId: messageId, conversationId: threadId, reactionId: reactionId, reaction: sticker)
+                    ChatManager.activeInstance?.reaction.replace(req)
+                } else {
+                    let req = AddReactionRequest(messageId: messageId,
+                                                 conversationId: threadId,
+                                                 reaction: sticker
+                    )
+                    ChatManager.activeInstance?.reaction.add(req)
+                }
             }
         }
     }
