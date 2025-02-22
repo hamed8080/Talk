@@ -32,7 +32,9 @@ struct ManageSessionsView: View {
             do {
                 try await viewModel.getDevices()
             } catch {
+#if DEBUG
                 print("Error fetching device list: \(error)")
+#endif
             }
         }
         .background {

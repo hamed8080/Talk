@@ -111,7 +111,9 @@ final class ForwardInfoView: UIView {
     }
 
     @objc private func onForwardTapped(_ sender: UIGestureRecognizer) {
+#if DEBUG
         print("on forward tapped")
+#endif
     }
 
     @objc private func onTappedParticpant(_ sender: UIGestureRecognizer) {

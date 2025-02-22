@@ -45,7 +45,12 @@ struct DetailInfoViewSection: View {
     }
 
     private var imageLink: String {
-        let image = thread.computedImageURL ?? viewModel.participantDetailViewModel?.participant.image ?? ""
+        var image = ""
+        if let threadImage = thread.computedImageURL {
+            image = threadImage
+        } else if thread.group == false, let userImage = viewModel.participantDetailViewModel?.participant.image {
+            image = userImage
+        }
         return image.replacingOccurrences(of: "http://", with: "https://")
     }
     

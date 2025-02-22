@@ -12,6 +12,7 @@ import ActionableContextMenu
 import TalkModels
 import Chat
 import TalkModels
+import TalkUI
 
 struct ThreadRowActionMenu: View {
     @Binding var showPopover: Bool
@@ -43,25 +44,30 @@ struct ThreadRowActionMenu: View {
             ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock") {
                 onClearHistoryTapped()
             }
+            .sandboxLabel()
             
             ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus") {
                 onAddToFolderTapped()
             }
+            .sandboxLabel()
             
             ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug") {
                 onSpamTapped()
             }
+            .sandboxLabel()
             
             if canAddParticipant {
                 ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus") {
                     onInviteTapped()
                 }
+                .sandboxLabel()
             }
             
             ContextMenuButton(title: "\(thread.id ?? -1)", image: "info") {
                 UIPasteboard.general.string = "\(thread.id ?? -1)"
                 dump(thread)
             }
+            .sandboxLabel()
         }
 
         Divider()

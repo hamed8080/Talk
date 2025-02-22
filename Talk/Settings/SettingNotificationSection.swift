@@ -39,12 +39,14 @@ struct NotificationSettings: View {
                         .tint(Color.App.accent)
                         .listRowBackground(Color.App.bgPrimary)
                         .listRowSeparatorTint(Color.App.dividerPrimary)
+                        .sandboxLabel()
                 }
                 if EnvironmentValues.isTalkTest {
                     Toggle("Notification.Vibration".bundleLocalized(), isOn: $model.notificationSettings.vibration)
                         .tint(Color.App.accent)
                         .listRowBackground(Color.App.bgPrimary)
                         .listSectionSeparator(.hidden)
+                        .sandboxLabel()
                 }
             }
             .listSectionSeparator(.hidden)
@@ -54,6 +56,7 @@ struct NotificationSettings: View {
                     StickyHeaderSection(header: "", height: 10)
                         .listRowInsets(.zero)
                         .listRowSeparator(.hidden)
+                        .sandboxLabel()
 
                     NavigationLink {
                         PrivateNotificationSetting()
@@ -64,6 +67,7 @@ struct NotificationSettings: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparatorTint(Color.App.dividerPrimary)
+                    .sandboxLabel()
 
                     NavigationLink {
                         GroupNotificationSetting()
@@ -74,6 +78,7 @@ struct NotificationSettings: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparatorTint(Color.App.dividerPrimary)
+                    .sandboxLabel()
 
                     NavigationLink {
                         ChannelNotificationSetting()
@@ -84,6 +89,7 @@ struct NotificationSettings: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listSectionSeparator(.hidden)
+                    .sandboxLabel()
                 }
                 .listRowSeparatorTint(Color.clear)
             }

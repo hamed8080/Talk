@@ -8,6 +8,7 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import TalkExtensions
 
 struct ArchivesView: View {
     @EnvironmentObject var viewModel: ArchiveThreadsViewModel
@@ -31,6 +32,12 @@ struct ArchivesView: View {
         .listEmptyBackgroundColor(show: viewModel.archives.isEmpty)
         .overlay(alignment: .bottom) {
             ListLoadingView(isLoading: $viewModel.isLoading)
+        }
+        .overlay(alignment: .top) {
+            if viewModel.archives.isEmpty && !viewModel.isLoading {
+                Text("ArchivedTab.empty".bundleLocalized())
+                    .foregroundStyle(Color.App.textPlaceholder)
+            }
         }
         .animation(.easeInOut, value: viewModel.archives.count)
         .animation(.easeInOut, value: viewModel.isLoading)

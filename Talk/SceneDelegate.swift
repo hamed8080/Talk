@@ -121,7 +121,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
             do {
                 try BGTaskScheduler.shared.submit(request)
             } catch {
+#if DEBUG
                 print("Could not schedule app refresh(Maybe you should run it on a real device): \(error)")
+#endif
             }
         }
     }

@@ -60,6 +60,7 @@ extension MessageContainerStackView {
     
     private func openContextAsync(_ isBegin: Bool)  {
         if isBegin, let indexPath = indexpath(), let contentView = makeContextMenuView(indexPath) {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             viewModel?.threadVM?.delegate?.showContextMenu(indexPath, contentView: contentView)
             UIView.animate(withDuration: Constants.animateToHideOriginalMessageDuration) {
                 self.alpha = 0.0

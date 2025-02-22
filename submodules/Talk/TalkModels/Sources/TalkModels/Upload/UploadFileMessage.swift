@@ -2,13 +2,15 @@ import Foundation
 import Chat
 
 public class UploadFileMessage: HistoryMessageBaseCalss, UploadProtocol {
+    public var replyRequest: ReplyMessageRequest?
     public var sendTextMessageRequest: SendTextMessageRequest?
     public var uploadFileRequest: UploadFileRequest?
     public var uploadImageRequest: UploadImageRequest?
 
-    public init(uploadFileRequest: UploadFileRequest, sendTextMessageRequest: SendTextMessageRequest? = nil, thread: Conversation?) {
+    public init(uploadFileRequest: UploadFileRequest, sendTextMessageRequest: SendTextMessageRequest? = nil, replyRequest: ReplyMessageRequest? = nil, thread: Conversation?) {
         self.sendTextMessageRequest = sendTextMessageRequest
         self.uploadFileRequest = uploadFileRequest
+        self.replyRequest = replyRequest
         if let sendTextMessageRequest = sendTextMessageRequest {
             self.sendTextMessageRequest = sendTextMessageRequest
             self.uploadFileRequest = uploadFileRequest
@@ -26,9 +28,10 @@ public class UploadFileMessage: HistoryMessageBaseCalss, UploadProtocol {
         super.init(message: message)
     }
 
-    public init(imageFileRequest: UploadImageRequest, sendTextMessageRequest: SendTextMessageRequest? = nil, thread: Conversation?) {
+    public init(imageFileRequest: UploadImageRequest, sendTextMessageRequest: SendTextMessageRequest? = nil, replyRequest: ReplyMessageRequest? = nil, thread: Conversation?) {
         self.sendTextMessageRequest = sendTextMessageRequest
         self.uploadImageRequest = imageFileRequest
+        self.replyRequest = replyRequest
         let message = Message(
             threadId: sendTextMessageRequest?.threadId,
             message: sendTextMessageRequest?.textMessage,

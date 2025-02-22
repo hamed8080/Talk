@@ -73,6 +73,7 @@ struct EditProfileView: View {
                 TextField("Setting.EditProfile.firstNameHint".bundleLocalized(), text: $viewModel.firstName)
                     .focused($focusedField, equals: .firstName)
                     .font(.iransansBody)
+                    .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
                     .disabled(viewModel.temporaryDisable)
@@ -83,6 +84,7 @@ struct EditProfileView: View {
                 TextField("Setting.EditProfile.lastNameHint".bundleLocalized(), text: $viewModel.lastName)
                     .focused($focusedField, equals: .lastName)
                     .font(.iransansBody)
+                    .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
                     .disabled(viewModel.temporaryDisable)
@@ -94,6 +96,7 @@ struct EditProfileView: View {
                 TextField("Setting.EditProfile.userNameHint".bundleLocalized(), text: $viewModel.userName)
                     .focused($focusedField, equals: .userName)
                     .font(.iransansBody)
+                    .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
                     .disabled(viewModel.temporaryDisable)
@@ -109,6 +112,13 @@ struct EditProfileView: View {
 //                    .disabled(viewModel.temporaryDisable)
                     .applyAppTextfieldStyle(topPlaceholder: "Setting.EditProfile.bio", minHeight: 128, isFocused: focusedField == .bio) {
                         focusedField = .bio
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .keyboard) {
+                            Button("", systemImage: "chevron.down") {
+                                hideKeyboard()
+                            }
+                        }
                     }
 
 

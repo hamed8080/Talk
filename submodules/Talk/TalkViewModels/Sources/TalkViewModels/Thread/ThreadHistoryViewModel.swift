@@ -254,7 +254,7 @@ extension ThreadHistoryViewModel {
         } else {
             log("The message id to move to is not exist in the list")
         }
-
+        await delegate?.showMoveToButtom(show: true)
         centerLoading = true
         topLoading = false
         sections.removeAll()
@@ -288,7 +288,6 @@ extension ThreadHistoryViewModel {
         centerLoading = false
         let lastMessageVOId = thread.lastMessageVO?.id
         await MainActor.run {
-            // Update the UI and fetch reactions the rows at top part.
             delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
             if messageId == lastMessageVOId {
                 setIsAtBottom(newValue: true)
@@ -557,7 +556,6 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
 
     private func doRequest(_ req: GetHistoryRequest, _ prepend: String, _ store: OnMoveTime? = nil) {
-        print("called the request")
         RequestsManager.shared.append(prepend: prepend, value: store ?? req)
         logHistoryRequest(req: req)
         Task { @ChatGlobalActor in
@@ -566,7 +564,6 @@ extension ThreadHistoryViewModel {
     }
     
     private func doRequestQueue(_ req: GetHistoryRequest, _ prepend: String, _ store: OnMoveTime? = nil) async {
-        print("called the request")
         RequestsManager.shared.append(prepend: prepend, value: store ?? req)
         logHistoryRequest(req: req)
         await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.history(req: req))
@@ -661,7 +658,12 @@ extension ThreadHistoryViewModel {
                 await onFetchByOffset(response)
             }
 
-            await setIsEmptyThread()
+            /// If respone is not empty therefore the thread is not empty and we should not show it
+            /// if we call setIsEmptyThread, directly without this check it will show empty thread view for a short period of time,
+            /// then disappear and it lead to call move to bottom to hide, in cases like click on reply.
+            if response.result?.isEmpty == true {
+                await setIsEmptyThread()
+            }
             log("End on history:\(Date().millisecondsSince1970)")
         } else if response.cache, await !isConnected {
             await onHistoryCacheRsponse(response)
@@ -1341,12 +1343,18 @@ extension ThreadHistoryViewModel {
         while(!isEnded) {
             if await viewModel?.scrollVM.isEndedDecelerating == true {
                 isEnded = true
+#if DEBUG
                 print("Deceleration has been completed.")
+#endif
             } else if await viewModel == nil {
                 isEnded = true
+#if DEBUG
                 print("ViewModel has been deallocated, thus, the deceleration will end.")
+#endif
             } else {
+#if DEBUG
                 print("Waiting for the deceleration to be completed.")
+#endif
                 try? await Task.sleep(for: .nanoseconds(500000))
             }
         }

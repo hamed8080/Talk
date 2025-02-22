@@ -55,6 +55,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     public func loadMore() {
         if !canLoadMore { return }
         offset = count + offset
+        getArchivedThreads()
     }
 
     private func onThreadEvent(_ event: ThreadEventTypes?) async {
@@ -69,6 +70,14 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             onLastMessageDeleted(response)
         case .lastMessageEdited(let response):
             onLastMessageEdited(response)
+        case .left(let response):
+            onLeave(response)
+        case .closed(let response):
+            onClosed(response)
+        case .updatedInfo(let response):
+            onUpdateThreadInfo(response)
+        case .deleted(let response):
+            onDeleteThread(response)
         default:
             break
         }
@@ -195,6 +204,67 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             current.lastMessageVO = conversation.lastMessageVO
             current.lastMessage = conversation.lastMessage
             archives[index] = current
+            animateObjectWillChange()
+        }
+    }
+    
+    private func onLeave(_ response: ChatResponse<User>) {
+        if response.result?.id == AppState.shared.user?.id ?? -1 {
+            archives.removeAll(where: {$0.id == response.subjectId})
+            animateObjectWillChange()
+        }
+    }
+    
+    private func onClosed(_ response: ChatResponse<Int>) {
+        if let id = response.result, let index = archives.firstIndex(where: { $0.id == id }) {
+            archives[index].closed = true
+            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: id)
+            activeThread?.thread = archives[index].toStruct()
+            activeThread?.delegate?.onConversationClosed()
+            animateObjectWillChange()
+        }
+    }
+    
+    private func onUpdateThreadInfo(_ response: ChatResponse<Conversation>) {
+        if let thread = response.result,
+           let threadId = thread.id,
+           let index = archives.firstIndex(where: {$0.id == threadId}) {
+            
+            let replacedEmoji = thread.titleRTLString.stringToScalarEmoji()
+            /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
+            /// So to update the UI properly we have to set it to link.
+            var arrItem = archives[index]
+            if let metadatImagelink = thread.metaData?.file?.link {
+                arrItem.image = metadatImagelink
+            }
+            arrItem.title = replacedEmoji
+            arrItem.closed = thread.closed
+            arrItem.time = thread.time ?? arrItem.time
+            arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
+            arrItem.description = thread.description
+
+            let calculated = ThreadCalculators.calculate(arrItem.toStruct(),AppState.shared.user?.id ?? -1)
+            
+            archives[index] = calculated
+            archives[index].animateObjectWillChange()
+
+            // Update active thread if it is open
+            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
+            activeThread?.thread = calculated.toStruct()
+            activeThread?.delegate?.updateTitleTo(replacedEmoji)
+            activeThread?.delegate?.refetchImageOnUpdateInfo()
+
+            // Update active thread detail view if it is open
+            if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
+                AppState.shared.objectsContainer.threadDetailVM.updateThreadInfo(calculated.toStruct())
+            }
+            animateObjectWillChange()
+        }
+    }
+    
+    private func onDeleteThread(_ response: ChatResponse<Participant>) {
+        if let threadId = response.subjectId, let index = archives.firstIndex(where: {$0.id == threadId }) {
+            archives.remove(at: index)
             animateObjectWillChange()
         }
     }

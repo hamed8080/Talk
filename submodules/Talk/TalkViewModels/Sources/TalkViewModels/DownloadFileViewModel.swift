@@ -202,7 +202,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         Task { [weak self] in
             guard let self = self else { return }
             let isVoice = message.type == .podSpaceVoice || message.type == .voice
-            print("isVoice: \(isVoice)")
             if isVoice, await isOpus(filePath: filePath) {
                 await convertIfIsOpus(message: message)
             } else {
@@ -220,10 +219,8 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 
 #if canImport(ffmpegkit)
     private func convertIfIsOpus(message: Message) async {
-        print("Converting the opus voice file")
         isConverting = true
         let convertedURL = await OpusConverter.convert(message)
-        print(convertedURL)
         if let convertedURL = convertedURL, let data = try? Data(contentsOf: convertedURL) {
             setDataSync(data: data)
         }

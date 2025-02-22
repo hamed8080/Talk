@@ -161,7 +161,9 @@ public final class GalleryViewModel: ObservableObject {
         }
     }
     
+#if DEBUG
     deinit {
         print("GalleryViewModel deinit called")
     }
+#endif    
 }

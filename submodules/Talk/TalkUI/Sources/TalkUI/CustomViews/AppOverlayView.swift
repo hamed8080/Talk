@@ -27,7 +27,9 @@ public struct AppOverlayView<Content>: View where Content: View {
                         .fill(Color.clear)
                         .background(.ultraThinMaterial)
                         .onTapGesture {
-                            viewModel.dialogView = nil
+                            if viewModel.canDismiss {
+                                viewModel.dialogView = nil
+                            }
                         }
                 }
                 content()

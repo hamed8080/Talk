@@ -44,9 +44,19 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         super.init(isBuilder: true)
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ event in
+            .sink { event in
                 Task { [weak self] in
                     await self?.onConversationEvent(event)
+                }
+            }
+            .store(in: &canceableSet)
+        
+        NotificationCenter.error.publisher(for: .error)
+            .sink { notif in
+                if let response = notif.object as? ChatResponse<Sendable> {
+                    Task { [weak self] in
+                        await self?.handleCreationError(response)
+                    }
                 }
             }
             .store(in: &canceableSet)
@@ -69,6 +79,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
     
     @MainActor
     public func show(type: StrictThreadTypeCreation) async {
+        searchContactString = ""
         if contacts.isEmpty {
             await getContacts()
         }
@@ -278,7 +289,19 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         return conversationTitle.contains(regex)
     }
     
+    private func handleCreationError(_ response: ChatResponse<Sendable>) async {
+        if response.pop(prepend: CREATE_THREAD_CONVERSATION_BUILDER_KEY) != nil {
+            await clear()
+            isCreateLoading = false
+            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: EmptyView(),
+                                                                message: response.error?.message ?? "",
+                                                                messageColor: .red)
+        }
+    }
+    
+#if DEBUG
     deinit {
         print("deinit ConversationBuilderViewModel")
     }
+#endif
 }

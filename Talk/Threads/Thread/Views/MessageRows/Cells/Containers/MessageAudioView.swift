@@ -226,7 +226,6 @@ final class MessageAudioView: UIView {
     
     func registerObservers() {
         audioVM.$currentTime.sink { [weak self] time in
-            print("currentTime: \(self?.audioVM.currentTime ?? 0) time:\(time)")
             self?.onTimeChanged()
         }
         .store(in: &cancellableSet)

@@ -62,7 +62,11 @@ public final class AudioRecordingView: UIStackView {
             removeFromSuperViewWithAnimation()
         } else if superview == nil {
             alpha = 0.0
-            stack.insertArrangedSubview(self, at: 0)
+            if stack.arrangedSubviews.contains(where: {$0 is ReplyPrivatelyMessagePlaceholderView || $0 is ReplyMessagePlaceholderView })  {
+                stack.insertArrangedSubview(self, at: 1)
+            } else {
+                stack.insertArrangedSubview(self, at: 0)
+            }
             UIView.animate(withDuration: 0.2) {
                 self.alpha = 1.0
             }

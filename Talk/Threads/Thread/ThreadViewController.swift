@@ -82,9 +82,11 @@ final class ThreadViewController: UIViewController {
         tableView.contentInset.top = topThreadToolbar.frame.height
     }
 
+#if DEBUG
     deinit {
         print("deinit ThreadViewController")
     }
+#endif
 }
 
 // MARK: Configure Views
@@ -251,7 +253,7 @@ extension ThreadViewController {
         }
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
-            self.moveToBottom.showWithAniamtion(false)
+            self.moveToBottom.show(false)
             view.bringSubviewToFront(vStackOverlayButtons)
         }
     }
@@ -265,7 +267,9 @@ extension ThreadViewController: ThreadViewDelegate {
     }
     
     func onUnreadCountChanged() {
+#if DEBUG
         print("onUnreadCountChanged \(viewModel?.thread.unreadCount ?? 0)")
+#endif
         moveToBottom.updateUnreadCount()
     }
 
@@ -313,7 +317,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func lastMessageAppeared(_ appeared: Bool) {
-        self.moveToBottom.setVisibility(visible: !appeared)
+        self.moveToBottom.show(!appeared)
         if self.viewModel?.scrollVM.isAtBottomOfTheList == true {
             self.tableView.tableFooterView = nil
         } else {
@@ -622,6 +626,7 @@ extension ThreadViewController: HistoryScrollDelegate {
             }
             tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
         } else {
+            if sections.isEmpty && rows.isEmpty { return }
             tableView.performBatchUpdates { [weak self] in
                 // Insert the sections and rows without animation
                 if !sections.isEmpty {
@@ -739,7 +744,6 @@ extension ThreadViewController {
            let duration = notif.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
         {
             let animationOptions = UIView.AnimationOptions(rawValue: animationCurve << 16)
-            print("rect of keyboard will show: \(rect.size)")
             if rect.size.height <= 69 {
                 hasExternalKeyboard = true
             } else {

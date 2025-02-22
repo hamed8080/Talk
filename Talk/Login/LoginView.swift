@@ -65,6 +65,7 @@ struct LoginContentView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .sandboxLabel()
                 }
             }
 

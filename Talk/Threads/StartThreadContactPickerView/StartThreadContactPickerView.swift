@@ -59,6 +59,19 @@ struct StartThreadContactPickerView: View {
                     ForEach(viewModel.searchedContacts) { contact in
                         BuilderContactRowContainer(contact: contact, isSearchRow: true)
                     }
+                } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
+                    if viewModel.isTypinginSearchString {
+                        ListLoadingView(isLoading: .constant(true))
+                    } else {
+                        Text("General.noResult")
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color.App.textSecondary)
+                            .frame(minWidth: 0, maxWidth: .infinity, alignment: .center)
+                            .multilineTextAlignment(.center)
+                            .listRowBackground(Color.App.bgPrimary)
+                            .listRowSeparator(.hidden)
+                            .id("General.noResult")
+                    }
                 }
 
                 StickyHeaderSection(header: "Contacts.sortLabel")
@@ -74,6 +87,7 @@ struct StartThreadContactPickerView: View {
                         .frame(height: 48)
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
+                        .submitLabel(.done)
                 }
                 .frame(height: 48)
                 .background(.ultraThinMaterial)

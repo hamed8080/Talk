@@ -305,3 +305,18 @@ public extension Array where Element == Message {
 }
 
 extension Message: HistoryMessageProtocol {}
+
+
+public extension Message {
+    var toReplyInfo: ReplyInfo {
+        .init(deleted: false,
+              repliedToMessageId: id,
+              message: message,
+              messageType: messageType,
+              metadata: metadata,
+              systemMetadata: systemMetadata,
+              repliedToMessageNanos: timeNanos,
+              repliedToMessageTime: time,
+              participant: participant)
+    }
+}

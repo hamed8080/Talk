@@ -26,7 +26,7 @@ struct SearchFiltersMessagesDialog: View {
 
                 Button {
                     withAnimation {
-                        viewModel.showUnreadConversations = showUnreadConversationToggle
+                        viewModel.showUnreadConversations = true
                         AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
                     }
                 } label: {

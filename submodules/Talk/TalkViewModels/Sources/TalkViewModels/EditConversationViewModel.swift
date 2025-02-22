@@ -255,8 +255,9 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
             enableReactionEvent = true
         }
     }
-
+#if DEBUG
     deinit{
         print("deinit EditConversationViewModel")
     }
+#endif
 }

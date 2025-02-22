@@ -206,6 +206,7 @@ struct EditGroup: View {
         TextField("EditGroup.groupName".bundleLocalized(), text: $viewModel.editTitle)
             .focused($focusState, equals: .name)
             .keyboardType(.default)
+            .submitLabel(.done)
             .padding()
             .applyAppTextfieldStyle(topPlaceholder: "EditGroup.groupName", innerBGColor: Color.App.bgSendInput, isFocused: focusState == .name) {
                 focusState = .name
@@ -224,6 +225,18 @@ struct EditGroup: View {
             }
             .noSeparators()
             .listRowBackground(Color.App.bgSecondary)
+            .toolbar {
+                ToolbarItem(placement: .keyboard) {
+                    HStack {
+                        Button("", systemImage: "chevron.down") {
+                            hideKeyboard()
+                        }
+                        .fontWeight(.bold)
+                        .offset(x: -4)
+                        Spacer()
+                    }
+                }
+            }
     }
 
     var toolbarView: some View {

@@ -26,6 +26,7 @@ struct EditContactInParticipantDetailView: View {
                 TextField("General.firstName", text: $firstName)
                     .focused($focusState, equals: .firstName)
                     .textContentType(.name)
+                    .submitLabel(.done)
                     .padding()
                     .applyAppTextfieldStyle(topPlaceholder: "General.firstName", isFocused: focusState == .firstName) {
                         focusState = .firstName
@@ -33,6 +34,7 @@ struct EditContactInParticipantDetailView: View {
                 TextField(optioanlAppend(text: "General.lastName"), text: $lastName)
                     .focused($focusState, equals: .lastName)
                     .textContentType(.familyName)
+                    .submitLabel(.done)
                     .padding()
                     .applyAppTextfieldStyle(topPlaceholder: "General.lastName", isFocused: focusState == .lastName) {
                         focusState = .lastName
@@ -40,6 +42,7 @@ struct EditContactInParticipantDetailView: View {
                 TextField("Contacts.Add.phoneOrUserName", text: $contactValue)
                     .focused($focusState, equals: .contactValue)
                     .keyboardType(.default)
+                    .submitLabel(.done)
                     .padding()
                     .applyAppTextfieldStyle(topPlaceholder: "Contacts.Add.phoneOrUserName", error: nil, isFocused: focusState == .contactValue) {
                         focusState = .contactValue

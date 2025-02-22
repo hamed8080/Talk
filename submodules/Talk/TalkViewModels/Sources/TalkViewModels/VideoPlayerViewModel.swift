@@ -108,8 +108,10 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
         Logger.viewModels.info("\(string, privacy: .sensitive)")
 #endif
     }
-
+    
+#if DEBUG
     deinit {
         print("deinit VideoPlayerViewModel")
     }
+#endif
 }

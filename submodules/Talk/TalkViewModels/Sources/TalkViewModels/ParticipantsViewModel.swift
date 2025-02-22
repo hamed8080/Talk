@@ -313,7 +313,9 @@ public final class ParticipantsViewModel: ObservableObject {
         }
     }
 
+#if DEBUG
     deinit {
         print("deinit called for ParticipantsViewModel")
     }
+#endif
 }

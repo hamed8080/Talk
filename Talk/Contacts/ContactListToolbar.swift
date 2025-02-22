@@ -75,6 +75,7 @@ struct ContactListToolbar: View {
                 }
             }
             .foregroundStyle(Color.App.toolbarButton)
+            .sandboxLabel()
 
 //            if !viewModel.showConversaitonBuilder {
 //                ToolbarButtonItem(imageName: "trash.fill", hint: "General.delete", padding: 10) {

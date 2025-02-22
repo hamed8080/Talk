@@ -45,11 +45,19 @@ public final class UploadFileViewModel: ObservableObject {
         guard let threadId = threadId else { return }
         let isImage: Bool = message.isImage
         let textMessageType: ChatModels.MessageType = isImage ? .podSpacePicture : message.messageType ?? .podSpaceFile
+        
+        let fileMessage = self.message as? UploadFileMessage
+        let fileRequest = fileMessage?.uploadFileRequest
+        let replyPrivatelyFileRequest = (self.message as? UploadFileWithReplyPrivatelyMessage)?.uploadFileRequest
+        let replyRequest = fileMessage?.replyRequest
+        
         let message = SendTextMessageRequest(threadId: threadId, textMessage: message.message ?? "", messageType: textMessageType)
-        if let fileRequest = (self.message as? UploadFileMessage)?.uploadFileRequest {
+        if replyRequest == nil, let fileRequest = fileRequest {
             uploadFile(message, fileRequest)
-        } else if let fileRequest = (self.message as? UploadFileWithReplyPrivatelyMessage)?.uploadFileRequest {
+        } else if let fileRequest = replyPrivatelyFileRequest {
             uploadFile(message, fileRequest)
+        } else if let replyRequest = replyRequest, let fileRequest = fileRequest {
+            uploadReplyFile(replyRequest, fileRequest)
         }
     }
 
@@ -60,7 +68,13 @@ public final class UploadFileViewModel: ObservableObject {
         let isImage: Bool = message.isImage
         let textMessageType: ChatModels.MessageType = isImage ? .podSpacePicture : .podSpaceFile
         let message = SendTextMessageRequest(threadId: threadId, textMessage: message.message ?? "", messageType: textMessageType)
-        if let imageRequest = (self.message as? UploadFileMessage)?.uploadImageRequest {
+        
+        let imageMessage = self.message as? UploadFileMessage
+        let imageRequest = imageMessage?.uploadImageRequest
+        let replyPrivatelyImageRequest = (self.message as? UploadFileWithReplyPrivatelyMessage)?.uploadImageRequest
+        let replyRequest = imageMessage?.replyRequest
+        
+        if replyRequest == nil, let imageRequest = imageRequest {
             uploadImage(message, imageRequest)
         } else if let uploadLoaction = self.message as? UploadFileWithLocationMessage {
             let req = uploadLoaction
@@ -68,8 +82,10 @@ public final class UploadFileViewModel: ObservableObject {
             Task { @ChatGlobalActor in
                 ChatManager.activeInstance?.message.send(req.locationRequest)
             }
-        } else if let imageRequest = (self.message as? UploadFileWithReplyPrivatelyMessage)?.uploadImageRequest {
+        } else if let imageRequest = replyPrivatelyImageRequest {
             uploadImage(message, imageRequest)
+        } else if let replyRequest = replyRequest, let imageRequest = imageRequest {
+            uploadReplyImage(replyRequest, imageRequest)
         }
     }
 
@@ -83,6 +99,20 @@ public final class UploadFileViewModel: ObservableObject {
             Task { @ChatGlobalActor in
                 ChatManager.activeInstance?.message.send(message, uploadFileRequest)
             }
+        }
+    }
+
+    public func uploadReplyFile(_ replyRequest: ReplyMessageRequest, _ uploadFileRequest: UploadFileRequest) {
+        uploadUniqueId = uploadFileRequest.uniqueId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.reply(replyRequest, uploadFileRequest)
+        }
+    }
+    
+    public func uploadReplyImage(_ replyRequest: ReplyMessageRequest, _ uploadFileRequest: UploadImageRequest) {
+        uploadUniqueId = uploadFileRequest.uniqueId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.reply(replyRequest, uploadFileRequest)
         }
     }
 

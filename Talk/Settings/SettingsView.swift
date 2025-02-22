@@ -42,12 +42,16 @@ struct SettingsView: View {
                 SettingArchivesSection()
                 if EnvironmentValues.isTalkTest {
                     SettingLogSection()
+                        .sandboxLabel()
                     BlockedMessageSection()
+                        .sandboxLabel()
                     // SettingCallHistorySection()
                     // SettingSavedMessagesSection()
                     // SettingCallSection()
                     AutomaticDownloadSection()
+                        .sandboxLabel()
                     SettingAssistantSection()
+                        .sandboxLabel()
                 }
             }
 
@@ -61,8 +65,11 @@ struct SettingsView: View {
                 VersionNumberView()
                 if EnvironmentValues.isTalkTest {
                     TokenExpireTimeSection()
+                        .sandboxLabel()
                     LoadTestsSection()
+                        .sandboxLabel()
                     ManualConnectionManagementSection()
+                        .sandboxLabel()
                 }
             }
             .listRowSeparator(.hidden)
@@ -92,6 +99,7 @@ struct SettingsView: View {
     @ViewBuilder var leadingViews: some View {
         if EnvironmentValues.isTalkTest {
             ToolbarButtonItem(imageName: "qrcode", hint: "General.edit", padding: 10)
+                .sandboxLabel()
         } else {
             Rectangle()
                 .fill(Color.clear)
@@ -112,7 +120,9 @@ struct SettingsView: View {
                     showLoginSheet.toggle()
                 }
             }
+            .sandboxLabel()
             ToolbarButtonItem(imageName: "magnifyingglass", hint: "General.search", padding: 10) {}
+                .sandboxLabel()
         }
     }
 }
@@ -447,6 +457,7 @@ struct LoadTestsSection: View {
             .listRowInsets(.zero)
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.App.dividerPrimary)
+            .sandboxLabel()
         }
     }
 }

@@ -44,6 +44,7 @@ public class AppOverlayViewModel: ObservableObject {
     public var isError: Bool { AppState.shared.error != nil }
     public var showCloseButton: Bool = false
     public var offsetVM = GalleyOffsetViewModel()
+    public var canDismiss: Bool = true
 
     public var transition: AnyTransition {
         switch type {
@@ -126,6 +127,24 @@ public class AppOverlayViewModel: ObservableObject {
                 isPresented = false
                 animateObjectWillChange()
             }
+        }
+    }
+    
+    public func dialogView(canDismiss: Bool, view: AnyView?) {
+        if view != nil {
+            dialogView = view
+            self.canDismiss = canDismiss
+            showCloseButton = false
+            type = .dialog
+            isPresented = true
+            animateObjectWillChange()
+        } else {
+            dialogView = nil
+            self.canDismiss = true
+            showCloseButton = false
+            type = .none
+            isPresented = false
+            animateObjectWillChange()
         }
     }
 

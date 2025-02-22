@@ -257,8 +257,10 @@ public final class ThreadReactionViewModel {
         let visibleMessages = await (threadVM?.historyVM.getInvalidVisibleMessages() ?? []).compactMap({$0 as? Message})
         await fetchReactions(messages: visibleMessages, withQueue: true)
     }
-
+    
+#if DEBUG
     deinit {
         print("deinit ThreadReactionViewModel")
     }
+#endif
 }

@@ -23,6 +23,7 @@ struct ContactListSearchBarFilterView: View {
                 TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchContactString)
                     .font(.iransansBody)
                     .textFieldStyle(.clear)
+                    .submitLabel(.done)
                     .focused($searchFocus, equals: .search)
                     .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 38)
                     .clipped()

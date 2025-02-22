@@ -508,6 +508,13 @@ public final class ThreadsViewModel: ObservableObject {
                 if newCount <= threads[index].unreadCount ?? 0 {
                     thread.unreadCount = newCount
                     await ThreadCalculators.reCalculateUnreadCount(threads[index])
+                    
+                    /// If the user open up the same thread on two devices at the same time,
+                    /// and on of them is at the bottom of the thread and one is at top,
+                    /// the one at bottom will send seen and respectively when we send seen unread count will be reduced,
+                    /// so on another thread we should catch this new unread count and update the thread.
+                    let activeVM = AppState.shared.objectsContainer.navVM.viewModel(for: response.subjectId ?? -1)
+                    activeVM?.delegate?.onUnreadCountChanged()
                 }
             }
             threads[index] = thread
