@@ -108,12 +108,13 @@ public final class ThreadPinMessageViewModel {
         let icon = fileMetaData?.file?.mimeType?.systemImageNameForFileExtension
         let isEnglish = isFileType && Language.isRTL ? false : message?.text?.naturalTextAlignment == .leading
         let title = messageText(text: message?.text, fileName: fileMetaData?.name)
+        let isAdmin = await viewModel?.thread.admin == true
         await MainActor.run {
             self.hasPinMessage = hasPinMessage
             self.icon = icon
             self.isEnglish = isEnglish
             self.title = title
-            self.canUnpinMessage = canUnpinMessage
+            self.canUnpinMessage = hasPinMessage && isAdmin
             viewModel?.delegate?.onUpdatePinMessage()
         }
     }
