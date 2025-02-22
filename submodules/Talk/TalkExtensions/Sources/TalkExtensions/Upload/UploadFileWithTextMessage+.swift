@@ -69,4 +69,44 @@ public extension UploadFileMessage {
         ownerId = model.meId
         conversation = model.conversation
     }
+    
+    convenience init?(audioFileURL: URL?, model: SendMessageModel, isReplyRequest: Bool) {
+        guard let audioFileURL = audioFileURL, let uploadRequest = UploadFileRequest(audioFileURL: audioFileURL, model.userGroupHash) else { return nil }
+        let replyRequest = ReplyMessageRequest(threadId: model.threadId,
+                                              repliedTo: model.replyMessage?.id ?? -1,
+                                              textMessage: "",
+                                              messageType: .podSpaceVoice
+        )
+        self.init(uploadFileRequest: uploadRequest, replyRequest: replyRequest, thread: model.conversation)
+        messageType = .podSpaceVoice
+        ownerId = model.meId
+        conversation = model.conversation
+    }
+    
+    convenience init(imageItem: ImageItem, model: SendMessageModel, isReplyRequest: Bool) {
+        let imageRequest = UploadImageRequest(imageItem: imageItem, model.userGroupHash)
+        let replyRequest = ReplyMessageRequest(threadId: model.threadId,
+                                              repliedTo: model.replyMessage?.id ?? -1,
+                                              textMessage: "",
+                                              messageType: .podSpacePicture
+        )
+        self.init(imageFileRequest: imageRequest, replyRequest: replyRequest, thread: model.conversation)
+        messageType = .podSpacePicture
+        ownerId = model.meId
+        conversation = model.conversation
+    }
+    
+    convenience init?(urlItem: URL, urlModel: SendMessageModel, isReplyRequest: Bool) {
+        let textMessage = urlModel.textMessage
+        guard let uploadRequest = UploadFileRequest(url: urlItem, urlModel.userGroupHash) else { return nil }
+        var replyRequest: ReplyMessageRequest? = nil
+        let isMusic = urlItem.isMusicMimetype
+        let newMessageType = isMusic ? ChatModels.MessageType.podSpaceSound : .podSpaceFile
+        replyRequest = ReplyMessageRequest(threadId: urlModel.threadId, repliedTo: urlModel.replyMessage?.id ?? -1, textMessage: textMessage, messageType: newMessageType)
+        self.init(uploadFileRequest: uploadRequest, sendTextMessageRequest: nil, replyRequest: replyRequest, thread: urlModel.conversation)
+        id = -(urlModel.uploadFileIndex ?? 1)
+        messageType = newMessageType
+        ownerId = urlModel.meId
+        conversation = urlModel.conversation
+    }
 }

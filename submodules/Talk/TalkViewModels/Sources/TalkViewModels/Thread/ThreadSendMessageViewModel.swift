@@ -47,8 +47,8 @@ public final class ThreadSendMessageViewModel {
             sendForwardMessages()
         } else if navModel.replyPrivately != nil {
             sendReplyPrivatelyMessage()
-        } else if let replyMessage = viewModel?.replyMessage, let replyMessageId = replyMessage.id {
-            sendReplyMessage(replyMessageId)
+        } else if viewModel?.replyMessage != nil {
+            sendReplyMessage()
         } else if sendVM.mode.type == .edit {
             sendEditMessage()
         } else if attVM.attachments.count > 0 {
@@ -88,44 +88,51 @@ public final class ThreadSendMessageViewModel {
         }
     }
 
-    public func sendReplyMessage(_ replyMessageId: Int) {
-        if attVM.attachments.count == 1 {
-            sendSingleReplyAttachment(attVM.attachments.first, replyMessageId)
-        } else {
-            if attVM.attachments.count > 1 {
-                let lastItem = attVM.attachments.last
-                if let lastItem {
-                    attVM.remove(lastItem)
-                }
-                sendAttachmentsMessage()
-                sendSingleReplyAttachment(lastItem, replyMessageId)
-            } else {
-                let req = ReplyMessageRequest(model: model)
-                Task { @ChatGlobalActor in
-                    ChatManager.activeInstance?.message.reply(req)
-                }
+    public func sendReplyMessage() {
+        let attachments = attVM.attachments
+        let images = attachments.compactMap({$0.request as? ImageItem})
+        let files = attachments.compactMap({$0.request as? URL})
+        
+        var uploads: [UploadFileMessage] = []
+        
+        /// Convert recoreded voice to UploadFileMessage
+        if let voicePath = recorderVM.recordingOutputPath {
+            uploads += [UploadFileMessage(audioFileURL: voicePath, model: model, isReplyRequest: true)].compactMap({$0})
+        }
+        
+        /// Convert all images to UploadFileMessage with replyRequest
+        uploads += images.compactMap({ UploadFileMessage(imageItem: $0, model: model, isReplyRequest: true) })
+        
+        /// Convert all file urls to UploadFileMessage with replyRequest
+        uploads += files.compactMap({ UploadFileMessage(urlItem: $0, urlModel: model, isReplyRequest: true) })
+        
+        /// Set ReplyInfo before upload to show when we are uploading
+        if let replyMessage = viewModel?.replyMessage {
+            for index in uploads.indices {
+                uploads[index].replyInfo = replyMessage.toReplyInfo
             }
         }
+        
+        let normalReplyRequest = ReplyMessageRequest(model: model)
+        if !uploads.isEmpty {
+            /// Append to the messages list while uploading
+            uplVM.append(uploads)
+        } else {
+            Task { @ChatGlobalActor in
+                await ChatManager.activeInstance?.message.reply(normalReplyRequest)
+            }
+        }
+                
+        /// Close Reply UI after reply
+        viewModel?.delegate?.openReplyMode(nil)
+        
+        /// Clean up and delete file at voicePath
+        recorderVM.cancel()
+        
         attVM.clear()
         viewModel?.replyMessage = nil
     }
-
-    public func sendSingleReplyAttachment(_ attachmentFile: AttachmentFile?, _ replyMessageId: Int) {
-        var req = ReplyMessageRequest(model: model)
-        if let imageItem = attachmentFile?.request as? ImageItem {
-            let imageReq = UploadImageRequest(imageItem: imageItem, thread.userGroupHash)
-            req.messageType = .podSpacePicture
-            Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.message.reply(req, imageReq)
-            }
-        } else if let url = attachmentFile?.request as? URL, let fileReq = UploadFileRequest(url: url, thread.userGroupHash) {
-            req.messageType = .podSpaceFile
-            Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.message.reply(req, fileReq)
-            }
-        }
-    }
-
+    
     public func sendReplyPrivatelyMessage() {
         send { [weak self] in
             guard let self = self else { return }
