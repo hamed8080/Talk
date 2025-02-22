@@ -212,9 +212,18 @@ public final class ThreadSendMessageViewModel {
     }
 
     public func openDestinationConversationToForward(_ destinationConversation: Conversation?, _ contact: Contact?) {
-        sendVM.clear() /// Close edit mode in ui
+        /// Close edit mode in ui
+        sendVM.clear()
         let messages = selectVM.getSelectedMessages().compactMap{$0.message as? Message}
-        if let contact = contact {
+        
+        /// Check if we are forwarding to the same thread
+        if destinationConversation?.id == threadId || (contact?.userId != nil && contact?.userId == thread.partner) {
+            AppState.shared.setupForwardRequest(from: threadId, to: threadId, messages: messages)
+            viewModel?.delegate?.showMainButtons(true)
+            viewModel?.delegate?.showForwardPlaceholder(show: true)
+            /// To call the publisher and activate the send button
+            viewModel?.sendContainerViewModel.clear()
+        } else if let contact = contact {
             AppState.shared.openForwardThread(from: threadId, contact: contact, messages: messages)
         } else if let destinationConversation = destinationConversation {
             AppState.shared.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)

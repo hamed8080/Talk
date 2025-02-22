@@ -192,7 +192,7 @@ public extension AppState {
         }
     }
 
-    /// Forward messages form a thread to a destination thread.
+    /// Forward messages from a thread to a destination thread.
     /// If the conversation is nil it try to use contact. Firstly it opens a conversation using the given contact core user id then send messages to the conversation.
     func openForwardThread(from: Int, conversation: Conversation, messages: [Message]) {
         let dstId = conversation.id ?? -1

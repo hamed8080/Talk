@@ -114,6 +114,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
             guard let self = self else { return }
             AppState.shared.appStateNavigationModel = .init()
             viewModel?.selectedMessagesViewModel.clearSelection()
+            viewModel?.sendContainerViewModel.clear()
             set()
         }
     }

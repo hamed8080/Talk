@@ -53,7 +53,6 @@ public final class ThreadViewModel {
     public var readOnly = false
     private var cancelable: Set<AnyCancellable> = []
     public var signalMessageText: String?
-    public var forwardMessage: Message?
     public var model: AppSettingsModel = .init()
     public var canDownloadImages: Bool = false
     public var canDownloadFiles: Bool = false

@@ -154,8 +154,6 @@ private extension MessageContainerStackView {
     }
 
     func onForwardAction(_ model: ActionModel) {
-        guard let message = model.message as? Message else { return }
-        model.threadVM?.forwardMessage = message
         model.threadVM?.delegate?.setSelection(true)
         cell?.select()
     }
