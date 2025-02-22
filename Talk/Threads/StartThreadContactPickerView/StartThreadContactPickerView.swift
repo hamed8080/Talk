@@ -62,7 +62,7 @@ struct StartThreadContactPickerView: View {
                 } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                     if viewModel.isTypinginSearchString {
                         ListLoadingView(isLoading: .constant(true))
-                    } else {
+                    } else if !viewModel.lazyList.isLoading {
                         Text("General.noResult")
                             .fontWeight(.medium)
                             .foregroundStyle(Color.App.textSecondary)

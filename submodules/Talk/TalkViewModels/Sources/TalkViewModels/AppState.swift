@@ -304,7 +304,15 @@ public extension AppState {
     func openThreadAndMoveToMessage(conversationId: Int, messageId: Int, messageTime: UInt) {
         self.appStateNavigationModel.moveToMessageId = messageId
         self.appStateNavigationModel.moveToMessageTime = messageTime
-        searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
+        
+        /// Check if destiation thread is already inside NavigationPath stack,
+        /// If it is exist we will pop and remove current Path, to show the viewModel
+        let navVM = objectsContainer.navVM
+        if navVM.viewModel(for: conversationId) != nil, let currentThreadId = navVM.presentedThreadViewModel?.threadId {
+            navVM.remove(threadId: currentThreadId)
+        } else {
+            searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
+        }
     }
 }
 
