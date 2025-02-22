@@ -345,7 +345,7 @@ public final class MainSendButtons: UIStackView {
     private func openTakePicturePicker() {
         let captureObject = CameraCapturer(isVideo: false) { [weak self] image, url, resources in
             guard let self = self, let image = image else { return }
-            let item = ImageItem(data: image.jpegData(compressionQuality: 80) ?? Data(),
+            let item = ImageItem(data: image.jpegData(compressionQuality: 0.8) ?? Data(),
                                  width: Int(image.size.width),
                                  height: Int(image.size.height),
                                  originalFilename: "image-\(Date().fileDateString).jpg")

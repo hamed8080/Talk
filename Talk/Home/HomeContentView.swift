@@ -37,6 +37,7 @@ struct HomeContentView: View {
                 .environmentObject(container.audioPlayerVM)
                 .environmentObject(container.conversationBuilderVM)
                 .environmentObject(container.userProfileImageVM)
+                .environmentObject(container.banVM)
         }
         .modifier(ColorSchemeModifier())
         .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)

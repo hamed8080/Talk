@@ -9,6 +9,7 @@ import Foundation
 import PhotosUI
 import TalkViewModels
 import TalkModels
+import OSLog
 
 /// Image or Video picker handler.
 @MainActor
@@ -37,13 +38,14 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
             if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
                 let id = UUID()
                 let item = placeholderVideoItem(item: provider, id: id)
-                //                provider.loadFileRepresentation(for: .movie) { url, openInPlace, error in
-                //                    print("video url is: \(url)")
-                //                }
-                
-                let progress = provider.loadDataRepresentation(for: .movie) { [weak self] data, error in
+                let progress = provider.loadDataRepresentation(for: .movie) { data, error in
                     Task { [weak self] in
-                        await self?.onVideoItemPrepared(data: data, id: id, error: error)
+                        guard let self = self else { return }
+                        if let data = data {
+                            await onVideoItemPrepared(data: data, id: id, error: error)
+                        } else if let error = error {
+                            await log("Error load movie: \(error.localizedDescription)")
+                        }
                     }
                 }
                 item.progress = progress
@@ -53,17 +55,40 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
             if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
                 let id = UUID()
                 let item = placeholderImageItem(item: provider, id: id)
-                //                provider.loadFileRepresentation(for: .image) { url, openInPlace, error in
-                //                    print("image url is: \(url)")
-                //                }
                 
-                let progress = provider.loadObject(ofClass: UIImage.self) { [weak self] item, error in
+                
+                /// First we try to load `loadFileRepresentation` the chance of loading the image is close to 70%
+                /// However the final file size is equal to it's actual size, and unlike `loadObject` it won't increase the final size
+                let progress = provider.loadFileRepresentation(for: .image) { [weak self] url, openInPlace, error in
                     Task { [weak self] in
-                        await self?.onImageItemPrepared(image: item as? UIImage, id: id, error: error)
+                        guard let self = self else { return }
+                        if let url = url {
+                            do {
+                                let data = try Data(contentsOf: url)
+                                await onImageItemPrepared(data: data, id: id, error: error)
+                            } catch {
+                                await log("Error loadFileRepresentation: \(error.localizedDescription)")
+                                await loadImageObject(provider, id)
+                            }
+                        } else if let error = error {
+                            await log("Image url is nil and error: \(error.localizedDescription)")
+                            await loadImageObject(provider, id)
+                        }
                     }
                 }
                 item.progress = progress
                 viewModel?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+            }
+        }
+    }
+
+    /// Fallback to loadObject to get the image.
+    /// The final size will be larger; however, the chance of getting the image is close to 100%.
+    private func loadImageObject(_ provider: NSItemProvider, _ id: UUID) {
+        log("Load image object fallback")
+        let _ = provider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
+            Task { [weak self] in
+                await self?.onImageItemPrepared(image: image as? UIImage, id: id, error: error)
             }
         }
     }
@@ -95,11 +120,32 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
                          progress: nil)
     }
     
-    private func onImageItemPrepared(image: UIImage?, id: UUID, error: Error?) async {
-        if let data = image?.pngData() {
+    private func onImageItemPrepared(data: Data?, id: UUID, error: Error?) async {
+        if let data = data {
+            let image = UIImage(data: data)
             viewModel?.attachmentsViewModel.prepared(data, id, width: image?.size.width, height: image?.size.height ?? 0)
         } else if let error = error {
             viewModel?.attachmentsViewModel.failed(error, id)
         }
     }
+    
+    private func onImageItemPrepared(image: UIImage?, id: UUID, error: Error?) async {
+        if let data = image?.jpegData(compressionQuality: 0.7) {
+            let image = UIImage(data: data)
+            viewModel?.attachmentsViewModel.prepared(data, id, width: image?.size.width, height: image?.size.height ?? 0)
+        } else if let error = error {
+            viewModel?.attachmentsViewModel.failed(error, id)
+        }
+    }
+    
+    private func log(_ message: String) {
+        #if DEBUG
+        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
+        logger.debug("\(message)")
+        #endif
+    }
+}
+
+extension NSItemProvider: @retroactive @unchecked Sendable {
+    
 }

@@ -20,6 +20,7 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var searchVM = ThreadsSearchViewModel()
     @Published public var archivesVM = ArchiveThreadsViewModel()
     @Published public var errorVM = ErrorHandlerViewModel()
+    @Published public var banVM = BanViewModel()
     @Published public var userProfileImageVM: ImageLoaderViewModel!
     public var chatRequestQueue = ChatRequestQueue()
 
