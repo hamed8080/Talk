@@ -85,7 +85,7 @@ extension MessageContainerStackView {
     private func indexpath() -> IndexPath? {
         guard
             let vm = viewModel,
-            let indexPath = viewModel?.threadVM?.historyVM.mSections.indexPath(for: vm)
+            let indexPath = viewModel?.threadVM?.historyVM.sectionsHolder.sections.indexPath(for: vm)
         else { return nil }
         return indexPath
     }

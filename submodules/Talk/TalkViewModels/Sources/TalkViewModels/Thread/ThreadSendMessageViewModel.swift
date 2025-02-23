@@ -199,8 +199,8 @@ public final class ThreadSendMessageViewModel {
                 let tuple = Message.makeRequest(model: model)
                 let historyVM = viewModel?.historyVM
                 await historyVM?.injectMessagesAndSort([tuple.message])
-                let lastSectionIndex = max(0, (historyVM?.mSections.count ?? 0) - 1)
-                let row = max((historyVM?.mSections[lastSectionIndex].vms.count ?? 0) - 1, 0)
+                let lastSectionIndex = max(0, (historyVM?.sectionsHolder.sections.count ?? 0) - 1)
+                let row = max((historyVM?.sectionsHolder.sections[lastSectionIndex].vms.count ?? 0) - 1, 0)
                 let indexPath = IndexPath(row: row, section: lastSectionIndex)
                 viewModel?.delegate?.inserted(at: indexPath)
                 viewModel?.delegate?.scrollTo(index: indexPath, position: .bottom, animate: true)

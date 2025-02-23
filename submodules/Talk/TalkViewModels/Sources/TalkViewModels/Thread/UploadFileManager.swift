@@ -65,9 +65,8 @@ public final class UploadFileManager {
 
     public func cancel(viewModelUniqueId: String) async {
         if let vm = uploadVMS.first(where: {$0.key == viewModelUniqueId})?.value {
-            if let indexPath = viewModel?.historyVM.mSections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
-                viewModel?.historyVM.mSections[indexPath.section].vms.remove(at: indexPath.row)
-                viewModel?.delegate?.removed(at: indexPath)
+            if let indexPath = viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
+                viewModel?.historyVM.sectionsHolder.deleteIndices([IndexPath(row: indexPath.row, section: indexPath.section)])
             }
             vm.cancelUpload()
             unRegister(viewModelUniqueId: viewModelUniqueId)
@@ -112,7 +111,7 @@ public final class UploadFileManager {
 
     @HistoryActor
     private func changeStateTo(state: MessageFileState, metaData: FileMetaData?, viewModelUniqueId: String) async {
-        let tuple = await viewModel?.historyVM.mSections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
+        let tuple = await viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
         tuple?.vm.message.metadata = metaData?.jsonString
         let fileURL = await tuple?.vm.message.fileURL
         await MainActor.run {

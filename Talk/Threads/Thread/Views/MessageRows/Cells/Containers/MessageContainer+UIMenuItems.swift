@@ -210,16 +210,13 @@ private extension MessageContainerStackView {
     func onDeleteCacheAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
         model.threadVM?.clearCacheFile(message: message)
-        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.mSections.indicesByMessageUniqueId(uniqueId) {
+        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
                 if let threadVM = model.threadVM {
                     let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
                     await newVM.recalculate(mainData: newVM.getMainData())
-                    await MainActor.run {
-                        model.threadVM?.historyVM.mSections[indexPath.section].vms[indexPath.row] = newVM
-                        model.threadVM?.delegate?.reloadData(at: indexPath)
-                    }
+                    await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
                 }
             }
         }
@@ -256,7 +253,7 @@ private extension MessageContainerStackView {
     func onSelectAction(_ model: ActionModel) {
         model.threadVM?.delegate?.setSelection(true)
         if let uniqueId = model.message.uniqueId,
-           let indexPath = model.threadVM?.historyVM.mSections.indicesByMessageUniqueId(uniqueId) {
+           let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
             model.threadVM?.delegate?.setTableRowSelected(indexPath)
         }
         cell?.select()

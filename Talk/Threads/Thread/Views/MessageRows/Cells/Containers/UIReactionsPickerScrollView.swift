@@ -194,7 +194,7 @@ extension UIReactionsPickerScrollView: UICollectionViewDelegate {
         if let viewModel = viewModel, let messageId = viewModel.message.id, let sticker = row.sticker {
             let myRow = viewModel.reactionsModel.rows.first(where: {$0.isMyReaction})
             viewModel.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
-            if let indexPath = viewModel.threadVM?.historyVM.mSections.indexPath(for: viewModel) {
+            if let indexPath = viewModel.threadVM?.historyVM.sectionsHolder.sections.indexPath(for: viewModel) {
                 viewModel.threadVM?.delegate?.dismissContextMenu(indexPath: indexPath)
             }
         } else if row.expandButton {

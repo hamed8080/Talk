@@ -37,6 +37,7 @@ final class ThreadViewController: UIViewController {
     private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private var isViewControllerVisible: Bool = true
+    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,6 +45,7 @@ final class ThreadViewController: UIViewController {
         registerKeyboard()
         viewModel?.delegate = self
         viewModel?.historyVM.delegate = self
+        viewModel?.historyVM.sectionsHolder.delegate = self
         startCenterAnimation(true)
     }
 
@@ -551,7 +553,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {
-        if let indexPath = viewModel?.historyVM.mSections.indicesByMessageUniqueId(uniqueId) {
+        if let indexPath = sections.indicesByMessageUniqueId(uniqueId) {
             scrollTo(index: indexPath, position: position, animate: animate)
         }
     }
@@ -565,13 +567,13 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func reloadData(at: IndexPath) {
-        if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = viewModel?.historyVM.mSections.viewModelWith(at) {
+        if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = sections.viewModelWith(at) {
             cell.setValues(viewModel: vm)
         }
     }
 
     private func moveTolastMessageIfVisible() {
-        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = viewModel?.historyVM.mSections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
+        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
             scrollTo(index: indexPath, position: .bottom)
         }
     }
@@ -639,24 +641,21 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     
-    func removed(at: IndexPath) {
-        guard let viewModel = viewModel else { return }
-        tableView.beginUpdates()
-        if tableView.numberOfSections > viewModel.historyVM.mSections.count {
-            tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
+    func delete(sections: [IndexSet], rows: [IndexPath]) {
+        tableView.performBatchUpdates {
+            /// Firstly, we have ato delete rows to have right index for rows,
+            /// then we are prepared to delete sections
+            if !rows.isEmpty {
+                tableView.deleteRows(at: rows, with: .fade)
+            }
+            
+            if !sections.isEmpty {
+                /// From newer section at bottom of theread to top to prevent crash
+                sections.reversed().forEach { sectionSet in
+                    tableView.deleteSections(sectionSet, with: .fade)
+                }
+            }
         }
-        tableView.deleteRows(at: [at], with: .fade)
-        tableView.endUpdates()
-    }
-
-    func removed(at: [IndexPath]) {
-        guard let viewModel = viewModel else { return }
-        tableView.beginUpdates()
-        if tableView.numberOfSections > viewModel.historyVM.mSections.count {
-            tableView.deleteSections(IndexSet(viewModel.historyVM.mSections.count..<tableView.numberOfSections), with: .fade)
-        }
-        tableView.deleteRows(at: at, with: .fade)
-        tableView.endUpdates()
     }
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
@@ -699,7 +698,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     private func cellFor(indexPath: IndexPath) -> (vm: MessageRowViewModel, cell: MessageBaseCell)?  {
         guard let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell else { return nil }
-        guard let vm = viewModel?.historyVM.mSections.viewModelWith(indexPath) else { return nil }
+        guard let vm = sections.viewModelWith(indexPath) else { return nil }
         return (vm, cell)
     }
 }
@@ -793,7 +792,7 @@ extension ThreadViewController {
     }
 
     private func prevouisVisibleIndexPath() -> MessageBaseCell? {
-        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = viewModel?.historyVM.mSections.previousIndexPath(firstVisible) {
+        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = sections.previousIndexPath(firstVisible) {
             let cell = tableView.cellForRow(at: previousIndexPath) as? MessageBaseCell
             return cell
         }
@@ -801,7 +800,7 @@ extension ThreadViewController {
     }
 
     private func nextVisibleIndexPath() -> MessageBaseCell? {
-        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = viewModel?.historyVM.mSections.nextIndexPath(lastVisible) {
+        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = sections.nextIndexPath(lastVisible) {
             let cell = tableView.cellForRow(at: nextIndexPath) as? MessageBaseCell
             return cell
         }

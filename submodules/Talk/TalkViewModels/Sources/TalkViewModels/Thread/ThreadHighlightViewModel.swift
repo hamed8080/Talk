@@ -17,7 +17,7 @@ final class ThreadHighlightViewModel {
     private var task: Task<(), Never>?
 
     // Computed properties
-    private var sections: ContiguousArray<MessageSection> { viewModel?.mSections ?? [] }
+    private var sections: ContiguousArray<MessageSection> { viewModel?.sectionsHolder.sections ?? [] }
     private var delegate: HistoryScrollDelegate? { viewModel?.delegate }
 
     nonisolated init(){}

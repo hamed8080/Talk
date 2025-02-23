@@ -32,11 +32,11 @@ public final class ThreadSelectedMessagesViewModel {
     }
 
     public func getSelectedMessages() -> [MessageRowViewModel] {
-        viewModel?.historyVM.mSections.flatMap{$0.vms}.filter({$0.calMessage.state.isSelected}) ?? []
+        viewModel?.historyVM.sectionsHolder.sections.flatMap{$0.vms}.filter({$0.calMessage.state.isSelected}) ?? []
     }
 
     private func putAllInSeclectionMode(_ isInSelectionMode: Bool) {
-        viewModel?.historyVM.mSections.flatMap({$0.vms}).forEach({ vm in
+        viewModel?.historyVM.sectionsHolder.sections.flatMap({$0.vms}).forEach({ vm in
             vm.calMessage.state.isInSelectMode = isInSelectionMode
         })
     }

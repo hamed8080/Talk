@@ -282,7 +282,7 @@ public final class ThreadViewModel {
     private func onEditedMessage(_ response: ChatResponse<Message>) async {
         guard
             let editedMessage = response.result,
-            var oldMessage = await historyVM.mSections.message(for: response.result?.id)?.message
+            var oldMessage = await historyVM.sectionsHolder.sections.message(for: response.result?.id)?.message
         else { return }
         oldMessage.updateMessage(message: editedMessage)
         await MainActor.run {
