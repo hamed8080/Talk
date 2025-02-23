@@ -53,7 +53,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         } else if let userName = url.openThreadUserName {
             AppState.shared.openThreadWith(userName: userName)
         } else if let decodedOpenURL = url.decodedOpenURL {
-            AppState.shared.openURL(url: decodedOpenURL)
+            if decodedOpenURL.absoluteString.contains(AppRoutes.joinLink) {
+                /// Show join to public group dialog
+                let publicName = decodedOpenURL.absoluteString.replacingOccurrences(of: AppRoutes.joinLink, with: "").replacingOccurrences(of: "\u{200f}", with: "")
+                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(publicGroupName: publicName))
+            } else {
+                /// Open up the browser
+                AppState.shared.openURL(url: decodedOpenURL)
+            }
         }
     }
 

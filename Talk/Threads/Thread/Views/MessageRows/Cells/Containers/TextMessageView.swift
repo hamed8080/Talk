@@ -12,7 +12,6 @@ import TalkModels
 
 final class TextMessageView: UITextView {
     private weak var viewModel: MessageRowViewModel?
-    private var tap: UITapGestureRecognizer!
     public var forceEnableSelection = false
 
     override init(frame: CGRect, textContainer: NSTextContainer?) {
@@ -46,24 +45,10 @@ final class TextMessageView: UITextView {
         }
     }
 
-    @objc func onTapJoinGroup(_ sender: UIGestureRecognizer) {
-        if let message = viewModel?.message {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(message: message))
-        }
-    }
-
     public func setText(viewModel: MessageRowViewModel) {
         self.attributedText = viewModel.calMessage.markdownTitle
         let hide = viewModel.calMessage.rowType.hasText == false && viewModel.calMessage.rowType.isPublicLink == false
         setIsHidden(hide)
-
-        if viewModel.calMessage.rowType.isPublicLink == true, tap == nil {
-            let tap = UITapGestureRecognizer(target: self, action: #selector(onTapJoinGroup(_:)))
-            addGestureRecognizer(tap)
-        } else if tap != nil {
-            removeGestureRecognizer(tap)
-            tap = nil
-        }
     }
 
     // Inside a UITextView subclass:
