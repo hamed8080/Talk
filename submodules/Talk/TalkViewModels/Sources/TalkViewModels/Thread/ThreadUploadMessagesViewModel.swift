@@ -52,7 +52,7 @@ public final class ThreadUploadMessagesViewModel {
             let indexPath = IndexPath(row: rowCount - 1, section: sectionCount - 1)
             await viewModel?.scrollVM.scrollToLastUploadedMessageWith(indexPath)
             /// Hide empty thread dialog if it was showing
-            await viewModel?.historyVM.setIsEmptyThread()
+            await viewModel?.historyVM.showEmptyThread(show: false)
         }
     }
 

@@ -39,7 +39,6 @@ public final class ThreadHistoryViewModel {
     @VisibleActor
     private var visibleTracker = VisibleMessagesTracker()
     @MainActor private var highlightVM = ThreadHighlightViewModel()
-    private var isEmptyThread = false
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
     private var middleFetcher: MiddleHistoryFetcherViewModel?
@@ -128,7 +127,7 @@ extension ThreadHistoryViewModel {
         let isSimulatedThread = await viewModel?.isSimulatedThared == true
         let hasAnythingToLoadOnOpen = await AppState.shared.appStateNavigationModel.moveToMessageId != nil
         await moveToMessageTimeOnOpenConversation()
-        await setIsEmptyThread()
+        await showEmptyThread(show: false)
         if sections.count > 0 || hasAnythingToLoadOnOpen || isSimulatedThread { return }
         Task.detached {
             /// We won't set this variable to prevent duplicate call on connection status for the first time.
@@ -341,8 +340,7 @@ extension ThreadHistoryViewModel {
     private func tryNinthScenario() async {
         if hasThreadNeverOpened() && thread.lastMessageVO == nil {
             await showCenterLoading(false)
-            isEmptyThread = true
-            await delegate?.emptyStateChanged(isEmpty: isEmptyThread)
+            await showEmptyThread(show: true)
         }
     }
 
@@ -661,9 +659,7 @@ extension ThreadHistoryViewModel {
             /// If respone is not empty therefore the thread is not empty and we should not show it
             /// if we call setIsEmptyThread, directly without this check it will show empty thread view for a short period of time,
             /// then disappear and it lead to call move to bottom to hide, in cases like click on reply.
-            if response.result?.isEmpty == true {
-                await setIsEmptyThread()
-            }
+            await showEmptyThread(show: response.result?.isEmpty == true)
             log("End on history:\(Date().millisecondsSince1970)")
         } else if response.cache, await !isConnected {
             await onHistoryCacheRsponse(response)
@@ -690,7 +686,7 @@ extension ThreadHistoryViewModel {
         }
         await viewModel?.updateUnreadCount(updatedConversation.unreadCount)
         await setSeenForAllOlderMessages(newMessage: messages.last ?? .init(), myId: await appUserId ?? -1)
-        await setIsEmptyThread()
+        await showEmptyThread(show: false)
     }
 
     /*
@@ -849,7 +845,9 @@ extension ThreadHistoryViewModel {
                 }
             }
         }
-        await setIsEmptyThread()
+        if sections.isEmpty {
+            await showEmptyThread(show: true)
+        }
         await onDeleteMessage(indicies)
         for message in messages {
             await setDeletedIfWasReply(messageId: message.id ?? -1)
@@ -1218,12 +1216,9 @@ extension ThreadHistoryViewModel {
         return hasNextBottom && !bottomLoading && !isProgramaticallyScroll && !topLoading
     }
 
-    public func setIsEmptyThread() async {
-        let noMessage = isFetchedServerFirstResponse == true && sections.count == 0
-        let emptyThread = await viewModel?.isSimulatedThared == true
-        isEmptyThread = emptyThread || noMessage
-        await delegate?.emptyStateChanged(isEmpty: isEmptyThread)
-        if isEmptyThread {
+    public func showEmptyThread(show: Bool) async {
+        await delegate?.emptyStateChanged(isEmpty: show)
+        if show {
             await showCenterLoading(false)
         }
     }
