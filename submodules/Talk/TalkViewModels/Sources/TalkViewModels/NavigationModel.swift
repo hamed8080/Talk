@@ -88,19 +88,13 @@ public extension NavigationModel {
     private var threadStack: [ConversationNavigationValue] { pathsTracking.compactMap{ $0 as? ConversationNavigationValue } }
 
     func switchFromThreadList(thread: Conversation) {
-        let wasEmpty = paths.isEmpty
         presentedThreadViewModel?.viewModel.cancelAllObservers()
         popAllPaths()
-        append(thread: thread, wasEmpty: wasEmpty)
+        append(thread: thread)
     }
 
-    func append(thread: Conversation, wasEmpty: Bool = false) {
+    func append(thread: Conversation) {
         Task { @MainActor in
-            /// On iPadOS when a thread is opened and user click on another thread on the side bar,
-            /// the thread will be appeared as empty. On iPhone there is no problem.
-//            if UIDevice.current.userInterfaceIdiom == .pad && !wasEmpty {
-//                try? await Task.sleep(for: .seconds(0.5))
-//            }
             let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
             let value = ConversationNavigationValue(viewModel: viewModel)
             append(value: value)
@@ -141,11 +135,13 @@ public extension NavigationModel {
         setSelectedThreadId()
     }
 
-    func cleanOnPop(threadId: Int? = nil) {
-        if threadId != nil {
+    func cleanOnPop(threadId: Int) {
+        if threadId == presentedThreadViewModel?.threadId {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
-        popLastPathTracking()
+        if threadId == threadStack.last?.viewModel.threadId {
+            popLastPathTracking()
+        }
         setSelectedThreadId()
     }
 }

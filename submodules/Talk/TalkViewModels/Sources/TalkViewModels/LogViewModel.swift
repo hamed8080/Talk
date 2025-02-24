@@ -27,7 +27,9 @@ public final class LogViewModel: ObservableObject {
             NotificationCenter.logs.publisher(for: .logs)
                 .compactMap { $0.object as? Log }
                 .sink { [weak self] log in
-                    self?.logs.insert(log, at: 0)
+                    Task { @MainActor [weak self] in
+                        self?.logs.insert(log, at: 0)
+                    }
                 }
                 .store(in: &cancellableSet)
         #endif

@@ -136,9 +136,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     }
 
     private func handleTaskRefreshToken(_ task: BGAppRefreshTask) {
-        let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in handleTaskRefreshToken method", level: .error, type: .sent, userInfo: nil)
-        self.log(log)
+        let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in handleTaskRefreshToken method", level: .error, type: .sent, userInfo: nil)        
         Task { @MainActor in
+            self.log(log)
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
                 await scheduleAppRefreshToken() /// Reschedule again when user receive a token.
