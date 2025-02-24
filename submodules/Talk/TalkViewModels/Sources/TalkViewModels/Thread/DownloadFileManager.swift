@@ -94,8 +94,7 @@ public final class DownloadFileManager {
     public func register(message: HistoryMessageType) {
         if isContains(message) { return }
         let isFileType = message.isFileType
-        let isUploading = message is UploadFileWithLocationMessage
-        if isFileType && !isUploading, let message = message as? Message {
+        if isFileType, let message = message as? Message {
             let downloadFileVM = DownloadFileViewModel(message: message)
             let types = types(message: message)
             appendToQueue(downloadFileVM)

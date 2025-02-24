@@ -45,11 +45,7 @@ public final class UploadFileManager {
                     }
                 }
                 .store(in: &cancelableSet)
-                if message.isImage || message is UploadFileWithLocationMessage {
-                    uploadFileVM.startUploadImage()
-                } else {
-                    uploadFileVM.startUploadFile()
-                }
+                uploadFileVM.startUpload()
             }
         }
     }
@@ -68,7 +64,7 @@ public final class UploadFileManager {
             if let indexPath = viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
                 viewModel?.historyVM.sectionsHolder.deleteIndices([IndexPath(row: indexPath.row, section: indexPath.section)])
             }
-            vm.cancelUpload()
+            vm.action(.cancel)
             unRegister(viewModelUniqueId: viewModelUniqueId)
         }
     }

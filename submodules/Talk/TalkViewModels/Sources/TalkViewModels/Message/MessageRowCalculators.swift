@@ -121,7 +121,7 @@ class MessageRowCalculators {
         
         let isEditableOrNil = (message.editable == true || message.editable == nil)
         calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && thread?.admin == true && thread?.type?.isChannelType == true)
-        rowType.isMap = calculatedMessage.fileMetaData?.mapLink != nil || calculatedMessage.fileMetaData?.latitude != nil || message is UploadFileWithLocationMessage
+        rowType.isMap = calculatedMessage.fileMetaData?.mapLink != nil || calculatedMessage.fileMetaData?.latitude != nil || (message as? UploadFileMessage)?.locationRequest != nil
         let isFirstMessageOfTheUser = isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: mainData.thread?.type?.isChannelType == true)
         calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
         calculatedMessage.isLastMessageOfTheUser = isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
@@ -142,7 +142,6 @@ class MessageRowCalculators {
         rowType.isUnSent = message.isUnsentMessage
         rowType.hasText = (!rowType.isPublicLink) && !rowType.isSingleEmoji && calculateText(message: message) != nil
         rowType.cellType = getCellType(message: message, isMe: calculatedMessage.isMe)
-        
         
         calculatedMessage.computedFileSize = calculateFileSize(message: message, calculatedMessage: calculatedMessage)
         calculatedMessage.extName = calculateFileTypeWithExt(message: message, calculatedMessage: calculatedMessage)
@@ -238,9 +237,8 @@ class MessageRowCalculators {
     
     class func calculateFileSize(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> String? {
         let normal = message as? UploadFileMessage
-        let reply = message as? UploadFileWithReplyPrivatelyMessage
-        let fileReq = normal?.uploadFileRequest ?? reply?.uploadFileRequest
-        let imageReq = normal?.uploadImageRequest ?? reply?.uploadImageRequest
+        let fileReq = normal?.uploadFileRequest
+        let imageReq = normal?.uploadImageRequest
         let size = fileReq?.data.count ?? imageReq?.data.count ?? 0
         let uploadFileSize: Int64 = Int64(size)
         let realServerFileSize = calculatedMessage.fileMetaData?.file?.size
@@ -250,9 +248,8 @@ class MessageRowCalculators {
     
     class func calculateFileTypeWithExt(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> String? {
         let normal = message as? UploadFileMessage
-        let reply = message as? UploadFileWithReplyPrivatelyMessage
-        let fileReq = normal?.uploadFileRequest ?? reply?.uploadFileRequest
-        let imageReq = normal?.uploadImageRequest ?? reply?.uploadImageRequest
+        let fileReq = normal?.uploadFileRequest
+        let imageReq = normal?.uploadImageRequest
         
         let uploadFileType = fileReq?.originalName ?? imageReq?.originalName
         let serverFileType = calculatedMessage.fileMetaData?.file?.originalName
@@ -336,13 +333,13 @@ class MessageRowCalculators {
     class func calculateImageSize(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> CGSize? {
         if message.isImage {
             /// We use max to at least have a width, because there are times that maxWidth is nil.
-            let uploadMapSizeWidth = message is UploadFileWithLocationMessage ? Int(DownloadFileManager.emptyImage.size.width) : nil
-            let uploadMapSizeHeight = message is UploadFileWithLocationMessage ? Int(DownloadFileManager.emptyImage.size.height) : nil
+            let uploadMapSizeWidth = message is UploadFileMessage ? DownloadFileManager.emptyImage.size.width : nil
+            let uploadMapSizeHeight = message is UploadFileMessage ? DownloadFileManager.emptyImage.size.height : nil
             let uploadImageReq = (message as? UploadFileMessage)?.uploadImageRequest
-            let imageWidth = CGFloat(calculatedMessage.fileMetaData?.file?.actualWidth ?? uploadImageReq?.wC ?? uploadMapSizeWidth ?? 0)
+            let imageWidth = CGFloat(calculatedMessage.fileMetaData?.file?.actualWidth ?? uploadImageReq?.wC ?? Int(uploadMapSizeWidth ?? 0))
             let maxWidth = ThreadViewModel.maxAllowedWidth
             /// We use max to at least have a width, because there are times that maxWidth is nil.
-            let imageHeight = CGFloat(calculatedMessage.fileMetaData?.file?.actualHeight ?? uploadImageReq?.hC ?? uploadMapSizeHeight ?? 0)
+            let imageHeight = CGFloat(calculatedMessage.fileMetaData?.file?.actualHeight ?? uploadImageReq?.hC ?? Int(uploadMapSizeHeight ?? 0))
             let originalWidth: CGFloat = imageWidth
             let originalHeight: CGFloat = imageHeight
             var designerWidth: CGFloat = maxWidth
@@ -616,12 +613,8 @@ class MessageRowCalculators {
     }
     
     class func calculateText(message: HistoryMessageType) -> String? {
-        if let uploadReplyTitle = (message as? UploadFileWithReplyPrivatelyMessage)?.replyPrivatelyRequest.replyContent.text  {
-            return uploadReplyTitle
-        } else if let text = message.message, !text.isEmpty {
+        if let text = message.message, !text.isEmpty {
             return text
-        } else if let mapText = (message as? UploadFileWithLocationMessage)?.locationRequest.textMessage {
-            return mapText
         } else {
             return nil
         }
