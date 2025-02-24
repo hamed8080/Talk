@@ -45,11 +45,7 @@ public final class UploadFileManager {
                     }
                 }
                 .store(in: &cancelableSet)
-                if message.isImage || message is UploadFileWithLocationMessage {
-                    uploadFileVM.startUploadImage()
-                } else {
-                    uploadFileVM.startUploadFile()
-                }
+                uploadFileVM.startUpload()
             }
         }
     }
@@ -69,7 +65,7 @@ public final class UploadFileManager {
                 viewModel?.historyVM.mSections[indexPath.section].vms.remove(at: indexPath.row)
                 viewModel?.delegate?.removed(at: indexPath)
             }
-            vm.cancelUpload()
+            vm.action(.cancel)
             unRegister(viewModelUniqueId: viewModelUniqueId)
         }
     }

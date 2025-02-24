@@ -263,17 +263,15 @@ public extension HistoryMessageProtocol {
     
     func uploadExt() -> String? {
         let fileMessageType = self as? UploadFileMessage
-        let replyType = self as? UploadFileWithReplyPrivatelyMessage
-        let uploadfileReq = fileMessageType?.uploadFileRequest ?? replyType?.uploadFileRequest
-        let uploadImageReq = fileMessageType?.uploadImageRequest ?? replyType?.uploadImageRequest
+        let uploadfileReq = fileMessageType?.uploadFileRequest
+        let uploadImageReq = fileMessageType?.uploadImageRequest
         return uploadImageReq?.fileExtension ?? uploadfileReq?.fileExtension
     }
 
     func uploadFileName() -> String? {
         let fileMessageType = self as? UploadFileMessage
-        let replyType = self as? UploadFileWithReplyPrivatelyMessage
-        let uploadfileReq = fileMessageType?.uploadFileRequest ?? replyType?.uploadFileRequest
-        let uploadImageReq = fileMessageType?.uploadImageRequest ?? replyType?.uploadImageRequest
+        let uploadfileReq = fileMessageType?.uploadFileRequest
+        let uploadImageReq = fileMessageType?.uploadImageRequest
         return uploadImageReq?.fileName ?? uploadfileReq?.fileName
     }
 
