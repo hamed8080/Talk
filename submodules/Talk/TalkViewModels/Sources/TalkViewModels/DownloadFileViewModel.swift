@@ -159,7 +159,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             guard let self = self else { return }
             let hashCode = await getHashCode()
             let req = ImageRequest(hashCode: hashCode, quality: quality, size: size, thumbnail: true, conversationId: threadId)
-            if let data = await thumbnailVM?.downloadThumbnail(req: req) {
+            if let url = await url, let data = await thumbnailVM?.downloadThumbnail(req: req, url: url) {
                 await setThumbnail(data: data)
             }
         }
