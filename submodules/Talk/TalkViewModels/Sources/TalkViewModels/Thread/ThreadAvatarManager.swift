@@ -6,14 +6,16 @@
 //
 
 import Foundation
-import ChatModels
+import Chat
 import UIKit
 
+/// LRU Cache: Stores up to 50 avatars in memory and releases the least recently used one.
 @AppBackgroundActor
 public class ThreadAvatarManager {
     @MainActor
     private var avatarsViewModelsQueue: [ImageLoaderViewModel] = []
     private var cachedAvatars: [String: UIImage] = [:]
+    @MainActor
     private weak var viewModel: ThreadViewModel?
     private let maxCache = 50
 
@@ -22,51 +24,39 @@ public class ThreadAvatarManager {
 
     @MainActor
     public func setup(viewModel: ThreadViewModel) {
-        Task { @AppBackgroundActor in
-            self.viewModel = viewModel
-        }
+        self.viewModel = viewModel
     }
 
     public func addToQueue(_ viewModel: MessageRowViewModel) {
-        addOrUpdate(viewModel)
-    }
-
-    private func addOrUpdate(_ viewModel: MessageRowViewModel) {
-        let participant = viewModel.message.participant
-        guard let link = httpsImage(participant),
-              let participantId = participant?.id
-        else { return }
+        guard let link = httpsImage(viewModel.message.participant),
+              let participantId = viewModel.message.participant?.id else { return }
+        
         if let image = cachedAvatars[link] {
             updateRow(image, participantId)
         } else {
-            create(viewModel)
+            fetchImage(for: viewModel, url: link, participantId: participantId)
         }
     }
 
     public func getImage(_ viewModel: MessageRowViewModel) -> UIImage? {
-        let participant = viewModel.message.participant
-        guard let link = httpsImage(participant) else { return nil }
+        guard let link = httpsImage(viewModel.message.participant) else { return nil }
         return cachedAvatars[link]
     }
 
     private func updateRow(_ image: UIImage, _ participantId: Int) {
         Task {
-            let delegate = await viewModel?.delegate
-            await MainActor.run { [weak self] in
-                delegate?.updateAvatar(image: image, participantId: participantId)
-            }
+            await viewModel?.delegate?.updateAvatar(image: image, participantId: participantId)
         }
     }
 
-    private func create(_ viewModel: MessageRowViewModel) {
+    private func fetchImage(for viewModel: MessageRowViewModel, url: String, participantId: Int) {
         Task { @MainActor in
-            guard await self.viewModel?.thread.group == true, !viewModel.calMessage.isMe, let url = await httpsImage(viewModel.message.participant) else { return }
-            if await isInQueue(url) { return }
-            await releaseFromBottom()
-            let config = ImageLoaderConfig(url: url)
-            let vm = ImageLoaderViewModel(config: config)
+            guard await self.viewModel?.thread.group == true, !viewModel.calMessage.isMe, !isInQueue(url) else { return }
+            await removeOldestEntry()
+        
+            let vm = ImageLoaderViewModel(config: ImageLoaderConfig(url: url))
             avatarsViewModelsQueue.append(vm)
-            let participantId = viewModel.message.participant?.id ?? -1
+
             vm.onImage = { [weak self, weak vm] image in
                 Task {
                     await self?.onOnImage(url: url, image: image, participantId: participantId)
@@ -95,7 +85,7 @@ public class ThreadAvatarManager {
         avatarsViewModelsQueue.removeAll(where: {$0.config.url == viewModel.config.url})
     }
 
-    private func releaseFromBottom() {
+    private func removeOldestEntry() {
         if cachedAvatars.count > maxCache, let firstKey = cachedAvatars.first?.key {
             cachedAvatars.removeValue(forKey: firstKey)
         }

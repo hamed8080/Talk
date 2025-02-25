@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import ChatModels
+import Chat
 import TalkModels
 
 @MainActor

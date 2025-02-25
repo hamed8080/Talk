@@ -7,8 +7,7 @@
 
 import Foundation
 import TalkModels
-import ChatCore
-import ChatModels
+import Chat
 
 public typealias MessageIndex = Array<HistoryMessageType>.Index
 public typealias SectionIndex = Array<MessageSection>.Index

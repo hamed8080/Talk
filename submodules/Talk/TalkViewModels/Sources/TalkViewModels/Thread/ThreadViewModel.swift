@@ -9,8 +9,6 @@ import Chat
 import Combine
 import Foundation
 import TalkModels
-import ChatCore
-import ChatDTO
 import OSLog
 
 @MainActor

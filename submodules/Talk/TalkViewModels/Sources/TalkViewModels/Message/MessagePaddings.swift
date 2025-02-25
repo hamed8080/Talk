@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import ChatModels
 import UIKit
 import SwiftUI
 

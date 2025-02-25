@@ -1,15 +1,12 @@
 //
 //  ThreadScrollingViewModel.swift
+//  TalkViewModels
 //
-//
-//  Created by hamed on 12/24/23.
+//  Created by Hamed Hosseini on 11/23/21.
 //
 
 import Chat
 import Foundation
-import ChatModels
-import ChatDTO
-import ChatCore
 import UIKit
 import TalkModels
 
