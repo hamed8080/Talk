@@ -107,7 +107,9 @@ public final class CameraViewController: UIViewController {
                 captureSession.startRunning()
             }
         } catch {
+#if DEBUG
             print("Error setting up camera input: \(error)")
+#endif            
         }
     }
 
@@ -143,7 +145,9 @@ public final class CameraViewController: UIViewController {
                 captureSession.addInput(videoInput)
             }
         } catch {
+#if DEBUG
             print("error")
+#endif
         }
     }
 

@@ -68,13 +68,6 @@ fileprivate struct RowCountWithTabViewContxtMenu: View {
 
     var body: some View {
         VStack(alignment: vm.calMessage.isMe ? .leading : .trailing) {
-            SwiftUIReactionCountRowWrapper(row: row, isMe: vm.calMessage.isMe)
-                .frame(minWidth: 0)
-                .frame(height: 32)
-                .fixedSize()
-                .environment(\.colorScheme, isDark ? .dark : .light)
-                .disabled(true)
-
             MessageReactionDetailView(message: vm.message, row: row)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }

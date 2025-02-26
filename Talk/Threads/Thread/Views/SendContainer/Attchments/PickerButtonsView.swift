@@ -21,7 +21,7 @@ public final class PickerButtonsView: UIStackView {
     private weak var threadVM: ThreadViewModel?
     private var vc: UIViewController? { threadVM?.delegate as? UIViewController }
     private let documentPicker = DocumnetPickerViewController()
-    private let galleryPicker = GallleryViewController()
+    private let galleryPicker = GallleryMediaPickerViewController()
 
     public init(viewModel: SendContainerViewModel?, threadVM: ThreadViewModel?) {
         self.threadVM = threadVM
@@ -101,7 +101,7 @@ public final class PickerButtonsView: UIStackView {
     }
 
     public func closePickerButtons() {
-        threadVM?.delegate?.showPickerButtons(false)
+        viewModel?.mode = .init(type: .voice)
     }
 
     public func show(_ show: Bool, stack: UIStackView) {

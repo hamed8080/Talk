@@ -13,7 +13,8 @@ import TalkModels
 import AVKit
 import Chat
 
-final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
+@MainActor
+final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDelegate {
     // Views
     private let fileNameLabel = UILabel()
     private let fileTypeLabel = UILabel()
@@ -29,9 +30,9 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
 
     // Models
     private var playerVC: AVPlayerViewController?
-    @HistoryActor private var videoPlayerVM: VideoPlayerViewModel?
+    private var videoPlayerVM: VideoPlayerViewModel?
     private weak var viewModel: MessageRowViewModel?
-    private var message: (any HistoryMessageProtocol)? { viewModel?.message }
+    private var message: HistoryMessageType? { viewModel?.message }
     private static let playIcon: UIImage = UIImage(systemName: "play.fill")!
 
     // Constraints
@@ -108,6 +109,8 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
 
         fileNameLabelTrailingConstarint = fileNameLabel.trailingAnchor.constraint(equalTo: progressButton.leadingAnchor, constant: -margin)
 
+        bringSubviewToFront(playOverlayView)
+        
         NSLayoutConstraint.activate([
             widthConstraint,
             heightAnchor.constraint(equalToConstant: height),
@@ -167,7 +170,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         playIcon.setIsHidden(false)
         Task {
             await makeViewModel(url: url, message: message)
-            if let player = await videoPlayerVM?.player {
+            if let player = videoPlayerVM?.player {
                 setVideo(player: player)
             }
         }
@@ -194,6 +197,8 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isVideo { return }
+        bringSubviewToFront(progressButton)
         updateProgress(viewModel: viewModel)
         fileNameLabelTrailingConstarint.constant = progressButtonSize
         if let fileURL = viewModel.calMessage.fileURL {
@@ -205,6 +210,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isVideo { return }
         updateProgress(viewModel: viewModel)
         if let fileURL = viewModel.calMessage.fileURL {
             prepareUIForPlayback(url: fileURL)
@@ -213,9 +219,7 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
 
     @objc private func onTap(_ sender: UIGestureRecognizer) {
         if viewModel?.calMessage.fileURL != nil {
-            Task {
-                await videoPlayerVM?.toggle()
-            }
+            videoPlayerVM?.toggle()
             enterFullScreen(animated: true)
         } else {
             // Download file
@@ -234,6 +238,16 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         playerVC?.entersFullScreenWhenPlaybackBegins = true
         playerVC?.delegate = self
         addPlayerViewToView()
+        
+        
+        /// Add auto play if is enabled in the setting, default is true with mute audio
+        if viewModel?.threadVM?.model.isAutoPlayVideoEnabled == true {
+            playerVC?.player?.isMuted = true
+            playIcon.setIsHidden(true)
+            playerVC?.player?.play()
+        } else {
+            playIcon.setIsHidden(false)
+        }
     }
 
     private func addPlayerViewToView() {
@@ -255,11 +269,13 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
     func playerViewController(_ playerViewController: AVPlayerViewController, willBeginFullScreenPresentationWithAnimationCoordinator coordinator: any UIViewControllerTransitionCoordinator) {
         playerVC?.showsPlaybackControls = true
     }
+    
     public func playerViewController(_ playerViewController: AVPlayerViewController, willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
         playerVC?.showsPlaybackControls = false
     }
 
     func enterFullScreen(animated: Bool) {
+        playerVC?.player?.isMuted = false
         playerVC?.perform(NSSelectorFromString("enterFullScreenAnimated:completionHandler:"), with: animated, with: nil)
     }
 
@@ -267,12 +283,17 @@ final class MessageVideoView: UIView, AVPlayerViewControllerDelegate {
         playerVC?.perform(NSSelectorFromString("exitFullScreenAnimated:completionHandler:"), with: animated, with: nil)
     }
 
-    @HistoryActor
-    private func makeViewModel(url: URL, message: (any HistoryMessageProtocol)?) {
+    private func makeViewModel(url: URL, message: HistoryMessageType?) async {
+        let metadata = await metadata(message: message)
         if url.absoluteString == videoPlayerVM?.fileURL.absoluteString ?? "" { return }
         self.videoPlayerVM = VideoPlayerViewModel(fileURL: url,
-                             ext: message?.fileMetaData?.file?.mimeType?.ext,
-                             title: message?.fileMetaData?.name,
-                             subtitle: message?.fileMetaData?.file?.originalName ?? "")
+                             ext: metadata?.file?.mimeType?.ext,
+                             title: metadata?.name,
+                             subtitle: metadata?.file?.originalName ?? "")
+    }
+    
+    @AppBackgroundActor
+    private func metadata(message: HistoryMessageType?) async -> FileMetaData? {
+        message?.fileMetaData
     }
 }

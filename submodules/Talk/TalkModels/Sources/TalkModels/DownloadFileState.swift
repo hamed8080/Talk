@@ -1,4 +1,4 @@
-public enum DownloadFileState {
+public enum DownloadFileState: Sendable {
     case started
     case completed
     case downloading

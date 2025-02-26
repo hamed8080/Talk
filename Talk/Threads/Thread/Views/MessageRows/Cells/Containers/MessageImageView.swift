@@ -12,6 +12,7 @@ import ChatModels
 import TalkModels
 import Chat
 
+@MainActor
 final class MessageImageView: UIImageView {
     // Views
     private let stack = UIStackView()
@@ -104,7 +105,9 @@ final class MessageImageView: UIImageView {
         let state = viewModel.fileState.state
         let canShow = state != .completed
         if let fileURL = viewModel.calMessage.fileURL {
-            setImage(fileURL: fileURL)
+            Task {
+                await setImage(fileURL: fileURL)
+            }
         } else {
             setPreloadImage(viewModel: viewModel)
         }
@@ -116,12 +119,13 @@ final class MessageImageView: UIImageView {
             fileSizeLabel.text = viewModel.calMessage.computedFileSize
         }
 
-        widthConstraint.constant = (viewModel.calMessage.sizes.imageWidth ?? 128) - 8 // -8 for parent stack view margin
+        widthConstraint.constant = (viewModel.calMessage.sizes.imageWidth ?? 0) - 8 // -8 for parent stack view margin
         heightConstraint.constant = viewModel.calMessage.sizes.imageHeight ?? 128
     }
 
     private func attachOrDetachEffectView(canShow: Bool) {
         if canShow, effectView.superview == nil {
+            effectView.layer.opacity = 1.0
             addSubview(effectView)
             bringSubviewToFront(effectView)
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
@@ -132,9 +136,32 @@ final class MessageImageView: UIImageView {
             effectView.removeFromSuperview()
         }
     }
+    
+    private func removeEffectViewByHidingAnimation() {
+        effectView.layer.opacity = 1.0
+        UIView.animate(withDuration: 0.2) {
+            self.effectView.layer.opacity = 0.0
+        } completion: { completed in
+            if completed {
+                self.effectView.removeFromSuperview()
+            }
+        }
+    }
+    
+    private func removeProgressViewByHidingAnimation() {
+        stack.layer.opacity = 1.0
+        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseInOut]) {
+            self.stack.layer.opacity = 0.0
+        } completion: { completed in
+            if completed {
+                self.stack.removeFromSuperview()
+            }
+        }
+    }
 
     private func attachOrDetachProgressView(canShow: Bool) {
         if canShow, stack.superview == nil {
+            stack.layer.opacity = 1.0
             addSubview(stack)
             stack.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
             stack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
@@ -143,15 +170,25 @@ final class MessageImageView: UIImageView {
         }
     }
 
-    private func setImage(fileURL: URL) {
-        Task { @HistoryActor in
-            if let scaledImage = fileURL.imageScale(width: 300)?.image {
-                let image = scaledImage
-                await MainActor.run {
-                    self.image = UIImage(cgImage: image)
+    private func setImage(fileURL: URL, animate: Bool = false) async {
+        if let scaledImage = await scaledImage(url: fileURL) {
+            let image = scaledImage
+            if animate {
+                UIView.transition(with: self, duration: 0.5, options: .transitionCrossDissolve) {
+                    self.image = image
                 }
+            } else {
+                self.image = image
             }
         }
+    }
+    
+    @AppBackgroundActor
+    private func scaledImage(url: URL) async -> UIImage? {
+        if let scaledImage = url.imageScale(width: 300)?.image {
+            return UIImage(cgImage: scaledImage)
+        }
+        return nil
     }
 
     // Thumbnail or placeholder image
@@ -161,13 +198,17 @@ final class MessageImageView: UIImageView {
         }
         guard let image = viewModel.fileState.preloadImage else { return }
         self.image = image
+        attachOrDetachEffectView(canShow: true)
+        attachOrDetachProgressView(canShow: true)
     }
 
     @objc func onTap(_ sender: UIGestureRecognizer) {
         viewModel?.onTap()
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
     public func updateProgress(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isImage { return }
         let progress = viewModel.fileState.progress
         progressView.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressView.setProgressVisibility(visible: canShowProgress)
@@ -178,20 +219,25 @@ final class MessageImageView: UIImageView {
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isImage { return }
         if let fileURL = viewModel.calMessage.fileURL {
             updateProgress(viewModel: viewModel)
-            attachOrDetachProgressView(canShow: false)
-            attachOrDetachEffectView(canShow: false)
-            setImage(fileURL: fileURL)
+            removeProgressViewByHidingAnimation()
+            removeEffectViewByHidingAnimation()
+            Task {
+                await setImage(fileURL: fileURL, animate: true)
+            }
         }
     }
 
     public func uploadCompleted(viewModel: MessageRowViewModel) {
+        if !viewModel.calMessage.rowType.isImage { return }
         if let fileURL = viewModel.calMessage.fileURL {
             updateProgress(viewModel: viewModel)
-            attachOrDetachProgressView(canShow: false)
-            attachOrDetachEffectView(canShow: false)
-            setImage(fileURL: fileURL)
+            removeProgressViewByHidingAnimation()
+            removeEffectViewByHidingAnimation()
+            Task {
+                await setImage(fileURL: fileURL)}
         }
     }
 

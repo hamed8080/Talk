@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public class SearchConversationById {
     private let id: String = "SEARCH-CONVERSATION-BY-ID-\(UUID().uuidString)"
     private var cancelable: Set<AnyCancellable> = []
@@ -24,7 +25,9 @@ public class SearchConversationById {
         self.completion = completion
         let req = ThreadsRequest(threadIds: ids)
         RequestsManager.shared.append(prepend: id, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     public func search(id: Int, completion: CompletionHandler? = nil) {

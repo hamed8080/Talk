@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public class SearchP2PConversation {
     private let id: String = "SEARCH-P2P-\(UUID().uuidString)"
     private var cancelable: Set<AnyCancellable> = []
@@ -24,7 +25,9 @@ public class SearchP2PConversation {
         self.completion = completion
         let req = ThreadsRequest(type: .normal, partnerCoreUserId: coreUserId, userName: userName)
         RequestsManager.shared.append(prepend: id, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     private func onSearchP2PThreads(_ response: ChatResponse<[Conversation]>) {

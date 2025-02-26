@@ -46,6 +46,7 @@ public struct LongTextView: View {
             }
         }
         .contentShape(Rectangle())
+        .padding(.bottom, 24)
     }
 
     private func determineTruncation(_ size: CGSize) {

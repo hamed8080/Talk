@@ -155,4 +155,8 @@ extension AttachmentFilesTableView: AttachmentDelegate {
             expandView.set()
         }
     }
+    
+    public func reloadItem(indexPath: IndexPath) {
+        tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
 }

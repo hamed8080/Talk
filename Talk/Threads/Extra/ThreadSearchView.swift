@@ -15,7 +15,6 @@ struct ThreadSearchView: View {
     var body: some View {
         if viewModel.isInSearchMode {
             List {
-
                 StickyHeaderSection(header: "Tab.chats", height: 4)
                     .listRowBackground(Color.clear)
                     .listRowInsets(.zero)
@@ -24,9 +23,10 @@ struct ThreadSearchView: View {
                 }
 
                 ForEach(viewModel.searchedConversations) { thread in
-                    ThreadRow(thread: thread) {
-                        AppState.shared.objectsContainer.navVM.append(thread: thread)
+                    ThreadRow() {
+                        AppState.shared.objectsContainer.navVM.append(thread: thread.toStruct())
                     }
+                    .environmentObject(thread)
                     .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 0))
                     .listRowSeparatorTint(Color.App.dividerSecondary)
                     .listRowBackground(thread.pin == true ? Color.App.bgSecondary : Color.App.bgPrimary)

@@ -225,7 +225,7 @@ public final class MockData {
         return tagParticipants
     }
 
-    public static var mockDataModel: MockDataModel = {
+    nonisolated(unsafe) public static var mockDataModel: MockDataModel = {
         guard let path = Bundle.main.path(forResource: "MockData", ofType: ".json") else {
             return MockDataModel(threads: [], messages: [], contacts: [], tags: [], participants: [], callParticipants: [])
         }

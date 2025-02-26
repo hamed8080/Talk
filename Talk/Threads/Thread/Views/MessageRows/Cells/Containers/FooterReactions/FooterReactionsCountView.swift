@@ -17,7 +17,9 @@ final class FooterReactionsCountView: UIStackView {
     private let maxReactionsToShow: Int = 4
     private let margin: CGFloat = 28
     private weak var viewModel: MessageRowViewModel?
-    static let moreButtonId = -2
+    private let scrollView = UIScrollView()
+    private let reactionStack = UIStackView()
+    private var scrollViewMinWidthConstraint: NSLayoutConstraint?
 
     init(frame: CGRect, isMe: Bool) {
         super.init(frame: frame)
@@ -37,19 +39,45 @@ final class FooterReactionsCountView: UIStackView {
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         accessibilityIdentifier = "stackReactionCountScrollView"
 
-        for _ in 0..<maxReactionsToShow {
-            addArrangedSubview(ReactionCountRowView(frame: .zero, isMe: isMe))
-        }
+        reactionStack.translatesAutoresizingMaskIntoConstraints = false
+        reactionStack.axis = .horizontal
+        reactionStack.spacing = 4
+        reactionStack.alignment = .fill
+        reactionStack.distribution = .fillProportionally
+        reactionStack.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        reactionStack.accessibilityIdentifier = "reactionStackcrollView"
 
+        for _ in 0..<maxReactionsToShow {
+            reactionStack.addArrangedSubview(ReactionCountRowView(frame: .zero, isMe: isMe))
+        }
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.addSubview(reactionStack)
+        
+        addArrangedSubview(scrollView)
         addArrangedSubview(MoreReactionButtonRow(frame: .zero, isMe: isMe))
+        
+        scrollViewMinWidthConstraint = scrollView.widthAnchor.constraint(greaterThanOrEqualToConstant: 0)
+        scrollViewMinWidthConstraint?.isActive = true
+        // IMPORTANT: Add constraints to pin the reactionStack to the scrollView's content
+        NSLayoutConstraint.activate([
+            reactionStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            reactionStack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            reactionStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            reactionStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            scrollView.heightAnchor.constraint(equalToConstant: 28),
+        ])
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        let rows = viewModel.reactionsModel.rows.count > maxReactionsToShow ? Array(viewModel.reactionsModel.rows.prefix(4)) : viewModel.reactionsModel.rows
-
+        let rows = rows(viewModel: viewModel)
+        
+        updateWidthConstrain(rows)
+        
         // Show item only if index is equal to index or it is type of more reaction button.
-        arrangedSubviews.enumerated().forEach { index, view in
+        reactionStack.arrangedSubviews.enumerated().forEach { index, view in
             if index < rows.count, let rowView = view as? ReactionCountRowView {
                 rowView.setIsHidden(false)
                 rowView.setValue(row: rows[index])
@@ -58,17 +86,48 @@ final class FooterReactionsCountView: UIStackView {
                 view.setIsHidden(true)
             }
         }
-        if viewModel.reactionsModel.rows.count > maxReactionsToShow, let moreButton = arrangedSubviews[maxReactionsToShow] as? MoreReactionButtonRow {
+        if viewModel.reactionsModel.rows.count > maxReactionsToShow, let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
             moreButton.setIsHidden(false)
-            moreButton.row = .init(reactionId: FooterReactionsCountView.moreButtonId,
-                                   edgeInset: .zero,
-                                   sticker: nil,
-                                   emoji: "",
-                                   countText: "",
-                                   isMyReaction: false,
-                                   hasReaction: false,
-                                   selectedEmojiTabId: "General.all")
+            moreButton.row = .moreReactionRow
             moreButton.viewModel = viewModel
+        } else if let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
+            moreButton.setIsHidden(true)
         }
+    }
+    
+    public func reactionDeleted(_ reaction: Reaction) {
+        updateReactionsWithAnimation(viewModel: viewModel)
+    }
+    
+    public func reactionAdded(_ reaction: Reaction) {
+        updateReactionsWithAnimation(viewModel: viewModel)
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        updateReactionsWithAnimation(viewModel: viewModel)
+    }
+    
+    private func updateReactionsWithAnimation(viewModel: MessageRowViewModel?) {
+        if let viewModel = viewModel {
+            let rows = rows(viewModel: viewModel)
+            updateWidthConstrain(rows)
+            UIView.animate(withDuration: 0.20) {
+                self.set(viewModel)
+            }
+        }
+    }
+    
+    private func updateWidthConstrain(_ rows: [ReactionRowsCalculated.Row]) {
+        /// It will prevent the time label be truncated by reactions view.
+        let isSlimMode = AppState.shared.windowMode.isInSlimMode
+        if rows.count > 3 && isSlimMode {
+            scrollViewMinWidthConstraint?.constant = min(200, rows.compactMap{$0.width}.reduce(0, {$0 + $1}))
+        } else {
+            scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
+        }
+    }
+    
+    private func rows(viewModel: MessageRowViewModel) -> [ReactionRowsCalculated.Row] {
+        return viewModel.reactionsModel.rows.count > maxReactionsToShow ? Array(viewModel.reactionsModel.rows.prefix(4)) : viewModel.reactionsModel.rows
     }
 }

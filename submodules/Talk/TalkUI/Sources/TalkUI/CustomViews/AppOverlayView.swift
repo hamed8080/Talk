@@ -13,12 +13,12 @@ public struct AppOverlayView<Content>: View where Content: View {
     @EnvironmentObject var galleryOffsetVM: GalleyOffsetViewModel
     let content: () -> Content
     let onDismiss: (() -> Void)?
-
+    
     public init(onDismiss: (() -> Void)?, @ViewBuilder content: @escaping () -> Content) {
         self.content = content
         self.onDismiss = onDismiss
     }
-
+    
     public var body: some View {
         ZStack {
             if viewModel.isPresented {
@@ -27,14 +27,16 @@ public struct AppOverlayView<Content>: View where Content: View {
                         .fill(Color.clear)
                         .background(.ultraThinMaterial)
                         .onTapGesture {
-                            viewModel.dialogView = nil
+                            if viewModel.canDismiss {
+                                viewModel.dialogView = nil
+                            }
                         }
                 }
                 content()
                     .transition(viewModel.transition)
                     .clipShape(RoundedRectangle(cornerRadius:(viewModel.radius)))
             }
-
+            
             if viewModel.showCloseButton && viewModel.isPresented && !viewModel.isError {
                 DismissAppOverlayButton()
             }
@@ -50,7 +52,7 @@ public struct AppOverlayView<Content>: View where Content: View {
             }
         }
     }
-
+    
     var animtion: Animation {
         if viewModel.isPresented && !viewModel.isError {
             return Animation.interactiveSpring(response: 0.2, dampingFraction: 0.6, blendDuration: 0.2)
@@ -58,21 +60,34 @@ public struct AppOverlayView<Content>: View where Content: View {
             return Animation.easeInOut
         }
     }
-
+    
     private var dragGesture: some Gesture {
         DragGesture()
             .onChanged { value in
-                galleryOffsetVM.onContainerDragChanged(value)
+                onDragGesture(value)
             }
             .onEnded { endValue in
-                galleryOffsetVM.onContainerDragEnded(endValue)
+                onDragGesture(endValue)
             }
+    }
+    
+    private func onDragGesture(_ value: DragGesture.Value) {
+        let tr = value.translation
+        let width = abs(tr.width)
+        let height = tr.height
+        guard case .gallery(let message) = viewModel.type else {
+            // If it's NOT .gallery, return early
+            return
+        }
+        if width < 10 || height > 100 {
+            galleryOffsetVM.onContainerDragEnded(value)
+        }
     }
 }
 
 struct DismissAppOverlayButton: View {
     @EnvironmentObject var galleryOffsetVM: GalleyOffsetViewModel
-
+    
     var body: some View {
         GeometryReader { reader in
             VStack {
@@ -99,8 +114,8 @@ struct DismissAppOverlayButton: View {
 
 struct AppOverlayView_Previews: PreviewProvider {
     struct Preview: View {
-       @StateObject var viewModel = AppOverlayViewModel()
-
+        @StateObject var viewModel = AppOverlayViewModel()
+        
         var body: some View {
             AppOverlayView() {
                 //
@@ -114,7 +129,7 @@ struct AppOverlayView_Previews: PreviewProvider {
             }
         }
     }
-
+    
     static var previews: some View {
         Preview()
     }

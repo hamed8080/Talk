@@ -8,6 +8,7 @@
 import Chat
 import Foundation
 
+@MainActor
 protocol MuteThreadProtocol {
     func toggleMute(_ thread: Conversation)
     func mute(_ threadId: Int)
@@ -25,17 +26,22 @@ extension ThreadsViewModel: MuteThreadProtocol {
     }
 
     public func mute(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.mute(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.mute(.init(subjectId: threadId))
+        }
     }
 
     public func unmute(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.unmute(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unmute(.init(subjectId: threadId))
+        }
     }
 
-    public func onMuteThreadChanged(mute: Bool, threadId: Int?) {
+    public func onMuteThreadChanged(mute: Bool, threadId: Int?) async {
         if let index = firstIndex(threadId) {
             threads[index].mute = mute
-            sort()
+            threads[index].animateObjectWillChange()
+            await sortInPlace()
             let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
             if activeVM?.viewModel.threadId == threadId {
                 activeVM?.viewModel.thread.mute = mute

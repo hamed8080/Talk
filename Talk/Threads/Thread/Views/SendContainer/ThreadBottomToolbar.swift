@@ -87,14 +87,14 @@ public final class ThreadBottomToolbar: UIStackView {
         ])
     }
 
-    public func showMainButtons(_ show: Bool) {
+    public func showMainButtons(_ show: Bool, withRemoveAnimaiton: Bool = true) {
         if !show {
-            mainSendButtons.removeFromSuperViewWithAnimation()
+            removeMainSendButtonWithAnimation(withRemoveAnimation: withRemoveAnimaiton)
         } else if mainSendButtons.superview == nil {
-            mainSendButtons.alpha = 0.0
-            insertArrangedSubview(mainSendButtons, at: 0)
-            UIView.animate(withDuration: 0.2) {
-                self.mainSendButtons.alpha = 1.0
+            if show, viewModel?.sendContainerViewModel.canShowMuteChannelBar() == true {
+                animateToShowChannelMuteBar()
+            } else {
+                animateToShowMainSendButton()
             }
         }
     }
@@ -103,14 +103,6 @@ public final class ThreadBottomToolbar: UIStackView {
         mainSendButtons.toggleAttchmentButton(show: show)
         showPicker(show: show)
         viewModel?.scrollVM.disableExcessiveLoading()
-    }
-
-    public func showSendButton(_ show: Bool) {
-        mainSendButtons.showSendButton(show)
-    }
-
-    public func showMicButton(_ show: Bool) {
-        mainSendButtons.showMicButton(show)
     }
 
     public func showSelectionBar(_ show: Bool) {
@@ -130,18 +122,18 @@ public final class ThreadBottomToolbar: UIStackView {
     }
 
     public func updateHeightWithDelay() {
-        Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
+        Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
             guard let self = self else { return }
             onUpdateHeight?(frame.height)
         }
     }
 
-    public func openEditMode(_ message: (any HistoryMessageProtocol)?) {
+    public func openEditMode(_ message: HistoryMessageType?) {
         editMessagePlaceholderView.set(stack: self)
-        viewModel?.sendContainerViewModel.setText(newValue: message?.message ?? "")
+        viewModel?.sendContainerViewModel.setEditText(message)
     }
 
-    public func openReplyMode(_ message: (any HistoryMessageProtocol)?) {
+    public func openReplyMode(_ message: HistoryMessageType?) {
         replyPlaceholderView.set(stack: self)
     }
 
@@ -159,7 +151,7 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func openRecording(_ show: Bool) {
         viewModel?.attachmentsViewModel.clear()
-        showMainButtons(!show)
+        showMainButtons(!show, withRemoveAnimaiton: false)
         audioRecordingView.show(show, stack: self) // Reset to show RecordingView again
     }
 
@@ -178,5 +170,26 @@ public final class ThreadBottomToolbar: UIStackView {
 
     public func muteChanged() {
         muteBarView.set()
+    }
+    
+    private func animateToShowChannelMuteBar() {
+        UIView.animate(withDuration: 0.2) {
+            self.mainSendButtons.removeFromSuperview()
+            self.muteBarView.set()
+        }
+    }
+    
+    private func animateToShowMainSendButton() {
+        mainSendButtons.alpha = 0.0
+        insertArrangedSubview(mainSendButtons, at: 0)
+        UIView.animate(withDuration: 0.2) {
+            self.mainSendButtons.alpha = 1.0
+        }
+    }
+    
+    private func removeMainSendButtonWithAnimation(withRemoveAnimation: Bool) {
+        // withRemoveAnimation prevents having two views in the stack and leads to a really tall view and a bad animation.
+        mainSendButtons.removeFromSuperViewWithAnimation(withAimation: withRemoveAnimation)
+        mainSendButtons.removeFromSuperview()
     }
 }

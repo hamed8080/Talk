@@ -11,6 +11,7 @@ import UIKit
 import Photos
 import Combine
 
+@MainActor
 public final class EditProfileViewModel: ObservableObject {
     @Published public var isLoading: Bool = false
     @Published public var firstName: String = ""
@@ -47,7 +48,9 @@ public final class EditProfileViewModel: ObservableObject {
     public func submit() {
         let req = UpdateChatProfile(bio: bio)
         RequestsManager.shared.append(prepend: UPDATE_USER_INFO_KEY, value: req)
-        ChatManager.activeInstance?.user.set(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.user.set(req)
+        }
     }
 
     private func onUpdateProfile(_ response: ChatResponse<Profile>) {

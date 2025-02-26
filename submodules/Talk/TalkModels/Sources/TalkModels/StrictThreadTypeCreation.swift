@@ -1,7 +1,7 @@
 import Foundation
 import Chat
 
-public enum StrictThreadTypeCreation: Int {
+public enum StrictThreadTypeCreation: Int, Sendable {
     case p2p = 0
     case privateGroup = 1
     case publicGroup = 2

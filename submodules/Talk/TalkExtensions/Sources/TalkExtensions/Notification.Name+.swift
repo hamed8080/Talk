@@ -8,6 +8,7 @@
 import Foundation
 import Chat
 
+@MainActor
 public extension Notification.Name {
     static let onRequestTimer = Notification.Name("onRequestTimer")
     static let download = Notification.Name("download")
@@ -17,7 +18,6 @@ public extension Notification.Name {
     static let bot = Notification.Name("bot")
     static let participant = Notification.Name("participant")
     static let tag = Notification.Name("tag")
-    static let map = Notification.Name("map")
     static let reaction = Notification.Name("reaction")
     static let user = Notification.Name("user")
     static let draft = Notification.Name("draft")
@@ -39,6 +39,7 @@ public extension Notification.Name {
     static let error = Notification.Name("error")
 }
 
+@MainActor
 public extension NotificationCenter {
     static let onRequestTimer = NotificationCenter()
     static let download = NotificationCenter()
@@ -98,8 +99,6 @@ public extension NotificationCenter {
             Self.call.post(name: .call, object: callEventTypes)
         case let .participant(participantEventTypes):
             Self.participant.post(name: .participant, object: participantEventTypes)
-        case let .map(mapEventTypes):
-            Self.map.post(name: .map, object: mapEventTypes)
         case let .reaction(reactionEventTypes):
             Self.reaction.post(name: .reaction, object: reactionEventTypes)
         }

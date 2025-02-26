@@ -89,19 +89,16 @@ public final class RecordingAudioView: UIStackView {
     }
 
     private func micTapped() {
-        Task { [weak self] in
-            guard let self = self else { return }
-            viewModel?.stop()
-            if let fileURL = viewModel?.recordingOutputPath {
-                let playerVM = AppState.shared.objectsContainer.audioPlayerVM
-                try? playerVM.setup(fileURL: fileURL,
-                                    ext: fileURL.fileExtension,
-                                    title: fileURL.fileName,
-                                    subtitle: "")
-            }
+        viewModel?.stop()
+        if let fileURL = viewModel?.recordingOutputPath {
+            let playerVM = AppState.shared.objectsContainer.audioPlayerVM
+            try? playerVM.setup(fileURL: fileURL,
+                                ext: fileURL.fileExtension,
+                                title: fileURL.fileName,
+                                subtitle: "")
+            onSubmitRecord?()
         }
         stopAnimation()
-        onSubmitRecord?()
     }
 
     func startCircleAnimation() {

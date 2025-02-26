@@ -9,17 +9,58 @@ import TalkViewModels
 import SwiftUI
 import OSLog
 
-public struct GalleryView: View {
+public struct GalleryPageView: View {
     @EnvironmentObject var viewModel: GalleryViewModel
     @EnvironmentObject var offsetVM: GalleyOffsetViewModel
-
+    @State private var showOverlayInZoom = false
+    
     public init() {}
+    
+    public var body: some View {
+        TabView(selection: $viewModel.selectedTabId) {
+            ForEach(viewModel.pictures) { pictureVM in
+                GalleryImageItem()
+                    .environmentObject(pictureVM)
+                    .tag(pictureVM.id)
+                    .onAppear {
+                        viewModel.onAppeared(item: pictureVM)
+                    }
+            }
+        }
+        .environment(\.layoutDirection, .leftToRight)
+        .tabViewStyle(.page(indexDisplayMode: .always))
+        .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .overlay {
+            if showOverlayInZoom, let pictureVM = viewModel.pictures.first(where: { $0.id == viewModel.selectedTabId})  {
+                GalleryImageItem()
+                    .environmentObject(pictureVM)
+            }
+        }
+        .onChange(of: offsetVM.endScale) { newValue in
+            if newValue > 1, showOverlayInZoom == false {
+                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+                    Task { @MainActor in
+                        self.showOverlayInZoom = true
+                    }
+                }
+            } else if newValue == 1.0 {
+                showOverlayInZoom = false
+            }
+        }
+    }
+}
 
+public struct GalleryImageItem: View {
+    @EnvironmentObject var viewModel: GalleryImageItemViewModel
+    @EnvironmentObject var offsetVM: GalleyOffsetViewModel
+    
+    public init() {}
+    
     public var body: some View {
         ZStack {
             progress
                 .disabled(true)
-            GalleryImageViewData()
+            GalleryImageViewData(forceLeftToRight: true)
                 .environment(\.layoutDirection, .leftToRight)
                 .environmentObject(viewModel)
             textView
@@ -29,23 +70,20 @@ public struct GalleryView: View {
         .ignoresSafeArea(.all)
         .background(frameReader)
         .contentShape(Rectangle())
-        .onAppear {
-            viewModel.fetchImage()
+    }
+    
+    @ViewBuilder
+    private var progress: some View {
+        if viewModel.state == .downloading {
+            CircularProgressView(percent: $viewModel.percent, config: .normal)
+                .frame(maxWidth: 128)
+                .frame(height: 96)
+                .padding(8)
+                .environment(\.layoutDirection, .leftToRight)
+                .animation(.smooth, value: viewModel.percent)
         }
     }
-
-    private var progress: some View {
-        CircularProgressView(percent: $viewModel.percent, config: .normal)
-            .frame(maxWidth: 128)
-            .frame(height: canShowDownloaingProgress ? 96 : 0)
-            .padding(canShowDownloaingProgress ? 0 : 8)
-            .environment(\.layoutDirection, .leftToRight)
-    }
-
-    private var canShowDownloaingProgress: Bool {
-        viewModel.state == .downloading || viewModel.state == .undefined
-    }
-
+    
     @ViewBuilder
     private var textView: some View {
         if canShowTextView {
@@ -61,19 +99,19 @@ public struct GalleryView: View {
             }
         }
     }
-
+    
     private var message: String {
-        viewModel.currentImageMessage?.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        viewModel.message.message?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
-
+    
     private var canShowTextView: Bool {
-        if let message = viewModel.currentImageMessage?.message?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
+        if let message = viewModel.message.message?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
             return true
         } else {
             return false
         }
     }
-
+    
     private var frameReader: some View {
         GeometryReader { proxy in
             Color.clear.onAppear {
@@ -84,19 +122,39 @@ public struct GalleryView: View {
 }
 
 struct GalleryImageViewData: View {
-    @EnvironmentObject var viewModel: GalleryViewModel
+    let forceLeftToRight: Bool
+    @EnvironmentObject var viewModel: GalleryImageItemViewModel
     @State var image: UIImage?
-
+    
     var body: some View {
         ZStack {
-            if let image {
-                GalleryImageView(uiimage: image, viewModel: viewModel)
+            if let image = image {
+                GalleryImageView(uiimage: image, forceLeftToRight: forceLeftToRight)
                     .transition(.opacity)
             }
         }
-        .onChange(of: viewModel.currentData) { newVlaue in
-            if let data = viewModel.currentData, let uiimage = UIImage(data: data) {
-                image = uiimage
+        .animation(.smooth, value: image)
+        .onChange(of: viewModel.state) { _ in
+            setImage()
+        }
+        .onAppear {
+            setImage()
+        }
+    }
+    
+    private func setImage() {
+        if viewModel.state == .completed {
+            Task {
+                await prepareImage(url: viewModel.fileURL)
+            }
+        }
+    }
+    
+    @AppBackgroundActor
+    private func prepareImage(url: URL?) async {
+        if let url = url, let image = UIImage(contentsOfFile: url.path()) {
+            await MainActor.run {
+                self.image = image
             }
         }
     }
@@ -104,16 +162,16 @@ struct GalleryImageViewData: View {
 
 public struct GalleryImageView: View {
     let uiimage: UIImage
-    let viewModel: GalleryViewModel?
     @EnvironmentObject var offsetVM: GalleyOffsetViewModel
     @EnvironmentObject var appOverlayVM: AppOverlayViewModel
     @GestureState private var scaleBy: CGFloat = 1.0
-
-    public init(uiimage: UIImage, viewModel: GalleryViewModel? = nil) {
+    private let forceLeftToRight: Bool
+    
+    public init(uiimage: UIImage, forceLeftToRight: Bool) {
         self.uiimage = uiimage
-        self.viewModel = viewModel
+        self.forceLeftToRight = forceLeftToRight
     }
-
+    
     public var body: some View {
         Image(uiImage: uiimage)
             .resizable()
@@ -123,33 +181,37 @@ public struct GalleryImageView: View {
             .scaleEffect(offsetVM.endScale, anchor: .center)
             .simultaneousGesture(doubleTapGesture.exclusively(before: zoomGesture.simultaneously(with: dragGesture)))
             .offset(offsetVM.dragOffset)
-            .animation(.easeInOut, value: scaleBy)
-            .animation(.easeInOut, value: offsetVM.dragOffset)
+            .animation(.bouncy, value: scaleBy)
+            .animation(.bouncy, value: offsetVM.endScale)
+            .animation(.smooth, value: offsetVM.dragOffset)
+            .statusBarHidden()
     }
-
+    
     var dragGesture: some Gesture {
         DragGesture(minimumDistance: 10, coordinateSpace: .local)
             .onChanged { value in
-                offsetVM.onDragChanged(value)
+                if offsetVM.endScale != 1.0 {
+                    offsetVM.onDragChanged(value, forcedLeftToRight: forceLeftToRight)
+                }
             }
             .onEnded { value in
-                offsetVM.onDragEnded(value)
+                if offsetVM.endScale != 1.0 {
+                    offsetVM.onDragEnded(value)
+                }
             }
     }
-
+    
     var zoomGesture: some Gesture {
         MagnificationGesture()
             .updating($scaleBy) { value, state, transaction in
-                if value > 1 {
-                    state = value
-                    transaction.animation = .interactiveSpring()
-                }
+                state = value
+                transaction.animation = .interactiveSpring()
             }
             .onEnded{ value in
                 offsetVM.onMagnificationEnded(value)
             }
     }
-
+    
     private var doubleTapGesture: some Gesture {
         TapGesture(count: 2)
             .onEnded { _ in
@@ -160,6 +222,6 @@ public struct GalleryImageView: View {
 
 struct GalleryView_Previews: PreviewProvider {
     static var previews: some View {
-        GalleryView()
+        GalleryImageItem()
     }
 }

@@ -26,6 +26,47 @@ public struct ImageLoaderView: View {
         self.contentMode = contentMode
         self._imageLoader = StateObject(wrappedValue: imageLoader)
     }
+    
+    public init(participant: Participant?) {
+        let httpsImage = participant?.image?.replacingOccurrences(of: "http://", with: "https://")
+        let userName = String.splitedCharacter(participant?.name ?? participant?.username ?? "")
+        let config = ImageLoaderConfig(url: httpsImage ?? "", userName: userName)
+        self.init(imageLoader: .init(config: config))
+    }
+    
+    public init(contact: Contact?, font: Font = .iransansBody) {
+        let image = contact?.image ?? contact?.user?.image ?? ""
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        let contactName = "\(contact?.firstName ?? "") \(contact?.lastName ?? "")"
+        let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let name = !isEmptyContactString ? contactName : contact?.user?.name
+        let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+        self.init(imageLoader: .init(config: config), textFont: font)
+    }
+    
+    public init(blocked: BlockedContactResponse) {
+        let image = blocked.profileImage ?? blocked.contact?.image ?? ""
+        let contactName = blocked.contact?.user?.name ?? blocked.contact?.firstName
+        let name = contactName ?? blocked.nickName
+        let config = ImageLoaderConfig(url: image, userName: String.splitedCharacter(name ?? ""))
+        self.init(imageLoader: .init(config: config))
+    }
+    
+    public init(conversation: Conversation) {
+        let image = conversation.computedImageURL ?? ""
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        let userName = String.splitedCharacter(conversation.computedTitle)
+        let config = ImageLoaderConfig(url: httpsImage, metaData: conversation.metadata, userName: userName)
+        self.init(imageLoader: .init(config: config))
+    }
+    
+    public init(user: User?) {
+        let image = user?.image ?? ""
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        let userName = String.splitedCharacter(user?.name ?? "")
+        let config = ImageLoaderConfig(url: httpsImage, userName: userName)
+        self.init(imageLoader: .init(config: config))
+    }
 
     public var body: some View {
         ZStack {
@@ -46,70 +87,5 @@ public struct ImageLoaderView: View {
                 imageLoader.fetch()
             }
         }
-    }
-}
-
-public final class ImageLoaderUIView: UIImageView {
-    public var imageLoaderVM: ImageLoaderViewModel?
-    private var cancelable: AnyCancellable?
-
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-        configureView()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func configureView() {
-        translatesAutoresizingMaskIntoConstraints = false
-        contentMode = .scaleAspectFill
-    }
-
-    public func setValues(config: ImageLoaderConfig) {
-        if imageLoaderVM == nil {
-            imageLoaderVM = .init(.init(config: config))
-            setupObserver()
-            Task {
-                await imageLoaderVM?.fetch()
-            }
-        }
-    }
-
-    private func setupObserver() {
-        cancelable = imageLoaderVM?.$image.sink { [weak self] _ in
-            self?.setImage()
-        }
-    }
-
-    private func setImage() {
-        image = imageLoaderVM?.image
-    }
-}
-
-struct ImageLoaderUIViewWapper: UIViewRepresentable {
-    let config: ImageLoaderConfig
-
-    func makeUIView(context: Context) -> some UIView {
-        let view = ImageLoaderUIView(frame: .zero)
-        return view
-    }
-
-    func updateUIView(_ uiView: UIViewType, context: Context) {
-
-    }
-}
-
-struct ImageLoaderView_Previews: PreviewProvider {
-    struct Preview: View {
-        let config = ImageLoaderConfig(url: "https://media.gcflearnfree.org/ctassets/topics/246/share_size_large.jpg", userName: "Hamed")
-        var body: some View {
-            ImageLoaderUIViewWapper(config: config)
-        }
-    }
-
-    static var previews: some View {
-        Preview()
     }
 }

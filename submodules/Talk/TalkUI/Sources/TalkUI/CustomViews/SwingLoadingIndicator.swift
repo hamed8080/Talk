@@ -59,10 +59,8 @@ public struct SwingLoadingIndicator: View {
             }
         }
         onAniamtionCompletionTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { _ in
-            x = startXPosition
-            indicatorWidth = 400 * 1.2
-            delayTimer = Timer.scheduledTimer(withTimeInterval: delayToReset, repeats: false) { _ in
-                startAnimation()
+            Task {
+                await handleStartTimer()
             }
         }
     }
@@ -81,5 +79,15 @@ public struct SwingLoadingIndicator: View {
         onAniamtionCompletionTimer = nil
         delayTimer?.invalidate()
         delayTimer = nil
+    }
+    
+    private func handleStartTimer() {
+        x = startXPosition
+        indicatorWidth = 400 * 1.2
+        delayTimer = Timer.scheduledTimer(withTimeInterval: delayToReset, repeats: false) { _ in
+            Task {
+                await startAnimation()
+            }
+        }
     }
 }

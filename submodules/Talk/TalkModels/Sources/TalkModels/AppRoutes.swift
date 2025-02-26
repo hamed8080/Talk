@@ -1,9 +1,9 @@
-public final class AppRoutes {
+public final class AppRoutes: Sendable {
     public static let integeration = "https://talkotp-d.fanapsoft.ir/"
     public static let sandbox = "https://talkback.sandpod.ir/"
     public static let main = "https://talkback.pod.ir/"
     public static let joinLink = "https://talk.pod.ir/join?tn="
-    public static let pckeToken = "https://accounts.pod.ir/oauth2/token"
+    public static let sso = "https://accounts.pod.ir/oauth2/"
 
     public let base: String
     public let api: String
@@ -14,6 +14,8 @@ public final class AppRoutes {
     public let verify: String
     public let refreshToken: String
     public let updateProfileImage: String
+    public let devices: String
+    public let ssoToken: String
 
     public init(serverType: ServerTypes) {
         if serverType == .integration {
@@ -31,5 +33,7 @@ public final class AppRoutes {
         verify = otp + "verify"
         refreshToken = otp + "refresh"
         updateProfileImage = base + api + "/uploadImage"
+        devices = AppRoutes.sso + "grants/devices"
+        ssoToken = AppRoutes.sso + "token"
     }
 }

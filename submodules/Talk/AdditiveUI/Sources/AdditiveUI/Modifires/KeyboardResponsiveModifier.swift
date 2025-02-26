@@ -15,11 +15,15 @@ public struct KeyboardResponsiveModifier: ViewModifier {
             .padding(.bottom, offset)
             .onAppear {
                 NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
-                    self.offset = 148
+                    Task { @MainActor in
+                        self.offset = 148
+                    }
                 }
 
                 NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
-                    self.offset = 0
+                    Task { @MainActor in
+                        self.offset = 0
+                    }
                 }
             }
     }

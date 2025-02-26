@@ -10,8 +10,8 @@ import SwiftUI
 import TalkModels
 import Chat
 
-public struct MessageRowCalculatedData {
-    public static var formatter: DateFormatter = {
+public struct MessageRowCalculatedData: @unchecked Sendable {
+    nonisolated(unsafe) public static var formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         formatter.locale = Language.preferredLocale
@@ -24,8 +24,7 @@ public struct MessageRowCalculatedData {
     public var fileMetaData: FileMetaData?
     public var isEnglish = true
     public var isReplyImage: Bool = false
-    public var callDateText: String?
-    public var callTypeKey = ""
+    public var callAttributedString: NSAttributedString?
     public var replyLink: String?
     public var participantColor: UIColor? = nil
     public var computedFileSize: String? = nil
@@ -42,6 +41,8 @@ public struct MessageRowCalculatedData {
     public var canShowIconFile: Bool = false
     public var groupMessageParticipantName: String?
     public var canEdit: Bool = false
+    public var waveForm: UIImage?
+    public var voiceDuration: Double?
     // Disk file path
     public var fileURL: URL?
 //    public var textLayer: CATextLayer?

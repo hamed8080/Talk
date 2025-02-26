@@ -19,7 +19,8 @@ public final class LocalStatusBarStyle { // style proxy to be stored in Environm
 
 // Custom Environment key, as it is set once, it can be accessed from anywhere
 // of SwiftUI view hierarchy
-public struct LocalStatusBarStyleKey: EnvironmentKey {
+@MainActor
+public struct LocalStatusBarStyleKey: @preconcurrency EnvironmentKey {
     public static let defaultValue: LocalStatusBarStyle = .init()
 }
 

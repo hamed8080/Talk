@@ -35,6 +35,7 @@ public enum AppOverlayTypes {
     case none
 }
 
+@MainActor
 public class AppOverlayViewModel: ObservableObject {
     @Published public var isPresented = false
     public var type: AppOverlayTypes = .none
@@ -43,6 +44,7 @@ public class AppOverlayViewModel: ObservableObject {
     public var isError: Bool { AppState.shared.error != nil }
     public var showCloseButton: Bool = false
     public var offsetVM = GalleyOffsetViewModel()
+    public var canDismiss: Bool = true
 
     public var transition: AnyTransition {
         switch type {
@@ -127,6 +129,24 @@ public class AppOverlayViewModel: ObservableObject {
             }
         }
     }
+    
+    public func dialogView(canDismiss: Bool, view: AnyView?) {
+        if view != nil {
+            dialogView = view
+            self.canDismiss = canDismiss
+            showCloseButton = false
+            type = .dialog
+            isPresented = true
+            animateObjectWillChange()
+        } else {
+            dialogView = nil
+            self.canDismiss = true
+            showCloseButton = false
+            type = .none
+            isPresented = false
+            animateObjectWillChange()
+        }
+    }
 
     public func toast<T: View>(leadingView: T, message: String, messageColor: Color, duration: ToastDuration = .fast) {
         type = .toast(leadingView: AnyView(leadingView), message: message, messageColor: messageColor)
@@ -134,14 +154,18 @@ public class AppOverlayViewModel: ObservableObject {
         isPresented = true
         animateObjectWillChange()
         Timer.scheduledTimer(withTimeInterval: TimeInterval(duration.duration), repeats: false) { [weak self] _ in
-            self?.isToast = false
-            self?.type = .none
-            self?.isPresented = false
-            self?.animateObjectWillChange()
+            Task { @MainActor [weak self] in
+                self?.isToast = false
+                self?.type = .none
+                self?.isPresented = false
+                self?.animateObjectWillChange()
+            }
         }
     }
 
     public func clear() {
+        /// Prevent memory leak by preventing setting type to .none to prevent recalling AppOverlayFactory Views twice.
+        type = .none
         galleryMessage = nil
         galleryImageView = nil
     }

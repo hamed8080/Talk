@@ -12,15 +12,8 @@ import SwiftUI
 import TalkModels
 import TalkExtensions
 
-public final class ThreadDetailViewModel: ObservableObject, Hashable {
-    public static func == (lhs: ThreadDetailViewModel, rhs: ThreadDetailViewModel) -> Bool {
-        lhs.thread?.id == rhs.thread?.id
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(thread?.id)
-    }
-
+@MainActor
+public final class ThreadDetailViewModel: ObservableObject {
     private(set) var cancelable: Set<AnyCancellable> = []
     public var thread: Conversation?
     public weak var threadVM: ThreadViewModel?
@@ -31,6 +24,7 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
     public var editConversationViewModel: EditConversationViewModel?
     private let p2pPartnerFinder = FindPartnerParticipantViewModel()
     public let mutualGroupsVM = MutualGroupViewModel()
+    public var scrollViewProxy: ScrollViewProxy?
 
     public init() {}
 
@@ -103,13 +97,17 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
     public func mute(_ threadId: Int) {
         let req = GeneralSubjectIdRequest(subjectId: threadId)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.conversation.mute(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.mute(req)
+        }
     }
 
     public func unmute(_ threadId: Int) {
         let req = GeneralSubjectIdRequest(subjectId: threadId)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.conversation.unmute(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unmute(req)
+        }
     }
 
     public func onMuteChanged(_ response: ChatResponse<Int>) {
@@ -219,7 +217,9 @@ public final class ThreadDetailViewModel: ObservableObject, Hashable {
         }
     }
 
+#if DEBUG
     deinit {
         print("deinit ThreadDetailViewModel")
     }
+#endif
 }

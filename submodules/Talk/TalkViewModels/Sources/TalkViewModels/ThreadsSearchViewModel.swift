@@ -13,8 +13,9 @@ import TalkModels
 import TalkExtensions
 import OSLog
 
+@MainActor
 public final class ThreadsSearchViewModel: ObservableObject {
-    @Published public var searchedConversations: ContiguousArray<Conversation> = []
+    @Published public var searchedConversations: ContiguousArray<CalculatedConversation> = []
     @Published public var searchedContacts: ContiguousArray<Contact> = []
     @Published public var searchText: String = ""
     private var cancelable: Set<AnyCancellable> = []
@@ -56,6 +57,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             }
             .store(in: &cancelable)
         $searchText
+            .dropFirst() // Drop first to prevent send request for the first time app launches
             .debounce(for: 0.5, scheduler: RunLoop.main)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .removeDuplicates()
@@ -98,17 +100,16 @@ public final class ThreadsSearchViewModel: ObservableObject {
             await reset()
             await searchThreads(newValue, new: showUnreadConversations)
             searchContacts(newValue)
-        } else if newValue.count == 0, await !lazyList.canLoadMore() {
+        } else if newValue.count == 0, await !lazyList.isLoading {
             await reset()
         }
     }
 
     @MainActor
     private func onUnreadConversationToggled(_ newValue: Bool?) async {
-        if (showUnreadConversations ?? false) == newValue { return } // when the user taps on the close button on the toolbar
         if newValue == true {
             await getUnreadConversations()
-        } else if newValue == false {
+        } else if newValue == false, isInSearchMode {
             await resetUnreadConversations()
         }
     }
@@ -147,7 +148,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
         lazyList.setLoading(true)
         let req = ThreadsRequest(searchText: text, count: lazyList.count, offset: lazyList.offset, new: new)
         RequestsManager.shared.append(prepend: loadMore ? SEARCH_LOAD_MORE_KEY : SEARCH_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     @MainActor
@@ -156,14 +159,18 @@ public final class ThreadsSearchViewModel: ObservableObject {
         lazyList.setLoading(true)
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, name: text, type: .publicGroup)
         RequestsManager.shared.append(prepend: SEARCH_PUBLIC_THREAD_KEY, value: req)
-        ChatManager.activeInstance?.conversation.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
     }
 
     @MainActor
     private func onSearch(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_KEY) != nil {
-            searchedConversations.append(contentsOf: threads)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(threads, myId)
+            searchedConversations.append(contentsOf: calThreads)
         }
     }
 
@@ -171,7 +178,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onSearchLoadMore(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_LOAD_MORE_KEY) != nil {
-            searchedConversations.append(contentsOf: threads)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(threads, myId)
+            searchedConversations.append(contentsOf: calThreads)
         }
     }
 
@@ -179,7 +188,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onPublicThreadSearch(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_PUBLIC_THREAD_KEY) != nil {
-            searchedConversations.append(contentsOf: threads)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(threads, myId)
+            searchedConversations.append(contentsOf: calThreads)
         }
     }
 
@@ -205,7 +216,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
             req = ContactsRequest(query: searchText)
         }
         RequestsManager.shared.append(prepend: SEARCH_CONTACTS_IN_THREADS_LIST_KEY, value: req)
-        ChatManager.activeInstance?.contact.search(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.search(req)
+        }
     }
 
     private func onSearchContacts(_ response: ChatResponse<[Contact]>) {

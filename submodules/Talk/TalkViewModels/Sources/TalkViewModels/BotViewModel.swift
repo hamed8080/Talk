@@ -10,6 +10,7 @@ import Combine
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class BotViewModel: ObservableObject {
     @Published public var bots: [BotInfo] = []
     @Published public var selectedBot: BotInfo?
@@ -85,21 +86,27 @@ public final class BotViewModel: ObservableObject {
     public func getBotList() {
         let req = GetUserBotsRequest()
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.bot.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.bot.get(req)
+        }
     }
 
     public func stopBot(_ bot: BotInfo, threadId: Int) {
         guard let name = bot.name else { return }
         let req = StartStopBotRequest(botName: name, threadId: threadId)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.bot.stop(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.bot.stop(req)
+        }
     }
 
     public func startBot(_ bot: BotInfo, threadId: Int) {
         guard let name = bot.name else { return }
         let req = StartStopBotRequest(botName: name, threadId: threadId)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.bot.start(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.bot.start(req)
+        }
     }
 
     public func refresh() {
@@ -116,7 +123,9 @@ public final class BotViewModel: ObservableObject {
         isLoading = true
         let req = CreateBotRequest(botName: name)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.bot.create(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.bot.create(req)
+        }
     }
 
     public func appendBots(bots: [BotInfo]) {

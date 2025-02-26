@@ -10,6 +10,7 @@ import TalkViewModels
 import UIKit
 import TalkModels
 import SwiftUI
+import Chat
 
 public class MessageBaseCell: UITableViewCell {
     // Views
@@ -251,5 +252,17 @@ public class MessageBaseCell: UITableViewCell {
 
     public func reactionsUpdated(viewModel: MessageRowViewModel) {
         messageContainer.reactionsUpdated(viewModel: viewModel)
+    }
+    
+    public func reactionDeleted(_ reaction: Reaction) {
+        messageContainer.reactionDeleted(reaction)
+    }
+    
+    public func reactionAdded(_ reaction: Reaction) {
+        messageContainer.reactionAdded(reaction)
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        messageContainer.reactionReplaced(reaction)
     }
 }

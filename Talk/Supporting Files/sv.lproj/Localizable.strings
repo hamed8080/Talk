@@ -74,6 +74,7 @@
 "General.thirdSentVerb" = "%@ har skickats";
 "General.noDescription" = "Ingen beskrivning!";
 "General.noResult" = "Det finns inget resultat";
+"General.unknown" = "okänd";
 
 /* Tabs */
 "Tab.chats" = "Chattar";
@@ -191,8 +192,12 @@ talk.pod.ir";
 "Thread.publicChannel" = "Offentlig kanal";
 "Thread.selfThread" = "Sparade meddelanden";
 "Thread.draft" = "Utkast:";
-"Thread.callStarted" = "Samtal påbörjat";
-"Thread.callEnded" = "Samtal avslutat";
+"Thread.callAccepted" = "Anrufanfrage angenommen %@";
+"Thread.callStarted" = "Samtal startat";
+"Thread.callEnded" = "Samtal avslutat %@ - Varaktighet %@";
+"Thread.callCanceled" = "Samtal avbrutet %@";
+"Thread.callDeclined" = "Samtal avvisades av %@ kl %@";
+"Thread.callMissed" = "Missat samtal kl %@";
 "Thread.unpin" = "Avnåla";
 "Thread.pin" = "Nåla";
 "Thread.mute" = "Ljuddämpa";
@@ -357,6 +362,9 @@ talk.pod.ir";
 "Setting.EditProfile.bioHintMore" = "Skriv lite om dig själv...";
 "Setting.EditProfile.enterToPodAccount" = "Logga in på ditt POD-konto";
 "Settings.darkModeEnabled" = "Mörkt läge";
+"Settings.ManageSessions.title" = "Hantera aktiva sessioner";
+"Settings.isAutoPlayVideoEnabled" = "Spelar upp videor automatiskt";
+"Settings.manageConnection" = "Hantera anslutning";
 
 /* Support */
 "Support.title" = "Talk messenger";
@@ -449,3 +457,33 @@ talk.pod.ir";
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Skicka vald plats";
+
+/* ManageSessions */
+"ManageSessions.type" = "Enhetstyp";
+"ManageSessions.deviceName" = "Namn";
+"ManageSessions.deviceType" = "Enhetstyp";
+"ManageSessions.os" = "Operativsystem";
+"ManageSessions.osVersion" = "Operativsystemversion";
+"ManageSessions.ip" = "IP";
+"ManageSessions.lastActivity" = "Senaste aktivitet";
+"ManageSessions.location" = "Plats";
+"ManageSessions.removeAllDescription" = "Du kan ta bort alla enheter som du har loggat in på samtidigt.";
+"ManageSessions.removeAll" = "Ta bort alla";
+"ManageSessions.removeOnce" = "Ta bort session";
+"ManageSessions.RemoveAllSessions.title" = "Uppmärksamhet";
+"ManageSessions.RemoveAllSessions.subtitle" = "Vill du inaktivera alla enheter utom denna?";
+"ManageSessions.RemoveOneSession.title" = "Uppmärksamhet";
+"ManageSessions.RemoveOneSession.subtitle" = "Vill du inaktivera %@?";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "Alla chattar";
+"ConversationsTabs.archive" = "Arkiv";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "Den arkiverade listan är tom.";
+"ArchivedTab.guide" = "För att avarkivera chatten måste du gå till Arkiv-fliken. En arkiverad chatt får inga aviseringar.";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Visa meddelanden";
+"AdminLimitHistoryTimeDialog.title" = "Visa endast meddelanden från en specifik vald tid.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Välj datum";

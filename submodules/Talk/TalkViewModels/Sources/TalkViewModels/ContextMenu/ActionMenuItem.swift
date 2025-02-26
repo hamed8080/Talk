@@ -15,7 +15,7 @@ public class ActionMenuItem: UIView {
     private let separator = UIView()
     private let model: ActionItemModel
     private let action: () -> Void
-    static let height: CGFloat = 36
+    static let height: CGFloat = 42
     public weak var contextMenuContainer: ContextMenuContainerView?
 
     public init(model: ActionItemModel, action: @escaping () -> Void) {
@@ -63,6 +63,18 @@ public class ActionMenuItem: UIView {
             separator.heightAnchor.constraint(equalToConstant: 0.5),
             separator.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
+        
+        if model.sandbox {
+            let sandboxLabel = SandboxView()
+            sandboxLabel.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(sandboxLabel)
+            
+            NSLayoutConstraint.activate([
+                sandboxLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+                sandboxLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+                sandboxLabel.widthAnchor.constraint(equalToConstant: 96),
+            ])
+        }
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onTapped))
         addGestureRecognizer(tapGesture)
@@ -96,6 +108,24 @@ public class ActionMenuItem: UIView {
         UIView.animate(withDuration: 0.1) {
             self.backgroundColor = .clear
         }
+    }
+}
+
+fileprivate class SandboxView: UILabel {
+    
+    public init() {
+        super.init(frame: .zero)
+        configureView()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(from:) has not been implemented")
+    }
+
+    private func configureView() {
+        text = "SANDBOX"
+        textColor = UIColor(named: "accent")
+        font = UIFont.preferredFont(forTextStyle: .caption2)
     }
 }
 

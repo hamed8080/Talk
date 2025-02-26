@@ -34,6 +34,11 @@ struct SelectedContact: View {
         if isSelectedToDelete {
             Button {
                 viewModel.toggleSelectedContact(contact: contact)
+                /// We have to make sure this value is reset to false,
+                /// because this view will be reused if the user select it again
+                /// inside the user picker in creating conversation builder,
+                /// so if not, it will show remove button upon adding it again.
+                isSelectedToDelete = false
             } label: {
                 Image(systemName: "xmark")
                     .resizable()
@@ -47,8 +52,7 @@ struct SelectedContact: View {
 
    @ViewBuilder var userImage: some View {
         if !isSelectedToDelete {
-            let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: contact.firstName)
-            ImageLoaderView(imageLoader: .init(config: config), textFont: .iransansBoldCaption2)
+            ImageLoaderView(contact: contact, font: .iransansBoldCaption2)
                 .id("\(contact.image ?? "")\(contact.id ?? 0)")
                 .foregroundColor(Color.App.textPrimary)
                 .frame(width: 22, height: 22)

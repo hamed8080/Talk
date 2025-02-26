@@ -1,5 +1,5 @@
 import Foundation
-public struct DropItem: Identifiable {
+public struct DropItem: Identifiable, Sendable {
     public let id: UUID = .init()
     public let data: Data?
     public let name: String?

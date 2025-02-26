@@ -20,7 +20,6 @@ public class CustomConversationNavigationBar: UIView {
     private let subtitleLabel = UILabel()
     private var threadImageButton = UIImageButton(imagePadding: .init(all: 0))
     private var threadTitleSupplementary = UILabel()
-    private let rightTitleImageView = UIImageView()
     private var centerYTitleConstraint: NSLayoutConstraint!
     private let gradientLayer = CAGradientLayer()
     private var cancellableSet: Set<AnyCancellable> = Set()
@@ -30,7 +29,9 @@ public class CustomConversationNavigationBar: UIView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
-        registerObservers()
+        Task {
+            await registerObservers()
+        }
     }
 
     required init(coder: NSCoder) {
@@ -41,7 +42,7 @@ public class CustomConversationNavigationBar: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         
         titlebutton.translatesAutoresizingMaskIntoConstraints = false
-        titlebutton.setTitle(viewModel?.thread.titleRTLString, for: .normal)
+        titlebutton.setAttributedTitle(titleAttributedStirng, for: .normal)
         titlebutton.titleLabel?.font = UIFont.uiiransansBoldBody
         titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
@@ -103,18 +104,11 @@ public class CustomConversationNavigationBar: UIView {
             NotificationCenter.closeSideBar.post(name: Notification.Name.closeSideBar, object: nil)
         }
 
-        rightTitleImageView.translatesAutoresizingMaskIntoConstraints = false
-        rightTitleImageView.image = UIImage(named: "ic_approved")
-        rightTitleImageView.contentMode = .scaleAspectFit
-        rightTitleImageView.accessibilityIdentifier = "rightTitleImageViewCustomConversationNavigationBar"
-        rightTitleImageView.setIsHidden(viewModel?.thread.isTalk == false)
-
         addSubview(backButton)
         addSubview(fullScreenButton)
         addSubview(threadImageButton)
         addSubview(threadTitleSupplementary)
         addSubview(titlebutton)
-        addSubview(rightTitleImageView)
         addSubview(subtitleLabel)
 
         centerYTitleConstraint = titlebutton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0)
@@ -140,18 +134,14 @@ public class CustomConversationNavigationBar: UIView {
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
             threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.centerYAnchor),
 
-            titlebutton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titlebutton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 4),
+            titlebutton.trailingAnchor.constraint(equalTo: threadImageButton.leadingAnchor, constant: -4),
             centerYTitleConstraint,
             titlebutton.heightAnchor.constraint(equalToConstant: 16),
 
             subtitleLabel.centerXAnchor.constraint(equalTo: titlebutton.centerXAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titlebutton.bottomAnchor, constant: -4),
             subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 4),
-
-            rightTitleImageView.widthAnchor.constraint(equalToConstant: 16),
-            rightTitleImageView.heightAnchor.constraint(equalToConstant: 16),
-            rightTitleImageView.centerYAnchor.constraint(equalTo: titlebutton.centerYAnchor, constant: -1),
-            rightTitleImageView.leadingAnchor.constraint(equalTo: titlebutton.trailingAnchor, constant: 4),
         ])
     }
 
@@ -162,9 +152,27 @@ public class CustomConversationNavigationBar: UIView {
 
     public func updateTitleTo(_ title: String?) {
         UIView.animate(withDuration: 0.2) {
-            self.titlebutton.setTitle(title, for: .normal)
+            self.titlebutton.setAttributedTitle(self.titleAttributedStirng, for: .normal)
         }
         updateThreadImage()
+    }
+    
+    private var titleAttributedStirng: NSAttributedString {
+        let title = viewModel?.thread.titleRTLString ?? ""
+        let replacedEmoji = title.stringToScalarEmoji()
+        let replacedDoubleQuotation = replacedEmoji.strinDoubleQuotation()
+        
+        let attributedString = NSMutableAttributedString(string: replacedDoubleQuotation)
+        if viewModel?.thread.isTalk == true {
+            attributedString.append(NSAttributedString(string: " ")) // Space
+            
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = UIImage(named: "ic_approved")
+            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
+            let imageString = NSAttributedString(attachment: imageAttachment)
+            attributedString.append(imageString)
+        }
+        return attributedString
     }
 
     public func updateSubtitleTo(_ subtitle: String?) {
@@ -195,12 +203,14 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func refetchImageOnUpdateInfo() {
-        fetchImageOnUpdateInfo()
+        Task {
+            await fetchImageOnUpdateInfo()
+        }
     }
 
-    public func fetchImageOnUpdateInfo() {
-        guard let image = viewModel?.thread.image else { return }
-        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: image, metaData: nil, userName: nil) {
+    public func fetchImageOnUpdateInfo() async {
+        guard let link = await getImageLink() else { return }
+        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: link, metaData: nil, userName: nil) {
             self.imageLoader = imageViewModel
 
             // Set first time opening the thread image from cahced version inside avatarVMS
@@ -228,17 +238,23 @@ public class CustomConversationNavigationBar: UIView {
             self.threadTitleSupplementary.text = splitedText
         }
     }
-
-    private func registerObservers() {
+    
+    private func registerObservers() async {
         // Initial image from avatarVMS inside the thread
-        let image = viewModel?.thread.image
-        if let image = image, let _ = viewModel?.threadsViewModel?.avatars(for: image, metaData: nil, userName: nil) {
-            fetchImageOnUpdateInfo()
+        let link = await getImageLink()
+        if let link = link, let _ = viewModel?.threadsViewModel?.avatars(for: link, metaData: nil, userName: nil) {
+            await fetchImageOnUpdateInfo()
         } else {
-            Task {
-                await setSplitedText()
-            }
+            await setSplitedText()
         }
+    }
+    
+    @AppBackgroundActor
+    private func getImageLink() async -> String? {
+        let copiedThread = await viewModel?.thread
+        let image = await viewModel?.thread.image ?? copiedThread?.metaData?.file?.link
+        let httpsImage = image?.replacingOccurrences(of: "http://", with: "https://")
+        return httpsImage
     }
 
     private func updateThreadImage() {

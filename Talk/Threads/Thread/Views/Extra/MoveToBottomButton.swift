@@ -12,6 +12,7 @@ import ChatModels
 import TalkExtensions
 import TalkModels
 
+@MainActor
 public final class MoveToBottomButton: UIButton {
     public weak var viewModel: ThreadViewModel?
     private let imgCenter = UIImageView()
@@ -88,27 +89,25 @@ public final class MoveToBottomButton: UIButton {
         self.lblUnreadCount.label.addFlipAnimation(text: thread?.unreadCountString)
     }
 
-    public func setVisibility(visible: Bool) {
-        DispatchQueue.main.async {
-            // Cancel all animations if the user scrolls fast when it's in the bottom part to prevent double-scale transform.
-            self.layer.removeAllAnimations()
-
-            if visible {
-                self.setIsHidden(false)
-            }
-            UIView.animate(withDuration: 0.3) { [weak self] in
-                self?.transform = CGAffineTransform(scaleX: visible ? 1.0 : 0.01, y: visible ? 1.0 : 0.01)
-            } completion: { completed in
-                if completed {
-                    self.setIsHidden(!visible)
-                }
+    private func setVisibilityWithAnimation(visible: Bool) {
+        // Cancel all animations if the user scrolls fast when it's in the bottom part to prevent double-scale transform.
+        self.layer.removeAllAnimations()
+        
+        if visible {
+            self.setIsHidden(false)
+        }
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            self?.transform = CGAffineTransform(scaleX: visible ? 1.0 : 0.01, y: visible ? 1.0 : 0.01)
+        } completion: { completed in
+            if completed {
+                self.setIsHidden(!visible)
+                self.isUserInteractionEnabled = visible
             }
         }
     }
-
-    public func showIfHasAnyUnreadCount() {
-        let readAllMeessges = viewModel?.thread.lastMessageVO?.id ?? -1 == viewModel?.thread.lastSeenMessageId ?? 0
-        let hide = readAllMeessges || viewModel?.historyVM.sections.isEmpty == true
-        setIsHidden(hide)
+    
+    /// Do not make setVisibilityWithAnimation public; it will lead to inconsistency due to its animation.
+    public func show(_ show: Bool) {
+        setVisibilityWithAnimation(visible: show)
     }
 }

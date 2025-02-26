@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public class SelfThreadBuilder {
     private let id: String = "CREATE-SELF-THREAD-\(UUID().uuidString)"
     private var cancelable: Set<AnyCancellable> = []
@@ -25,7 +26,9 @@ public class SelfThreadBuilder {
         let title = String(localized: .init("Thread.selfThread"), bundle: Language.preferedBundle)
         let req = CreateThreadRequest(title: title, type: StrictThreadTypeCreation.selfThread.threadType)
         RequestsManager.shared.append(prepend: id, value: req)
-        ChatManager.activeInstance?.conversation.create(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.create(req)
+        }
     }
 
     private func onCreated(_ response: ChatResponse<Conversation>) {

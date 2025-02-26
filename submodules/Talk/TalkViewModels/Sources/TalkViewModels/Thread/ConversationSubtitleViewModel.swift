@@ -7,9 +7,10 @@
 
 import Foundation
 import Combine
-import ChatModels
+import Chat
 import TalkModels
 
+@MainActor
 public final class ConversationSubtitleViewModel {
     private var subtitle: String = ""
     private var partnerLastSeen = ""

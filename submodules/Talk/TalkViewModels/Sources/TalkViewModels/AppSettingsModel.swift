@@ -7,12 +7,13 @@
 import Foundation
 import Combine
 
-public struct AppSettingsModel: Codable, Hashable {
-    public static func == (lhs: AppSettingsModel, rhs: AppSettingsModel) -> Bool {
+@MainActor
+public struct AppSettingsModel: Codable, Hashable, Sendable {
+    nonisolated public static func == (lhs: AppSettingsModel, rhs: AppSettingsModel) -> Bool {
         lhs.hashValue == rhs.hashValue
     }
 
-    public func hash(into hasher: inout Hasher) {
+    nonisolated public func hash(into hasher: inout Hasher) {
         hasher.combine(isSyncOn)
         hasher.combine(notificationSettings.data)
         hasher.combine(automaticDownloadSettings.data)
@@ -20,10 +21,11 @@ public struct AppSettingsModel: Codable, Hashable {
 
     static let key = "AppSettingsKey"
     public var isSyncOn: Bool = false
+    public var isAutoPlayVideoEnabled = true
     public var isDarkModeEnabled: Bool? = nil
     public var notificationSettings: NotificationSettingModel = .init()
     public var automaticDownloadSettings: AutomaticDownloadSettingModel = .init()
-
+    
     public func save() {
         UserDefaults.standard.setValue(codable: self, forKey: AppSettingsModel.key)
         NotificationCenter.appSettingsModel.post(name: .appSettingsModel, object: self)
@@ -36,24 +38,24 @@ public struct AppSettingsModel: Codable, Hashable {
 }
 
 /// Automatic download settings.
-public struct AutomaticDownloadSettingModel: Codable {
+public struct AutomaticDownloadSettingModel: Codable, Sendable {
     public var downloadImages: Bool = false
     public var downloadFiles: Bool = false
     public var privateChat: ChatSettings = .init()
     public var channel: ChannelSettings = .init()
     public var group: GroupSettings = .init()
 
-    public struct ChatSettings: Codable {
+    public struct ChatSettings: Codable, Sendable {
         public var downloadImages: Bool = false
         public var downloadFiles: Bool = false
     }
 
-    public struct ChannelSettings: Codable {
+    public struct ChannelSettings: Codable, Sendable {
         public var downloadImages: Bool = false
         public var downloadFiles: Bool = false
     }
 
-    public struct GroupSettings: Codable {
+    public struct GroupSettings: Codable, Sendable {
         public var downloadImages: Bool = false
         public var downloadFiles: Bool = false
     }
@@ -63,7 +65,7 @@ public struct AutomaticDownloadSettingModel: Codable {
     }
 }
 
-public struct NotificationSettingModel: Codable {
+public struct NotificationSettingModel: Codable, Sendable {
     public var soundEnable: Bool = true
     public var showDetails: Bool = true
     public var vibration: Bool = true
@@ -71,17 +73,17 @@ public struct NotificationSettingModel: Codable {
     public var channel: ChannelSettings = .init()
     public var group: GroupSettings = .init()
 
-    public struct ChatSettings: Codable {
+    public struct ChatSettings: Codable, Sendable {
         public var showNotification: Bool = true
         public var sound = true
     }
 
-    public struct ChannelSettings: Codable {
+    public struct ChannelSettings: Codable, Sendable {
         public  var showNotification: Bool = true
         public  var sound = true
     }
 
-    public struct GroupSettings: Codable {
+    public struct GroupSettings: Codable, Sendable {
         public var showNotification: Bool = true
         public var sound = true
     }

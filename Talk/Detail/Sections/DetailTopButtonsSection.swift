@@ -63,10 +63,10 @@ struct DetailTopButtonsSection: View {
             DetailViewButton(accessibilityText: "", icon: "ellipsis") {
                 showPopover.toggle()
             }
-            .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .bottom) {
+            .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
                     if let thread = viewModel.thread {
-                        ThreadRowActionMenu(showPopover: $showPopover, isDetailView: true, thread: thread)
+                        ThreadRowActionMenu(showPopover: $showPopover, isDetailView: true, thread: thread.toClass())
                             .environmentObject(AppState.shared.objectsContainer.threadsVM)
                     }
                     if let participant = viewModel.participantDetailViewModel?.participant {
@@ -77,7 +77,7 @@ struct DetailTopButtonsSection: View {
                 .frame(width: 246)
                 .background(MixMaterialBackground())
                 .clipShape(RoundedRectangle(cornerRadius:((12))))
-                .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
+                .presentationCompactAdaptation(horizontal: .popover, vertical: .sheet)
             }
             Spacer()
         }

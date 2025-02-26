@@ -52,26 +52,43 @@ public extension HistoryMessageProtocol {
     var fileHashCode: String { fileMetaData?.fileHash ?? fileMetaData?.file?.hashCode ?? "" }
 
     var fileURL: URL? {
-        guard let url = url else { return nil }
-        let chat = ChatManager.activeInstance
+        get async {
+            guard let url = await url else { return nil }
+            return await urlOnChatActor(url: url)
+        }
+    }
+    
+    @ChatGlobalActor
+    func urlOnChatActor(url: URL) async -> URL? {
+        let chat = await ChatManager.activeInstance
         return chat?.file.filePath(url) ?? chat?.file.filePathInGroup(url)
     }
 
     var url: URL? {
-        let path = isImage == true ? Routes.images.rawValue : Routes.files.rawValue
-        let url = "\(ChatManager.activeInstance?.config.fileServer ?? "")\(path)/\(fileHashCode)"
-        return URL(string: url)
+        get async {
+            let path = isImage == true ? Routes.images.rawValue : Routes.files.rawValue
+            let fileServer = await fileServerOnChatActor()
+            let url = "\(fileServer)\(path)/\(fileHashCode)"
+            return URL(string: url)
+        }
+    }
+    
+    @ChatGlobalActor
+    func fileServerOnChatActor() -> String {
+        ChatManager.activeInstance?.config.fileServer ?? ""
     }
 
     var hardLink: URL? {
-        guard
-            let name = fileMetaData?.name,
-            let diskURL = fileURL,
-            let ext = fileMetaData?.file?.extension
-        else { return nil }
-        let hardLink = diskURL.appendingPathComponent(name).appendingPathExtension(ext)
-        try? FileManager.default.linkItem(at: diskURL, to: hardLink)
-        return hardLink
+        get async {
+            guard
+                let name = fileMetaData?.name,
+                let diskURL = await fileURL,
+                let ext = fileMetaData?.file?.extension
+            else { return nil }
+            let hardLink = diskURL.appendingPathComponent(name).appendingPathExtension(ext)
+            try? FileManager.default.linkItem(at: diskURL, to: hardLink)
+            return hardLink
+        }
     }
 
     var tempURL: URL {
@@ -86,7 +103,7 @@ public extension HistoryMessageProtocol {
 
     func makeTempURL() async -> URL? {
         guard
-            let diskURL = fileURL,
+            let diskURL = await fileURL,
             FileManager.default.fileExists(atPath: diskURL.path)
         else { return nil }
         do {
@@ -98,7 +115,7 @@ public extension HistoryMessageProtocol {
         }
     }
 
-    // FIXME: need fix with object decoding in this calss with FileMetaData for proerty metadata
+    // FIXME: need fix with object decoding in this calss with FileMetaData for proerty metadata    
     var fileMetaData: FileMetaData? {
         guard let metadata = metadata?.data(using: .utf8),
               let metaData = try? JSONDecoder.instance.decode(FileMetaData.self, from: metadata) else { return nil }
@@ -246,17 +263,15 @@ public extension HistoryMessageProtocol {
     
     func uploadExt() -> String? {
         let fileMessageType = self as? UploadFileMessage
-        let replyType = self as? UploadFileWithReplyPrivatelyMessage
-        let uploadfileReq = fileMessageType?.uploadFileRequest ?? replyType?.uploadFileRequest
-        let uploadImageReq = fileMessageType?.uploadImageRequest ?? replyType?.uploadImageRequest
+        let uploadfileReq = fileMessageType?.uploadFileRequest
+        let uploadImageReq = fileMessageType?.uploadImageRequest
         return uploadImageReq?.fileExtension ?? uploadfileReq?.fileExtension
     }
 
     func uploadFileName() -> String? {
         let fileMessageType = self as? UploadFileMessage
-        let replyType = self as? UploadFileWithReplyPrivatelyMessage
-        let uploadfileReq = fileMessageType?.uploadFileRequest ?? replyType?.uploadFileRequest
-        let uploadImageReq = fileMessageType?.uploadImageRequest ?? replyType?.uploadImageRequest
+        let uploadfileReq = fileMessageType?.uploadFileRequest
+        let uploadImageReq = fileMessageType?.uploadImageRequest
         return uploadImageReq?.fileName ?? uploadfileReq?.fileName
     }
 
@@ -288,3 +303,18 @@ public extension Array where Element == Message {
 }
 
 extension Message: HistoryMessageProtocol {}
+
+
+public extension Message {
+    var toReplyInfo: ReplyInfo {
+        .init(deleted: false,
+              repliedToMessageId: id,
+              message: message,
+              messageType: messageType,
+              metadata: metadata,
+              systemMetadata: systemMetadata,
+              repliedToMessageNanos: timeNanos,
+              repliedToMessageTime: time,
+              participant: participant)
+    }
+}

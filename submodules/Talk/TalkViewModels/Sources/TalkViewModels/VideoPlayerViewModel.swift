@@ -12,6 +12,7 @@ import AVKit
 import OSLog
 import TalkModels
 
+@MainActor
 public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLoaderDelegate {
     @Published public var player: AVPlayer?
     public let fileURL: URL
@@ -59,8 +60,13 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
                                       change: [NSKeyValueChangeKey : Any]?,
                                       context: UnsafeMutableRawPointer?) {
         guard let item = object as? AVPlayerItem else { return }
+        Task { @MainActor in
+            onVideoStatusChanged(item)
+        }
+    }
+    
+    private func onVideoStatusChanged(_ item: AVPlayerItem) {
         switch item.status {
-
         case .unknown:
             log("unkown state video player")
         case .readyToPlay:
@@ -85,8 +91,10 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
 
     public func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
-            guard let elapsed = self?.player?.currentTime() else { return }
-            self?.timerString = elapsed.seconds.rounded().timerString(locale: Language.preferredLocale) ?? "00:00"
+            Task { @MainActor [weak self] in
+                guard let elapsed = self?.player?.currentTime() else { return }
+                self?.timerString = elapsed.seconds.rounded().timerString(locale: Language.preferredLocale) ?? "00:00"
+            }            
         }
     }
 
@@ -100,8 +108,10 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
         Logger.viewModels.info("\(string, privacy: .sensitive)")
 #endif
     }
-
+    
+#if DEBUG
     deinit {
-        player?.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+        print("deinit VideoPlayerViewModel")
     }
+#endif
 }

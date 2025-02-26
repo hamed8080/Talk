@@ -29,8 +29,7 @@ struct EditProfileView: View {
 //                    viewModel.showImagePicker = true
                 } label: {
                     ZStack(alignment: .leading) {
-                        let config = ImageLoaderConfig(url: AppState.shared.user?.image ?? "", userName: String.splitedCharacter(AppState.shared.user?.name ?? ""))
-                        ImageLoaderView(imageLoader: .init(config: config))
+                        ImageLoaderView(user: AppState.shared.user)
                             .scaledToFit()
                             .font(.iransansBoldCaption2)
                             .foregroundColor(.white)
@@ -74,6 +73,7 @@ struct EditProfileView: View {
                 TextField("Setting.EditProfile.firstNameHint".bundleLocalized(), text: $viewModel.firstName)
                     .focused($focusedField, equals: .firstName)
                     .font(.iransansBody)
+                    .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
                     .disabled(viewModel.temporaryDisable)
@@ -84,6 +84,7 @@ struct EditProfileView: View {
                 TextField("Setting.EditProfile.lastNameHint".bundleLocalized(), text: $viewModel.lastName)
                     .focused($focusedField, equals: .lastName)
                     .font(.iransansBody)
+                    .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
                     .disabled(viewModel.temporaryDisable)
@@ -95,6 +96,7 @@ struct EditProfileView: View {
                 TextField("Setting.EditProfile.userNameHint".bundleLocalized(), text: $viewModel.userName)
                     .focused($focusedField, equals: .userName)
                     .font(.iransansBody)
+                    .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
                     .disabled(viewModel.temporaryDisable)
@@ -110,6 +112,13 @@ struct EditProfileView: View {
 //                    .disabled(viewModel.temporaryDisable)
                     .applyAppTextfieldStyle(topPlaceholder: "Setting.EditProfile.bio", minHeight: 128, isFocused: focusedField == .bio) {
                         focusedField = .bio
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .keyboard) {
+                            Button("", systemImage: "chevron.down") {
+                                hideKeyboard()
+                            }
+                        }
                     }
 
 
@@ -161,9 +170,11 @@ struct EditProfileView: View {
         }
         .sheet(isPresented: $viewModel.showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
-                viewModel.showImagePicker = false
-                self.viewModel.image = image
-                self.viewModel.assetResources = assestResources ?? []
+                Task { @MainActor in
+                    viewModel.showImagePicker = false
+                    self.viewModel.image = image
+                    self.viewModel.assetResources = assestResources ?? []
+                }
             }
         }
         .normalToolbarView(title: "Settings.EditProfile.title", type: EditProfileNavigationValue.self)

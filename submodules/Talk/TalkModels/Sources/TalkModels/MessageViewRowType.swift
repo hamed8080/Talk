@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MessageViewRowType {
+public struct MessageViewRowType: Sendable {
     public var isFile: Bool = false
     public var isImage: Bool = false
     public var isForward: Bool = false
@@ -14,4 +14,11 @@ public struct MessageViewRowType {
     public var hasText: Bool = false
     public var isSingleEmoji = false
     public init() {}
+}
+
+public extension MessageViewRowType {
+    var isBareSingleEmoji: Bool {
+        if isFile || isImage || isAudio || isMap || isReply || isVideo || isForward { return false }
+        return true
+    }
 }

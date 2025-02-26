@@ -8,6 +8,7 @@
 import Foundation
 import Chat
 
+@MainActor
 public class DraftManager {
     private let contactKey = "contact-draft-"
     private let conversationKey = "conversation-draft-"
@@ -78,6 +79,7 @@ public class DraftManager {
     }
 }
 
+@MainActor
 public extension DraftManager {
     static let shared = DraftManager()
 }

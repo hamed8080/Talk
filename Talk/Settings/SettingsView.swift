@@ -37,20 +37,22 @@ struct SettingsView: View {
                 StickyHeaderSection(header: "", height: 10)
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
-                DarkModeSection()
                 SettingLanguageSection()
-                SettingLogSection()
+                SettingSettingSection()
+                SettingArchivesSection()
                 if EnvironmentValues.isTalkTest {
-                    SettingSettingSection()
+                    SettingLogSection()
+                        .sandboxLabel()
                     BlockedMessageSection()
+                        .sandboxLabel()
                     // SettingCallHistorySection()
                     // SettingSavedMessagesSection()
                     // SettingCallSection()
-                    SettingArchivesSection()
                     AutomaticDownloadSection()
+                        .sandboxLabel()
                     SettingAssistantSection()
+                        .sandboxLabel()
                 }
-                LoadTestsSection()
             }
 
             Group {
@@ -61,6 +63,14 @@ struct SettingsView: View {
                 SupportSection()
 
                 VersionNumberView()
+                if EnvironmentValues.isTalkTest {
+                    TokenExpireTimeSection()
+                        .sandboxLabel()
+                    LoadTestsSection()
+                        .sandboxLabel()
+                    ManualConnectionManagementSection()
+                        .sandboxLabel()
+                }
             }
             .listRowSeparator(.hidden)
         }
@@ -89,6 +99,7 @@ struct SettingsView: View {
     @ViewBuilder var leadingViews: some View {
         if EnvironmentValues.isTalkTest {
             ToolbarButtonItem(imageName: "qrcode", hint: "General.edit", padding: 10)
+                .sandboxLabel()
         } else {
             Rectangle()
                 .fill(Color.clear)
@@ -109,7 +120,9 @@ struct SettingsView: View {
                     showLoginSheet.toggle()
                 }
             }
+            .sandboxLabel()
             ToolbarButtonItem(imageName: "magnifyingglass", hint: "General.search", padding: 10) {}
+                .sandboxLabel()
         }
     }
 }
@@ -214,32 +227,6 @@ struct UserInformationSection: View {
     }
 }
 
-
-struct PreferenceView: View {
-    @State var model = AppSettingsModel.restore()
-
-    var body: some View {
-        List {
-            Section("Tab.contacts") {
-                VStack(alignment: .leading, spacing: 2) {
-                    Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
-                    Text("Contacts.Sync.subtitle")
-                        .foregroundColor(.gray)
-                        .font(.iransansCaption3)
-                }
-            }
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparator(.hidden)
-        }
-        .background(Color.App.bgPrimary)
-        .listStyle(.plain)
-        .onChange(of: model) { _ in
-            model.save()
-        }
-        .normalToolbarView(title: "Settings.title", type: PreferenceNavigationValue.self)        
-    }
-}
-
 struct SettingCallHistorySection: View {
     var body: some View {
         Section {
@@ -270,15 +257,13 @@ struct SettingLogSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        if EnvironmentValues.isTalkTest {
-            ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
-                let value = LogNavigationValue()
-                navModel.append(value: value)
-            }
-            .listRowInsets(.zero)
-            .listRowBackground(Color.App.bgPrimary)
-            .listRowSeparatorTint(Color.App.dividerPrimary)
+        ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
+            let value = LogNavigationValue()
+            navModel.append(value: value)
         }
+        .listRowInsets(.zero)
+        .listRowBackground(Color.App.bgPrimary)
+        .listRowSeparatorTint(Color.App.dividerPrimary)
     }
 }
 
@@ -330,48 +315,6 @@ struct SavedMessageSection: View {
     }
 }
 
-struct DarkModeSection: View {
-    @Environment(\.colorScheme) var currentSystemScheme
-    @State var isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? false
-
-    var body: some View {
-        HStack {
-            HStack {
-                Image(systemName: "circle.righthalf.filled")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 16, height: 16)
-                    .frame(width: 28, height: 28)
-                    .foregroundColor(.white)
-                    .background(Color.App.color1)
-                    .clipShape(RoundedRectangle(cornerRadius:(8)))
-
-                Text("Settings.darkModeEnabled".bundleLocalized())
-            }
-
-            Spacer()
-            Toggle("", isOn: $isDarkModeEnabled)
-            .tint(Color.App.accent)
-            .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
-            .offset(x: 8)
-        }
-        .padding(.top, 4)
-        .padding(.leading)
-        .listSectionSeparator(.hidden)
-        .listRowInsets(.zero)
-        .listRowBackground(Color.App.bgPrimary)
-        .listRowSeparatorTint(Color.App.dividerPrimary)
-        .onChange(of: isDarkModeEnabled) { value in
-            var model = AppSettingsModel.restore()
-            model.isDarkModeEnabled = value
-            model.save()
-        }
-        .onAppear {
-            isDarkModeEnabled = currentSystemScheme == .dark
-        }
-    }
-}
-
 struct BlockedMessageSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
@@ -389,7 +332,6 @@ struct BlockedMessageSection: View {
 }
 
 struct SupportSection: View {
-    @EnvironmentObject var tokenManagerVM: TokenManager
     @EnvironmentObject var navModel: NavigationModel
     @EnvironmentObject var container: ObjectsContainer
 
@@ -408,17 +350,23 @@ struct SupportSection: View {
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
+    }
+}
 
-        if EnvironmentValues.isTalkTest {
-            let secondToExpire = tokenManagerVM.secondToExpire.formatted(.number.precision(.fractionLength(0)))
-            ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", color: Color.App.color3, showDivider: false, shownavigationButton: false)
-                .listRowInsets(.zero)
-                .listRowBackground(Color.App.bgPrimary)
-                .listRowSeparatorTint(Color.clear)
-                .onAppear {
-                    tokenManagerVM.startTokenTimer()
-                }
-        }
+struct TokenExpireTimeSection: View {
+    @EnvironmentObject var tokenManagerVM: TokenManager
+    
+    var body: some View {
+        let secondToExpire = tokenManagerVM.secondToExpire.formatted(.number.precision(.fractionLength(0)))
+        ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", color: Color.App.color3, showDivider: false, shownavigationButton: false)
+            .listRowInsets(.zero)
+            .listRowBackground(Color.App.bgPrimary)
+            .listRowSeparatorTint(Color.clear)
+            .onAppear {
+#if DEBUG
+                tokenManagerVM.startTokenTimer()
+#endif
+            }
     }
 }
 
@@ -428,6 +376,20 @@ struct SettingAssistantSection: View {
     var body: some View {
         ListSectionButton(imageName: "person.fill", title: "Settings.assistants", color: Color.App.color1, showDivider: false) {
             let value = AssistantNavigationValue()
+            navModel.append(value: value)
+        }
+        .listRowInsets(.zero)
+        .listRowBackground(Color.App.bgPrimary)
+        .listRowSeparatorTint(Color.App.dividerPrimary)
+    }
+}
+
+struct ManualConnectionManagementSection: View {
+    @EnvironmentObject var navModel: NavigationModel
+    
+    var body: some View {
+        ListSectionButton(imageName: "rectangle.connected.to.line.below", title: "Settings.manageConnection", color: Color.App.color3, showDivider: false) {
+            let value = ManageConnectionNavigationValue()
             navModel.append(value: value)
         }
         .listRowInsets(.zero)
@@ -495,6 +457,7 @@ struct LoadTestsSection: View {
             .listRowInsets(.zero)
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.App.dividerPrimary)
+            .sandboxLabel()
         }
     }
 }

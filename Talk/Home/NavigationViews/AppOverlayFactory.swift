@@ -18,12 +18,12 @@ struct AppOverlayFactory: View {
     var body: some View {
         switch viewModel.type {
         case .gallery(let message):
-            GalleryView()
+            GalleryPageView()
                 .environmentObject(GalleryViewModel(message: message))
                 .id(message.id)
         case .galleryImageView(let image):
             ZStack {
-                GalleryImageView(uiimage: image)
+                GalleryImageView(uiimage: image, forceLeftToRight: false)
             }
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
             .fullScreenBackgroundView()
@@ -43,6 +43,7 @@ struct AppOverlayFactory: View {
             if EnvironmentValues.isTalkTest, isUnknown {
                 let title = String(format: String(localized: "Errors.occuredTitle"), "\(error?.code ?? 0)")
                 ToastView(title: title, message: error?.message ?? "") {}
+                    .sandboxLabel()
             } else if !isUnknown {
                 if let localizedError = error?.localizedError {
                     ToastView(title: "", message: localizedError) {}

@@ -12,6 +12,7 @@ import SwiftUI
 import TalkExtensions
 import TalkModels
 
+@MainActor
 public class DetailTabDownloaderViewModel: ObservableObject {
     public private(set) var messages: ContiguousArray<Message> = []
     private var conversation: Conversation
@@ -78,7 +79,9 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         offset += count
         isLoading = true
         animateObjectWillChange()
-        ChatManager.activeInstance?.message.history(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.history(req)
+        }
     }
 
     public func itemWidth(readerWidth: CGFloat) -> CGFloat {
@@ -101,13 +104,14 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         if let localVM = downloadVMS.first(where: {$0.message?.id == message.id}) {
             return localVM
         } else {
-            let newDownloadVM = DownloadFileViewModel(message: message, queue: .main)
+            let newDownloadVM = DownloadFileViewModel(message: message)
             downloadVMS.append(newDownloadVM)
             return newDownloadVM
         }
     }
-
+#if DEBUG
     deinit {
         print("deinit DetailTabDownloaderViewModel for\(tabName)")
     }
+#endif
 }

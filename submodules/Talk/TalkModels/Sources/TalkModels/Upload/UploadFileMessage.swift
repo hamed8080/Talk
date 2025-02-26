@@ -2,13 +2,26 @@ import Foundation
 import Chat
 
 public class UploadFileMessage: HistoryMessageBaseCalss, UploadProtocol {
+    public var replyRequest: ReplyMessageRequest?
     public var sendTextMessageRequest: SendTextMessageRequest?
     public var uploadFileRequest: UploadFileRequest?
     public var uploadImageRequest: UploadImageRequest?
+    public var replyPrivatelyRequest: ReplyPrivatelyRequest?
+    public var locationRequest: LocationMessageRequest?
 
-    public init(uploadFileRequest: UploadFileRequest, sendTextMessageRequest: SendTextMessageRequest? = nil, thread: Conversation?) {
+    public init(uploadFileRequest: UploadFileRequest? = nil,
+                imageFileRequest: UploadImageRequest? = nil,
+                sendTextMessageRequest: SendTextMessageRequest? = nil,
+                replyRequest: ReplyMessageRequest? = nil,
+                replyPrivatelyRequest: ReplyPrivatelyRequest? = nil,
+                locationRequest: LocationMessageRequest? = nil,
+                thread: Conversation?) {
         self.sendTextMessageRequest = sendTextMessageRequest
         self.uploadFileRequest = uploadFileRequest
+        self.uploadImageRequest = imageFileRequest
+        self.replyRequest = replyRequest
+        self.replyPrivatelyRequest = replyPrivatelyRequest
+        self.locationRequest = locationRequest
         if let sendTextMessageRequest = sendTextMessageRequest {
             self.sendTextMessageRequest = sendTextMessageRequest
             self.uploadFileRequest = uploadFileRequest
@@ -20,23 +33,7 @@ public class UploadFileMessage: HistoryMessageBaseCalss, UploadProtocol {
             metadata: sendTextMessageRequest?.metadata,
             systemMetadata: sendTextMessageRequest?.systemMetadata,
             time: UInt(Date().millisecondsSince1970), 
-            uniqueId: uploadFileRequest.uniqueId,
-            conversation: thread
-        )
-        super.init(message: message)
-    }
-
-    public init(imageFileRequest: UploadImageRequest, sendTextMessageRequest: SendTextMessageRequest? = nil, thread: Conversation?) {
-        self.sendTextMessageRequest = sendTextMessageRequest
-        self.uploadImageRequest = imageFileRequest
-        let message = Message(
-            threadId: sendTextMessageRequest?.threadId,
-            message: sendTextMessageRequest?.textMessage,
-            messageType: sendTextMessageRequest?.messageType,
-            metadata: sendTextMessageRequest?.metadata,
-            systemMetadata: sendTextMessageRequest?.systemMetadata,
-            time: UInt(Date().millisecondsSince1970),
-            uniqueId: imageFileRequest.uniqueId,
+            uniqueId: uploadFileRequest?.uniqueId ?? imageFileRequest?.uniqueId,
             conversation: thread
         )
         super.init(message: message)

@@ -2,6 +2,7 @@ import Chat
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class NavigationModel: ObservableObject {
     @Published public var selectedId: Int?
     @Published public var paths = NavigationPath()
@@ -38,10 +39,12 @@ public final class NavigationModel: ObservableObject {
         }
     }
 
-    public func remove() {
+    public func remove(innerBack: Bool = false) {
         if pathsTracking.count > 0 {
             popLastPathTracking()
-            if pathsTracking.count == 0, paths.count > 0 {
+            if innerBack {
+                popLastPath()
+            } else if pathsTracking.count == 0, paths.count > 0 {
                 popLastPath()
             }
         }
@@ -90,12 +93,9 @@ public extension NavigationModel {
         append(thread: thread)
     }
 
-    func append(thread: Conversation, created: Bool = false) {
+    func append(thread: Conversation) {
         Task { @MainActor in
             let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
-            Task { @HistoryActor in
-                viewModel.historyVM.setCreated(created) 
-            }
             let value = ConversationNavigationValue(viewModel: viewModel)
             append(value: value)
             selectedId = thread.id
@@ -125,7 +125,7 @@ public extension NavigationModel {
         if threadId != nil {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
-        remove()
+        remove(innerBack: false)
         if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.threadId == threadId {
             popLastPathTracking()
             popLastPath()
@@ -135,11 +135,13 @@ public extension NavigationModel {
         setSelectedThreadId()
     }
 
-    func cleanOnPop(threadId: Int? = nil) {
-        if threadId != nil {
+    func cleanOnPop(threadId: Int) {
+        if threadId == presentedThreadViewModel?.threadId {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
-        popLastPathTracking()
+        if threadId == threadStack.last?.viewModel.threadId {
+            popLastPathTracking()
+        }
         setSelectedThreadId()
     }
 }
@@ -162,9 +164,9 @@ public extension NavigationModel {
 }
 
 public extension NavigationModel {
-    func updateConversationInViewModel(_ conversation: Conversation) {
+    func updateConversationInViewModel(_ conversation: CalculatedConversation) {
         if let vm = threadStack.first(where: {$0.viewModel.threadId == conversation.id})?.viewModel {
-            vm.updateConversation(conversation)
+            vm.updateConversation(conversation.toStruct())
         }
     }
 }

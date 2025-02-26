@@ -13,14 +13,14 @@ import Chat
 import TalkModels
 import UIKit
 
+@MainActor
 public final class DownloadFileManager {
     private weak var viewModel: ThreadViewModel?
     private var downloadVMS: [DownloadFileViewModel] = []
     private var messagesWithReplyImage: [Int : [MessageRowViewModel]] = [:]
     private var cancelableSet: Set<AnyCancellable> = Set()
-    public static var emptyImage = UIImage(named: "empty_image")!
-    public static var mapPlaceholder = UIImage(named: "map_placeholder")!
-    private var queue = DispatchQueue(label: "DownloadFileManagerSerialQueue")
+    nonisolated(unsafe) public static var emptyImage = UIImage(named: "empty_image")!
+    nonisolated(unsafe) public static var mapPlaceholder = UIImage(named: "map_placeholder")!
     private typealias DownloadManagerTypes = (mtd: FileMetaData?, isImage: Bool, isVideo: Bool, isMap: Bool)
     public init() {}
 
@@ -54,21 +54,15 @@ public final class DownloadFileManager {
     }
 
     public func viewModel(for messageId: Int) -> DownloadFileViewModel? {
-        queue.sync {
-            downloadVMS.first(where: {$0.message?.id == messageId})
-        }
+        downloadVMS.first(where: {$0.message?.id == messageId})
     }
 
-    public func isContains(_ message: any HistoryMessageProtocol) -> Bool {
-        queue.sync {
-            return downloadVMS.contains(where: { $0.uniqueId == message.uniqueId })
-        }
+    public func isContains(_ message: HistoryMessageType) -> Bool {
+        return downloadVMS.contains(where: { $0.uniqueId == message.uniqueId })
     }
 
     private func appendToQueue(_ downloadFileVM: DownloadFileViewModel) {
-        queue.sync {
-            downloadVMS.append(downloadFileVM)
-        }
+        downloadVMS.append(downloadFileVM)
     }
     
     private func observeOnViewModelChange(_ downloadFileVM: DownloadFileViewModel, _ message: Message, _ types: DownloadManagerTypes) {
@@ -89,23 +83,19 @@ public final class DownloadFileManager {
     private func automaticDownloadIfNeeded(_ downloadFileVM: DownloadFileViewModel, _ types: DownloadManagerTypes) {
         Task {
             await downloadFileVM.setup()
-            if types.isImage, downloadFileVM.state != .completed {
+            if types.isImage, downloadFileVM.state != .completed, !types.isMap {
                 downloadFileVM.downloadBlurImage()
-            }
-
-            if types.isMap {
+            } else if types.isMap {
                 downloadFileVM.startDownload()
             }
         }
     }
     
-    @HistoryActor
-    public func register(message: any HistoryMessageProtocol) {
+    public func register(message: HistoryMessageType) {
         if isContains(message) { return }
         let isFileType = message.isFileType
-        let isUploading = message is UploadFileWithLocationMessage
-        if isFileType && !isUploading, let message = message as? Message {
-            let downloadFileVM = DownloadFileViewModel(message: message, queue: queue)
+        if isFileType, let message = message as? Message {
+            let downloadFileVM = DownloadFileViewModel(message: message)
             let types = types(message: message)
             appendToQueue(downloadFileVM)
             observeOnViewModelChange(downloadFileVM, message, types)
@@ -121,7 +111,6 @@ public final class DownloadFileManager {
         return (mtd, isImage, isVideo, isMap)
     }
 
-    @HistoryActor
     public func registerIfReplyImage(vm: MessageRowViewModel) {
         if let replyInfo = vm.message.replyInfo, let replyMessageId = replyInfo.repliedToMessageId {
             if messagesWithReplyImage[replyMessageId] == nil {
@@ -139,14 +128,7 @@ public final class DownloadFileManager {
     }
 
     private func unRegister(messageId: Int) {
-        queue.sync {
-            downloadVMS.removeAll(where: {$0.message?.id == messageId})
-        }
-    }
-
-    private func realImage(vm: DownloadFileViewModel) -> UIImage? {
-        guard let cgImage = vm.fileURL?.imageScale(width: 420)?.image else { return nil }
-        return UIImage(cgImage: cgImage)
+        downloadVMS.removeAll(where: {$0.message?.id == messageId})
     }
 
     private func blurImage(vm: DownloadFileViewModel) -> UIImage? {
@@ -183,7 +165,7 @@ public final class DownloadFileManager {
             preloadImage = blurImage
             blurRadius = 16
             showDownload = true
-            log("thumbnail created for id: \(messageId) message:\(message.message ?? "")")
+            log("Thumbnail created for id: \(messageId) message:\(message.message ?? "")")
         } else if vm.state == .downloading {
             blurRadius = 16
             showDownload = true
@@ -214,14 +196,22 @@ public final class DownloadFileManager {
     private func updateReplyImageOnStateChange(messageId: Int, state: MessageFileState, vm: DownloadFileViewModel) async {
         guard state.state == .thumbnail || state.state == .completed else { return }
         var replyImage: UIImage? = nil
-        if state.state == .completed, let scaledCompletedImage = vm.fileURL?.imageScale(width: 48)?.0 {
-            let image = UIImage(cgImage: scaledCompletedImage)
+        if state.state == .completed, let scaledCompletedImage = await scaledImage(url: vm.fileURL) {
+            let image = scaledCompletedImage
             replyImage = image
         } else if state.state == .thumbnail {
             replyImage = state.preloadImage
         }
         guard let replyImage = replyImage else { return }
         await updateAllReplyMessageImages(image: replyImage, messageId: messageId)
+    }
+    
+    @AppBackgroundActor
+    private func scaledImage(url: URL?) async -> UIImage? {
+        if let scaledImage = url?.imageScale(width: 48)?.image {
+            return UIImage(cgImage: scaledImage)
+        }
+        return nil
     }
 
     private func onFileChanged(message: Message) async {
@@ -249,43 +239,52 @@ public final class DownloadFileManager {
         }
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func changeStateTo(state: MessageFileState, messageId: Int) async {
-        guard let result = viewModel?.historyVM.sections.viewModelAndIndexPath(for: messageId) else {
-            log("Index path could not be found for message id:\(messageId)")
+        guard let result = await viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: messageId) else {
+            await log("Index path could not be found for message id:\(messageId)")
             return
         }
+        let fileURL = await result.vm.message.fileURL
         await MainActor.run {
-            result.vm.setFileState(state)
+            /// We have to check if the state is not completed yet,
+            /// cuase if is was finished it will turn an downloaded image
+            /// to blur view if we are getting the reply thumbnail
+            if result.vm.fileState.state != .completed {
+                result.vm.setFileState(state, fileURL: fileURL)
+            }
+            let delegate = viewModel?.delegate
             if state.state == .completed {
-                viewModel?.delegate?.downloadCompleted(at: result.indexPath, viewModel: result.vm)
+                delegate?.downloadCompleted(at: result.indexPath, viewModel: result.vm)
             } else if state.state == .thumbnail {
-                viewModel?.delegate?.updateThumbnail(at: result.indexPath, viewModel: result.vm)
+                delegate?.updateThumbnail(at: result.indexPath, viewModel: result.vm)
             } else {
-                viewModel?.delegate?.updateProgress(at: result.indexPath, viewModel: result.vm)
+                delegate?.updateProgress(at: result.indexPath, viewModel: result.vm)
             }
         }
         if state.state == .completed {
-            unRegister(messageId: messageId)
+            await unRegister(messageId: messageId)
         }
     }
 
-    @HistoryActor
+    @AppBackgroundActor
     private func updateAllReplyMessageImages(image: UIImage?, messageId: Int) async {
-        if let replyMessagesWithSameSourceImage = messagesWithReplyImage[messageId] {
+        if let replyMessagesWithSameSourceImage = await messagesWithReplyImage[messageId] {
             for vm in replyMessagesWithSameSourceImage {
                 await vm.setRelyImage(image: image)
-                if let indexPath = viewModel?.historyVM.sections.indexPath(for: vm) {
-                    viewModel?.delegate?.updateReplyImageThumbnail(at: indexPath, viewModel: vm)
+                if let indexPath = await viewModel?.historyVM.indexPath(vm: vm) {
+                    await viewModel?.delegate?.updateReplyImageThumbnail(at: indexPath, viewModel: vm)
                 }
             }
-            messagesWithReplyImage[messageId]?.removeAll()
+            Task { @MainActor in
+                messagesWithReplyImage[messageId]?.removeAll()
+            }
         }
     }
 
     private func log(_ string: String) {
 #if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
+        Logger.viewModels.info("DownloadFileManager:\n\(string, privacy: .sensitive)")
 #endif
     }
 }

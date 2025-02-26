@@ -18,8 +18,14 @@ struct ThreadDetailView: View {
             ScrollView(.vertical) {
                 VStack(spacing: 0) {
                     DetailSectionContainer()
+                        .id("DetailSectionContainer")
+                    
                     DetailTabContainer()
+                        .id("DetailTabContainer")
                 }
+            }
+            .onAppear {
+                viewModel.scrollViewProxy = proxy
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -35,10 +41,15 @@ struct ThreadDetailView: View {
         .onAppear {
 //            setupPreviousDetailViewModel()
         }
+        .onDisappear {
+            Task(priority: .background) {
+                viewModel.threadVM?.searchedMessagesViewModel.reset()
+            }
+        }
     }
 
     private func prepareToDismiss() {
-        AppState.shared.objectsContainer.navVM.remove()
+        AppState.shared.objectsContainer.navVM.remove(innerBack: false)
         AppState.shared.objectsContainer.threadDetailVM.clear()
         AppState.shared.appStateNavigationModel.userToCreateThread = nil
         dismiss()

@@ -14,7 +14,8 @@ import ActionableContextMenu
 
 struct MemberView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
-
+    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
+    
     var body: some View {
         LazyVStack(spacing: 0) {
             ParticipantSearchView()
@@ -28,6 +29,14 @@ struct MemberView: View {
                 ForEach(viewModel.searchedParticipants) { participant in
                     ParticipantRowContainer(participant: participant, isSearchRow: true)
                 }
+                /// An empty view to pull the view to top even when viewModel.searchedParticipants.count
+                /// but the searchText is not empty.
+                Rectangle()
+                    .fill(.clear)
+                    .frame(height: viewModel.searchedParticipants.count < 10 ? 256 : 0)
+                    .onAppear {
+                        detailViewModel.scrollViewProxy?.scrollTo("DetailTabContainer", anchor: .top)
+                    }
             } else {
                 ForEach(viewModel.sorted) { participant in
                     ParticipantRowContainer(participant: participant, isSearchRow: false)
@@ -91,7 +100,7 @@ struct ParticipantRowContainer: View {
                     showPopover.toggle()
                 }
             }
-            .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .bottom) {
+            .popover(isPresented: $showPopover, attachmentAnchor: .point(.center), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
                     if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == false {
                         ContextMenuButton(title: "Participant.addAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.plus") {
@@ -126,9 +135,9 @@ struct ParticipantRowContainer: View {
                 .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
             }
     }
-
+    
     private var isMe: Bool {
-       participant.id == AppState.shared.user?.id
+        participant.id == AppState.shared.user?.id
     }
 }
 
@@ -164,16 +173,37 @@ struct AddParticipantButton: View {
     }
 
     public func addParticipantsToThread(_ contacts: ContiguousArray<Contact>) {
+        if conversation?.type?.isPrivate == true, conversation?.group == true {
+            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+                AdminLimitHistoryTimeDialog(threadId: conversation?.id ?? -1) { historyTime in
+                    if let historyTime = historyTime {
+                        add(contacts, historyTime)
+                    } else {
+                        add(contacts)
+                    }
+                }
+                    .environmentObject(AppState.shared.objectsContainer)
+            )
+        } else {
+            add(contacts)
+        }
+    }
+
+    private func add(_ contacts: ContiguousArray<Contact>, _ historyTime: UInt? = nil) {
         guard let threadId = conversation?.id else { return }
-        let contactIds = contacts.compactMap(\.id)
-        let req = AddParticipantRequest(contactIds: contactIds, threadId: threadId)
-        ChatManager.activeInstance?.conversation.participant.add(req)        
+        let invitees: [Invitee] = contacts.compactMap{ .init(id: $0.user?.username, idType: .username, historyTime: historyTime) }
+        let req = AddParticipantRequest(invitees: invitees, threadId: threadId)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.participant.add(req)
+        }
     }
 }
 
 struct ParticipantSearchView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
+    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
     @State private var showPopover = false
+    @FocusState private var focusState: Bool
 
     var body: some View {
         HStack(spacing: 12) {
@@ -185,7 +215,16 @@ struct ParticipantSearchView: View {
                     .frame(width: 16, height: 16)
                 TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
                     .frame(minWidth: 0, minHeight: 48)
+                    .submitLabel(.done)
                     .font(.iransansBody)
+                    .focused($focusState)
+                    .onChange(of: focusState) { focused in
+                        if focused {
+                            withAnimation {
+                                detailViewModel.scrollViewProxy?.scrollTo("DetailTabContainer", anchor: .top)
+                            }
+                        }
+                    }
             }
             Spacer()
 

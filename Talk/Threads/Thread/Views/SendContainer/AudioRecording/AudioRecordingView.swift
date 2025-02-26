@@ -57,11 +57,16 @@ public final class AudioRecordingView: UIStackView {
         recordingAudioView.setIsHidden(!show)
         recordingAudioView.alpha = 1.0
         recordedAudioView.alpha = 0.0
+        recordedAudioView.clear()
         if !show {
             removeFromSuperViewWithAnimation()
         } else if superview == nil {
             alpha = 0.0
-            stack.insertArrangedSubview(self, at: 0)
+            if stack.arrangedSubviews.contains(where: {$0 is ReplyPrivatelyMessagePlaceholderView || $0 is ReplyMessagePlaceholderView })  {
+                stack.insertArrangedSubview(self, at: 1)
+            } else {
+                stack.insertArrangedSubview(self, at: 0)
+            }
             UIView.animate(withDuration: 0.2) {
                 self.alpha = 1.0
             }
@@ -77,7 +82,9 @@ public final class AudioRecordingView: UIStackView {
             self.recordingAudioView.setIsHidden(true)
             self.recordedAudioView.alpha = 1.0
             self.recordedAudioView.setIsHidden(false)
-            self.recordedAudioView.setup()
+            Task {
+                try? await self.recordedAudioView.setup()
+            }
         }
     }
 

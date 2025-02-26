@@ -76,6 +76,7 @@
 "General.thirdSentVerb" = "%@ enviado";
 "General.noDescription" = "¡Sin descripción!";
 "General.noResult" = "no hay resultado";
+"General.unknown" = "desconocido";
 
 /* Pestañas */
 "Tab.chats" = "Chats";
@@ -193,8 +194,12 @@ talk.pod.ir";
 "Thread.publicChannel" = "Canal público";
 "Thread.selfThread" = "Mensajes guardados";
 "Thread.draft" = "Borrador:";
+"Thread.callAccepted" = "Solicitud de llamada aceptada %@";
 "Thread.callStarted" = "Llamada iniciada";
-"Thread.callEnded" = "Llamada finalizada";
+"Thread.callEnded" = "Llamada finalizada %@ - Duración %@";
+"Thread.callCanceled" =  "Llamada cancelada %@";
+"Thread.callDeclined" = "Llamada rechazada por %@ a las %@";
+"Thread.callMissed" = "Llamada perdida a las %@";
 "Thread.unpin" = "Desanclar";
 "Thread.pin" = "Anclar";
 "Thread.mute" = "Silenciar";
@@ -359,6 +364,9 @@ talk.pod.ir";
 "Setting.EditProfile.bioHintMore" = "Ingresa un poco sobre ti mismo...";
 "Setting.EditProfile.enterToPodAccount" = "Ingresa a tu cuenta POD";
 "Settings.darkModeEnabled" = "Modo oscuro";
+"Settings.ManageSessions.title" = "Administrar sesiones activas";
+"Settings.isAutoPlayVideoEnabled" = "Reproducción automática de vídeos";
+"Settings.manageConnection" = "Gestionar conexión";
 
 /* Support */
 "Support.title" = "Talk messenger";
@@ -451,3 +459,33 @@ talk.pod.ir";
 
 /* MapPicker */
 "MapPicker.sendSelectedLocation" = "Enviar ubicación seleccionada";
+
+/* ManageSessions */
+"ManageSessions.type" = "Tipo de dispositivo";
+"ManageSessions.deviceName" = "Nombre";
+"ManageSessions.deviceType" = "Tipo de dispositivo";
+"ManageSessions.os" = "Sistema operativo";
+"ManageSessions.osVersion" = "Versión del sistema operativo";
+"ManageSessions.ip" = "IP";
+"ManageSessions.lastActivity" = "Última actividad";
+"ManageSessions.location" = "Ubicación";
+"ManageSessions.removeAllDescription" = "Puedes eliminar todos los dispositivos en los que hayas iniciado sesión de una vez.";
+"ManageSessions.removeAll" = "Eliminar todo";
+"ManageSessions.removeOnce" = "Eliminar sesión";
+"ManageSessions.RemoveAllSessions.title" = "Atención";
+"ManageSessions.RemoveAllSessions.subtitle" = "¿Deseas desactivar todos los dispositivos excepto este?";
+"ManageSessions.RemoveOneSession.title" = "Atención";
+"ManageSessions.RemoveOneSession.subtitle" = "¿Deseas desactivar %@?";
+
+/* ConversationTabs */
+"ConversationsTabs.all" = "Todos los chats";
+"ConversationsTabs.archive" = "Archivo";
+
+/* ConversationTabs.archived */
+"ArchivedTab.empty" = "La lista de archivos está vacía.";
+"ArchivedTab.guide" = "Para desarchivar un chat, debes ir a la pestaña Archivo. Un chat archivado no recibirá ninguna notificación.";
+
+/* AdminLimitHistoryTimeDialog */
+"AdminLimitHistoryTimeDialog.header" = "Mostrar mensajes";
+"AdminLimitHistoryTimeDialog.title" = "Mostrar únicamente mensajes de un período de tiempo específico seleccionado.";
+"AdminLimitHistoryTimeDialog.chooseDate" = "Elija fecha";

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CellTypes: String {
+public enum CellTypes: String, Sendable {
     case call = "CallEventUITableViewCell"
     case partnerMessage = "TextMessagePartnerCellType"
     case meMessage = "TextMessageMeCellType"

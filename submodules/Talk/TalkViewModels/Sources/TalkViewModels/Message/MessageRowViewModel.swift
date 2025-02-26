@@ -10,7 +10,7 @@ import SwiftUI
 import TalkModels
 import OSLog
 
-public final class MessageRowViewModel: Identifiable, Hashable {
+public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Sendable {
     public static func == (lhs: MessageRowViewModel, rhs: MessageRowViewModel) -> Bool {
         lhs.id == rhs.id
     }
@@ -21,58 +21,60 @@ public final class MessageRowViewModel: Identifiable, Hashable {
 
     public let uniqueId: String = UUID().uuidString
     public var id: Int { message.id ?? -1 }
-    public var message: any HistoryMessageProtocol
+    public var message: HistoryMessageType
+    @MainActor
     public var isInvalid = false
 
-    @MainActor public var reactionsModel: ReactionRowsCalculated = .init(rows: [], topPadding: 0)
+    @MainActor public var reactionsModel: ReactionRowsCalculated = .init(rows: [])
     public weak var threadVM: ThreadViewModel?
 
     public var calMessage = MessageRowCalculatedData()
     public private(set) var fileState: MessageFileState = .init()
 
-    public init(message: any HistoryMessageProtocol, viewModel: ThreadViewModel) {
+    public init(message: HistoryMessageType, viewModel: ThreadViewModel) {
         self.message = message
         self.threadVM = viewModel
     }
 
-    public func recalculateWithAnimation() async {
-        await performaCalculation()
+    public func recalculateWithAnimation(mainData: MainRequirements) async {
+        await recalculate(mainData: mainData)
     }
-
+    
     @HistoryActor
-    public func performaCalculation(appendMessages: [any HistoryMessageProtocol] = []) async {
-        calMessage = await MessageRowCalculators.calculate(message: message, threadVM: threadVM, appendMessages: appendMessages)
+    public func recalculate(appendMessages: [HistoryMessageType] = [], mainData: MainRequirements) async {
+        calMessage = await MessageRowCalculators.calculate(message: message, mainData: mainData, appendMessages: appendMessages)
+        calMessage = await MessageRowCalculators.calculateColorAndFileURL(mainData: mainData, message: message, calculatedMessage: calMessage)
         if calMessage.fileURL != nil {
             fileState.state = .completed
             fileState.showDownload = false
             fileState.iconState = message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? ""
         }
     }
-
+    
     @MainActor
     public func register() {
         if message is UploadProtocol {
             threadVM?.uploadFileManager.register(message: message, viewModelUniqueId: uniqueId)
         }
         if fileState.state != .completed {
-            Task {
-                await threadVM?.downloadFileManager.register(message: message)
-            }
+            threadVM?.downloadFileManager.register(message: message)
         }
         
         if calMessage.isReplyImage && fileState.replyImage == nil {
-            Task {
-                await threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
-            }
+            threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
         }
     }
 
     @MainActor
-    public func setFileState(_ state: MessageFileState) {
+    public func setFileState(_ state: MessageFileState, fileURL: URL?) {
         fileState.update(state)
         if state.state == .completed {
-            calMessage.fileURL = message.fileURL // It will use hash code to make the url in some uploading videos and files we only recicve a hash code so it would be better to create a file url from hashcode
+            calMessage.fileURL = fileURL
         }
+    }
+    
+    nonisolated public func setFileStateNonIsloated(_ state: MessageFileState) {
+        fileState = state
     }
 
     @MainActor
@@ -80,6 +82,7 @@ public final class MessageRowViewModel: Identifiable, Hashable {
         fileState.replyImage = image
     }
 
+    @MainActor
     func invalid() {
         isInvalid = true
     }
@@ -91,31 +94,20 @@ public final class MessageRowViewModel: Identifiable, Hashable {
     }
 }
 
-// MARK: Prepare download managers
-public extension MessageRowViewModel {
-    func prepareForTumbnailIfNeeded() {
-        if fileState.state != .completed && fileState.state != .thumbnail {
-            manageDownload() // Start downloading thumbnail for the first time
-        }
-    }
-
-    func downloadMap() {
-        if calMessage.rowType.isMap && fileState.state != .completed {
-            manageDownload() // Start downloading thumbnail for the first time
-        }
-    }
-}
-
 // MARK: Upload Completion
 public extension MessageRowViewModel {
-    func swapUploadMessageWith(_ message: any HistoryMessageProtocol) {
+    func swapUploadMessageWith(_ message: HistoryMessageType) {
         self.message = message
-        calMessage.fileURL = message.fileURL
+        Task {
+            calMessage.fileURL = await message.fileURL
+        }
     }
 }
 
 // MARK: Tap actions
 public extension MessageRowViewModel {
+    
+    @MainActor
     func onTap(sourceView: UIView? = nil) {
         if fileState.state == .completed {
             doAction(sourceView: sourceView)
@@ -135,6 +127,7 @@ public extension MessageRowViewModel {
         }
     }
 
+    @MainActor
     private func doAction(sourceView: UIView? = nil) {
         if calMessage.rowType.isMap {
             openMap()
@@ -158,12 +151,14 @@ public extension MessageRowViewModel {
         }
     }
 
+    @MainActor
     private func openMap() {
         if let url = message.neshanURL, UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         }
     }
 
+    @MainActor
     private func openImageViewer() {
         AppState.shared.objectsContainer.appOverlayVM.galleryMessage = message as? Message
     }
@@ -178,14 +173,17 @@ public extension MessageRowViewModel {
 
 // MARK: Audio file
 public extension MessageRowViewModel {
+    @MainActor
     private var audioVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
 
+    @MainActor
     private var isSameAudioFile: Bool {
         if audioVM.fileURL == nil { return true } // It means it has never played a audio.
         guard let fileURL = calMessage.fileURL else { return false }
         return audioVM.fileURL?.absoluteString == fileURL.absoluteString
     }
 
+    @MainActor
     private func toggleAudio() {
         if isSameAudioFile {
             togglePlaying()
@@ -195,6 +193,7 @@ public extension MessageRowViewModel {
         }
     }
 
+    @MainActor
     private func togglePlaying() {
         if let fileURL = calMessage.fileURL {
             let convrtedURL = message.convertedFileURL
@@ -217,24 +216,41 @@ public extension MessageRowViewModel {
 
     @HistoryActor
     func clearReactions() async {
-        isInvalid = false
         await MainActor.run { [weak self] in
             guard let self = self else { return }
+            isInvalid = false
             reactionsModel = .init()
         }
     }
 
     @HistoryActor
-    func setReaction(reactions: ReactionInMemoryCopy) async {
-        isInvalid = false
-        let reactionsModel = await MessageRowCalculators.calulateReactions(reactions: reactions)
+    func setReaction(reactions: ReactionCountList) async {        
+        let reactionsModel = MessageRowCalculators.calulateReactions(reactions)
         await MainActor.run { [weak self] in
             guard let self = self else { return }
+            isInvalid = false
             self.reactionsModel = reactionsModel
         }
     }
+    
+    @MainActor
+    func reactionDeleted(_ reaction: Reaction) {
+        reactionsModel = MessageRowCalculators.reactionDeleted(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1)
+    }
+    
+    @MainActor
+    func reactionAdded(_ reaction: Reaction) {
+        reactionsModel = MessageRowCalculators.reactionAdded(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1)
+    }
+    
+    @MainActor
+    func reactionReplaced(_ reaction: Reaction, oldSticker: Sticker) {
+        reactionsModel = MessageRowCalculators.reactionReplaced(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1, oldSticker: oldSticker)
+    }
 
+    @MainActor
     func canReact() -> Bool {
+        if calMessage.rowType.isSingleEmoji, calMessage.rowType.isBareSingleEmoji { return false }
         if threadVM?.thread.reactionStatus == .disable { return false }
         // Two weeks
         return Date().millisecondsSince1970 < Int64(message.time ?? 0) + (1_209_600_000)
@@ -248,7 +264,8 @@ public extension MessageRowViewModel {
             guard let self = self else { return }
             message.pinned = false
             message.pinTime = nil
-            await recalculateWithAnimation()
+            let mainData = await getMainData()
+            await recalculateWithAnimation(mainData: mainData)
         }
     }
 
@@ -257,7 +274,18 @@ public extension MessageRowViewModel {
             guard let self = self else { return }
             message.pinned = true
             message.pinTime = time
-            await recalculateWithAnimation()
+            let mainData = await getMainData()
+            await recalculateWithAnimation(mainData: mainData)
         }
+    }
+}
+
+public extension MessageRowViewModel {    
+    @MainActor
+    func getMainData() -> MainRequirements {
+        return MainRequirements(appUserId: AppState.shared.user?.id,
+                                thread: threadVM?.thread,
+                                participantsColorVM: threadVM?.participantsColorVM,
+                                isInSelectMode: threadVM?.selectedMessagesViewModel.isInSelectMode ?? false)
     }
 }

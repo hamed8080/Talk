@@ -8,12 +8,13 @@
 import UIKit
 import SwiftUI
 
+@HistoryActor
 public final class ParticipantsColorViewModel {
-    var participantsColor: [Int: UIColor] = [:]
+    private var participantsColor: [Int: UIColor] = [:]
     private var reservedColors: [Int] = []
-    public init() { }
+    nonisolated public init() { }
 
-    func random() -> UIColor {
+    private func random() -> UIColor {
         let number = Int.random(in: 1...7)
         let emptySlots = (1...7).filter { number in
             return !reservedColors.contains(where: { $0 == number })
@@ -23,8 +24,7 @@ public final class ParticipantsColorViewModel {
         return UIColor(named: "userColor\(newNumber ?? number)") ?? .random()
     }
     
-    @HistoryActor
-    public func color(for participantId: Int) async -> UIColor {
+    public func color(for participantId: Int) -> UIColor {
         if let color = participantsColor[participantId] {
             return color
         } else {

@@ -13,6 +13,7 @@ import TalkModels
 import ChatModels
 import TalkUI
 
+@MainActor
 final class ThreadViewController: UIViewController {
     var viewModel: ThreadViewModel?
     public var tableView: UIHistoryTableView!
@@ -35,7 +36,8 @@ final class ThreadViewController: UIViewController {
     private static let loadingViewWidth: CGFloat = 26
     private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
-    private var isVisible: Bool = true
+    private var isViewControllerVisible: Bool = true
+    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,20 +45,23 @@ final class ThreadViewController: UIViewController {
         registerKeyboard()
         viewModel?.delegate = self
         viewModel?.historyVM.delegate = self
+        viewModel?.historyVM.sectionsHolder.delegate = self
         startCenterAnimation(true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        isVisible = true
+        isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
-        viewModel?.historyVM.start()
+        Task {
+            await viewModel?.historyVM.start()
+        }
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         var hasAnyInstanceInStack = false
-        isVisible = false
+        isViewControllerVisible = false
         navigationController?.viewControllers.forEach({ hostVC in
             hostVC.children.forEach { vc in
                 if vc == self {
@@ -66,19 +71,24 @@ final class ThreadViewController: UIViewController {
         })
         if !hasAnyInstanceInStack, let viewModel = viewModel {
             AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.threadId)
+            viewModel.threadsViewModel?.setSelected(for: viewModel.threadId, selected: false)
         }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
+        Task { @HistoryActor in
+            await viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
+        }
         contextMenuContainer = ContextMenuContainerView(delegate: self)
         tableView.contentInset.top = topThreadToolbar.frame.height
     }
 
+#if DEBUG
     deinit {
         print("deinit ThreadViewController")
     }
+#endif
 }
 
 // MARK: Configure Views
@@ -139,20 +149,20 @@ extension ThreadViewController {
             self?.onSendHeightChanged(height)
         }
     }
-
-    private func onSendHeightChanged(_ height: CGFloat) {
-        let isButtonsVisible = viewModel?.sendContainerViewModel.showPickerButtons ?? false
+    
+    private func onSendHeightChanged(_ height: CGFloat, duration: Double = 0.25, options: UIView.AnimationOptions = []) {
+        let isButtonsVisible = viewModel?.sendContainerViewModel.mode.type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let height = (height - safeAreaHeight) + keyboardheight
         if tableView.contentInset.bottom != height {
-            UIView.animate(withDuration: 0.1) { [weak self] in
-                guard let self = self else { return }
-                tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
-            }
-            Task { [weak self] in
-                guard let self = self else { return }
-                try? await Task.sleep(for: .seconds(0.3))
+            tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+            Task {
                 await viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+            }
+            UIView.animate(withDuration: duration, delay: 0, options: options) { [weak self] in
+                self?.view.layoutIfNeeded()
+            } completion: {  completed in
+                if completed {}
             }
         }
     }
@@ -228,6 +238,7 @@ extension ThreadViewController {
 
     private func attachCenterLoading() {
         let width: CGFloat = 28
+        centerLoading.alpha = 1.0
         view.addSubview(centerLoading)
         centerLoading.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
         centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
@@ -244,29 +255,32 @@ extension ThreadViewController {
         }
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
-            self.moveToBottom.showWithAniamtion(false)
+            self.moveToBottom.show(false)
+            view.bringSubviewToFront(vStackOverlayButtons)
         }
     }
 }
 
 // MARK: ThreadViewDelegate
 extension ThreadViewController: ThreadViewDelegate {
-    func onScenario() {
-        DispatchQueue.main.async { [weak self] in
-            self?.moveToBottom.showIfHasAnyUnreadCount()
-        }
+    
+    func showMoveToButtom(show: Bool) {
+        moveToBottom.show(show)
     }
     
     func onUnreadCountChanged() {
-        DispatchQueue.main.async { [weak self] in
-            self?.moveToBottom.updateUnreadCount()
-        }
+#if DEBUG
+        print("onUnreadCountChanged \(viewModel?.thread.unreadCount ?? 0)")
+#endif
+        moveToBottom.updateUnreadCount()
     }
 
     func onChangeUnreadMentions() {
-        DispatchQueue.main.async { [weak self] in
-            self?.unreadMentionsButton.onChangeUnreadMentions()
-        }
+        unreadMentionsButton.onChangeUnreadMentions()
+    }
+    
+    func setTableRowSelected(_ indexPath: IndexPath) {
+        tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
     }
 
     func setSelection(_ value: Bool) {
@@ -276,7 +290,7 @@ extension ThreadViewController: ThreadViewDelegate {
         tableView.visibleCells.compactMap{$0 as? MessageBaseCell}.forEach { cell in
             cell.setInSelectionMode(value)
         }
-
+        
         // Assure that the previous item is in select mode or not
         if let cell = prevouisVisibleIndexPath() {
             cell.setInSelectionMode(value)
@@ -290,7 +304,9 @@ extension ThreadViewController: ThreadViewDelegate {
         showSelectionBar(value)
         // We need a delay to show selection view to calculate height of sendContainer then update to the last Message if it is visible
         Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
-            self?.moveTolastMessageIfVisible()
+            Task { [weak self] in
+                await self?.moveTolastMessageIfVisible()
+            }
         }
 
         if !value {
@@ -303,43 +319,37 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func lastMessageAppeared(_ appeared: Bool) {
-        self.moveToBottom.setVisibility(visible: !appeared)
+        self.moveToBottom.show(!appeared)
         if self.viewModel?.scrollVM.isAtBottomOfTheList == true {
             self.tableView.tableFooterView = nil
         } else {
             self.tableView.tableFooterView = self.bottomLoadingContainer
         }
     }
-
+    
     func startTopAnimation(_ animate: Bool) {
-        DispatchQueue.main.async {
-            self.tableView.tableHeaderView?.isHidden = !animate
-            UIView.animate(withDuration: 0.25) {
-                self.tableView.tableHeaderView?.layoutIfNeeded()
-            }
-            self.topLoading.animate(animate)
+        self.tableView.tableHeaderView?.isHidden = !animate
+        UIView.animate(withDuration: 0.25) {
+            self.tableView.tableHeaderView?.layoutIfNeeded()
         }
+        self.topLoading.animate(animate)
     }
-
+    
     func startCenterAnimation(_ animate: Bool) {
-        DispatchQueue.main.async {
-            if animate {
-                self.attachCenterLoading()
-                self.centerLoading.animate(animate)
-            } else {
-                self.centerLoading.removeFromSuperViewWithAnimation()
-            }
+        if animate {
+            self.attachCenterLoading()
+            self.centerLoading.animate(animate)
+        } else {
+            self.centerLoading.removeFromSuperViewWithAnimation()
         }
     }
 
     func startBottomAnimation(_ animate: Bool) {
-        DispatchQueue.main.async {
-            self.tableView.tableFooterView?.isHidden = !animate
-            UIView.animate(withDuration: 0.25) {
-                self.tableView.tableFooterView?.layoutIfNeeded()
-            }
-            self.bottomLoading.animate(animate)
+        self.tableView.tableFooterView?.isHidden = !animate
+        UIView.animate(withDuration: 0.25) {
+            self.tableView.tableFooterView?.layoutIfNeeded()
         }
+        self.bottomLoading.animate(animate)
     }
 
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?) {
@@ -439,6 +449,7 @@ extension ThreadViewController: ThreadViewDelegate {
 }
 
 extension ThreadViewController: BottomToolbarDelegate {
+    
     func showMainButtons(_ show: Bool) {
         sendContainer.showMainButtons(show)
     }
@@ -449,23 +460,9 @@ extension ThreadViewController: BottomToolbarDelegate {
     }
 
     func showPickerButtons(_ show: Bool) {
-        viewModel?.sendContainerViewModel.showPickerButtons(show)
         sendContainer.showPickerButtons(show)
         configureDimView()
         dimView.show(show)
-    }
-    
-    func showSendButton(_ show: Bool) {
-        sendContainer.showSendButton(show)
-    }
-
-    func showMicButton(_ show: Bool) {
-        sendContainer.showMicButton(show)
-    }
-
-    func onItemsPicked() {
-        showSendButton(true)
-        showMicButton(false)
     }
 
     func showRecording(_ show: Bool) {
@@ -473,7 +470,7 @@ extension ThreadViewController: BottomToolbarDelegate {
         cancelAudioRecordingButton.setIsHidden(!show)
     }
 
-    func openEditMode(_ message: (any HistoryMessageProtocol)?) {
+    func openEditMode(_ message: HistoryMessageType?) {
         sendContainer.openEditMode(message)
         // We only check if we select a message to edit. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
         if message != nil {
@@ -481,7 +478,7 @@ extension ThreadViewController: BottomToolbarDelegate {
         }
     }
 
-    func openReplyMode(_ message: (any HistoryMessageProtocol)?) {
+    func openReplyMode(_ message: HistoryMessageType?) {
         // We only check if we select a message to reply. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
         if message != nil {
             focusOnTextView(focus: true)
@@ -527,219 +524,182 @@ extension ThreadViewController {
     }
 
     func openMoveToDatePicker() {
-        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DatePickerDialogWrapper(viewModel: viewModel))
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+            DatePickerWrapper(hideControls: false) { [weak self] date in
+                Task {
+                    await self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+                }
+            }
+            .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
+        )
     }
 }
 
 // MARK: Scrolling to
 extension ThreadViewController: HistoryScrollDelegate {
     func emptyStateChanged(isEmpty: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            showEmptyThread(show: isEmpty)
-        }
+        showEmptyThread(show: isEmpty)
     }
 
     func reload() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.reloadData()
-        }
+        tableView.reloadData()
     }
 
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.scrollToRow(at: index, at: position, animated: animate)
-        }
+        if tableView.numberOfSections == 0 { return }
+        if tableView.numberOfRows(inSection: index.section) < index.row + 1 { return }
+        tableView.scrollToRow(at: index, at: position, animated: animate)
     }
 
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {
-        if let indexPath = viewModel?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
+        if let indexPath = sections.indicesByMessageUniqueId(uniqueId) {
             scrollTo(index: indexPath, position: position, animate: animate)
         }
     }
-
+    
     func reload(at: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.reloadRows(at: [at], with: .fade)
-        }
+        tableView.reloadRows(at: [at], with: .fade)
     }
-
+    
     func moveRow(at: IndexPath, to: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.moveRow(at: at, to: to)
-        }
+        tableView.moveRow(at: at, to: to)
     }
 
     func reloadData(at: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = viewModel?.historyVM.sections.viewModelWith(at) {
-                cell.setValues(viewModel: vm)
-            }
+        if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = sections.viewModelWith(at) {
+            cell.setValues(viewModel: vm)
         }
     }
 
     private func moveTolastMessageIfVisible() {
-        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = viewModel?.historyVM.sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
+        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
             scrollTo(index: indexPath, position: .bottom)
         }
     }
-
+    
     func uploadCompleted(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.uploadCompleted(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.uploadCompleted(viewModel: viewModel)
     }
-
+    
     func downloadCompleted(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.downloadCompleted(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.downloadCompleted(viewModel: viewModel)
     }
 
     func updateProgress(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.updateProgress(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.updateProgress(viewModel: viewModel)
     }
 
     func updateThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.updateThumbnail(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.updateThumbnail(viewModel: viewModel)
     }
 
     func updateReplyImageThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
-        DispatchQueue.main.async { [weak self] in
-            guard let cell = self?.tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-            cell.updateReplyImageThumbnail(viewModel: viewModel)
-        }
+        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
+        cell.updateReplyImageThumbnail(viewModel: viewModel)
     }
 
     func inserted(at: IndexPath) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.beginUpdates()
-            // Insert a new section if we have a message in a new day.
-            let beforeNumberOfSections = tableView.numberOfSections
-            if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
-                tableView.insertSections(IndexSet(beforeNumberOfSections..<at.section + 1), with: .none)
-            }
-            tableView.insertRows(at: [at], with: .fade)
-            tableView.endUpdates()
+        tableView.beginUpdates()
+        // Insert a new section if we have a message in a new day.
+        let beforeNumberOfSections = tableView.numberOfSections
+        if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
+            tableView.insertSections(IndexSet(beforeNumberOfSections..<at.section + 1), with: .none)
         }
+        tableView.insertRows(at: [at], with: .fade)
+        tableView.endUpdates()
+    }
+    
+    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
+        inserted(sections: sections, rows: rows, animate: animate, scrollTo: scrollTo)
     }
 
-    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate :UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
-        DispatchQueue.main.async { [weak self] in
-            self?.inserted(sections: sections, rows: rows, animate: animate, scrollTo: scrollTo)
-        }
-    }
-
-    private func inserted(sections: IndexSet, rows: [IndexPath], animate :UITableView.RowAnimation = .top, scrollTo: IndexPath?) {
-
-        // Save the current content offset and content height
-//        let beforeOffsetY = tableView.contentOffset.y
-//        let beforeContentHeight = tableView.contentSize.height
-//        print("before offset y is: \(beforeOffsetY)")
-//
-//        // Begin table view updates
-//        tableView.beginUpdates()
-//
-//        // Insert the sections and rows without animation
-//        tableView.insertSections(sections, with: .middle)
-//        tableView.insertRows(at: rows, with: .middle)
-//
-//        // Calculate the new content size and offset
-//        let afterContentHeight = tableView.contentSize.height
-//        let offsetChange = afterContentHeight - beforeContentHeight
-//
-//        // Update the content offset to keep the visible content stationary
-//        let newOffsetY = beforeOffsetY + offsetChange
-//        print("new offset y is: \(newOffsetY)")
-//        tableView.contentOffset.y = newOffsetY
-//        tableView.setContentOffset(.init(x: 0, y: newOffsetY), animated: true)
-
-        // End table view updates
-//        tableView.endUpdates()
-//
-//        if let scrollTo = scrollTo {
-//            self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
-//        }
-
+    private func inserted(sections: IndexSet, rows: [IndexPath], animate: UITableView.RowAnimation = .top, scrollTo: IndexPath?) {
         if let scrollTo = scrollTo {
             UIView.performWithoutAnimation {
-                tableView.performBatchUpdates {
-                    // Insert the sections and rows without animation
-                    tableView.insertSections(sections, with: animate)
-                    tableView.insertRows(at: rows, with: animate)
-                } completion: { completed in
-                    DispatchQueue.main.async {
-                        self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
-                    }
+                tableView.beginUpdates()
+                tableView.insertSections(sections, with: .none)
+                tableView.insertRows(at: rows, with: .none)
+                tableView.endUpdates()
+            }
+            tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
+        } else {
+            if sections.isEmpty && rows.isEmpty { return }
+            tableView.performBatchUpdates { [weak self] in
+                // Insert the sections and rows without animation
+                if !sections.isEmpty {
+                    self?.tableView.insertSections(sections, with: .none)
+                }
+                if !rows.isEmpty {
+                    self?.tableView.insertRows(at: rows, with: .none)
                 }
             }
-        } else {
-            tableView.performBatchUpdates {
-                // Insert the sections and rows without animation
-                tableView.insertSections(sections, with: animate)
-                tableView.insertRows(at: rows, with: animate)
-            }
         }
     }
-
-    func inserted(at: [IndexPath]) {
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.beginUpdates()
-            self?.tableView.insertRows(at: at, with: .fade)
-            self?.tableView.endUpdates()
-        }
-    }
-
-    func removed(at: IndexPath) {
-        guard let viewModel = viewModel else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.beginUpdates()
-            if tableView.numberOfSections > viewModel.historyVM.sections.count {
-                tableView.deleteSections(IndexSet(viewModel.historyVM.sections.count..<tableView.numberOfSections), with: .fade)
+    
+    func delete(sections: [IndexSet], rows: [IndexPath]) {
+        tableView.performBatchUpdates {
+            /// Firstly, we have ato delete rows to have right index for rows,
+            /// then we are prepared to delete sections
+            if !rows.isEmpty {
+                tableView.deleteRows(at: rows, with: .fade)
             }
-            tableView.deleteRows(at: [at], with: .fade)
-            tableView.endUpdates()
-        }
-    }
-
-    func removed(at: [IndexPath]) {
-        guard let viewModel = viewModel else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            tableView.beginUpdates()
-            if tableView.numberOfSections > viewModel.historyVM.sections.count {
-                tableView.deleteSections(IndexSet(viewModel.historyVM.sections.count..<tableView.numberOfSections), with: .fade)
+            
+            if !sections.isEmpty {
+                /// From newer section at bottom of theread to top to prevent crash
+                sections.reversed().forEach { sectionSet in
+                    tableView.deleteSections(sectionSet, with: .fade)
+                }
             }
-            tableView.deleteRows(at: at, with: .fade)
-            tableView.endUpdates()
         }
     }
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
         viewModel?.historyVM.isUpdating = true
-        tableView.performBatchUpdates {
+        tableView.performBatchUpdates { [weak self] in
+            guard let self = self else { return }
             for indexPath in indexPaths {
-                let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
-                if let cell = cell, let viewModel = viewModel?.historyVM.sections.viewModelWith(indexPath) {
-                    cell.reactionsUpdated(viewModel: viewModel)
+                if let tuple = cellFor(indexPath: indexPath) {
+                    tuple.cell.reactionsUpdated(viewModel: tuple.vm)
                 }
             }
         } completion: { [weak self] completed in
             self?.viewModel?.historyVM.isUpdating = false
         }
+    }
+    
+    public func reactionDeleted(indexPath: IndexPath, reaction: Reaction) {
+        if let tuple = cellFor(indexPath: indexPath) {
+            tableView.beginUpdates()
+            tuple.cell.reactionDeleted(reaction)
+            tableView.endUpdates()
+        }
+    }
+    
+    public func reactionAdded(indexPath: IndexPath, reaction: Reaction) {
+        if let tuple = cellFor(indexPath: indexPath) {
+            tableView.beginUpdates()
+            tuple.cell.reactionAdded(reaction)
+            tableView.endUpdates()
+        }
+    }
+    
+    public func reactionReplaced(indexPath: IndexPath, reaction: Reaction) {
+        if let tuple = cellFor(indexPath: indexPath) {
+            tableView.beginUpdates()
+            tuple.cell.reactionReplaced(reaction)
+            tableView.endUpdates()
+        }
+    }
+    
+    private func cellFor(indexPath: IndexPath) -> (vm: MessageRowViewModel, cell: MessageBaseCell)?  {
+        guard let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell else { return nil }
+        guard let vm = sections.viewModelWith(indexPath) else { return nil }
+        return (vm, cell)
     }
 }
 
@@ -761,40 +721,56 @@ struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
 extension ThreadViewController {
     private func registerKeyboard() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            if self?.isVisible == false { return }
-            print(notif)
-            guard let self = self else { return }
-            if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                if rect.size.height <= 69 {
-                    hasExternalKeyboard = true
-                } else {
-                    hasExternalKeyboard = false
-                }
-
-                UIView.animate(withDuration: 0.2) {
-                    self.sendContainerBottomConstraint?.constant = -rect.height
-                    self.keyboardheight = rect.height
-                    self.view.layoutIfNeeded()
-                } completion: { completed in
-                    if completed {
-                        self.moveTolastMessageIfVisible()
-                    }
-                }
+            Task { @MainActor in
+                self?.willShowKeyboard(notif: notif)
             }
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] _ in
-            if self?.isVisible == false { return }
-            self?.sendContainerBottomConstraint?.constant = 0
-            self?.keyboardheight = 0
-            self?.hasExternalKeyboard = false
-            UIView.animate(withDuration: 0.2) {
-                self?.view.layoutIfNeeded()
+            Task { @MainActor in
+                self?.willHidekeyboard()
             }
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))
         tapGetsure.isEnabled = true
         view.addGestureRecognizer(tapGetsure)
+    }
+    
+    private func willShowKeyboard(notif: Notification) {
+        if isViewControllerVisible == false { return }
+        if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+           let animationCurve = notif.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+           let duration = notif.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        {
+            let animationOptions = UIView.AnimationOptions(rawValue: animationCurve << 16)
+            if rect.size.height <= 69 {
+                hasExternalKeyboard = true
+            } else {
+                hasExternalKeyboard = false
+            }
+
+            sendContainerBottomConstraint?.constant = -rect.height
+            keyboardheight = rect.height
+            onSendHeightChanged(sendContainer.frame.height, duration: duration, options: animationOptions)
+            UIView.animate(withDuration: duration, delay: 0 , options: animationOptions) {
+                self.view.layoutIfNeeded()
+            } completion: { completed in
+                if completed {
+                    self.moveTolastMessageIfVisible()
+                }
+            }
+        }
+    }
+        
+    private func willHidekeyboard() {
+        if isViewControllerVisible == false { return }
+        sendContainerBottomConstraint?.constant = 0
+        keyboardheight = 0
+        hasExternalKeyboard = false
+        onSendHeightChanged(sendContainer.frame.height)
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
+        }
     }
 
     @objc private func hideKeyboard() {
@@ -816,7 +792,7 @@ extension ThreadViewController {
     }
 
     private func prevouisVisibleIndexPath() -> MessageBaseCell? {
-        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = viewModel?.historyVM.sections.previousIndexPath(firstVisible) {
+        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = sections.previousIndexPath(firstVisible) {
             let cell = tableView.cellForRow(at: previousIndexPath) as? MessageBaseCell
             return cell
         }
@@ -824,7 +800,7 @@ extension ThreadViewController {
     }
 
     private func nextVisibleIndexPath() -> MessageBaseCell? {
-        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = viewModel?.historyVM.sections.nextIndexPath(lastVisible) {
+        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = sections.nextIndexPath(lastVisible) {
             let cell = tableView.cellForRow(at: nextIndexPath) as? MessageBaseCell
             return cell
         }

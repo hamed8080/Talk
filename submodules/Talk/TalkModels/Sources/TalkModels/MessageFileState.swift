@@ -1,7 +1,7 @@
 import Foundation
 import UIKit
 
-public struct MessageFileState {
+public struct MessageFileState: Sendable {
     public var progress: CGFloat
     public var showDownload: Bool
     public var isUploading: Bool

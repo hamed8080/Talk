@@ -9,6 +9,7 @@ import Foundation
 import Chat
 import TalkModels
 
+@MainActor
 public final class ThreadSelectedMessagesViewModel {
     public private(set) var isInSelectMode: Bool = false
     public weak var viewModel: ThreadViewModel?
@@ -17,14 +18,12 @@ public final class ThreadSelectedMessagesViewModel {
     public func setup(viewModel: ThreadViewModel? = nil) {
         self.viewModel = viewModel
     }
-
+    
     public func clearSelection() {
-        Task { @MainActor in
-            getSelectedMessages().forEach { viewModel in
-                viewModel.calMessage.state.isSelected = false
-            }
-            setInSelectionMode(false)
+        getSelectedMessages().forEach { viewModel in
+            viewModel.calMessage.state.isSelected = false
         }
+        setInSelectionMode(false)
     }
 
     public func setInSelectionMode(_ value: Bool) {
@@ -33,11 +32,11 @@ public final class ThreadSelectedMessagesViewModel {
     }
 
     public func getSelectedMessages() -> [MessageRowViewModel] {
-        viewModel?.historyVM.sections.flatMap{$0.vms}.filter({$0.calMessage.state.isSelected}) ?? []
+        viewModel?.historyVM.sectionsHolder.sections.flatMap{$0.vms}.filter({$0.calMessage.state.isSelected}) ?? []
     }
 
-    public func putAllInSeclectionMode(_ isInSelectionMode: Bool) {
-        viewModel?.historyVM.sections.flatMap({$0.vms}).forEach({ vm in
+    private func putAllInSeclectionMode(_ isInSelectionMode: Bool) {
+        viewModel?.historyVM.sectionsHolder.sections.flatMap({$0.vms}).forEach({ vm in
             vm.calMessage.state.isInSelectMode = isInSelectionMode
         })
     }

@@ -13,6 +13,7 @@ import SwiftUI
 import Photos
 import TalkExtensions
 
+@MainActor
 public class ContactsViewModel: ObservableObject {
     public var selectedContacts: ContiguousArray<Contact> = []
     public var canceableSet: Set<AnyCancellable> = []
@@ -30,19 +31,18 @@ public class ContactsViewModel: ObservableObject {
     public var isInSelectionMode = false
     public var successAdded: Bool = false
     public var userNotFound: Bool = false
-    @MainActor public var lazyList = LazyListViewModel()
+    public var lazyList = LazyListViewModel()
     private var objectId = UUID().uuidString
     private let GET_CONTACTS_KEY: String
     private let SEARCH_CONTACTS_KEY: String
     public var builderScrollProxy: ScrollViewProxy?
+    @Published public var isTypinginSearchString: Bool = false
 
-    nonisolated public init(isBuilder: Bool = false) {
+    public init(isBuilder: Bool = false) {
         self.isBuilder = isBuilder
         GET_CONTACTS_KEY = "GET-CONTACTS\(isBuilder ? "-BUILDER" : "")-\(objectId)"
         SEARCH_CONTACTS_KEY = "SEARCH-CONTACTS\(isBuilder ? "-BUILDER" : "")-\(objectId)"
-        Task { @MainActor in
-            setupPublishers()
-        }
+        setupPublishers()
     }
 
     public func setupPublishers() {
@@ -56,14 +56,18 @@ public class ContactsViewModel: ObservableObject {
             .sink { [weak self] status in
                 Task { @MainActor [weak self] in
                     guard let self = self else { return }
-                    if firstSuccessResponse == false, status == .connected {
-                        await getContacts()
-                        ChatManager.activeInstance?.contact.getBlockedList()
-                        sync()
+                    if !self.isBuilder, self.firstSuccessResponse == false, status == .connected {
+                        await self.onConnectedGetContacts()
                     }
                 }
         }
         .store(in: &canceableSet)
+        
+        $searchContactString
+            .sink { [weak self] _ in
+                self?.isTypinginSearchString = true
+            }
+            .store(in: &canceableSet)
         $searchContactString
             .filter { $0.count == 0 }
             .sink { [weak self] newValue in
@@ -77,6 +81,7 @@ public class ContactsViewModel: ObservableObject {
             .filter { $0.count > 1 }
             .sink { [weak self] searchText in
                 Task { [weak self] in
+                    self?.isTypinginSearchString = false
                     await self?.searchContacts(searchText)
                 }
             }
@@ -150,6 +155,7 @@ public class ContactsViewModel: ObservableObject {
     @MainActor
     func onBlockedList(_ response: ChatResponse<[BlockedContactResponse]>) async {
         blockedContacts = .init(response.result ?? [])
+        animateObjectWillChange()
     }
 
     @MainActor
@@ -157,7 +163,18 @@ public class ContactsViewModel: ObservableObject {
         lazyList.setLoading(true)
         let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
         RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
-        ChatManager.activeInstance?.contact.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.get(req)
+        }
+    }
+    
+    @MainActor
+    public func onConnectedGetContacts() async {
+        await try? Task.sleep(200)
+        lazyList.setLoading(true)
+        let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
+        RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
+        AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getContacts(req: req))
     }
 
     @MainActor
@@ -172,7 +189,9 @@ public class ContactsViewModel: ObservableObject {
             req = ContactsRequest(query: searchText)
         }
         RequestsManager.shared.append(prepend: SEARCH_CONTACTS_KEY, value: req)
-        ChatManager.activeInstance?.contact.search(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.search(req)
+        }
     }
 
     @MainActor
@@ -224,7 +243,8 @@ public class ContactsViewModel: ObservableObject {
     }
 
     public func deselectContacts() {
-        selectedContacts = [] 
+        selectedContacts = []
+        searchContactString = ""
     }
 
     public func delete(indexSet: IndexSet) {
@@ -238,7 +258,9 @@ public class ContactsViewModel: ObservableObject {
 
     public func delete(_ contact: Contact) {
         if let contactId = contact.id {
-            ChatManager.activeInstance?.contact.remove(.init(contactId: contactId))
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.contact.remove(.init(contactId: contactId))
+            }
         }
     }
 
@@ -310,7 +332,8 @@ public class ContactsViewModel: ObservableObject {
             searchedContacts = .init(response.result ?? [])
             try? await Task.sleep(for: .milliseconds(200)) /// To scroll properly
             withAnimation {
-                builderScrollProxy?.scrollTo("SearchRow-\(searchedContacts.first?.id ?? 0)", anchor: .top)
+                let scrollTo = response.result?.isEmpty == true ? "General.noResult" : "SearchRow-\(searchedContacts.first?.id ?? 0)"
+                builderScrollProxy?.scrollTo(scrollTo, anchor: .top)
             }
         }
     }
@@ -327,7 +350,9 @@ public class ContactsViewModel: ObservableObject {
         let req: AddContactRequest = isNumber ?
             .init(cellphoneNumber: contactValue, email: nil, firstName: firstName, lastName: lastName, ownerId: nil) :
             .init(email: nil, firstName: firstName, lastName: lastName, ownerId: nil, username: contactValue)
-        ChatManager.activeInstance?.contact.add(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.add(req)
+        }
     }
 
     public func firstContact(_ contact: Contact) -> Contact? {
@@ -343,17 +368,23 @@ public class ContactsViewModel: ObservableObject {
 
     public func block(_ contact: Contact) {
         let req = BlockRequest(contactId: contact.id)
-        ChatManager.activeInstance?.contact.block(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.block(req)
+        }
     }
 
     public func unblock(_ blockedId: Int) {
         let req = UnBlockRequest(blockId: blockedId)
-        ChatManager.activeInstance?.contact.unBlock(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.unBlock(req)
+        }
     }
 
     public func unblockWith(_ contactId: Int) {
         let req = UnBlockRequest(contactId: contactId)
-        ChatManager.activeInstance?.contact.unBlock(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.unBlock(req)
+        }
     }
 
     @MainActor
@@ -391,7 +422,9 @@ public class ContactsViewModel: ObservableObject {
 
     public func sync() {
         if UserDefaults.standard.bool(forKey: "sync_contacts") == true {
-            ChatManager.activeInstance?.contact.sync()
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.contact.sync()
+            }
         }
     }
 
@@ -433,6 +466,12 @@ public class ContactsViewModel: ObservableObject {
             if key.contains("Add-Contact-ContactsViewModel") {
                 lazyList.setLoading(false)
             }
+        }
+    }
+    
+    public func getBlockedList() {
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.getBlockedList()
         }
     }
 }

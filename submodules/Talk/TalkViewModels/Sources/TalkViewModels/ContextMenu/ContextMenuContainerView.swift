@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+@MainActor
 public protocol ContextMenuDelegate: AnyObject {
     func showContextMenu(_ indexPath: IndexPath?, contentView: UIView)
     func dismissContextMenu(indexPath: IndexPath?)
@@ -20,6 +21,7 @@ public class ContextMenuContainerView: UIView {
     var indexPath: IndexPath?
     private weak var delegate: ContextMenuDelegate?
     private var vc: UIViewController? { delegate as? UIViewController }
+    private var contentViewHeightConstraint: NSLayoutConstraint?
 
     public init(delegate: ContextMenuDelegate) {
         self.delegate = delegate
@@ -42,6 +44,7 @@ public class ContextMenuContainerView: UIView {
         self.isHidden = true
         alpha = 0.0
 
+        scrollView.contentSize.height = 0
         scrollView.backgroundColor = .clear
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(scrollView)
@@ -51,7 +54,7 @@ public class ContextMenuContainerView: UIView {
         scrollView.addSubview(contentView)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideAndCall))
         tapGesture.cancelsTouchesInView = false
-        contentView.addGestureRecognizer(tapGesture)
+        scrollView.addGestureRecognizer(tapGesture)
 
         // Constraints for effectView
         NSLayoutConstraint.activate([
@@ -70,29 +73,37 @@ public class ContextMenuContainerView: UIView {
         ])
 
         // Constraints for contentView
+        contentViewHeightConstraint = contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 0)
+        contentViewHeightConstraint?.isActive = true // Set height to 2000
         NSLayoutConstraint.activate([
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 2000) // Set height to 2000
         ])
     }
 
     public func setContentView(_ view: UIView, indexPath: IndexPath?) {
         self.indexPath = indexPath
         changeSizeIfNeeded()
-        scrollView.contentSize = .init(width: view.bounds.width, height: view.subviews.map({$0.frame.height}).reduce(0, +))
         view.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(view)
         NSLayoutConstraint.activate([
             view.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
             view.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            view.widthAnchor.constraint(equalTo: contentView.widthAnchor)
+            view.heightAnchor.constraint(equalTo: contentView.heightAnchor),
         ])
+        
+        // Scroll to the bottom of the contentView after adding the view
+         DispatchQueue.main.async { [weak self] in
+             guard let self = self else { return }
+             let bottomOffset = CGPoint(x: 0, y: self.scrollView.contentSize.height - self.scrollView.bounds.height)
+             if bottomOffset.y > 0 {
+                 self.scrollView.setContentOffset(bottomOffset, animated: true)
+             }
+         }
     }
 
     public func show() {

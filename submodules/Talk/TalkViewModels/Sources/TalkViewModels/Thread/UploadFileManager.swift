@@ -12,11 +12,13 @@ import TalkModels
 import UIKit
 import TalkExtensions
 
+@MainActor
 public final class UploadFileManager {
     private weak var viewModel: ThreadViewModel?
     private var uploadVMS: [String: UploadFileViewModel] = [:]
     private var cancelableSet: Set<AnyCancellable> = Set()
     private var queue = DispatchQueue(label: "UploadFileManagerSerialQueue")
+    
     public init() {}
 
     public func setup(viewModel: ThreadViewModel) {
@@ -29,100 +31,66 @@ public final class UploadFileManager {
         }
     }
 
-    public func register(message: any HistoryMessageProtocol, viewModelUniqueId: String) {
+    public func register(message: HistoryMessageType, viewModelUniqueId: String) {
         queue.sync {
-            let isInQueue = uploadVMS.contains(where: {$0.key == viewModelUniqueId})
-            let isFileOrMap = message is UploadProtocol
-            let canUpload = isFileOrMap && !isInQueue
-            if canUpload {
-                let uploadFileVM = UploadFileViewModel(message: message)
-
-                uploadVMS[viewModelUniqueId] = uploadFileVM
-                uploadFileVM.objectWillChange.sink { [weak self] in
-                    Task { [weak self] in
-                        await self?.onUploadChanged(uploadFileVM, message, viewModelUniqueId: viewModelUniqueId)
-                    }
-                }
-                .store(in: &cancelableSet)
-                if message.isImage || message is UploadFileWithLocationMessage {
-                    uploadFileVM.startUploadImage()
-                } else {
-                    uploadFileVM.startUploadFile()
-                }
-            }
+            guard uploadVMS[viewModelUniqueId] == nil, message is UploadProtocol else { return }
+            let uploadFileVM = UploadFileViewModel(message: message)
+            uploadVMS[viewModelUniqueId] = uploadFileVM
+            uploadFileVM.objectWillChange.sink { [weak self] in
+                Task { await self?.onUploadChanged(uploadFileVM, message, viewModelUniqueId) }
+            }.store(in: &cancelableSet)
+            uploadFileVM.startUpload()
         }
     }
 
     private func unRegister(viewModelUniqueId: String) {
-        queue.sync {
-            // $0.message.id == nil in uploading locaiton is nil
-            if uploadVMS.contains(where: {$0.key == viewModelUniqueId}) {
-                uploadVMS.removeValue(forKey: viewModelUniqueId)
-            }
-        }
+        queue.sync { uploadVMS.removeValue(forKey: viewModelUniqueId) }
     }
 
     public func cancel(viewModelUniqueId: String) async {
-        if let vm = uploadVMS.first(where: {$0.key == viewModelUniqueId})?.value {
-            if let indexPath = viewModel?.historyVM.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
-                viewModel?.historyVM.sections[indexPath.section].vms.remove(at: indexPath.row)
-                viewModel?.delegate?.removed(at: indexPath)
-            }
-            vm.cancelUpload()
-            unRegister(viewModelUniqueId: viewModelUniqueId)
+        guard let vm = viewModel(for: viewModelUniqueId) else { return }
+        if let indexPath = viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
+            viewModel?.historyVM.sectionsHolder.deleteIndices([indexPath])
         }
+        vm.action(.cancel)
+        unRegister(viewModelUniqueId: viewModelUniqueId)
     }
 
     private func getIconState(vm: UploadFileViewModel) -> String {
-        if vm.state == .uploading {
-            return "xmark"
-        } else if vm.state == .paused {
-            return "play.fill"
-        } else if vm.state == .completed {
-            return vm.message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "arrow.down"
-        } else {
-            return "arrow.up"
+        switch vm.state {
+        case .completed: vm.message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "arrow.down"
+        case .uploading: "xmark"
+        case .paused: "play.fill"
+        default: "arrow.up"
         }
     }
 
-    private func onUploadChanged(_ vm: UploadFileViewModel, _ message: any HistoryMessageProtocol, viewModelUniqueId: String) async {
-        let isCompleted = vm.state == .completed
-        let isUploading = vm.state == .uploading
-        let progress = min(CGFloat(vm.uploadPercent) / 100, 1.0)
-        let iconState = getIconState(vm: vm)
-        var preloadImage: UIImage?
-        var blurRadius: CGFloat = 0
-        if let data = (message as? UploadFileMessage)?.uploadImageRequest?.dataToSend, let uiimage = UIImage(data: data) {
-            preloadImage = uiimage
-        }
-
-        if message.isImage, !isCompleted {
-            blurRadius = 16
-        }
-        let fileState = MessageFileState.init(progress: progress,
-                                              isUploading: isUploading,
-                                              state: isCompleted ? .completed : .undefined,
-                                              iconState: iconState,
-                                              blurRadius: blurRadius,
-                                              preloadImage: preloadImage
+    private func onUploadChanged(_ vm: UploadFileViewModel, _ message: HistoryMessageType, _ viewModelUniqueId: String) async {
+        let state = MessageFileState.init(
+            progress: min(CGFloat(vm.uploadPercent) / 100, 1.0),
+            isUploading: vm.state == .uploading,
+            state: vm.state == .completed ? .completed : .undefined,
+            iconState: getIconState(vm: vm),
+            blurRadius: message.isImage && vm.state != .completed ? 16 : 0,
+            preloadImage: (message as? UploadFileMessage)?.uploadImageRequest?.dataToSend.flatMap(UIImage.init)
         )
-        await changeStateTo(state: fileState, viewModelUniqueId: viewModelUniqueId)
+        await changeStateTo(state: state, metaData: vm.fileMetaData, viewModelUniqueId: viewModelUniqueId)
     }
 
     @HistoryActor
-    private func changeStateTo(state: MessageFileState, viewModelUniqueId: String) async {
-        let tuple = viewModel?.historyVM.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)
-        await MainActor.run {
-            guard let tuple = tuple else { return }
-            tuple.vm.setFileState(state)
-            if state.state == .completed {
-                viewModel?.delegate?.uploadCompleted(at: tuple.indexPath, viewModel: tuple.vm)
-            } else {
-                viewModel?.delegate?.updateProgress(at: tuple.indexPath, viewModel: tuple.vm)
+    private func changeStateTo(state: MessageFileState, metaData: FileMetaData?, viewModelUniqueId: String) async {
+        if let (vm, indexPath) = await viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId) {
+            vm.message.metadata = metaData?.jsonString
+            let fileURL = await vm.message.fileURL
+            await MainActor.run {
+                vm.setFileState(state, fileURL: fileURL)
+                state.state == .completed ?
+                viewModel?.delegate?.uploadCompleted(at: indexPath, viewModel: vm) :
+                viewModel?.delegate?.updateProgress(at: indexPath, viewModel: vm)
             }
         }
         if state.state == .completed {
-            unRegister(viewModelUniqueId: viewModelUniqueId)
+            await unRegister(viewModelUniqueId: viewModelUniqueId)
         }
     }
 }

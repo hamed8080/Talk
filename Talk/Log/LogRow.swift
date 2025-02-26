@@ -55,7 +55,7 @@ struct LogRow: View {
         .textSelection(.enabled)
         .task {
             Task.detached(priority: .userInitiated) {
-                let time = await log.time ?? .now
+                let time = log.time ?? .now
                 let date = await LogRow.formatter.string(from: time)
                 let logDate = "\(date)"
                 await MainActor.run {

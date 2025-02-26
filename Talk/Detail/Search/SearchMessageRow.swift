@@ -51,11 +51,10 @@ struct SearchMessageRow: View {
             if let time = message.time, let messageId = message.id {
                 AppState.shared.objectsContainer.threadDetailVM.clear()
                 AppState.shared.appStateNavigationModel.userToCreateThread = nil
-                AppState.shared.objectsContainer.navVM.remove()
-                AppState.shared.objectsContainer.navVM.popLastPath() /// For click on item search
+                AppState.shared.objectsContainer.navVM.remove(innerBack: true)
+                threadVM?.scrollVM.disableExcessiveLoading()
                 await threadVM?.historyVM.moveToTime(time, messageId)
                 threadVM?.searchedMessagesViewModel.cancel()
-//                threadVM?.animateObjectWillChange()
             }
         }
     }

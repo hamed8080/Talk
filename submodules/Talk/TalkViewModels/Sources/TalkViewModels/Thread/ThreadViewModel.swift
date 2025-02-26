@@ -9,11 +9,10 @@ import Chat
 import Combine
 import Foundation
 import TalkModels
-import ChatCore
-import ChatDTO
 import OSLog
 
-public final class ThreadViewModel: Identifiable, Hashable {
+@MainActor
+public final class ThreadViewModel {
     public static func == (lhs: ThreadViewModel, rhs: ThreadViewModel) -> Bool {
         rhs.threadId == lhs.threadId
     }
@@ -52,10 +51,10 @@ public final class ThreadViewModel: Identifiable, Hashable {
     public var readOnly = false
     private var cancelable: Set<AnyCancellable> = []
     public var signalMessageText: String?
-    public var forwardMessage: Message?
-    var model: AppSettingsModel = .init()
+    public var model: AppSettingsModel = .init()
     public var canDownloadImages: Bool = false
     public var canDownloadFiles: Bool = false
+    public var isDeletingLastMessage = false
 
     public weak var delegate: ThreadViewDelegate?
 
@@ -66,8 +65,8 @@ public final class ThreadViewModel: Identifiable, Hashable {
     public var isSimulatedThared: Bool {
         AppState.shared.appStateNavigationModel.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
-    public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth - (38 + MessageRowSizes.avatarSize)
-    public static var threadWidth: CGFloat = 0 {
+    nonisolated(unsafe) public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth - (38 + MessageRowSizes.avatarSize)
+    nonisolated(unsafe) public static var threadWidth: CGFloat = 0 {
         didSet {
             // 38 = Avatar width + tail width + leading padding + trailing padding
             maxAllowedWidth = min(400, ThreadViewModel.threadWidth - (38 + MessageRowSizes.avatarSize))
@@ -90,9 +89,11 @@ public final class ThreadViewModel: Identifiable, Hashable {
         searchedMessagesViewModel.setup(viewModel: self)
         threadPinMessageViewModel.setup(viewModel: self)
         participantsViewModel.setup(viewModel: self)
+        historyVM.viewModel = self
+        let thread = thread
         Task { @HistoryActor [weak self] in
             guard let self = self else { return }
-            historyVM.setup(viewModel: self)
+            await historyVM.setup(thread: thread, readOnly: readOnly)
         }
         sendMessageViewModel.setup(viewModel: self)
         scrollVM.setup(viewModel: self)
@@ -108,7 +109,6 @@ public final class ThreadViewModel: Identifiable, Hashable {
         conversationSubtitle.setup(viewModel: self)
         registerNotifications()
         setAppSettingsModel()
-        threadsViewModel?.getNotActiveThreads(thread)
     }
 
     public func updateConversation(_ conversation: Conversation) {
@@ -119,22 +119,30 @@ public final class ThreadViewModel: Identifiable, Hashable {
     // MARK: Actions
     public func sendStartTyping(_ newValue: String) {
         if threadId == LocalId.emptyThread.rawValue, threadId != 0 { return }
-        if newValue.isEmpty == false {
-            ChatManager.activeInstance?.system.sendStartTyping(threadId: threadId)
-        } else {
-            ChatManager.activeInstance?.system.sendStopTyping()
+        let threadId = threadId
+        Task { @ChatGlobalActor in
+            if newValue.isEmpty == false {
+                ChatManager.activeInstance?.system.sendStartTyping(threadId: threadId)
+            } else {
+                ChatManager.activeInstance?.system.sendStopTyping()
+            }
         }
     }
 
     public func sendSignal(_ signalMessage: SignalMessageType) {
-        ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: threadId))
+        let threadId = threadId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: threadId))
+        }
     }
 
     public func clearCacheFile(message: Message) {
         if let fileHashCode = message.fileMetaData?.fileHash {
-            let path = message.isImage ? Routes.images.rawValue : Routes.files.rawValue
-            let url = "\(ChatManager.activeInstance?.config.fileServer ?? "")\(path)/\(fileHashCode)"
-            ChatManager.activeInstance?.file.deleteCacheFile(URL(string: url)!)
+            Task { @ChatGlobalActor in
+                let path = message.isImage ? Routes.images.rawValue : Routes.files.rawValue
+                let url = "\(ChatManager.activeInstance?.config.fileServer ?? "")\(path)/\(fileHashCode)"
+                ChatManager.activeInstance?.file.deleteCacheFile(URL(string: url)!)
+            }
             NotificationCenter.message.post(.init(name: .message, object: message))
         }
     }
@@ -191,7 +199,11 @@ public final class ThreadViewModel: Identifiable, Hashable {
     // MARK: Events
     private func onThreadEvent(_ event: ThreadEventTypes?) {
         switch event {
-        case .lastMessageDeleted(let response), .lastMessageEdited(let response):
+        case .lastMessageDeleted(let response):
+            if let thread = response.result {
+                onLastMessageDeleted(thread)
+            }
+        case.lastMessageEdited(let response):
             if let thread = response.result {
                 onLastMessageChanged(thread)
             }        
@@ -240,7 +252,7 @@ public final class ThreadViewModel: Identifiable, Hashable {
             unreadMentionsViewModel.fetchAllUnreadMentions()
         }
     }
-
+    
     private func onLastMessageChanged(_ thread: Conversation) {
         if thread.id == threadId {
             self.thread.lastMessage = thread.lastMessage
@@ -248,12 +260,27 @@ public final class ThreadViewModel: Identifiable, Hashable {
             setUnreadCount(thread.unreadCount)
         }
     }
+    
+    private func onLastMessageDeleted(_ thread: Conversation) {
+        if thread.id == threadId {
+            isDeletingLastMessage = true
+            self.thread.lastMessage = thread.lastMessage
+            self.thread.lastMessageVO = thread.lastMessageVO
+            setUnreadCount(thread.unreadCount)
+            Task.detached {
+                try? await Task.sleep(for: .milliseconds(1000))
+                await MainActor.run {
+                    self.isDeletingLastMessage = false
+                }
+            }
+        }
+    }
 
     @HistoryActor
     private func onEditedMessage(_ response: ChatResponse<Message>) async {
         guard
             let editedMessage = response.result,
-            var oldMessage = historyVM.sections.message(for: response.result?.id)?.message
+            var oldMessage = await historyVM.sectionsHolder.sections.message(for: response.result?.id)?.message
         else { return }
         oldMessage.updateMessage(message: editedMessage)
         await MainActor.run {
@@ -282,7 +309,7 @@ public final class ThreadViewModel: Identifiable, Hashable {
         mentionListPickerViewModel.cancelAllObservers()
         sendContainerViewModel.cancelAllObservers()
         Task { @HistoryActor [weak self] in
-            self?.historyVM.cancel()
+            await self?.historyVM.cancel()
         }
         threadPinMessageViewModel.cancelAllObservers()
 //        scrollVM.cancelAllObservers()
@@ -318,12 +345,9 @@ public final class ThreadViewModel: Identifiable, Hashable {
 
     // MARK: Setting Observer
     private func setAppSettingsModel() {
-        Task { [weak self] in
-            guard let self = self else { return }
-            model = AppSettingsModel.restore()
-            canDownloadImages = canDownloadImagesInConversation()
-            canDownloadFiles = canDownloadFilesInConversation()
-        }
+        model = AppSettingsModel.restore()
+        canDownloadImages = canDownloadImagesInConversation()
+        canDownloadFiles = canDownloadFilesInConversation()
     }
 
     private func canDownloadImagesInConversation() -> Bool {
@@ -359,6 +383,9 @@ public final class ThreadViewModel: Identifiable, Hashable {
     }
 
     deinit {
-        log("deinit called in class ThreadViewModel: \(self.thread.title ?? "")")
+        let title = thread.title ?? ""
+        Task { @MainActor [weak self, title] in
+            self?.log("deinit called in class ThreadViewModel: \(title)")
+        }
     }
 }

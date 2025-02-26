@@ -185,7 +185,8 @@ public final class MessageContainerStackView: UIStackView {
             tailImageView.removeFromSuperview()
             singleEmojiView.set(viewModel)
             addArrangedSubview(singleEmojiView)
-            backgroundColor = nil
+            let isSingleEmojiWithAttachment: Bool = !viewModel.calMessage.rowType.isBareSingleEmoji
+            backgroundColor = isSingleEmojiWithAttachment ? (viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!) : nil
         } else {
             singleEmojiView.removeFromSuperview()
             backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
@@ -212,14 +213,16 @@ public final class MessageContainerStackView: UIStackView {
 public struct ActionModel {
     let viewModel: MessageRowViewModel
     var threadVM: ThreadViewModel? { viewModel.threadVM }
-    var message: any HistoryMessageProtocol { viewModel.message }
+    var message: HistoryMessageType { viewModel.message }
 }
 
 // MARK: Upadate methods
 extension MessageContainerStackView {
     func edited() {
         guard let viewModel = viewModel else { return }
-        viewModel.calMessage.textStack?.updateText(text: viewModel.message.message ?? "")
+        /// We have to call set because if row type changes we have to update the row view
+        ///for example when two emoji converts to a single emoji
+        set(viewModel)
         if viewModel.calMessage.rowType.hasText, textMessageView.superview == nil {
             footerView.removeFromSuperview()
             addArrangedSubview(textMessageView)
@@ -304,6 +307,18 @@ extension MessageContainerStackView {
 
     public func reactionsUpdated(viewModel: MessageRowViewModel) {
         footerView.reactionsUpdated(viewModel: viewModel)        
+    }
+    
+    public func reactionDeleted(_ reaction: Reaction) {
+        footerView.reactionDeleted(reaction)
+    }
+    
+    public func reactionAdded(_ reaction: Reaction) {
+        footerView.reactionAdded(reaction)
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        footerView.reactionReplaced(reaction)
     }
 
     public func prepareForContextMenu(userInterfaceStyle: UIUserInterfaceStyle) {

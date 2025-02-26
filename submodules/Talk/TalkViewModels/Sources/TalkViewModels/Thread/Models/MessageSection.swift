@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MessageSection: Identifiable, Hashable, Equatable {
+public struct MessageSection: Identifiable, Hashable, Equatable, Sendable {
     public var id: Int64 { date.millisecondsSince1970 }
     public let date: Date
     public var vms: ContiguousArray<MessageRowViewModel>

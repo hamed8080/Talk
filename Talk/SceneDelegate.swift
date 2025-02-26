@@ -14,6 +14,7 @@ import BackgroundTasks
 import TalkModels
 import Logger
 
+@MainActor
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDelegate {
     var window: UIWindow?
     private var backgroundTaskID: UIBackgroundTaskIdentifier?
@@ -37,10 +38,10 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         }
         
         // MARK: Registering Launch Handlers for Tasks
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).refreshToken", using: nil) { task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).refreshToken", using: nil) { [weak self] task in
             // Downcast the parameter to an app refresh task as this identifier is used for a refresh request.
             if let task = task as? BGAppRefreshTask {
-                self.handleTaskRefreshToken(task)
+                self?.handleTaskRefreshToken(task)
             }
         }
     }
@@ -52,7 +53,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         } else if let userName = url.openThreadUserName {
             AppState.shared.openThreadWith(userName: userName)
         } else if let decodedOpenURL = url.decodedOpenURL {
-            AppState.shared.openURL(url: decodedOpenURL)
+            if decodedOpenURL.absoluteString.contains(AppRoutes.joinLink) {
+                /// Show join to public group dialog
+                let publicName = decodedOpenURL.absoluteString.replacingOccurrences(of: AppRoutes.joinLink, with: "").replacingOccurrences(of: "\u{200f}", with: "")
+                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(publicGroupName: publicName))
+            } else {
+                /// Open up the browser
+                AppState.shared.openURL(url: decodedOpenURL)
+            }
         }
     }
 
@@ -88,7 +96,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         AppState.shared.lifeCycleState = .background
-        scheduleAppRefreshToken()
+        Task {
+            await scheduleAppRefreshToken()
+        }
 
         self.backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "START_REQUESTING_MORE_BG_TIME") { [weak self] in
             self?.endBGTask()
@@ -97,7 +107,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         /// We request only 10 seconds, to keep the socket open.
         /// More than this value leads to iOS getting suspicious and terminating the app afterward.
         Timer.scheduledTimer(withTimeInterval: min(10, UIApplication.shared.backgroundTimeRemaining), repeats: false) { [weak self] _ in
-            self?.endBGTask()
+            Task { @MainActor in
+                self?.endBGTask()
+            }
         }
     }
 
@@ -108,32 +120,34 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         }
     }
 
-    private func scheduleAppRefreshToken() {
-        if let ssoToken = TokenManager.shared.getSSOTokenFromUserDefaults(), let createDate = TokenManager.shared.getCreateTokenDate() {
+    private func scheduleAppRefreshToken() async {
+        if let ssoToken = await TokenManager.shared.getSSOTokenFromUserDefaultsAsync(), let createDate = TokenManager.shared.getCreateTokenDate() {
             let timeToStart = createDate.advanced(by: Double(ssoToken.expiresIn - 50)).timeIntervalSince1970 - Date().timeIntervalSince1970
             let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).refreshToken")
             request.earliestBeginDate = Date(timeIntervalSince1970: timeToStart)
             do {
                 try BGTaskScheduler.shared.submit(request)
             } catch {
+#if DEBUG
                 print("Could not schedule app refresh(Maybe you should run it on a real device): \(error)")
+#endif
             }
         }
     }
 
     private func handleTaskRefreshToken(_ task: BGAppRefreshTask) {
-        let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in handleTaskRefreshToken method", level: .error, type: .sent, userInfo: nil)
-        self.log(log)
+        let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in handleTaskRefreshToken method", level: .error, type: .sent, userInfo: nil)        
         Task { @MainActor in
+            self.log(log)
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
-                scheduleAppRefreshToken() /// Reschedule again when user receive a token.
+                await scheduleAppRefreshToken() /// Reschedule again when user receive a token.
             } catch {
                 if let error = error as? AppErrors, error == AppErrors.revokedToken {
                     await ChatDelegateImplementation.sharedInstance.logout()
                 }
             }
-        }       
+        }
     }
 
     private func log(_ log: Log) {

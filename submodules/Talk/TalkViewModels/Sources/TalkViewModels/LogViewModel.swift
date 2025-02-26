@@ -12,6 +12,7 @@ import Foundation
 import Logger
 import TalkExtensions
 
+@MainActor
 public final class LogViewModel: ObservableObject {
     @Published public var logs: [Log] = []
     @Published public var searchText: String = ""
@@ -25,9 +26,10 @@ public final class LogViewModel: ObservableObject {
         #if DEBUG
             NotificationCenter.logs.publisher(for: .logs)
                 .compactMap { $0.object as? Log }
-                .receive(on: DispatchQueue.main)
                 .sink { [weak self] log in
-                    self?.logs.insert(log, at: 0)
+                    Task { @MainActor [weak self] in
+                        self?.logs.insert(log, at: 0)
+                    }
                 }
                 .store(in: &cancellableSet)
         #endif
@@ -49,7 +51,8 @@ public final class LogViewModel: ObservableObject {
         }
     }
 
-    public func startExporting() async {
+    @AppBackgroundActor
+    public func startExporting(logs: [Log]) async {
         let formatter: DateFormatter = {
             let formatter = DateFormatter()
             formatter.dateStyle = .none

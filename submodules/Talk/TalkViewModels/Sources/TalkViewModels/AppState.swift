@@ -12,7 +12,7 @@ import TalkExtensions
 import Combine
 
 /// Properties that can transfer between each navigation page and stay alive unless manually destroyed.
-public struct AppStateNavigationModel {
+public struct AppStateNavigationModel: Sendable {
     public var userToCreateThread: Participant?
     public var replyPrivately: Message?
     public var forwardMessages: [Message]?
@@ -23,10 +23,10 @@ public struct AppStateNavigationModel {
     public init() {}
 }
 
-public final class AppState: ObservableObject {
+@MainActor
+public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
-    private var cachedUser: User? { UserConfigManagerVM.instance.currentUserConfig?.user }
-    public var user: User? { cachedUser ?? ChatManager.activeInstance?.userInfo }
+    public var user: User?
     @Published public var error: ChatError?
     @Published public var isLoading: Bool = false
     @Published public var callLogs: [URL]?
@@ -49,12 +49,24 @@ public final class AppState: ObservableObject {
     private init() {
         registerObservers()
         updateWindowMode()
+        updateUserCache()
+    }
+
+    public func updateUserCache() {
+        Task { @ChatGlobalActor in
+            let fetchedUser = ChatManager.activeInstance?.userInfo
+            await MainActor.run {
+                self.user = UserConfigManagerVM.instance.currentUserConfig?.user ?? user
+            }
+        }
     }
 
     public func updateWindowMode() {
         windowMode = UIApplication.shared.windowMode()
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-            AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
+            Task { @MainActor in
+                AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
+            }
         }
 
         NotificationCenter.windowMode.post(name: .windowMode, object: windowMode)
@@ -73,7 +85,9 @@ public final class AppState: ObservableObject {
             isLoading = false
             self.error = error
             Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { [weak self] _ in
-                self?.error = nil
+                Task { @MainActor in
+                    self?.error = nil
+                }
             }
         }
     }
@@ -151,7 +165,7 @@ public extension AppState {
 
     func showThread(_ conversation: Conversation, created: Bool = false) {
         isLoading = false
-        objectsContainer.navVM.append(thread: conversation, created: created)
+        objectsContainer.navVM.append(thread: conversation)
     }
 
     func openThread(contact: Contact) {
@@ -178,7 +192,7 @@ public extension AppState {
         }
     }
 
-    /// Forward messages form a thread to a destination thread.
+    /// Forward messages from a thread to a destination thread.
     /// If the conversation is nil it try to use contact. Firstly it opens a conversation using the given contact core user id then send messages to the conversation.
     func openForwardThread(from: Int, conversation: Conversation, messages: [Message]) {
         let dstId = conversation.id ?? -1
@@ -256,7 +270,7 @@ public extension AppState {
             .first(where: {
                 ($0.partner == coreUserId || ($0.participants?.contains(where: {$0.coreUserId == coreUserId}) ?? false))
                 && $0.group == false && $0.type == .normal}
-            )
+            )?.toStruct()
     }
 
     private func updateThreadIdIfIsInForwarding(_ thread: Conversation?) {
@@ -269,12 +283,12 @@ public extension AppState {
     /// It will search through the Conversation array to prevent creation of new refrence.
     /// If we don't use object refrence in places that needs to open the thread there will be a inconsistensy in data such as reply privately.
     private func getRefrenceObject(_ conversation: Conversation?) -> Conversation? {
-        objectsContainer.threadsVM.threads.first{ $0.id == conversation?.id}
+        objectsContainer.threadsVM.threads.first{ $0.id == conversation?.id}?.toStruct()
     }
 
     func checkForGroupOffline(tharedId: Int) -> Conversation? {
         objectsContainer.threadsVM.threads
-            .first(where: { $0.group == true && $0.id == tharedId })
+            .first(where: { $0.group == true && $0.id == tharedId })?.toStruct()
     }
 
     func showEmptyThread(userName: String? = nil) {
@@ -290,7 +304,15 @@ public extension AppState {
     func openThreadAndMoveToMessage(conversationId: Int, messageId: Int, messageTime: UInt) {
         self.appStateNavigationModel.moveToMessageId = messageId
         self.appStateNavigationModel.moveToMessageTime = messageTime
-        searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
+        
+        /// Check if destiation thread is already inside NavigationPath stack,
+        /// If it is exist we will pop and remove current Path, to show the viewModel
+        let navVM = objectsContainer.navVM
+        if navVM.viewModel(for: conversationId) != nil, let currentThreadId = navVM.presentedThreadViewModel?.threadId {
+            navVM.remove(threadId: currentThreadId)
+        } else {
+            searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
+        }
     }
 }
 

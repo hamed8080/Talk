@@ -11,11 +11,13 @@ import TalkViewModels
 import ActionableContextMenu
 import TalkModels
 import Chat
+import TalkModels
+import TalkUI
 
 struct ThreadRowActionMenu: View {
     @Binding var showPopover: Bool
     var isDetailView: Bool = false
-    var thread: Conversation
+    var thread: CalculatedConversation
     @EnvironmentObject var viewModel: ThreadsViewModel
     private var canAddParticipant: Bool { thread.group ?? false && thread.admin ?? false == true }
 
@@ -32,28 +34,40 @@ struct ThreadRowActionMenu: View {
             }
         }
 
+        if !isDetailView, !thread.closed {
+            ContextMenuButton(title: archiveTitle, image: archiveImage) {
+                onArchiveUnArchiveTapped()
+            }
+        }
+
         if EnvironmentValues.isTalkTest {
             ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock") {
                 onClearHistoryTapped()
             }
+            .sandboxLabel()
             
             ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus") {
                 onAddToFolderTapped()
             }
+            .sandboxLabel()
             
             ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug") {
                 onSpamTapped()
             }
-
-            ContextMenuButton(title: archiveTitle, image: archiveImage) {
-                onArchiveUnArchiveTapped()
-            }
+            .sandboxLabel()
             
             if canAddParticipant {
                 ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus") {
                     onInviteTapped()
                 }
+                .sandboxLabel()
             }
+            
+            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info") {
+                UIPasteboard.general.string = "\(thread.id ?? -1)"
+                dump(thread)
+            }
+            .sandboxLabel()
         }
 
         Divider()
@@ -75,7 +89,7 @@ struct ThreadRowActionMenu: View {
 
         if isDetailView, thread.group == true, thread.type?.isChannelType == false, thread.admin == true {
             Divider()
-            ContextMenuButton(title: "Thread.closeThread", image: "lock") {
+            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock") {
                 onCloseConversationTapped()
             }
         }
@@ -84,56 +98,60 @@ struct ThreadRowActionMenu: View {
     private func onPinUnpinTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.togglePin(thread)
+            viewModel.togglePin(thread.toStruct())
         }
     }
 
     private func onMuteUnmuteTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.toggleMute(thread)
+            viewModel.toggleMute(thread.toStruct())
         }
     }
 
     private func onClearHistoryTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.clearHistory(thread)
+            viewModel.clearHistory(thread.toStruct())
         }
     }
 
     private func onAddToFolderTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.showAddThreadToTag(thread)
+            viewModel.showAddThreadToTag(thread.toStruct())
         }
     }
 
     private func onSpamTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.spamPV(thread)
+            viewModel.spamPV(thread.toStruct())
         }
     }
 
     private func onArchiveUnArchiveTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            AppState.shared.objectsContainer.archivesVM.toggleArchive(thread)
+            let isUnarchived = thread.isArchive == false || thread.isArchive == nil
+            AppState.shared.objectsContainer.archivesVM.toggleArchive(thread.toStruct())
+            if isUnarchived {
+                showArchivePopupIfNeeded()
+            }
         }
     }
 
     private func onInviteTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            viewModel.showAddParticipants(thread)
+            viewModel.showAddParticipants(thread.toStruct())
         }
     }
 
     private func onLeaveConversationTapped() {
         showPopover = false
         delayActionOnHidePopover {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread))
+            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread.toStruct()))
         }
     }
 
@@ -143,7 +161,7 @@ struct ThreadRowActionMenu: View {
     }
 
     private func onCloseConversationTapped() {
-        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread))
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread.toStruct()))
         showPopover = false
     }
 
@@ -154,7 +172,7 @@ struct ThreadRowActionMenu: View {
     }
 
     private var deleteTitle: String {
-        let deleteKey = thread.group == false ? "" : String(localized: "Thread.delete")
+        let deleteKey = thread.group == false ? "" : "Thread.delete".bundleLocalized()
         let key = thread.type?.isChannelType == true ? "Thread.channel" : thread.group == true ? "Thread.group" : ""
         let groupLocalized = String(format: deleteKey, String(localized: .init(key), bundle: Language.preferedBundle))
         let p2pLocalized = String(localized: .init("Genreal.deleteConversation"), bundle: Language.preferedBundle)
@@ -192,5 +210,15 @@ struct ThreadRowActionMenu: View {
     private var muteUnmuteTitle: String {
         let key = (thread.mute ?? false) ? "Thread.unmute" : "Thread.mute"
         return key.bundleLocalized()
+    }
+
+    private func showArchivePopupIfNeeded() {
+        if AppState.shared.objectsContainer.archivesVM.hasShownToastGuide { return }
+        let leadingView = Image(systemName: "tray.and.arrow.up")
+        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: leadingView,
+                                                            message: "ArchivedTab.guide".bundleLocalized(),
+                                                            messageColor: Color.App.textPrimary,
+                                                            duration: .slow)
+        AppState.shared.objectsContainer.archivesVM.hasShownToastGuide = true
     }
 }

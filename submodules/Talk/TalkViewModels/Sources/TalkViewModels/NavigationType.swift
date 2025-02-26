@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum NavigationType: Hashable {
+public enum NavigationType: Hashable, Sendable {
     case threadViewModel(ConversationNavigationValue)
     case threadDetail(ConversationDetailNavigationValue)
     case preference(PreferenceNavigationValue)
@@ -21,5 +21,7 @@ public enum NavigationType: Hashable {
     case support(SupportNavigationValue)
     case messageParticipantsSeen(MessageParticipantsSeenNavigationValue)
     case editProfile(EditProfileNavigationValue)
+    case manageSessions(ManageSessionsNavigationValue)
     case loadTests(LoadTestsNavigationValue)
+    case manageConnection(ManageConnectionNavigationValue)
 }

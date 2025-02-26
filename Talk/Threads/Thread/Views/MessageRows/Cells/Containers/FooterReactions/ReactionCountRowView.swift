@@ -82,8 +82,10 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
     }
 
     @objc private func onTapped(_ sender: UIGestureRecognizer) {
+        if viewModel?.threadVM?.thread.reactionStatus == .disable { return }
         if let messageId = viewModel?.message.id, let sticker = row?.sticker {
-            viewModel?.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId)
+            let myRow = viewModel?.reactionsModel.rows.first(where: {$0.isMyReaction})
+            viewModel?.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
         }
     }
 

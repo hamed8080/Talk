@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AppLifeCycleState {
+public enum AppLifeCycleState: Sendable {
     case foreground
     case background
     case inactive

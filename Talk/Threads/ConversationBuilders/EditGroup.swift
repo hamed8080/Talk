@@ -45,10 +45,12 @@ struct EditGroup: View {
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
-                showImagePicker = false
-                self.viewModel.image = image
-                self.viewModel.assetResources = assestResources ?? []
-                self.viewModel.animateObjectWillChange()
+                Task { @MainActor in
+                    showImagePicker = false
+                    self.viewModel.image = image
+                    self.viewModel.assetResources = assestResources ?? []
+                    self.viewModel.animateObjectWillChange()
+                }
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) {
@@ -154,8 +156,7 @@ struct EditGroup: View {
                                 .frame(width: 73, height: 73)
                         }
                     } else {
-                        let config = ImageLoaderConfig(url: viewModel.thread.computedImageURL ?? "", userName: String.splitedCharacter(viewModel.thread.computedTitle))
-                        ImageLoaderView(imageLoader: .init(config: config))
+                        ImageLoaderView(conversation: viewModel.thread)
                             .scaledToFit()
                             .id(viewModel.thread.id)
                             .font(.iransansBoldCaption2)
@@ -205,6 +206,7 @@ struct EditGroup: View {
         TextField("EditGroup.groupName".bundleLocalized(), text: $viewModel.editTitle)
             .focused($focusState, equals: .name)
             .keyboardType(.default)
+            .submitLabel(.done)
             .padding()
             .applyAppTextfieldStyle(topPlaceholder: "EditGroup.groupName", innerBGColor: Color.App.bgSendInput, isFocused: focusState == .name) {
                 focusState = .name
@@ -223,6 +225,18 @@ struct EditGroup: View {
             }
             .noSeparators()
             .listRowBackground(Color.App.bgSecondary)
+            .toolbar {
+                ToolbarItem(placement: .keyboard) {
+                    HStack {
+                        Button("", systemImage: "chevron.down") {
+                            hideKeyboard()
+                        }
+                        .fontWeight(.bold)
+                        .offset(x: -4)
+                        Spacer()
+                    }
+                }
+            }
     }
 
     var toolbarView: some View {

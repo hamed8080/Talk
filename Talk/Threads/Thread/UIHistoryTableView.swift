@@ -10,9 +10,13 @@ import UIKit
 import SwiftUI
 import TalkViewModels
 import TalkModels
+import OSLog
 
+@MainActor
 class UIHistoryTableView: UITableView {
     private weak var viewModel: ThreadViewModel?
+    private let revealAnimation = RevealAnimation()
+    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -49,16 +53,25 @@ class UIHistoryTableView: UITableView {
         backgroundView = bgView
         backgroundColor = Color.App.bgPrimaryUIColor
     }
+    
+    private func log(_ string: String) {
+#if DEBUG
+        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
+        Task.detached {
+            logger.info("\(string, privacy: .sensitive)")
+        }
+#endif
+    }
 }
 
 // MARK: TableView DataSource
 extension UIHistoryTableView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel?.historyVM.sections[section].vms.count ?? 0
+        return sections[section].vms.count
     }
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return viewModel?.historyVM.sections.count ?? 0
+        return sections.count
     }
 }
 
@@ -69,12 +82,16 @@ extension UIHistoryTableView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard let viewModel = viewModel else { return nil }
         if let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: String(describing: SectionHeaderView.self)) as? SectionHeaderView {
-            let sectionVM = viewModel.historyVM.sections[section]
+            let sectionVM = sections[section]
             headerView.delegate = viewModel.delegate
             headerView.set(sectionVM)
             return headerView
         }
         return nil
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        revealAnimation.reveal(for: view)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -83,7 +100,8 @@ extension UIHistoryTableView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = UIColor.clear
-        viewModel?.historyVM.sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
+        revealAnimation.reveal(for: cell)
+        sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -116,8 +134,7 @@ extension UIHistoryTableView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        let estimate = viewModel?.historyVM.sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
-        return estimate ?? 28
+        return sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
     }
 
     public func resetSelection() {
@@ -147,7 +164,7 @@ extension UIHistoryTableView: UITableViewDataSourcePrefetching {
 extension UIHistoryTableView {
     func makeReplyButton(indexPath: IndexPath, isLeading: Bool) -> UISwipeActionsConfiguration? {
         guard let viewModel = viewModel else { return nil }
-        let sections = viewModel.historyVM.sections
+        let sections = sections
         guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
         let vm = sections[indexPath.section].vms[indexPath.row]
         if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
@@ -169,7 +186,13 @@ extension UIHistoryTableView {
 // MARK: ScrollView delegate
 extension UIHistoryTableView {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)
+        Task {
+            if viewModel?.scrollVM.getIsProgramaticallyScrolling() == true {
+                log("Reject did scroll to, isProgramaticallyScroll is true")
+                return
+            }
+            await viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)
+        }
     }
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -182,7 +205,7 @@ extension UIHistoryTableView {
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        print("deceleration ended has been called")
+        log("deceleration ended has been called")
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
         }
@@ -190,7 +213,7 @@ extension UIHistoryTableView {
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if decelerate == false {
-            print("stop immediately with no deceleration")
+            log("stop immediately with no deceleration")
             Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
                 await self?.viewModel?.scrollVM.isEndedDecelerating = true
             }

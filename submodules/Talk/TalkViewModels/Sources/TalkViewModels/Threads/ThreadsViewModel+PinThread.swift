@@ -8,12 +8,13 @@
 import Chat
 import Foundation
 
+@MainActor
 protocol PinThreadProtocol {
     func togglePin(_ thread: Conversation)
     func pin(_ threadId: Int)
     func unpin(_ threadId: Int)
-    func onPin(_ response: ChatResponse<Conversation>)
-    func onUNPin(_ response: ChatResponse<Conversation>)
+    func onPin(_ response: ChatResponse<Conversation>) async
+    func onUNPin(_ response: ChatResponse<Conversation>) async
 }
 
 extension ThreadsViewModel: PinThreadProtocol {
@@ -27,28 +28,36 @@ extension ThreadsViewModel: PinThreadProtocol {
     }
 
     public func pin(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.pin(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.pin(.init(subjectId: threadId))
+        }
     }
 
     public func unpin(_ threadId: Int) {
-        ChatManager.activeInstance?.conversation.unpin(.init(subjectId: threadId))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unpin(.init(subjectId: threadId))
+        }
     }
 
-    public func onPin(_ response: ChatResponse<Conversation>) {
+    public func onPin(_ response: ChatResponse<Conversation>) async {
         serverSortedPins.insert(response.result?.id ?? -1, at: 0)
         if response.result != nil, let threadIndex = firstIndex(response.result?.id) {
             threads[threadIndex].pin?.toggle()
-            sort()
+            threads[threadIndex].animateObjectWillChange()
+            await sortInPlace()
             animateObjectWillChange()
         }
-        getNotActiveThreads(response.result)
+        if let conversation = await threadFinder.getNotActiveThreads(response.result?.id ?? -1) {
+            
+        }
     }
 
-    public func onUNPin(_ response: ChatResponse<Conversation>) {
+    public func onUNPin(_ response: ChatResponse<Conversation>) async {
         if response.result != nil, let threadIndex = firstIndex(response.result?.id) {
             serverSortedPins.removeAll(where: {$0 == response.result?.id})
             threads[threadIndex].pin?.toggle()
-            sort()
+            threads[threadIndex].animateObjectWillChange()
+            await sortInPlace()
             animateObjectWillChange()
         }
     }

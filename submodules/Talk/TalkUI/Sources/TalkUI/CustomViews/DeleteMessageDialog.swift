@@ -58,7 +58,9 @@ public struct DeleteMessageDialog: View {
         .padding(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
         .background(MixMaterialBackground())
         .onDisappear {
-            viewModel.cleanup()
+            Task {
+                await viewModel.cleanup()
+            }
         }
     }
 
@@ -83,7 +85,9 @@ public struct DeleteMessageDialog: View {
             }
         } else if viewModel.deleteForOthserIfPossible {
             Button {
-                viewModel.deleteForMeAndAllOthersPossible()
+                Task {
+                    await viewModel.deleteForMeAndAllOthersPossible()
+                }
             } label: {
                 Text("DeleteMessageDialog.deleteForMeAllOtherIfPossible")
                     .foregroundStyle(Color.App.red)

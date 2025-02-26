@@ -25,12 +25,19 @@ struct TabButtonsContainer: View {
     }
 
     private var scrollableContainer: some View {
-        ScrollView(.horizontal) {
-            hSatckContainer
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal) {
+                hSatckContainer
+            }
+            .frame(height: 36)
+            .padding(EdgeInsets(top: 16, leading: 0, bottom: 4, trailing: 0))
+            .background(MixMaterialBackground().ignoresSafeArea())
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    proxy.scrollTo(selectedId)
+                }
+            }
         }
-        .frame(height: 36)
-        .padding(EdgeInsets(top: 16, leading: 0, bottom: 4, trailing: 0))
-        .background(MixMaterialBackground().ignoresSafeArea())
     }
 
     private var hSatckContainer: some View {
@@ -49,6 +56,7 @@ struct TabButtonsContainer: View {
                     selectedId = tab.title
                     NotificationCenter.selectTab.post(name: .selectTab, object: tab.title)
                 }
+                .id(tab.id)
                 if !scrollable {
                     Spacer()
                 }

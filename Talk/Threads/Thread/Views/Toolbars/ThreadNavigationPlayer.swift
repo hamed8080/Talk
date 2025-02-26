@@ -13,6 +13,7 @@ import SwiftUI
 import TalkUI
 import Combine
 
+@MainActor
 class ThreadNavigationPlayer: UIView {
     private let timerLabel = UILabel()
     private let titleLabel = UILabel()
@@ -131,11 +132,8 @@ class ThreadNavigationPlayer: UIView {
     }
 
     private func close() {
+        removeFromSuperViewWithAnimation()
         playerVM.close()
-        setIsHidden(true)
-        UIView.animate(withDuration: 0.2) {
-            self.layoutIfNeeded()
-        }
     }
 
     public func register() {
@@ -179,6 +177,10 @@ class ThreadNavigationPlayer: UIView {
         } else if superview == nil {
             alpha = 0.0
             stack?.addArrangedSubview(self)
+            UIView.animate(withDuration: 0.2) {
+                self.alpha = 1.0
+            }
+        } else if alpha == 0.0 {
             UIView.animate(withDuration: 0.2) {
                 self.alpha = 1.0
             }

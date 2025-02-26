@@ -10,7 +10,7 @@ import CommonCrypto
 import Foundation
 import TalkModels
 
-public enum OAuth2PKCEAuthenticatorError: LocalizedError {
+public enum OAuth2PKCEAuthenticatorError: LocalizedError, Sendable {
     case authRequestFailed(Error)
     case authorizeResponseNoUrl
     case authorizeResponseNoCode
@@ -36,7 +36,7 @@ public enum OAuth2PKCEAuthenticatorError: LocalizedError {
     }
 }
 
-public struct OAuth2PKCEParameters {
+public struct OAuth2PKCEParameters: Sendable {
     public var authorizeUrl: String
     public var tokenUrl: String
     public var clientId: String
@@ -44,9 +44,10 @@ public struct OAuth2PKCEParameters {
     public var callbackURLScheme: String
 }
 
+@MainActor
 public class OAuth2PKCEAuthenticator: NSObject {
 
-    public func authenticate(parameters: OAuth2PKCEParameters, completion: @escaping (Result<SSOTokenResponse, OAuth2PKCEAuthenticatorError>) -> Void) {
+    public func authenticate(parameters: OAuth2PKCEParameters, completion: @escaping @Sendable (Result<SSOTokenResponse, OAuth2PKCEAuthenticatorError>) -> Void) {
         // 1. creates a cryptographically-random code_verifier
         let code_verifier = self.createCodeVerifier()
         // 2. and from this generates a code_challenge
@@ -97,7 +98,7 @@ public class OAuth2PKCEAuthenticator: NSObject {
             .trimmingCharacters(in: .whitespaces)
     }
 
-    private func getAccessToken(authCode: String, codeVerifier: String, parameters: OAuth2PKCEParameters, completion: @escaping (Result<SSOTokenResponse, OAuth2PKCEAuthenticatorError>) -> Void) {
+    private func getAccessToken(authCode: String, codeVerifier: String, parameters: OAuth2PKCEParameters, completion: @escaping @Sendable (Result<SSOTokenResponse, OAuth2PKCEAuthenticatorError>) -> Void) {
 
         let request = URLRequest.createTokenRequest(
             parameters: parameters,

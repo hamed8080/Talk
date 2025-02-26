@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 
-@MainActor
 public class LazyListViewModel: ObservableObject {
     @Published public var isLoading: Bool = false
     public let count: Int
@@ -24,13 +23,13 @@ public class LazyListViewModel: ObservableObject {
         isLoading = value
     }
 
-    public func canLoadMore() async -> Bool {
+    public func canLoadMore() -> Bool {
         if isLoading || !hasNext { return false }
         return true
     }
 
-    public func canLoadMore(id: Int?) async -> Bool {
-        if await !canLoadMore() { return false }
+    public func canLoadMore(id: Int?) -> Bool {
+        if !canLoadMore() { return false }
         return threasholds.contains(where: {$0 == id})
     }
 

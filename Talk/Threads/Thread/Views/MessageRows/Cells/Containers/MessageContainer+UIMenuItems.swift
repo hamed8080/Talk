@@ -19,7 +19,7 @@ import Photos
 extension MessageContainerStackView {
 
     public func menu(model: ActionModel, indexPath: IndexPath?, onMenuClickedDismiss: @escaping () -> Void ) -> CustomMenu {
-        let message: any HistoryMessageProtocol = model.message
+        let message: HistoryMessageType = model.message
         let threadVM = model.threadVM
         let viewModel = model.viewModel
 
@@ -99,6 +99,14 @@ extension MessageContainerStackView {
             }
             menu.addItem(deleteCacheAction)
         }
+        
+        if EnvironmentValues.isTalkTest {
+            let printMessageDebug = ActionMenuItem(model: .debugPrint(id: model.message.id ?? -1)) { [weak self] in
+                self?.onPrintDebug(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(printMessageDebug)
+        }
 
         let isPinned = message.id == threadVM?.thread.pinMessage?.id && threadVM?.thread.pinMessage != nil
         if threadVM?.thread.admin == true {
@@ -146,8 +154,6 @@ private extension MessageContainerStackView {
     }
 
     func onForwardAction(_ model: ActionModel) {
-        guard let message = model.message as? Message else { return }
-        model.threadVM?.forwardMessage = message
         model.threadVM?.delegate?.setSelection(true)
         cell?.select()
     }
@@ -165,17 +171,19 @@ private extension MessageContainerStackView {
     }
 
     func onSaveAction(_ model: ActionModel) {
-        if let url = model.viewModel.message.fileURL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-            UIImageWriteToSavedPhotosAlbum(image, model.viewModel, nil, nil)
-            let icon = Image(systemName: "externaldrive.badge.checkmark")
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.App.white)
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: Color.App.textPrimary)
+        Task {
+            if let url = await model.viewModel.message.fileURL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                UIImageWriteToSavedPhotosAlbum(image, model.viewModel, nil, nil)
+                let icon = Image(systemName: "externaldrive.badge.checkmark")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.App.white)
+                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: Color.App.textPrimary)
+            }
         }
     }
 
     func onSaveVideoAction(_ model: ActionModel) {
-        Task {
+        Task { @AppBackgroundActor in
             guard let url = await model.viewModel.message.makeTempURL() else { return }
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
@@ -202,17 +210,21 @@ private extension MessageContainerStackView {
     func onDeleteCacheAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
         model.threadVM?.clearCacheFile(message: message)
-        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
+        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
                 if let threadVM = model.threadVM {
                     let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
-                    await newVM.performaCalculation()
-                    model.threadVM?.historyVM.sections[indexPath.section].vms[indexPath.row] = newVM
-                    model.threadVM?.delegate?.reloadData(at: indexPath)
+                    await newVM.recalculate(mainData: newVM.getMainData())
+                    await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
                 }
             }
         }
+    }
+    
+    func onPrintDebug(_ model: ActionModel) {
+        UIPasteboard.general.string = "\(model.message.id ?? -1)"
+        dump(model.message)
     }
 
     func onDeleteAction(_ model: ActionModel) {
@@ -240,6 +252,10 @@ private extension MessageContainerStackView {
 
     func onSelectAction(_ model: ActionModel) {
         model.threadVM?.delegate?.setSelection(true)
+        if let uniqueId = model.message.uniqueId,
+           let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+            model.threadVM?.delegate?.setTableRowSelected(indexPath)
+        }
         cell?.select()
     }
 }

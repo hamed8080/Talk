@@ -14,162 +14,134 @@ import ActionableContextMenu
 import TalkExtensions
 
 struct ThreadRow: View {
-    @State private var isSelected: Bool = false
-    @EnvironmentObject var viewModel: ThreadsViewModel
-    var isInForwardMode: Bool?
-    let thread: Conversation
+    @EnvironmentObject var thread: CalculatedConversation
     let onTap: (() -> Void)?
-    private var searchVM: ThreadsSearchViewModel { AppState.shared.objectsContainer.searchVM }
-
+    
     var body: some View {
         HStack(spacing: 12) {
-            SelectedThreadBar(thread: thread, isSelected: isSelected)
-            ThreadImageView(thread: thread, threadsVM: viewModel)
-                .id(thread.image ?? thread.metadata)
+            SelectedThreadBar(isSelected: thread.isSelected)
+            ThreadImageView()
+                .id(thread.computedImageURL)
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    if thread.type?.isChannelType == true {
-                        Image("ic_channel")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                            .foregroundColor(isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
-                    }
-
-                    if thread.group == true, thread.type?.isChannelType == false {
-                        Image(systemName: "person.2.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                            .foregroundColor(isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
-                    }
-                    if searchVM.isInSearchMode {
-                        Text(searchVM.attributdTitle(for: thread.titleRTLString))
-                            .lineLimit(1)
-                            .font(.iransansSubheadline)
-                            .fontWeight(.semibold)
-                    } else {
-                        let title = thread.titleRTLString
-                        Text(title)
-                            .lineLimit(1)
-                            .font(.iransansSubheadline)
-                            .fontWeight(.semibold)
-                            .animation(.easeInOut, value: title)
-                    }
-
-                    if thread.isTalk {
-                        Image("ic_approved")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                            .offset(x: -4)
-                    }
-
+                    ThreadRowIcons()
                     Spacer()
-
-                    let isSeen = status?.icon != MessageHistoryStatics.sentImage
-                    MutableMessageStatusView(status: status, isSelected: isSelected, isSeen: isSeen)
-                    ThreadTimeText(thread: thread, isSelected: isSelected)
-                        .id(thread.time)
+                    
+                    MutableMessageStatusView(isSelected: thread.isSelected)
+                    ThreadTimeText(isSelected: thread.isSelected)
                 }
-                ThreadRowBottomContainer(thread: thread, isSelected: isSelected, isInForwardMode: isInForwardMode)
-                    .environmentObject(viewModel)
+                ThreadRowBottomContainer(isSelected: thread.isSelected)
             }
             .contentShape(Rectangle())
         }
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
-        .animation(.easeInOut, value: thread.lastMessageVO?.message)
         .animation(.easeInOut, value: thread)
-        .animation(.easeInOut, value: thread.pin)
-        .animation(.easeInOut, value: thread.mute)
-        .animation(.easeInOut, value: thread.title)
-        .animation(.easeInOut, value: viewModel.activeCallThreads.count)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
-            } label: {
-                Label("General.delete", systemImage: "trash")
+            if thread.group == true && (thread.admin == false || thread.admin == nil) {
+                EmptyView()
+            } else {
+                Button(role: .destructive) {
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
+                } label: {
+                    Label("General.delete", systemImage: "trash")
+                }
             }
         }
         .onTapGesture {
             onTap?()
         }
         .newCustomContextMenu {
-            ThreadRow(thread: thread, onTap: nil)
+            ThreadRow(onTap: nil)
                 .padding(4)
-                .background(ThreadListRowBackground(thread: thread))
+                .environmentObject(thread)
+                .background(ThreadListRowBackground().environmentObject(thread))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         } menus: {
-            ThreadRowContextMenu(thread: thread, viewModel: viewModel)
-        }
-        .onReceive(navVM.objectWillChange) { _ in
-            setSelection()
-        }.onAppear {
-            setSelection()
+            ThreadRowContextMenu(thread: thread, viewModel: AppState.shared.objectsContainer.threadsVM)
         }
     }
+}
 
-    private func setSelection() {
-        if navVM.selectedId == thread.id {
-            isSelected = isInForwardMode == true ? false : (navVM.selectedId == thread.id)
-        } else if isSelected == true {
-            isSelected = false
-        }
-    }
-
-    private var status: (icon: UIImage, fgColor: Color)? {
-        thread.messageStatusIcon(currentUserId: AppState.shared.user?.id)
-    }
+struct ThreadRowIcons: View {
+    @EnvironmentObject var thread: CalculatedConversation
     
-    private var navVM: NavigationModel {
-        AppState.shared.objectsContainer.navVM
+    var body: some View {
+        if thread.type?.isChannelType == true {
+            Image("ic_channel")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .foregroundColor(thread.isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
+        }
+
+        if thread.group == true, thread.type?.isChannelType == false {
+            Image(systemName: "person.2.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .foregroundColor(thread.isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
+        }
+        if AppState.shared.objectsContainer.searchVM.isInSearchMode {
+            Text(AppState.shared.objectsContainer.searchVM.attributdTitle(for: thread.titleRTLString ?? ""))
+                .lineLimit(1)
+                .font(.iransansSubheadline)
+                .fontWeight(.semibold)
+        } else {
+            let title = thread.titleRTLString ?? ""
+            Text(title)
+                .lineLimit(1)
+                .font(.iransansSubheadline)
+                .fontWeight(.semibold)
+                .animation(.easeInOut, value: title)
+        }
+
+        if thread.isTalk {
+            Image("ic_approved")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 16, height: 16)
+                .offset(x: -4)
+        }
     }
 }
 
 struct ThreadRowBottomContainer: View {
-    let thread: Conversation
-    @EnvironmentObject var viewModel: ThreadsViewModel
+    @EnvironmentObject var thread: CalculatedConversation
     let isSelected: Bool
-    let isInForwardMode: Bool?
 
     var body: some View {
         HStack {
-            SecondaryMessageView(isSelected: isSelected, thread: thread)
-                .id(thread.lastMessageVO?.id)
-                .environmentObject(viewModel.threadEventModels.first{$0.threadId == thread.id} ?? .init(threadId: thread.id ?? 0))
+            SecondaryMessageView(isSelected: isSelected)
+                .environmentObject(thread.eventVM as? ThreadEventViewModel ?? .init(threadId: thread.id ?? -1))
             Spacer()
-            if isInForwardMode == nil {
-                ThreadClosed(thread: thread)
-                    .id(thread.closed == true)
-                ThreadMentionSign(thread: thread)
-                    .id(thread.mentioned == true)
-                ThreadUnreadCount(thread: thread, isSelected: isSelected)
-                    .id(thread.unreadCount ?? 0)
+            if !thread.isInForwardMode {
+                ThreadClosed()
+                ThreadMentionSign()
+                ThreadUnreadCount(isSelected: isSelected)
             }
         }
     }
 }
 
 struct ThreadRowSelfContextMenu: View {
-    let thread: Conversation
-    let viewModel: ThreadsViewModel
+    let thread: CalculatedConversation
     @Environment(\.layoutDirection) var direction
     @EnvironmentObject var ctxVM: ContextMenuModel
 
     var body: some View {
-        ThreadRow(thread: thread, onTap: nil)
+        ThreadRow(onTap: nil)
             .frame(height: 72)
             .frame(maxWidth: min(400, ctxVM.containerSize.width - 18)) /// 400 for ipad side bar
             .background(Color.App.bgSecondary)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .environmentObject(thread)
             .environmentObject(AppState.shared.objectsContainer.navVM)
-            .environmentObject(viewModel)
             .environment(\.layoutDirection, direction == .leftToRight && Language.isRTL ? .rightToLeft : .leftToRight)
     }
 }
 
 struct ThreadRowContextMenu: View {
-    let thread: Conversation
+    let thread: CalculatedConversation
     let viewModel: ThreadsViewModel
 
     var body: some View {
@@ -185,7 +157,7 @@ struct ThreadRowContextMenu: View {
 }
 
 struct ThreadMentionSign: View {
-    let thread: Conversation
+    @EnvironmentObject var thread: CalculatedConversation
 
     var body: some View {
         if thread.mentioned == true {
@@ -202,7 +174,7 @@ struct ThreadMentionSign: View {
 }
 
 struct ThreadClosed: View {
-    let thread: Conversation
+    @EnvironmentObject var thread: CalculatedConversation
 
     var body: some View {
         if thread.closed == true {
@@ -216,28 +188,26 @@ struct ThreadClosed: View {
 }
 
 struct SelectedThreadBar: View {
-    let thread: Conversation
     let isSelected: Bool
 
     var body: some View {
+        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
         Rectangle()
-            .fill(Color.App.accent)
-            .frame(width: isSelected ? 4 : 0)
+            .fill(isSelected && isIpad ? Color.App.accent : .clear)
+            .frame(width: 4)
             .frame(minHeight: 0, maxHeight: .infinity)
-            .animation(.easeInOut, value: isSelected)
+            .animation(.easeInOut, value: isSelected && isIpad)
     }
 }
 
 struct ThreadUnreadCount: View {
-    let thread: Conversation
+    @EnvironmentObject var thread: CalculatedConversation
     let isSelected: Bool
-    @State private var unreadCountString = ""
-    @EnvironmentObject var viewModel: ThreadsViewModel
 
     var body: some View {
         ZStack {
-            if !unreadCountString.isEmpty {
-                Text(unreadCountString)
+            if !thread.unreadCountString.isEmpty {
+                Text(thread.unreadCountString)
                     .font(.iransansBoldCaption2)
                     .padding(thread.isCircleUnreadCount ? 4 : 6)
                     .frame(height: 24)
@@ -247,52 +217,26 @@ struct ThreadUnreadCount: View {
                     .clipShape(RoundedRectangle(cornerRadius:(thread.isCircleUnreadCount ? 16 : 10)))
             }
         }
-        .animation(.easeInOut, value: unreadCountString)
-        .task {
-            await updateCountAsync()
-        }
-    }
-
-    private nonisolated func updateCountAsync() async {
-        let unreadCountString = await thread.unreadCountString ?? ""
-        await MainActor.run {
-            self.unreadCountString = unreadCountString
-        }
+        .animation(.easeInOut, value: thread.unreadCountString)
     }
 }
 
 struct ThreadTimeText: View {
-    let thread: Conversation
+    @EnvironmentObject var thread: CalculatedConversation
     let isSelected: Bool
-    @State private var timeString: String = ""
 
     var body: some View {
         ZStack {
-            if !timeString.isEmpty {
-                Text(timeString)
+            if !thread.timeString.isEmpty {
+                Text(thread.timeString)
                     .lineLimit(1)
                     .font(.iransansCaption2)
                     .fontWeight(.medium)
-                    .foregroundColor(isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
+                    .foregroundColor(thread.isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
             }
         }
-        .animation(.easeInOut, value: timeString)
-        .animation(.easeInOut, value: isSelected)
-//        .onReceive(thread.objectWillChange) { newValue in
-//            Task {
-//                await updateTimeAsync()
-//            }
-//        }
-        .task {
-            await updateTimeAsync()
-        }
-    }
-
-    private func updateTimeAsync() async {
-        let timeString = thread.time?.date.localTimeOrDate ?? ""
-        await MainActor.run {
-            self.timeString = timeString
-        }
+        .animation(.easeInOut, value: thread.timeString)
+        .animation(.easeInOut, value: thread.isSelected)
     }
 }
 
@@ -309,8 +253,10 @@ struct ThreadRow_Previews: PreviewProvider {
     }
 
     static var previews: some View {
-        ThreadRow(thread: thread) {
+        ThreadRow() {
 
-        }.environmentObject(ThreadsViewModel())
+        }
+        .environmentObject(thread.toClass())
+        .environmentObject(ThreadsViewModel())
     }
 }

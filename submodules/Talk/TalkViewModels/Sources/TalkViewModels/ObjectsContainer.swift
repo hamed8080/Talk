@@ -2,6 +2,7 @@ import Combine
 import SwiftUI
 import Chat
 
+@MainActor
 public final class ObjectsContainer: ObservableObject {
     public private(set) var cancellableSet: Set<AnyCancellable> = []
     @Published public var userConfigsVM = UserConfigManagerVM.instance
@@ -19,7 +20,9 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var searchVM = ThreadsSearchViewModel()
     @Published public var archivesVM = ArchiveThreadsViewModel()
     @Published public var errorVM = ErrorHandlerViewModel()
+    @Published public var banVM = BanViewModel()
     @Published public var userProfileImageVM: ImageLoaderViewModel!
+    public var chatRequestQueue = ChatRequestQueue()
 
     /// As a result of a bug in the SwiftUI sheet where it can't release the memory, we have to keep a global object and rest its values to default to prevent memory leak unless we end up not receiving server messages.
     @Published public var conversationBuilderVM = ConversationBuilderViewModel()
@@ -96,7 +99,7 @@ public final class ObjectsContainer: ObservableObject {
         }
 
         if notificationSettings.vibration {
-            await UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         }
     }
 
@@ -123,7 +126,9 @@ public final class ObjectsContainer: ObservableObject {
     }
 
     private func fetchUserProfile(user: User?) {
-        let config = ImageLoaderConfig(url: user?.image ?? "", size: .LARG, userName: String.splitedCharacter(user?.name ?? ""))
+        let image = user?.image ?? ""
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        let config = ImageLoaderConfig(url: httpsImage, size: .LARG, userName: String.splitedCharacter(user?.name ?? ""))
         if userProfileImageVM == nil {
             userProfileImageVM = .init(config: config)
         } else {
@@ -134,7 +139,9 @@ public final class ObjectsContainer: ObservableObject {
         // we have to wait for init and then the cache is not nil and can find the file
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
             if user != nil {
-                self?.userProfileImageVM.fetch()
+                Task { @MainActor [weak self] in
+                    self?.userProfileImageVM.fetch()
+                }
             }
         }
     }

@@ -37,6 +37,7 @@ struct HomeContentView: View {
                 .environmentObject(container.audioPlayerVM)
                 .environmentObject(container.conversationBuilderVM)
                 .environmentObject(container.userProfileImageVM)
+                .environmentObject(container.banVM)
         }
         .modifier(ColorSchemeModifier())
         .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
@@ -66,7 +67,7 @@ struct SplitView: View {
             }
         }
         .animation(.easeInOut, value: isLoggedIn)
-        .overlay(OpenURLView())
+        .addURLViewModifier()
         .overlay {
             let appOverlayVM = container.appOverlayVM
             AppOverlayView(onDismiss: onDismiss) {
@@ -74,6 +75,9 @@ struct SplitView: View {
             }
             .environmentObject(appOverlayVM)
             .environmentObject(appOverlayVM.offsetVM)
+        }
+        .overlay {
+            BanOverlayView()
         }
         .onReceive(TokenManager.shared.$isLoggedIn) { isLoggedIn in
             if self.isLoggedIn != isLoggedIn {
@@ -146,7 +150,9 @@ struct HomePreview: View {
             .task {
                 AppState.shared.connectionStatus = .connected
                 TokenManager.shared.setIsLoggedIn(isLoggedIn: true)
-                await container.threadsVM.appendThreads(threads: MockData.generateThreads(count: 10))
+                for thread in MockData.generateThreads(count: 10) {
+                    await container.threadsVM.calculateAppendSortAnimate(thread)
+                }
                 container.animateObjectWillChange()
             }
     }

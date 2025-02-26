@@ -8,7 +8,7 @@
 import Foundation
 
 /// App Errors Start with negative 100 values.
-public enum AppErrorTypes: Int {
+public enum AppErrorTypes: Int, Sendable {
     case microphone_access_denied = -100
     case location_access_denied = -101
 
@@ -22,6 +22,6 @@ public enum AppErrorTypes: Int {
     }
 }
 
-public enum AppErrors: Error, Equatable {
+public enum AppErrors: Error, Equatable, Sendable {
     case revokedToken
 }

@@ -1,5 +1,5 @@
 import Chat
-public enum ConnectionStatus: Int {
+public enum ConnectionStatus: Int, Sendable {
     case connecting = 0
     case disconnected = 1
     case reconnecting = 2

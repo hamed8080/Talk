@@ -8,7 +8,7 @@
 import Foundation
 import Chat
 
-public struct CallsHistoryModel {
+public struct CallsHistoryModel: Sendable {
     public private(set) var count = 15
     public private(set) var offset = 0
     public private(set) var hasNext = false

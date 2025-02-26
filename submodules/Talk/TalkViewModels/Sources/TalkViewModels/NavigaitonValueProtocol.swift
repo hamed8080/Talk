@@ -8,10 +8,12 @@
 import Foundation
 import Chat
 
+@MainActor
 public protocol NavigationTitle {
     var title: String { get }
 }
 
+@MainActor
 public protocol NavigaitonValueProtocol: Hashable, NavigationTitle {
     var navType: NavigationType { get }
 }
@@ -74,11 +76,21 @@ public struct MessageParticipantsSeenNavigationValue: NavigaitonValueProtocol {
     public var title: String = "SeenParticipants.title"
     public let message: Message
     public let threadVM: ThreadViewModel
+    public let threadId: Int?
     public var navType: NavigationType { .messageParticipantsSeen(self) }
+    
+    nonisolated public static func ==(rhs: MessageParticipantsSeenNavigationValue, lhs: MessageParticipantsSeenNavigationValue) -> Bool {
+        rhs.threadId == lhs.threadId
+    }
+    
+    nonisolated public func hash(into hasher: inout Hasher) {
+        hasher.combine(threadId)
+    }
 
     public init(message: Message, threadVM: ThreadViewModel) {
         self.message = message
         self.threadVM = threadVM
+        self.threadId = threadVM.threadId
     }
 }
 
@@ -86,19 +98,39 @@ public struct ConversationNavigationValue: NavigaitonValueProtocol {
     public var viewModel: ThreadViewModel
     public var title: String { viewModel.thread.computedTitle }
     public var navType: NavigationType { .threadViewModel(self) }
-
+    public let threadId: Int?
+    
+    nonisolated public static func ==(rhs: ConversationNavigationValue, lhs: ConversationNavigationValue) -> Bool {
+        rhs.threadId == lhs.threadId
+    }
+    
+    nonisolated public func hash(into hasher: inout Hasher) {
+        hasher.combine(threadId)
+    }
+    
     public init(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
+        self.threadId = viewModel.threadId
     }
 }
 
 public struct ConversationDetailNavigationValue: NavigaitonValueProtocol {
     public var viewModel: ThreadDetailViewModel
+    public let threadId: Int?
     public var title: String { "" }
     public var navType: NavigationType { .threadDetail(self) }
+    
+    nonisolated public static func ==(rhs: ConversationDetailNavigationValue, lhs: ConversationDetailNavigationValue) -> Bool {
+        rhs.threadId == lhs.threadId
+    }
+    
+    nonisolated public func hash(into hasher: inout Hasher) {
+        hasher.combine(threadId)
+    }
 
     public init(viewModel: ThreadDetailViewModel) {
         self.viewModel = viewModel
+        self.threadId = viewModel.thread?.id
     }
 }
 
@@ -112,5 +144,18 @@ public struct LoadTestsNavigationValue: NavigaitonValueProtocol {
     public var title: String = "Load Tests"
     public var navType: NavigationType { .loadTests(self) }
 
+    public init() {}
+}
+
+public struct ManageConnectionNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "Manage Connection"
+    public var navType: NavigationType { .manageConnection(self) }
+
+    public init() {}
+}
+
+public struct ManageSessionsNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "Settings.ManageSessions.title"
+    public var navType: NavigationType { .manageSessions(self) }
     public init() {}
 }

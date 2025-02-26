@@ -10,6 +10,7 @@ import Combine
 import SwiftUI
 import TalkModels
 
+@MainActor
 public final class SettingViewModel: ObservableObject {
     public private(set) var cancellableSet: Set<AnyCancellable> = []
     public private(set) var firstSuccessResponse = false
@@ -35,26 +36,27 @@ public final class SettingViewModel: ObservableObject {
 
     public func updateProfilePicture(image: UIImage?) async {
         guard let image = image else { return }        
-        showLoading(true)
-        let config = ChatManager.activeInstance?.config
+        await showLoading(true)
+        let config = await config()
         let serverType = Config.serverType(config: config) ?? .main
         var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: serverType).updateProfileImage)!)
-        urlReq.url?.appendQueryItems(with: ["token": ChatManager.activeInstance?.config.token ?? ""])
+        urlReq.url?.appendQueryItems(with: ["token": config?.token ?? ""])
         urlReq.method = .post
         urlReq.httpBody = image.pngData()
         do {
             let resp = try await session.data(for: urlReq)
             let _ = try JSONDecoder().decode(SSOTokenResponse.self, from: resp.0)
         } catch {}
-        showLoading(false)
+        await showLoading(false)
+    }
+    
+    @ChatGlobalActor
+    private func config() -> ChatConfig? {
+        ChatManager.activeInstance?.config
     }
 
-    public func showLoading(_ show: Bool) {
-        Task { [weak self] in
-            await MainActor.run { [weak self] in
-                guard let self = self else { return }
-                isLoading = show
-            }
-        }
+    @MainActor
+    public func showLoading(_ show: Bool) async {
+        isLoading = show
     }
 }

@@ -10,20 +10,19 @@ import Chat
 import Combine
 import TalkModels
 
-public final class SendContainerViewModel {
+@MainActor
+public final class SendContainerViewModel: ObservableObject {
     private weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init() }
     public var threadId: Int { thread.id ?? -1 }
     private var textMessage: String = ""
     private var cancelable: Set<AnyCancellable> = []
-    public var isInEditMessageMode: Bool = false
     /// We will need this for UserDefault purposes because ViewModel.thread is nil when the view appears.
-    public private(set) var showPickerButtons: Bool = false
-    public private(set) var isVideoRecordingSelected = false
-    private var editMessage: Message?
+    @Published public var mode: SendcContainerMode = .init(type: .voice)
     public var height: CGFloat = 0
     private let draftManager = DraftManager.shared
     public var onTextChanged: ((String?) -> Void)?
+    private let RTLMarker = "\u{200f}"
 
     public init() {}
 
@@ -32,18 +31,17 @@ public final class SendContainerViewModel {
         let contactId = AppState.shared.appStateNavigationModel.userToCreateThread?.contactId ?? -1
         let textMessage = draftManager.get(threadId: threadId) ?? draftManager.get(contactId: contactId) ?? ""
         setText(newValue: textMessage)
-        editMessage = getDraftEditMessage()
+        if let editMessage = getDraftEditMessage() {
+            mode = .init(type: .edit, editMessage: editMessage)
+        }
     }
 
     private func onTextMessageChanged(_ newValue: String) {
-        if Language.isRTL && textMessage.first != "\u{200f}" {
-            setText(newValue: "\u{200f}\(textMessage)")
-        }
         viewModel?.mentionListPickerViewModel.text = textMessage
         if !isTextEmpty() {
             viewModel?.sendStartTyping(textMessage)
         }
-        let isRTLChar = textMessage.count == 1 && textMessage.first == "\u{200f}"
+        let isRTLChar = textMessage.count == 1 && textMessage.first == Character(RTLMarker)
         if !isTextEmpty() && !isRTLChar {
             setDraft(newText: newValue)
         } else {
@@ -52,13 +50,13 @@ public final class SendContainerViewModel {
     }
 
     public func clear() {
+        mode = .init(type: .voice)
         setText(newValue: "")
-        editMessage = nil
-        isInEditMessageMode = false
+        onTextChanged?(textMessage)
     }
 
     public func isTextEmpty() -> Bool {
-        let sanitizedText = textMessage.replacingOccurrences(of: "\u{200f}", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let sanitizedText = textMessage.replacingOccurrences(of: RTLMarker, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
         return sanitizedText.isEmpty
     }
 
@@ -69,33 +67,34 @@ public final class SendContainerViewModel {
             text.removeSubrange(lastIndex..<text.endIndex)
         }
         setText(newValue: "\(text)@\(userName) ") // To hide participants dialog
+        onTextChanged?(textMessage)
     }
 
     public func getText() -> String {
-        textMessage.replacingOccurrences(of: "\u{200f}", with: "")
+        textMessage.replacingOccurrences(of: RTLMarker, with: "")
     }
 
     public func setText(newValue: String) {
         textMessage = newValue
         onTextMessageChanged(newValue)
-        onTextChanged?(getText())
+        
+        /// just update the ui it will check by getter methods
+        if mode.type != .edit {
+            mode = .init(type: .voice)
+        }
     }
 
     public func setEditMessage(message: Message?) {
-        self.editMessage = message
-        isInEditMessageMode = message != nil
+        onEditMessageChanged(message)
+        if let message = message {
+            mode = .init(type: .edit, editMessage: message)
+        } else {
+            mode = .init(type: .voice)
+        }
     }
 
     public func getEditMessage() -> Message? {
-        return editMessage
-    }
-
-    public func showPickerButtons(_ show: Bool) {
-        showPickerButtons = show
-    }
-
-    public func toggleVideorecording() {
-        isVideoRecordingSelected.toggle()
+        return mode.editMessage
     }
 
     public func cancelAllObservers() {
@@ -141,43 +140,49 @@ public final class SendContainerViewModel {
         threadId == -1 || threadId == LocalId.emptyThread.rawValue
     }
 
-    public func setAttachmentButtonsVisibility(show: Bool) {
-        showPickerButtons = show
-    }
-
     public func canShowMuteChannelBar() -> Bool {
         (thread.type?.isChannelType == true) &&
         (thread.admin == false || thread.admin == nil) &&
-        !isInEditMessageMode
-    }
-    
-    public func disableSend() -> Bool {
-        thread.disableSend && isInEditMessageMode == false && !canShowMuteChannelBar()
+        !(mode.type == .edit)
     }
 
-    public func showSendButton() -> Bool {
+    public func showSendButton(mode: SendcContainerMode) -> Bool {
         !isTextEmpty() ||
-        viewModel?.attachmentsViewModel.attachments.count ?? 0 > 0 ||
-        hasForward()
+        mode.attachmentsCount > 0 ||
+        hasForward() ||
+        mode.type == .edit // when we add a peice of text to an empty image we should be able to show send button eventhough it's empty
     }
 
     private func hasForward() -> Bool {
         AppState.shared.appStateNavigationModel.forwardMessageRequest != nil
     }
-
-    public func showCamera() -> Bool {
-        isTextEmpty() && isVideoRecordingSelected
+    
+    public func showCamera(mode: SendcContainerMode) -> Bool {
+        mode.type == .video && !showSendButton(mode: mode)
     }
-
-    public func showAudio() -> Bool {
-        isTextEmpty() && !isVideoRecordingSelected && isVoice() && !hasForward()
+    
+    public func showAudio(mode: SendcContainerMode) -> Bool {
+        mode.type == .voice && !showSendButton(mode: mode)
     }
-
-    public func isVoice() -> Bool {
-        viewModel?.attachmentsViewModel.attachments.count == 0
+    
+    public func disableButtonPicker(mode: SendcContainerMode) -> Bool {
+        mode.type == .edit
     }
-
-    public func showRecordingView() -> Bool {
-        viewModel?.audioRecoderVM.isRecording == true || viewModel?.audioRecoderVM.recordingOutputPath != nil
+    
+    public func setEditText(_ message: HistoryMessageType?) {
+        guard
+            let message = message as? Message,
+            let text = message.message
+        else { return }
+        let isFirstRTL = isFirstCharacterRTL(string: text)
+        onEditMessageChanged(message)
+        onTextMessageChanged(message.message ?? "")
+        textMessage = isFirstRTL ? "\(RTLMarker)\(text)" : text
+        onTextChanged?(textMessage)
+    }
+    
+    private func isFirstCharacterRTL(string: String) -> Bool {
+        guard let char = string.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
+        return char.isEnglishCharacter == false
     }
 }

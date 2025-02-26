@@ -10,6 +10,7 @@ import Chat
 import Combine
 import TalkModels
 
+@MainActor
 public class P2PConversationBuilder {
     private let id: String = "CREATE-P2P-\(UUID().uuidString)"
     private var cancelable: Set<AnyCancellable> = []
@@ -24,7 +25,9 @@ public class P2PConversationBuilder {
         self.completion = completion
         let req = CreateThreadRequest(invitees: [invitee], title: "", type: StrictThreadTypeCreation.p2p.threadType)
         RequestsManager.shared.append(prepend: id, value: req)
-        ChatManager.activeInstance?.conversation.create(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.create(req)
+        }
     }
 
     public func create(coreUserId: Int, completion: CompletionHandler? = nil) {

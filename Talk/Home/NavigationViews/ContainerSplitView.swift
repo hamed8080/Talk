@@ -86,19 +86,6 @@ struct NavigationTypeView: View {
             UIKitThreadViewWrapper(threadVM: viewModel.viewModel)
                 .ignoresSafeArea(.all)
                 .navigationBarHidden(true)
-//                ThreadView(viewModel: viewModel, threadsVM: container.threadsVM)
-//                    .id(conversation.id) /// Needs to set here not inside the ThreadView to force Stack call onAppear when user clicks on another thread on ThreadRow
-//                    .environmentObject(container.appOverlayVM)
-//                    .environmentObject(viewModel)
-//                    .environmentObject(container.threadsVM)
-//                    .environmentObject(viewModel.audioRecoderVM)
-//                    .environmentObject(viewModel.sendContainerViewModel)
-//                    .environmentObject(viewModel.attachmentsViewModel)
-//                    .environmentObject(viewModel.searchedMessagesViewModel)
-//                    .environmentObject(viewModel.scrollVM)
-//                    .environmentObject(viewModel.historyVM)
-//                    .environmentObject(viewModel.uploadMessagesViewModel)
-//                    .environmentObject(viewModel.unssetMessagesViewModel)
         case .preference(_):
             PreferenceView()
                 .environmentObject(container.appOverlayVM)
@@ -118,7 +105,7 @@ struct NavigationTypeView: View {
         case .support(_):
             SupportView()
         case .archives(_):
-            ArchivesView(container: container)
+            ArchivesView()
                 .environmentObject(container.archivesVM)
         case .messageParticipantsSeen(let model):
             MessageParticipantsSeen(message: model.message)
@@ -129,10 +116,14 @@ struct NavigationTypeView: View {
             EditProfileView()
         case .loadTests(_):
             LoadTestsView()
+        case .manageConnection(_):
+            ManuallyConnectionManagerView()
         case .threadDetail(let model):
             ThreadDetailView()
                 .id(model.viewModel.thread?.id)
                 .environmentObject(model.viewModel)
+        case .manageSessions(_):
+            ManageSessionsView()
         }
     }
 }

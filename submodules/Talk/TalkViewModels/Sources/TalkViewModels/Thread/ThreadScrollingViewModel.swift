@@ -1,15 +1,12 @@
 //
 //  ThreadScrollingViewModel.swift
+//  TalkViewModels
 //
-//
-//  Created by hamed on 12/24/23.
+//  Created by Hamed Hosseini on 11/23/21.
 //
 
 import Chat
 import Foundation
-import ChatModels
-import ChatDTO
-import ChatCore
 import UIKit
 import TalkModels
 
@@ -19,9 +16,10 @@ public actor DeceleratingBackgroundActor {}
     public static var shared = DeceleratingBackgroundActor()
 }
 
+@MainActor
 public final class ThreadScrollingViewModel {
     var task: Task<(), Never>?
-    public var isProgramaticallyScroll: Bool = false
+    private var isProgramaticallyScroll: Bool = false
     @HistoryActor public var scrollingUP = false
     public weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1)}
@@ -51,7 +49,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: any HistoryMessageProtocol) async {
+    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) async {
         if isAtBottomOfTheList || message.isMe(currentUserId: AppState.shared.user?.id), let uniqueId = message.uniqueId {
             disableExcessiveLoading()
             scrollTo(uniqueId, animate: true)
@@ -60,14 +58,14 @@ public final class ThreadScrollingViewModel {
 
     @HistoryActor
     public func scrollToLastMessageOnlyIfIsAtBottom() async {
-        let message = lastMessageOrLastUploadingMessage()
-        if isAtBottomOfTheList, let uniqueId = message?.uniqueId {
-            disableExcessiveLoading()
-            scrollTo(uniqueId, animate: true)
+        let message = await lastMessageOrLastUploadingMessage()
+        if await isAtBottomOfTheList, let uniqueId = message?.uniqueId {
+            await disableExcessiveLoading()
+            await scrollTo(uniqueId, animate: true)
         }
     }
 
-    public func lastMessageOrLastUploadingMessage() -> (any HistoryMessageProtocol)? {
+    public func lastMessageOrLastUploadingMessage() -> HistoryMessageType? {
         let hasUploadMessages = viewModel?.uploadMessagesViewModel.hasAnyUploadMessage() ?? false
         if hasUploadMessages {
             return viewModel?.uploadMessagesViewModel.lastUploadingViewModel()?.message
@@ -80,19 +78,28 @@ public final class ThreadScrollingViewModel {
         disableExcessiveLoading()
         viewModel?.delegate?.scrollTo(index: indexPath, position: .top, animate: true)
     }
-
+    
     public func disableExcessiveLoading() {
-        task = Task { [weak self] in
-            await MainActor.run { [weak self] in
-                guard let self = self else { return }
-                isProgramaticallyScroll = true
-            }
+        task = Task.detached { [weak self] in
+            await self?.setIsProgramaticallyScrolling(true)
             try? await Task.sleep(for: .seconds(1))
-            await MainActor.run { [weak self] in
-                guard let self = self else { return }
-                isProgramaticallyScroll = false
-            }
+            await self?.setIsProgramaticallyScrolling(false)
         }
+    }
+
+    public func setIsProgramaticallyScrolling(_ newValue: Bool) async {
+        self.isProgramaticallyScroll = newValue
+    }
+    
+    @MainActor
+    public func getIsProgramaticallyScrolling() -> Bool {
+        return isProgramaticallyScroll
+    }
+    
+    @HistoryActor
+    public func getIsProgramaticallyScrollingHistoryActor() async -> Bool {
+        let isProgramaticallyScroll = await isProgramaticallyScroll
+        return isProgramaticallyScroll
     }
 
     public func cancelTask() {

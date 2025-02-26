@@ -3,7 +3,7 @@
 <img src="https://github.com/hamed8080/Talk/raw/main/images/icon.png" width="64" height="64">
 <br />
 
-<img src="https://github.com/hamed8080/Talk/raw/main/images/main.png"  width="640" height="480">
+<img src="https://github.com/hamed8080/Talk/raw/main/images/main.png"  width="256" height="555">
 <br />
 
 ## Features

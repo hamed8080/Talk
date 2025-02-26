@@ -26,6 +26,7 @@ class UIReactionsPickerScrollView: UIView {
     private var isInExapndMode = false
     private var rows: [ExpandORStickerRow] = []
     private var numberOfReactionsInRow: CGFloat { isInExapndMode ? 6 : 5 }
+    public var onExpandModeChanged: ((Bool) -> Void)?
 
     enum Section {
         case main
@@ -135,10 +136,8 @@ class UIReactionsPickerScrollView: UIView {
         var snapshot = NSDiffableDataSourceSnapshot<Section, ExpandORStickerRow>()
         snapshot.appendSections([.main])
 
+        onExpandModeChanged?(expandMode)
         if isInExapndMode {
-            UIView.animate(withDuration: 0.25, delay: 0.0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.1) {
-                self.frame.size.height = self.expandHeight()
-            }
             rows.removeAll()
         }
 
@@ -164,7 +163,7 @@ class UIReactionsPickerScrollView: UIView {
 
     }
 
-    private func expandHeight() -> CGFloat {
+    public func expandHeight() -> CGFloat {
         return ceil((CGFloat(allowedReactions().count) / numberOfReactionsInRow)) * size
     }
 
@@ -193,8 +192,9 @@ extension UIReactionsPickerScrollView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let row = rows[indexPath.row]
         if let viewModel = viewModel, let messageId = viewModel.message.id, let sticker = row.sticker {
-            viewModel.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId)
-            if let indexPath = viewModel.threadVM?.historyVM.sections.indexPath(for: viewModel) {
+            let myRow = viewModel.reactionsModel.rows.first(where: {$0.isMyReaction})
+            viewModel.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
+            if let indexPath = viewModel.threadVM?.historyVM.sectionsHolder.sections.indexPath(for: viewModel) {
                 viewModel.threadVM?.delegate?.dismissContextMenu(indexPath: indexPath)
             }
         } else if row.expandButton {

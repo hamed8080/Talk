@@ -12,7 +12,8 @@ import SwiftUI
 import TalkModels
 import TalkExtensions
 
-public final class ParticipantDetailViewModel: ObservableObject, Hashable {
+@MainActor
+public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency Hashable {
     public static func == (lhs: ParticipantDetailViewModel, rhs: ParticipantDetailViewModel) -> Bool {
         lhs.participant.id == rhs.participant.id
     }
@@ -96,10 +97,14 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
         let blockReq = BlockRequest(contactId: participant.contactId, userId: participant.coreUserId)
         if participant.blocked == true {
             RequestsManager.shared.append(value: unblcokReq)
-            ChatManager.activeInstance?.contact.unBlock(unblcokReq)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.contact.unBlock(unblcokReq)
+            }
         } else {
             RequestsManager.shared.append(value: blockReq)
-            ChatManager.activeInstance?.contact.block(blockReq)
+            Task { @ChatGlobalActor in
+                ChatManager.activeInstance?.contact.block(blockReq)
+            }
         }
     }
 
@@ -173,7 +178,9 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
         }
         guard let req = req else { return }
         RequestsManager.shared.append(prepend: P2P_PARTNER_CONTACT_KEY, value: req)
-        ChatManager.activeInstance?.contact.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.get(req)
+        }
     }
 
     private func onP2PConatct(_ response: ChatResponse<[Contact]>) {
@@ -191,7 +198,9 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
             .init(cellphoneNumber: contactValue, email: nil, firstName: firstName, lastName: lastName, ownerId: nil) :
             .init(email: nil, firstName: firstName, lastName: lastName, ownerId: nil, username: contactValue)
         RequestsManager.shared.append(prepend: PARTICIPANT_EDIT_CONTACT_KEY, value: req)
-        ChatManager.activeInstance?.contact.add(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.contact.add(req)
+        }
     }
 
     public func cancelObservers() {
@@ -200,8 +209,10 @@ public final class ParticipantDetailViewModel: ObservableObject, Hashable {
         }
     }
 
+#if DEBUG
     deinit {
         print("deinit ParticipantDetailViewModel")
     }
+#endif
 }
 

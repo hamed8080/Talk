@@ -72,7 +72,7 @@ private struct UITextViewWrapper: UIViewRepresentable {
         }
     }
 
-    private func sizeForString(_ str : NSAttributedString, width : CGFloat) async -> CGSize {
+    nonisolated private func sizeForString(_ str : NSAttributedString, width : CGFloat) -> CGSize {
         let ts = NSTextStorage(attributedString: str)
 
         let size = CGSize(width: width, height: .greatestFiniteMagnitude)
@@ -91,7 +91,7 @@ private struct UITextViewWrapper: UIViewRepresentable {
         return rect.size
     }
 
-    private func attributes(string: String) -> NSAttributedString {
+    nonisolated private func attributes(string: String) -> NSAttributedString {
         let mutableAttr = NSMutableAttributedString(string: string)
         let attributes = [NSAttributedString.Key.font: font!]
         let allRange = NSRange(mutableAttr.string.startIndex..., in: mutableAttr.string)
@@ -205,22 +205,23 @@ public struct MultilineTextField: View {
 
 #if DEBUG
     struct MultilineTextField_Previews: PreviewProvider {
-        static var test: String = "" // some very very very long description string to be initially wider than screen"
-        static var testBinding = Binding<String>(get: { test }, set: {
-            test = $0
-        })
+        private struct Preview: View {
+            @State private var test: String = ""
+            
+            var body: some View {
+                VStack(alignment: .leading) {
+                    Text("Description:")
+                    MultilineTextField("Enter some text here", text: $test, keyboardReturnType: .search, onDone: { _ in })
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.App.textPrimary))
+                    Text("Something static here...")
+                    Spacer()
+                }
+                .padding()
+            }
+        }
 
         static var previews: some View {
-            VStack(alignment: .leading) {
-                Text("Description:")
-                MultilineTextField("Enter some text here", text: testBinding, keyboardReturnType: .search, onDone: { _ in
-                })
-                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.App.textPrimary))
-                Text("Something static here...")
-                Spacer()
-            }
-//        .preferredColorScheme(.dark)
-            .padding()
+            Preview()
         }
     }
 #endif

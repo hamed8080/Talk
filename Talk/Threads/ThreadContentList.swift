@@ -9,24 +9,28 @@ import Chat
 import SwiftUI
 import TalkUI
 import TalkViewModels
+import TalkModels
 
 struct ThreadContentList: View {
+    static var count = 0
     let container: ObjectsContainer
     @EnvironmentObject var threadsVM: ThreadsViewModel
     private var sheetBinding: Binding<Bool> { Binding(get: { threadsVM.sheetType != nil }, set: { _ in }) }
+    @State private var twoRowTappedAtSameTime = false
 
     var body: some View {
         List {
             ForEach(threadsVM.threads) { thread in
-                ThreadRow(thread: thread) {
-                    AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread)
+                ThreadRow() {
+                    onTap(thread)
                 }
+                .environmentObject(thread)
                 .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 8))
                 .listRowSeparatorTint(Color.App.dividerSecondary)
-                .listRowBackground(ThreadListRowBackground(thread: thread))
+                .listRowBackground(ThreadListRowBackground().environmentObject(thread))
                 .onAppear {
                     Task {
-                        await threadsVM.loadMore(id: thread.id)                        
+                        await threadsVM.loadMore(id: thread.id)
                     }
                 }
             }
@@ -51,13 +55,24 @@ struct ThreadContentList: View {
         }
     }
 
-
     private var loadingView: some View {
         ListLoadingView(isLoading: .constant(threadsVM.lazyList.isLoading && threadsVM.firstSuccessResponse == true))
             .id(UUID())
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(.zero)
+    }
+    
+    private func onTap(_ thread: CalculatedConversation) {
+        if !twoRowTappedAtSameTime {
+            twoRowTappedAtSameTime = true
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
+                twoRowTappedAtSameTime = false
+            }
+            /// to update isSeleted for bar and background color
+            threadsVM.setSelected(for: thread.id ?? -1, selected: true)
+            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread.toStruct())
+        }
     }
 }
 
@@ -72,7 +87,9 @@ private struct Preview: View {
                 .environmentObject(container.threadsVM)
                 .environmentObject(AppState.shared)
                 .task {
-                    await container.threadsVM.appendThreads(threads: MockData.generateThreads(count: 5))
+                    for thread in MockData.generateThreads(count: 5) {
+                        await container.threadsVM.calculateAppendSortAnimate(thread)
+                    }
                     if let fileURL = Bundle.main.url(forResource: "new_message", withExtension: "mp3") {
                         try? container.audioPlayerVM.setup(fileURL: fileURL, ext: "mp3", title: "Note")
                         container.audioPlayerVM.toggle()

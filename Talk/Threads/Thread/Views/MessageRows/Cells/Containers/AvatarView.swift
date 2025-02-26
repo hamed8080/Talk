@@ -61,16 +61,18 @@ final class AvatarView: UIImageView {
             isUserInteractionEnabled = false
             setIsHidden(true)
         } else if viewModel.calMessage.isLastMessageOfTheUser {
-            if let image = avManager?.getImage(viewModel) {
-                setImage(image: image)
-            } else {
-                backgroundColor = viewModel.calMessage.avatarColor
-                image = nil
-                label.isHidden = false
-                label.text = viewModel.calMessage.avatarSplitedCharaters
+            Task {
+                if let image = await avManager?.getImage(viewModel) {
+                    setImage(image: image)
+                } else {
+                    backgroundColor = viewModel.calMessage.avatarColor
+                    image = nil
+                    label.isHidden = false
+                    label.text = viewModel.calMessage.avatarSplitedCharaters
+                }
+                isUserInteractionEnabled = true
+                setIsHidden(false)
             }
-            isUserInteractionEnabled = true
-            setIsHidden(false)
         } else if !viewModel.calMessage.isLastMessageOfTheUser {
             image = nil
             backgroundColor = nil
@@ -85,10 +87,6 @@ final class AvatarView: UIImageView {
         if isChannel { return true }
         let isInSelectMode = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == true
         return isInSelectMode || (viewModel.threadVM?.thread.group ?? false) == false
-    }
-
-    private func showAvatarOrUserName(_ viewModel: MessageRowViewModel) -> Bool {
-        viewModel.calMessage.isLastMessageOfTheUser && viewModel.calMessage.isCalculated
     }
 
     @objc func onTap(_ sender: UIGestureRecognizer) {

@@ -7,13 +7,16 @@
 
 import Chat
 import Foundation
+import TalkExtensions
 
+@MainActor
 public final class ThreadEventViewModel: ObservableObject {
     @Published public var isShowingEvent: Bool = false
     public var threadId: Int
     public var smt: SMT?
     private var lastEventTime = Date()
-    public init(threadId: Int) {
+    
+    public nonisolated init(threadId: Int) {
         self.threadId = threadId
     }
 
@@ -23,16 +26,20 @@ public final class ThreadEventViewModel: ObservableObject {
             isShowingEvent = true
             self.smt = event.smt
             setActiveThreadSubtitle()
-            Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
-                if let self = self, self.lastEventTime.advanced(by: 1) < Date() {
-                    timer.invalidate()
-                    self.isShowingEvent = false
-                    self.smt = nil
-                    setActiveThreadSubtitle()
-                }
+            Task.detached { [weak self] in
+                try? await Task.sleep(for: .seconds(1))
+                await self?.handleTimer()
             }
         } else {
             lastEventTime = Date()
+        }
+    }
+    
+    private func handleTimer() {
+        if lastEventTime.advanced(by: 1) < Date() {
+            self.isShowingEvent = false
+            self.smt = nil
+            setActiveThreadSubtitle()
         }
     }
 

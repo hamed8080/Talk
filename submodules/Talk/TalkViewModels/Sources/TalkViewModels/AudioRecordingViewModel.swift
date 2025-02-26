@@ -11,6 +11,7 @@ import Foundation
 import OSLog
 import TalkModels
 
+@MainActor
 protocol AudioRecordingViewModelprotocol: ObservableObject {
     var audioRecorder: AVAudioRecorder { get set }
     var startDate: Date { get set }
@@ -28,6 +29,7 @@ protocol AudioRecordingViewModelprotocol: ObservableObject {
     func requestPermission()
 }
 
+@MainActor
 public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
     public lazy var audioRecorder = AVAudioRecorder()
     public var startDate: Date = .init()
@@ -58,30 +60,38 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
             guard let self = self else { return }
-            self.timerString = self.startDate.distance(to: Date()).timerString(locale: Language.preferredLocale) ?? ""
+            Task { @MainActor in
+                self.timerString = self.startDate.distance(to: Date()).timerString(locale: Language.preferredLocale) ?? ""
+            }
         }
         recordingFileName = "Voice-\(Date().fileDateString).wav"
         recordingOutputPath = recordingOutputBasePath?.appendingPathComponent(recordingFileName)
         guard let url = recordingOutputPath else { return }
         deleteFile()
         do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord)
-            try session.setActive(true)
-
-            let settings = [
-                AVFormatIDKey: Int(kAudioFormatLinearPCM),
-                AVSampleRateKey: 44100,
-                AVNumberOfChannelsKey: 2,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
-            ]
-            audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-            audioRecorder.record()
+            Task { [self] in
+                await try activateSession()
+                let settings = [
+                    AVFormatIDKey: Int(kAudioFormatLinearPCM),
+                    AVSampleRateKey: 44100,
+                    AVNumberOfChannelsKey: 2,
+                    AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+                ]
+                audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+                audioRecorder.record()
+            }
         } catch {
             stop()
         }
     }
-
+    
+    @AppBackgroundActor
+    private func activateSession() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playAndRecord)
+        try session.setActive(true)
+    }
+    
     public func stop() {
         isRecording = false
         audioRecorder.stop()
@@ -108,7 +118,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
             let recordingSession = AVAudioSession.sharedInstance()
             try recordingSession.setCategory(.playAndRecord, mode: .default)
             try recordingSession.setActive(true)
-            recordingSession.requestRecordPermission { granted in
+            recordingSession.requestRecordPermission { @Sendable granted in
                 Task { [weak self] in
                     await self?.onPermission(granted: granted)
                 }

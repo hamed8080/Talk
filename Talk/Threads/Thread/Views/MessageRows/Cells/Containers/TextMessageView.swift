@@ -47,22 +47,14 @@ final class TextMessageView: UITextView {
         backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         self.viewModel = viewModel
         setText(viewModel: viewModel)
-    }
-
-    @objc func onTapJoinGroup(_ sender: UIGestureRecognizer) {
-        if let message = viewModel?.message {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(message: message))
+        if let textRange = textRange(from: beginningOfDocument, to: endOfDocument) {
+            setBaseWritingDirection(.rightToLeft, for: textRange)
         }
     }
 
     public func setText(viewModel: MessageRowViewModel) {
         let hide = viewModel.calMessage.rowType.hasText == false && viewModel.calMessage.rowType.isPublicLink == false
         setIsHidden(hide)
-
-        if viewModel.calMessage.rowType.isPublicLink == true {
-            let tap = UITapGestureRecognizer(target: self, action: #selector(onTapJoinGroup(_:)))
-            addGestureRecognizer(tap)
-        }
     }
 
     // Inside a UITextView subclass:

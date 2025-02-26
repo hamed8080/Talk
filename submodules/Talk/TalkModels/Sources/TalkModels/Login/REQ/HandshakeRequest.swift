@@ -1,4 +1,4 @@
-public struct HandshakeRequest: Encodable {
+public struct HandshakeRequest: Encodable, Sendable {
     public let deviceName: String
     public let deviceOs: String
     public let deviceOsVersion: String

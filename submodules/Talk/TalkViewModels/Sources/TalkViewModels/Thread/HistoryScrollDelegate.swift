@@ -8,8 +8,10 @@
 import Foundation
 import UIKit
 import TalkModels
+import Chat
 
-public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate {
+@MainActor
+public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable {
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool)
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool)
     func reload()
@@ -17,10 +19,8 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate {
     // Reload data only not the cell
     func reloadData(at: IndexPath)
     func inserted(at: IndexPath)
-    func inserted(at: [IndexPath])
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate :UITableView.RowAnimation, _ scrollTo: IndexPath?)
-    func removed(at: IndexPath)
-    func removed(at: [IndexPath])
+    func delete(sections: [IndexSet], rows: [IndexPath])
     func moveRow(at: IndexPath, to: IndexPath)
     func edited(_ indexPath: IndexPath)
     func pinChanged(_ indexPath: IndexPath)
@@ -34,46 +34,54 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate {
     func uploadCompleted(at: IndexPath, viewModel: MessageRowViewModel)
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool)
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath])
-    func onScenario()
+    func showMoveToButtom(show: Bool)
+    func reactionDeleted(indexPath: IndexPath, reaction: Reaction)
+    func reactionAdded(indexPath: IndexPath, reaction: Reaction)
+    func reactionReplaced(indexPath: IndexPath, reaction: Reaction)
 }
 
+@MainActor
 public protocol HistoryEmptyDelegate {
     func emptyStateChanged(isEmpty: Bool)
 }
 
+@MainActor
 public protocol UnreadCountDelegate {
     func onUnreadCountChanged()
 }
 
+@MainActor
 public protocol ChangeUnreadMentionsDelegate {
     func onChangeUnreadMentions()
 }
 
+@MainActor
 public protocol ChangeSelectionDelegate {
+    func setTableRowSelected(_ indexPath: IndexPath)
     func setSelection(_ value: Bool)
     func updateSelectionView()
 }
 
+@MainActor
 public protocol LastMessageAppearedDelegate {
     func lastMessageAppeared(_ appeared: Bool)
 }
 
+@MainActor
 public protocol SheetsDelegate {
     func openForwardPicker()
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?)
     func openMoveToDatePicker()
 }
 
+@MainActor
 public protocol BottomToolbarDelegate {
     func showMainButtons(_ show: Bool)
     func showSelectionBar(_ show: Bool)
     func showRecording(_ show: Bool)
     func showPickerButtons(_ show: Bool)
-    func showSendButton(_ show: Bool)
-    func showMicButton(_ show: Bool)
-    func onItemsPicked()
-    func openEditMode(_ message: (any HistoryMessageProtocol)?)
-    func openReplyMode(_ message: (any HistoryMessageProtocol)?)
+    func openEditMode(_ message: HistoryMessageType?)
+    func openReplyMode(_ message: HistoryMessageType?)
     func focusOnTextView(focus: Bool)
     func showForwardPlaceholder(show: Bool)
     func showReplyPrivatelyPlaceholder(show: Bool)
@@ -81,20 +89,24 @@ public protocol BottomToolbarDelegate {
     func muteChanged()
 }
 
+@MainActor
 public protocol LoadingDelegate {
     func startTopAnimation(_ animate: Bool)
     func startCenterAnimation(_ animate: Bool)
     func startBottomAnimation(_ animate: Bool)
 }
 
+@MainActor
 public protocol MentionList {
     func onMentionListUpdated()
 }
 
+@MainActor
 public protocol AvatarDelegate {
     func updateAvatar(image: UIImage, participantId: Int)
 }
 
+@MainActor
 public protocol TopToolbarDelegate {
     func updateTitleTo(_ title: String?)
     func updateSubtitleTo(_ subtitle: String?)
@@ -103,5 +115,6 @@ public protocol TopToolbarDelegate {
     func onUpdatePinMessage()
 }
 
+@MainActor
 public protocol ThreadViewDelegate: AnyObject, UnreadCountDelegate, ChangeUnreadMentionsDelegate, ChangeSelectionDelegate, LastMessageAppearedDelegate, SheetsDelegate, HistoryScrollDelegate, LoadingDelegate, MentionList, AvatarDelegate, BottomToolbarDelegate, TopToolbarDelegate, ContextMenuDelegate {
 }

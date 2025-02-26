@@ -12,6 +12,7 @@ import TalkExtensions
 import TalkModels
 import OSLog
 
+@MainActor
 public final class ThreadSendMessageViewModel {
     private weak var viewModel: ThreadViewModel?
     private var creator: P2PConversationBuilder?
@@ -22,13 +23,14 @@ public final class ThreadSendMessageViewModel {
     private var uplVM: ThreadUploadMessagesViewModel { viewModel?.uploadMessagesViewModel ?? .init() }
     private var sendVM: SendContainerViewModel { viewModel?.sendContainerViewModel ?? .init() }
     private var selectVM: ThreadSelectedMessagesViewModel { viewModel?.selectedMessagesViewModel ?? .init() }
+    private var appState: AppState { AppState.shared }
     private var navModel: AppStateNavigationModel {
-        get {
-            return AppState.shared.appStateNavigationModel
-        } set {
-            AppState.shared.appStateNavigationModel = newValue
-        }
+        get { appState.appStateNavigationModel }
+        set { appState.appStateNavigationModel = newValue }
     }
+    private var delegate: ThreadViewDelegate? { viewModel?.delegate }
+    private var historyVM: ThreadHistoryViewModel? { viewModel?.historyVM }
+    
     private var recorderVM: AudioRecordingViewModel { viewModel?.audioRecoderVM ?? .init() }
     private var model = SendMessageModel(threadId: -1)
 
@@ -39,31 +41,33 @@ public final class ThreadSendMessageViewModel {
     }
 
     /// It triggers when send button tapped
-    @MainActor
     public func sendTextMessage() async {
         if isOriginForwardThread() { return }
         model = makeModel()
-        if navModel.forwardMessageRequest?.threadId == threadId {
+        switch true {
+        case navModel.forwardMessageRequest?.threadId == threadId:
             sendForwardMessages()
-        } else if navModel.replyPrivately != nil {
+        case navModel.replyPrivately != nil:
             sendReplyPrivatelyMessage()
-        } else if let replyMessage = viewModel?.replyMessage, let replyMessageId = replyMessage.id {
-            sendReplyMessage(replyMessageId)
-        } else if sendVM.isInEditMessageMode {
+        case viewModel?.replyMessage != nil:
+            sendReplyMessage()
+        case sendVM.mode.type == .edit:
             sendEditMessage()
-        } else if attVM.attachments.count > 0 {
+        case attVM.attachments.count > 0:
             sendAttachmentsMessage()
-        } else if recorderVM.recordingOutputPath != nil {
+        case recorderVM.recordingOutputPath != nil:
             sendAudiorecording()
-        } else {
+        default:
             sendNormalMessage()
         }
-
-        Task { @HistoryActor [weak self] in
-            self?.viewModel?.historyVM.seenVM?.sendSeenForAllUnreadMessages()
-        }
+        
+        finalizeMessageSending()
+    }
+    
+    private func finalizeMessageSending() {
+        historyVM?.seenVM?.sendSeenForAllUnreadMessages()
         viewModel?.mentionListPickerViewModel.text = ""
-        sendVM.clear() // close ui
+        sendVM.clear() // close UI
     }
 
     private func isOriginForwardThread() -> Bool {
@@ -71,106 +75,107 @@ public final class ThreadSendMessageViewModel {
     }
 
     public func sendAttachmentsMessage() {
-        let attchments = attVM.attachments
-        let type = attchments.map{$0.type}.first
-        let images = attchments.compactMap({$0.request as? ImageItem})
-        let urls = attchments.compactMap({$0.request as? URL})
-        let location = attchments.first(where: {$0.type == .map})?.request as? LocationItem
-        let dropItems = attchments.compactMap({$0.request as? DropItem})
-        if type == .gallery {
-            sendPhotos(images)
-        } else if type == .file {
-            sendFiles(urls)
-        } else if type == .contact {
-            // TODO: It should be implemented whenever the server side is ready.
-        } else if type == .map, let item = location {
-            sendLocation(item)
-        } else if type == .drop {
-            sendDropFiles(dropItems)
+        let attachments = attVM.attachments
+
+        if let type = attachments.first?.type {
+            switch type {
+            case .gallery:
+                sendPhotos(attachments.compactMap({$0.request as? ImageItem}))
+            case .file:
+                sendFiles(attachments.compactMap({$0.request as? URL}))
+            case .drop:
+                sendDropFiles(attachments.compactMap({$0.request as? DropItem}))
+            case .map:
+                if let location = attachments.first(where: { $0.type == .map })?.request as? LocationItem { sendLocation(location) }
+            case .contact:
+                // TODO: Implement when server is ready.
+                break
+            }
         }
     }
 
-    public func sendReplyMessage(_ replyMessageId: Int) {
-        if attVM.attachments.count == 1 {
-            sendSingleReplyAttachment(attVM.attachments.first, replyMessageId)
-        } else {
-            if attVM.attachments.count > 1 {
-                let lastItem = attVM.attachments.last
-                if let lastItem {
-                    attVM.remove(lastItem)
-                }
-                sendAttachmentsMessage()
-                sendSingleReplyAttachment(lastItem, replyMessageId)
-            } else {
-                let req = ReplyMessageRequest(model: model)
-                ChatManager.activeInstance?.message.reply(req)
+    public func sendReplyMessage() {
+        var uploads = uploadMesasages(isReplyRequest: true)
+        
+        /// Set ReplyInfo before upload to show when we are uploading
+        if let replyMessage = viewModel?.replyMessage {
+            for index in uploads.indices {
+                uploads[index].replyInfo = replyMessage.toReplyInfo
             }
         }
+                
+        if !uploads.isEmpty {
+            /// Append to the messages list while uploading
+            uplVM.append(uploads)
+        } else {
+            send(.reply(ReplyMessageRequest(model: model)))
+        }
+                
+        /// Close Reply UI after reply
+        delegate?.openReplyMode(nil)
+        
+        /// Clean up and delete file at voicePath
+        recorderVM.cancel()
+        
         attVM.clear()
         viewModel?.replyMessage = nil
     }
-
-    public func sendSingleReplyAttachment(_ attachmentFile: AttachmentFile?, _ replyMessageId: Int) {
-        var req = ReplyMessageRequest(model: model)
-        if let imageItem = attachmentFile?.request as? ImageItem {
-            let imageReq = UploadImageRequest(imageItem: imageItem, thread.userGroupHash)
-            req.messageType = .podSpacePicture
-            ChatManager.activeInstance?.message.reply(req, imageReq)
-        } else if let url = attachmentFile?.request as? URL, let fileReq = UploadFileRequest(url: url, thread.userGroupHash) {
-            req.messageType = .podSpaceFile
-            ChatManager.activeInstance?.message.reply(req, fileReq)
-        }
-    }
-
+    
     public func sendReplyPrivatelyMessage() {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self else { return }
-            if attVM.attachments.count == 1, let first = attVM.attachments.first {
-                sendSingleReplyPrivatelyAttachment(first)
-            } else if attVM.attachments.count > 1 {
-                sendMultipleAttachemntWithReplyPrivately()
-            } else if recorderVM.recordingOutputPath != nil {
-                sendReplyPrivatelyWithVoice()
-            } else {
-                sendTextOnlyReplyPrivately()
+            
+            var uploads = uploadMesasages(isReplyPrivatelyRequest: true)
+            
+            /// Set ReplyInfo and inner replyPrivatelyInfo before upload to show when we are uploading
+            if let replyMessage = navModel.replyPrivately {
+                for index in uploads.indices {
+                    uploads[index].replyInfo = replyMessage.toReplyInfo
+                }
             }
+           
+            if !uploads.isEmpty {
+                /// Append to the messages list while uploading
+                uplVM.append(uploads)
+            } else {
+                guard let req = ReplyPrivatelyRequest(model: model) else { return }
+                send(.replyPrivately(req))
+            }
+            
+            /// Clean up and delete file at voicePath
+            recorderVM.cancel()
+            
             attVM.clear()
             navModel = .init()
-            viewModel?.delegate?.showReplyPrivatelyPlaceholder(show: false)
+            viewModel?.replyMessage = nil
+            /// Close Reply UI after reply
+            delegate?.showReplyPrivatelyPlaceholder(show: false)
         }
     }
-
-    private func sendMultipleAttachemntWithReplyPrivately() {
-        if let lastItem = attVM.attachments.last {
-            attVM.remove(lastItem)
-            sendAttachmentsMessage()
-            sendSingleReplyPrivatelyAttachment(lastItem)
+    
+    private func uploadMesasages (isReplyRequest: Bool = false, isReplyPrivatelyRequest: Bool = false) -> [UploadFileMessage] {
+        let attachments = attVM.attachments
+        let images = attachments.compactMap({$0.request as? ImageItem})
+        let files = attachments.filter{ !($0.request is ImageItem) }.compactMap({$0.request as? URL})
+        
+        var uploads: [UploadFileMessage] = []
+        
+        /// Convert recoreded voice to UploadFileMessage
+        if let voicePath = recorderVM.recordingOutputPath {
+            uploads += [UploadFileMessage(audioFileURL: recorderVM.recordingOutputPath, model: model,isReplyRequest: isReplyRequest, isReplyPrivatelyRequest: isReplyPrivatelyRequest)].compactMap({$0})
         }
-    }
-
-    private func sendTextOnlyReplyPrivately() {
-        if let req = ReplyPrivatelyRequest(model: model) {
-            ChatManager.activeInstance?.message.replyPrivately(req)
-        }
-    }
-
-    private func sendSingleReplyPrivatelyAttachment(_ attachmentFile: AttachmentFile) {
-        if let imageItem = attachmentFile.request as? ImageItem, let message = UploadFileWithReplyPrivatelyMessage.make(imageItem: imageItem, model: model) {
-            uplVM.append([message])
-        } else if let message = UploadFileWithReplyPrivatelyMessage.make(attachmentFile: attachmentFile, model: model) {
-            uplVM.append([message])
-        }
-    }
-
-    private func sendReplyPrivatelyWithVoice() {
-        if let message = UploadFileWithReplyPrivatelyMessage.make(voiceURL: recorderVM.recordingOutputPath, model: model) {
-            uplVM.append([message])
-            recorderVM.cancel()
-        }
+        
+        /// Convert all images to UploadFileMessage with replyRequest
+        uploads += images.compactMap({ UploadFileMessage(imageItem: $0, model: model, isReplyRequest: isReplyRequest, isReplyPrivatelyRequest: isReplyPrivatelyRequest) })
+        
+        /// Convert all file URL to UploadFileMessage with replyRequest
+        uploads += files.compactMap({ UploadFileMessage(url: $0, model: model, isReplyRequest: isReplyRequest, isReplyPrivatelyRequest: isReplyPrivatelyRequest) })
+           
+        return uploads
     }
 
     private func sendAudiorecording() {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self,
                   let request = UploadFileMessage(audioFileURL: recorderVM.recordingOutputPath, model: model)
             else { return }
@@ -180,35 +185,40 @@ public final class ThreadSendMessageViewModel {
     }
 
     private func sendNormalMessage() {
-        send {
+        createConversationIfNeeded {
             Task { [weak self] in
                 guard let self = self else { return }
-                let tuple = Message.makeRequest(model: model)
-                let historyVM = viewModel?.historyVM
-                await historyVM?.injectMessagesAndSort([tuple.message])
-                let lastSectionIndex = max(0, (historyVM?.sections.count ?? 0) - 1)
-                let row = max((historyVM?.sections[lastSectionIndex].vms.count ?? 0) - 1, 0)
+                let (message, request) = Message.makeRequest(model: model)
+                await historyVM?.injectMessagesAndSort([message])
+                let lastSectionIndex = max(0, (historyVM?.sectionsHolder.sections.count ?? 0) - 1)
+                let row = max((historyVM?.sectionsHolder.sections[lastSectionIndex].vms.count ?? 0) - 1, 0)
                 let indexPath = IndexPath(row: row, section: lastSectionIndex)
-                viewModel?.delegate?.inserted(at: indexPath)
-                viewModel?.delegate?.scrollTo(index: indexPath, position: .bottom, animate: true)
-                ChatManager.activeInstance?.message.send(tuple.req)
+                delegate?.inserted(at: indexPath)
+                delegate?.scrollTo(index: indexPath, position: .bottom, animate: true)
+                send(.normal(request))
             }
         }
     }
 
     public func openDestinationConversationToForward(_ destinationConversation: Conversation?, _ contact: Contact?) {
-        sendVM.clear() /// Close edit mode in ui
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            let messages = selectVM.getSelectedMessages().compactMap{$0.message as? Message}
-            if let contact = contact {
-                AppState.shared.openForwardThread(from: threadId, contact: contact, messages: messages)
-            } else if let destinationConversation = destinationConversation {
-                AppState.shared.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
-            }
-            selectVM.clearSelection()
-            viewModel?.delegate?.setSelection(false)
+        /// Close edit mode in ui
+        sendVM.clear()
+        let messages = selectVM.getSelectedMessages().compactMap{$0.message as? Message}
+        
+        /// Check if we are forwarding to the same thread
+        if destinationConversation?.id == threadId || (contact?.userId != nil && contact?.userId == thread.partner) {
+            appState.setupForwardRequest(from: threadId, to: threadId, messages: messages)
+            delegate?.showMainButtons(true)
+            delegate?.showForwardPlaceholder(show: true)
+            /// To call the publisher and activate the send button
+            viewModel?.sendContainerViewModel.clear()
+        } else if let contact = contact {
+            appState.openForwardThread(from: threadId, contact: contact, messages: messages)
+        } else if let destinationConversation = destinationConversation {
+            appState.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
         }
+        selectVM.clearSelection()
+        delegate?.setSelection(false)
     }
 
     private func sendForwardMessages() {
@@ -221,7 +231,7 @@ public final class ThreadSendMessageViewModel {
     }
 
     private func createAndSend(_ req: ForwardMessageRequest) {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self else {return}
             let req = ForwardMessageRequest(fromThreadId: req.fromThreadId, threadId: threadId, messageIds: req.messageIds)
             sendForwardMessages(req)
@@ -231,25 +241,29 @@ public final class ThreadSendMessageViewModel {
     private func sendForwardMessages(_ req: ForwardMessageRequest) {
         if !model.textMessage.isEmpty {
             let messageReq = SendTextMessageRequest(threadId: threadId, textMessage: model.textMessage, messageType: .text)
-            ChatManager.activeInstance?.message.send(messageReq)
+            send(.normal(messageReq))
         }
         Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
-            ChatManager.activeInstance?.message.send(req)
-            self?.navModel = .init()
-            self?.viewModel?.delegate?.showForwardPlaceholder(show: false)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.send(.forward(req))
+                self.navModel = .init()
+                self.delegate?.showForwardPlaceholder(show: false)
+                self.sendVM.clear()
+            }
         }
         sendAttachmentsMessage()
     }
 
     /// add a upload messge entity to bottom of the messages in the thread and then the view start sending upload image
     public func sendPhotos(_ imageItems: [ImageItem]) {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self else {return}
             var imageMessages: [UploadFileMessage] = []
             for(index, imageItem) in imageItems.filter({!$0.isVideo}).enumerated() {
                 var model = model
                 model.uploadFileIndex = index
-                let imageMessage = UploadFileMessage(imageItem: imageItem, imageModel: model)
+                let imageMessage = UploadFileMessage(imageItem: imageItem, model: model)
                 imageMessages.append(imageMessage)
             }
             uplVM.append(imageMessages)
@@ -263,7 +277,7 @@ public final class ThreadSendMessageViewModel {
         for (index, item) in viedeoItems.enumerated() {
             var model = model
             model.uploadFileIndex = index
-            let videoMessage = UploadFileMessage(videoItem: item, videoModel: model)
+            let videoMessage = UploadFileMessage(videoItem: item, model: model)
             videoMessages.append(videoMessage)
         }
         self.uplVM.append(videoMessages)
@@ -271,14 +285,14 @@ public final class ThreadSendMessageViewModel {
 
     /// add a upload messge entity to bottom of the messages in the thread and then the view start sending upload file
     public func sendFiles(_ urls: [URL]) {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self else {return}
             var fileMessages: [UploadFileMessage] = []
             for (index, url) in urls.enumerated() {
                 let isLastItem = url == urls.last || urls.count == 1
                 var model = model
                 model.uploadFileIndex = index
-                if let fileMessage = UploadFileMessage(urlItem: url, isLastItem: isLastItem, urlModel: model) {
+                if let fileMessage = UploadFileMessage(url: url, isLastItem: isLastItem, model: model) {
                     fileMessages.append(fileMessage)
                 }
             }
@@ -288,13 +302,13 @@ public final class ThreadSendMessageViewModel {
     }
 
     public func sendDropFiles(_ items: [DropItem]) {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self else {return}
             var fileMessages: [UploadFileMessage] = []
             for (index, item) in items.enumerated() {
                 var model = model
                 model.uploadFileIndex = index
-                let fileMessage = UploadFileMessage(dropItem: item, dropModel: model)
+                let fileMessage = UploadFileMessage(dropItem: item, model: model)
                 fileMessages.append(fileMessage)
             }
             self.uplVM.append(fileMessages)
@@ -305,19 +319,18 @@ public final class ThreadSendMessageViewModel {
     public func sendEditMessage() {
         guard let editMessage = sendVM.getEditMessage(), let messageId = editMessage.id else { return }
         let req = EditMessageRequest(messageId: messageId, model: model)
-        ChatManager.activeInstance?.message.edit(req)
+        send(.edit(req))
     }
 
     public func sendLocation(_ location: LocationItem) {
-        send { [weak self] in
+        createConversationIfNeeded { [weak self] in
             guard let self = self else {return}
-            let message = UploadFileWithLocationMessage(message: Message(), location: location, model: model)
-            uplVM.append([message])
+            uplVM.append([UploadFileMessage(location: location, model: model)])
             attVM.clear()
         }
     }
 
-    public func send(completion: @escaping () -> Void) {
+    public func createConversationIfNeeded(completion: @escaping () -> Void) {
         if viewModel?.isSimulatedThared == true {
             createP2PThread(completion)
         } else {
@@ -345,15 +358,40 @@ public final class ThreadSendMessageViewModel {
     }
 
     func makeModel(_ uploadFileIndex: Int? = nil) -> SendMessageModel {
-        let textMessage = sendVM.getText()
-        return SendMessageModel(textMessage: textMessage,
+        return SendMessageModel(textMessage: sendVM.getText(),
                                 replyMessage: viewModel?.replyMessage,
-                                meId: AppState.shared.user?.id,
+                                meId: appState.user?.id,
                                 conversation: thread,
                                 threadId: threadId,
                                 userGroupHash: thread.userGroupHash,
                                 uploadFileIndex: uploadFileIndex,
                                 replyPrivatelyMessage: navModel.replyPrivately
         )
+    }
+    
+    fileprivate enum SendType {
+        case normal(SendTextMessageRequest)
+        case reply(ReplyMessageRequest)
+        case replyPrivately(ReplyPrivatelyRequest)
+        case forward(ForwardMessageRequest)
+        case edit(EditMessageRequest)
+    }
+    
+    private func send(_ send: SendType) {
+        Task { @ChatGlobalActor in
+            guard let message = ChatManager.activeInstance?.message else { return }
+            switch send {
+            case .normal(let request):
+                message.send(request)
+            case .forward(let request):
+                message.send(request)
+            case .reply(let request):
+                message.reply(request)
+            case .replyPrivately(let request):
+                message.replyPrivately(request)
+            case .edit(let request):
+                message.edit(request)
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-public enum UploadFileState {
+public enum UploadFileState: Sendable {
     case completed
     case uploading
     case paused

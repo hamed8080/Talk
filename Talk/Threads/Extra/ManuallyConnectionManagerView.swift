@@ -22,6 +22,7 @@ struct ManuallyConnectionManagerView: View {
             TextField("token".bundleLocalized(), text: $token)
                 .focused($isFocused)
                 .keyboardType(.phonePad)
+                .submitLabel(.done)
                 .font(.iransansBody)
                 .padding()
                 .applyAppTextfieldStyle(topPlaceholder: "token", isFocused: isFocused) {
@@ -31,9 +32,14 @@ struct ManuallyConnectionManagerView: View {
                 Label("Recreate", systemImage: "repeat")
             }
             .tint(Color.App.accent)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+            
             VStack {
+                SubmitBottomButton(text: "Revoke Token", color: Color.App.red) {
+                    Task { @ChatGlobalActor in
+                        await ChatManager.activeInstance?.setToken(newToken: "revoked_token", reCreateObject: false)
+                    }
+                }
+                
                 SubmitBottomButton(text: "Refresh Token", color: Color.App.red) {
                     let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in ManuallyConnectionManagerView method", level: .error, type: .sent, userInfo: nil)
                     NotificationCenter.logs.post(name: .logs, object: log)
@@ -49,12 +55,19 @@ struct ManuallyConnectionManagerView: View {
                 }
 
                 SubmitBottomButton(text: "Close connections", color: Color.App.red) {
-                    ChatManager.activeInstance?.dispose()
+                    Task { @ChatGlobalActor in
+                        await ChatManager.activeInstance?.dispose()
+                    }
                 }
-
-                SubmitBottomButton(text: "Coneect", color: Color.App.color2) {
-                    ChatManager.activeInstance?.dispose()
-                    ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: recreate)
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            SubmitBottomButton(text: "Coneect", color: Color.App.color2) {
+                let recreate = recreate
+                let token = token
+                Task { @ChatGlobalActor in
+                    await ChatManager.activeInstance?.dispose()
+                    await ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: recreate)
                 }
             }
         }

@@ -17,6 +17,7 @@ final class ChatDelegateImplementation: ChatDelegate {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
     private(set) static var sharedInstance = ChatDelegateImplementation()
 
+    @MainActor
     func createChatObject() {
         if let userConfig = UserConfigManagerVM.instance.currentUserConfig, let userId = userConfig.id {
             UserConfigManagerVM.instance.createChatObjectAndConnect(userId: userId, config: userConfig.config, delegate: self)
@@ -27,7 +28,7 @@ final class ChatDelegateImplementation: ChatDelegate {
     }
 
     func chatState(state: ChatState, currentUser: User?, error _: ChatError?) {
-        Task.detached(priority: .userInitiated) {
+        Task {
             await MainActor.run {
                 NotificationCenter.connect.post(name: .connect, object: state)
                 switch state {
@@ -46,7 +47,8 @@ final class ChatDelegateImplementation: ChatDelegate {
                     self.log("🟢 chat ready Called\(String(describing: currentUser))")
                     /// Clear old requests in queue when reconnect again
                     RequestsManager.shared.clear()
-                    AppState.shared.connectionStatus = .connected
+                    AppState.shared.objectsContainer.chatRequestQueue.cancellAll()
+                    AppState.shared.connectionStatus = .connected                    
                 case .uninitialized:
                     self.log("Chat object is not initialized.")
                 }
@@ -55,26 +57,27 @@ final class ChatDelegateImplementation: ChatDelegate {
     }
 
     func chatEvent(event: ChatEventType) {
-        Task.detached(priority: .userInitiated) {
-            await MainActor.run {
-                NotificationCenter.post(event: event)
-                switch event {
-                case let .system(systemEventTypes):
-                    self.onSystemEvent(systemEventTypes)
-                case let .user(userEventTypes):
-                    self.onUserEvent(userEventTypes)
-                default:
-                    break
-                }
+        let copy = event
+        Task { @MainActor in
+            NotificationCenter.post(event: copy)
+            switch event {
+            case let .system(systemEventTypes):
+                self.onSystemEvent(systemEventTypes)
+            case let .user(userEventTypes):
+                self.onUserEvent(userEventTypes)
+            default:
+                break
             }
         }
     }
 
+    @MainActor
     private func onUserEvent(_ event: UserEventTypes) {
         switch event {
         case let .user(response):
             if let user = response.result {
                 UserConfigManagerVM.instance.onUser(user)
+                AppState.shared.updateUserCache()
             }
         default:
             break
@@ -90,7 +93,7 @@ final class ChatDelegateImplementation: ChatDelegate {
         }
     }
 
-    private func onError(_ response: ChatResponse<Any>) {
+    private func onError(_ response: ChatResponse<Sendable>) {
         Task.detached(priority: .userInitiated) {
             await MainActor.run {
                 NotificationCenter.error.post(name: .error, object: response)
@@ -103,7 +106,9 @@ final class ChatDelegateImplementation: ChatDelegate {
             tryRefreshToken()
         } else {
             if response.isPresentable {
-                AppState.shared.animateAndShowError(error)
+                Task { @MainActor in
+                    AppState.shared.animateAndShowError(error)
+                }
             }
         }
     }
@@ -112,7 +117,8 @@ final class ChatDelegateImplementation: ChatDelegate {
         Task { @MainActor in
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
-                AppState.shared.connectionStatus = EnvironmentValues.isTalkTest ? .unauthorized : .connecting
+                // If the chat was connected and we refresh token during 10 seconds period successfully, it means we are still connected to the server so the sate is connected even after refreshing the token. However, if we weren't connected during refresh token it means that we weren't connected so we will move to the connecting stage.
+                AppState.shared.connectionStatus = AppState.shared.connectionStatus == .connected ? .connected : .connecting
             } catch {
                 if let error = error as? AppErrors, error == AppErrors.revokedToken {
                     await self.logout()
@@ -121,21 +127,22 @@ final class ChatDelegateImplementation: ChatDelegate {
         }
     }
     
+    @MainActor
     func logout() async {
-        ChatManager.activeInstance?.user.logOut()
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.user.logOut()
+        }
         TokenManager.shared.clearToken()
         UserConfigManagerVM.instance.logout(delegate:  self)
         await AppState.shared.objectsContainer.reset()
     }
 
-    private func canNotify(_ response: ChatResponse<Message>) -> Bool {
-        response.result?.isMe(currentUserId: AppState.shared.user?.id) == false && AppState.shared.lifeCycleState == .background
-    }
-
     func onLog(log: Log) {
 #if DEBUG
-        NotificationCenter.logs.post(name: .logs, object: log)
-        logger.debug("\(log.message ?? "")")
+        Task { @MainActor in
+            NotificationCenter.logs.post(name: .logs, object: log)
+            logger.debug("\(log.message ?? "")")
+        }
 #endif
     }
 

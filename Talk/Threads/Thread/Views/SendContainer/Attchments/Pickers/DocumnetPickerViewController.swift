@@ -29,7 +29,6 @@ public final class DocumnetPickerViewController: NSObject, UIDocumentPickerDeleg
 
     public func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         viewModel?.attachmentsViewModel.onDocumentPicker(urls)
-        viewModel?.delegate?.onItemsPicked()
     }
 
     public func documentPickerWasCancelled(_: UIDocumentPickerViewController) {

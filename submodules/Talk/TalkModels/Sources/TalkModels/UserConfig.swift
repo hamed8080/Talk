@@ -1,6 +1,6 @@
 import Chat
 
-public struct UserConfig: Codable, Identifiable {
+public struct UserConfig: Codable, Identifiable, Sendable {
     public var id: Int? { user.id }
     public let user: User
     public let config: ChatConfig

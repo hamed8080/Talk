@@ -9,6 +9,7 @@ import Foundation
 import Chat
 import Combine
 
+@MainActor
 public final class ThreadUnreadMentionsViewModel {
     private weak var viewModel: ThreadViewModel?
     private var thread: Conversation? { viewModel?.thread }
@@ -39,15 +40,15 @@ public final class ThreadUnreadMentionsViewModel {
 
     @HistoryActor
     public func scrollToMentionedMessage() async {
-        viewModel?.scrollVM.scrollingUP = false//open sending unread counts if we scrolled up and there is a new messge where we have mentiond
+        await viewModel?.scrollVM.scrollingUP = false//open sending unread counts if we scrolled up and there is a new messge where we have mentiond
         await viewModel?.moveToFirstUnreadMessage()
     }
 
     public func fetchAllUnreadMentions() {
-        guard let threadId = thread?.id else { return }
-        let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)
-        RequestsManager.shared.append(prepend: UNREAD_MENTIONS_KEY, value: req)
-        ChatManager.activeInstance?.message.history(req)
+//        guard let threadId = thread?.id else { return }
+//        let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)
+//        RequestsManager.shared.append(prepend: UNREAD_MENTIONS_KEY, value: req)
+//        ChatManager.activeInstance?.message.history(req)
     }
 
     public func setAsRead(id: Int?) {

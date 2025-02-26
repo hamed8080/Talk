@@ -10,6 +10,7 @@ import Combine
 import Foundation
 import TalkModels
 
+@MainActor
 public final class AssistantViewModel: ObservableObject {
     private var count = 15
     private var offset = 0
@@ -77,7 +78,9 @@ public final class AssistantViewModel: ObservableObject {
         isLoading = true
         let req = AssistantsRequest(count: count, offset: offset)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.get(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.get(req)
+        }
     }
 
     public func appendOrUpdateAssistant(_ assistants: [Assistant]) {
@@ -104,7 +107,9 @@ public final class AssistantViewModel: ObservableObject {
         }
         let req = DeactiveAssistantRequest(assistants: selectedAssistant)
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.deactive(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.deactive(req)
+        }
     }
 
     public func deactive(indexSet: IndexSet) {
@@ -126,7 +131,9 @@ public final class AssistantViewModel: ObservableObject {
     public func block(_ assistant: Assistant) {
         let req = BlockUnblockAssistantRequest(assistants: [assistant])
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.block(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.block(req)
+        }
     }
 
     public func onBlockAssistant(_ response: ChatResponse<[Assistant]>) {
@@ -138,7 +145,9 @@ public final class AssistantViewModel: ObservableObject {
     public func unblock(_ assistant: Assistant) {
         let req = BlockUnblockAssistantRequest(assistants: [assistant])
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.unblock(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.unblock(req)
+        }
     }
 
     public func onUnBlockAssistant(_ response: ChatResponse<[Assistant]>) {
@@ -150,7 +159,9 @@ public final class AssistantViewModel: ObservableObject {
     public func blockedList() {
         let req = BlockedAssistantsRequest()
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.blockedList(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.blockedList(req)
+        }
     }
 
     public func onBlockedListAssistant(_ response: ChatResponse<[Assistant]>) {
@@ -167,7 +178,9 @@ public final class AssistantViewModel: ObservableObject {
         let assistant = Invitee(id: "\(contact.id ?? 0)", idType: .contactId)
         let req = RegisterAssistantsRequest(assistants: [.init(assistant: assistant, roles: Roles.allCases.filter({$0 != .unknown}))])
         RequestsManager.shared.append(value: req)
-        ChatManager.activeInstance?.assistant.register(req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.assistant.register(req)
+        }
     }
 
     public func onRegisterAssistant(_ response: ChatResponse<[Assistant]>) {

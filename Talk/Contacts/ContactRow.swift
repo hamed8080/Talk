@@ -16,7 +16,6 @@ struct ContactRow: View {
     let contact: Contact
     @Environment(\.showInviteButton) var showInvitee
     @Binding public var isInSelectionMode: Bool
-    var contactImageURL: String? { contact.image ?? contact.user?.image }
     private var searchVM: ThreadsSearchViewModel { AppState.shared.objectsContainer.searchVM }
 
     var body: some View {
@@ -24,8 +23,8 @@ struct ContactRow: View {
             HStack(spacing: 0) {
                 ContactRowRadioButton(contact: contact)
                     .padding(.trailing, isInSelectionMode ? 8 : 0)
-                let config = ImageLoaderConfig(url: contact.image ?? contact.user?.image ?? "", userName: String.splitedCharacter(contact.firstName ?? ""))
-                ImageLoaderView(imageLoader: .init(config: config), textFont: .iransansBoldBody)
+                
+                ImageLoaderView(contact: contact, font: .iransansBoldBody)
                     .id("\(contact.image ?? "")\(contact.id ?? 0)")
                     .font(.iransansBody)
                     .foregroundColor(Color.App.white)
