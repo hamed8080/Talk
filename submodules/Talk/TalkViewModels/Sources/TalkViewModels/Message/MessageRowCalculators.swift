@@ -126,9 +126,11 @@ class MessageRowCalculators {
         calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
         calculatedMessage.isLastMessageOfTheUser = isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
         calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading
-        let textStack = TextKitStack()
-        await textStack.setup(message.message ?? "")
-        calculatedMessage.textStack = textStack
+        
+        if let attributedString = calculateAttributedString(text: message.message ?? "") {
+            calculatedMessage.attributedString = attributedString
+        }
+        calculatedMessage.rangeCodebackground = tripleGraveAccentRanges(text: calculatedMessage.attributedString?.string ?? "")
         rowType.isPublicLink = message.isPublicLink
         rowType.isFile = message.isFileType && !rowType.isMap && !message.isImage && !message.isAudio && !message.isVideo
         rowType.isReply = message.replyInfo != nil
@@ -613,6 +615,43 @@ class MessageRowCalculators {
         mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
         return NSAttributedString(attributedString: mutableAttr)
     }
+
+    
+    private class func calculateAttributedString(text: String) -> NSAttributedString? {
+        let text = text.formatCodeBlocks()
+        guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
+        let range = (text.startIndex..<text.endIndex)
+                
+        mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
+        mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
+        mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
+        mutableAttr.addBold()
+        mutableAttr.addItalic()
+        mutableAttr.addStrikethrough()
+        
+        /// Hide triple ``` by making them clear
+        /// We have to use ``mutableAttr.string`` instead of the ``text argument``,
+        /// because there is a chance the text contains both bold and triple grave accent in this case it will crash because bold will remove four **** sign therefore the index with ``text`` is bigger than mutableAttr.string.
+        tripleGraveAccentResults(mutableAttr.string, pattern: "```").forEach { result in
+            mutableAttr.addAttribute(.foregroundColor, value: UIColor.clear, range: result.range)
+            mutableAttr.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: result.range)
+        }
+                
+        return NSAttributedString(attributedString: mutableAttr)
+    }
+    
+    private class func tripleGraveAccentResults(_ string: String, pattern: String) -> [NSTextCheckingResult] {
+        
+        let allRange = NSRange(location: 0, length: string.utf16.count)
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let matches = regex.matches(in: string, range: allRange)
+        return matches
+    }
+    
+    class func tripleGraveAccentRanges(text: String) -> [Range<String.Index>]? {
+        let pattern = "(?s)```\n  (.*?)\n```"
+        return tripleGraveAccentResults(text, pattern: pattern).compactMap({ Range($0.range, in: text) })
+    }
     
     class func calculateText(message: HistoryMessageType) -> String? {
         if let text = message.message, !text.isEmpty {
@@ -854,5 +893,21 @@ class MessageRowCalculators {
         estimatedHeight += containerMargin
 
         return estimatedHeight
+    }
+}
+
+
+extension String {
+    func formatCodeBlocks() -> String {
+        let pattern = "```\\n?(.*?)\\n?```" // Match ``` and capture content between them
+        let regex = try! NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) // Allows multiline match
+        
+        let formattedText = regex.stringByReplacingMatches(
+            in: self,
+            options: [],
+            range: NSRange(self.startIndex..., in: self),
+            withTemplate: "\n```\n  $1\n```" // Ensure newline before and add two spaces inside
+        )
+        return formattedText
     }
 }

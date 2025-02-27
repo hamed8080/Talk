@@ -35,7 +35,8 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var avatarSplitedCharaters = ""
     public var isInTwoWeekPeriod: Bool = false
     public var localizedReplyFileName: String? = nil
-    public var textStack: TextKitStack?
+    public var attributedString: NSAttributedString?
+    public var rangeCodebackground: [Range<String.Index>]?
     public var isFirstMessageOfTheUser: Bool = false
     public var isLastMessageOfTheUser: Bool = false
     public var canShowIconFile: Bool = false

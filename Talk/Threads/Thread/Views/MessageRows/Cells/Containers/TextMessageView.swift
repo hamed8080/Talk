@@ -11,7 +11,6 @@ import TalkViewModels
 import TalkModels
 
 final class TextMessageView: UITextView {
-    private weak var viewModel: MessageRowViewModel?
     public var forceEnableSelection = false
 
     override init(frame: CGRect, textContainer: NSTextContainer?) {
@@ -19,12 +18,6 @@ final class TextMessageView: UITextView {
         configureView()
     }
     
-    init(frame: CGRect, textContainer: NSTextContainer?, viewModel: MessageRowViewModel) {
-        super.init(frame: frame, textContainer: textContainer)
-        configureView()
-        set(viewModel)
-    }
-
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -43,20 +36,6 @@ final class TextMessageView: UITextView {
         setContentCompressionResistancePriority(.required, for: .vertical)
     }
 
-    public func set(_ viewModel: MessageRowViewModel) {
-        backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
-        self.viewModel = viewModel
-        setText(viewModel: viewModel)
-        if let textRange = textRange(from: beginningOfDocument, to: endOfDocument) {
-            setBaseWritingDirection(.rightToLeft, for: textRange)
-        }
-    }
-
-    public func setText(viewModel: MessageRowViewModel) {
-        let hide = viewModel.calMessage.rowType.hasText == false && viewModel.calMessage.rowType.isPublicLink == false
-        setIsHidden(hide)
-    }
-
     // Inside a UITextView subclass:
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         if forceEnableSelection { return true }
@@ -69,5 +48,13 @@ final class TextMessageView: UITextView {
         let startIndex = offset(from: beginningOfDocument, to: range.start)
 
         return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
+    }
+    
+    public func setDirectionForRange(range: Range<String.Index>) {
+        if let start = position(from: beginningOfDocument, offset: range.lowerBound.utf16Offset(in: text)),
+           let end = position(from: beginningOfDocument, offset: range.upperBound.utf16Offset(in: text)) {
+
+            setBaseWritingDirection(.leftToRight, for: textRange(from: start, to: end)!)
+        }
     }
 }

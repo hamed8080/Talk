@@ -25,10 +25,11 @@ public final class MessageContainerStackView: UIStackView {
     private let replyInfoMessageRow: ReplyInfoView
     private let forwardMessageRow: ForwardInfoView
     private let singleEmojiView: SingleEmojiView
-    private var textMessageView = TextMessageView()
+    private let textMessageView: TextMessageView
     private static let tailImage = UIImage(named: "tail")
     private var tailImageView = UIImageView()
     private let footerView: FooterView
+    private let textKitStack: TextKitStack
 //    private let unsentMessageView = UnsentMessageView()
 
     // Models
@@ -51,6 +52,10 @@ public final class MessageContainerStackView: UIStackView {
         self.messageImageView = .init(frame: frame)
         self.messageVideoView = .init(frame: frame, isMe: isMe)
         self.singleEmojiView = .init(frame: frame, isMe: isMe)
+    
+        let textKitStack = TextKitStack(attributedString: NSAttributedString(string: ""))
+        textMessageView = TextMessageView(frame: .zero, textContainer: textKitStack.textContainer)
+        self.textKitStack = textKitStack
         super.init(frame: frame)
         configureView(isMe: isMe)
 
@@ -236,21 +241,24 @@ extension MessageContainerStackView {
     }
     
     private func replaceTextViewOnEdit(viewModel: MessageRowViewModel) {
-        if let textContainer = viewModel.calMessage.textStack?.textContainerOnMain() {
-            let indexBeforeRemove = arrangedSubviews.firstIndex(where: { $0 is TextMessageView })
-            textMessageView.removeFromSuperview()
-            textMessageView = TextMessageView(frame: .zero, textContainer: textContainer, viewModel: viewModel)
-            if let index = indexBeforeRemove {
-                insertArrangedSubview(textMessageView, at: index)
-            }
+        if let attributedString = viewModel.calMessage.attributedString {
+            textMessageView.textStorage.setAttributedString(attributedString)
         }
     }
     
     private func createTextViewOnReuse(viewModel: MessageRowViewModel) {
-        if let textContainer = viewModel.calMessage.textStack?.textContainerOnMain() {
+        if textMessageView.superview != nil {
             textMessageView.removeFromSuperview()
-            textMessageView = TextMessageView(frame: .zero, textContainer: textContainer, viewModel: viewModel)
-            addArrangedSubview(textMessageView)
+        }
+        if let attributedString = viewModel.calMessage.attributedString {
+            textMessageView.textStorage.setAttributedString(attributedString)
+        }
+        textKitStack.roundedBackgroundLayoutManager.ranges = viewModel.calMessage.rangeCodebackground
+        addArrangedSubview(textMessageView)
+        textMessageView.backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
+        
+        viewModel.calMessage.rangeCodebackground?.forEach { codeRange in
+            textMessageView.setDirectionForRange(range: codeRange)
         }
     }
 
