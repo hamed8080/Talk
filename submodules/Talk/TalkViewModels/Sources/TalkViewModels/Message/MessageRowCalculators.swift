@@ -629,6 +629,16 @@ class MessageRowCalculators {
         mutableAttr.addItalic()
         mutableAttr.addStrikethrough()
         
+        /// Add Space around all code text start with triple ``` and end with ```
+        tripleGraveAccentResults(mutableAttr.string, pattern: "(?s)```\n(.*?)\n```").forEach { result in
+            // Define paragraph style with leading padding
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.headIndent = 8 // Adds padding to all lines of the paragraph
+            paragraphStyle.firstLineHeadIndent = 8 // Adds padding to the first line
+            
+            mutableAttr.addAttribute(.paragraphStyle, value: paragraphStyle, range: result.range)
+        }
+        
         /// Hide triple ``` by making them clear
         /// We have to use ``mutableAttr.string`` instead of the ``text argument``,
         /// because there is a chance the text contains both bold and triple grave accent in this case it will crash because bold will remove four **** sign therefore the index with ``text`` is bigger than mutableAttr.string.
@@ -649,7 +659,7 @@ class MessageRowCalculators {
     }
     
     class func tripleGraveAccentRanges(text: String) -> [Range<String.Index>]? {
-        let pattern = "(?s)```\n  (.*?)\n```"
+        let pattern = "(?s)```\n(.*?)\n```"
         return tripleGraveAccentResults(text, pattern: pattern).compactMap({ Range($0.range, in: text) })
     }
     
@@ -906,7 +916,7 @@ extension String {
             in: self,
             options: [],
             range: NSRange(self.startIndex..., in: self),
-            withTemplate: "\n```\n  $1\n```" // Ensure newline before and add two spaces inside
+            withTemplate: "\n```\n$1\n```" // Ensure newline before and add two spaces inside
         )
         return formattedText
     }
