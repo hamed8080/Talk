@@ -31,7 +31,7 @@ struct TabButtonItem: View {
             }
 
             Text(title)
-                .font(.iransansBoldCaption)
+                .font(.fBoldCaption)
                 .foregroundColor(isSelected ? Color.App.accent : Color.App.iconSecondary)
 
             if showSelectedDivider, isSelected {

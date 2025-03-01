@@ -9,7 +9,7 @@ import SwiftUI
 
 private struct UITextViewWrapper: UIViewRepresentable {
     typealias UIViewType = UITextView
-    private let font = UIFont(name: "IRANSansX", size: 16)
+    private let font = UIFont.fSubheadline
 
     @Binding var text: String
     var textColor: UIColor
@@ -194,7 +194,7 @@ public struct MultilineTextField: View {
         Group {
             if showingPlaceholder {
                 Text(placeholder)
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .foregroundColor(placeholderColor)
                     .padding(EdgeInsets(top: 8, leading: 12, bottom: 0, trailing: 0))
                     .transition(.asymmetric(insertion: .push(from: .leading), removal: .move(edge: .leading)))

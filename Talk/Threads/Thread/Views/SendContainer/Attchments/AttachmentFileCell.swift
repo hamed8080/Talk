@@ -43,11 +43,11 @@ public final class AttachmentFileCell: UITableViewCell {
         hStack.isLayoutMarginsRelativeArrangement = true
         hStack.accessibilityIdentifier = "hStackAttachmentFileCell"
 
-        lblTitle.font = UIFont.uiiransansBoldBody
+        lblTitle.font = UIFont.fBoldBody
         lblTitle.textColor = Color.App.textPrimaryUIColor
         lblTitle.accessibilityIdentifier = "lblTitleAttachmentFileCell"
 
-        lblSubtitle.font = UIFont.uiiransansCaption3
+        lblSubtitle.font = UIFont.fCaption3
         lblSubtitle.textColor = Color.App.textSecondaryUIColor
         lblSubtitle.accessibilityIdentifier = "lblSubtitleAttachmentFileCell"
 

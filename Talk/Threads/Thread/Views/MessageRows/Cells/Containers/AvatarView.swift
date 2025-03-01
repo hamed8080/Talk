@@ -32,7 +32,7 @@ final class AvatarView: UIImageView {
         addGestureRecognizer(tapGesture)
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.uiiransansCaption
+        label.font = UIFont.fCaption
         label.textColor = Color.App.whiteUIColor
         label.textAlignment = .center
         label.backgroundColor = Color.App.color1UIColor?.withAlphaComponent(0.4)

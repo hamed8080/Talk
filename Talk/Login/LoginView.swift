@@ -19,10 +19,10 @@ struct LoginContentView: View {
             Spacer()
             Group {
                 Text("Login.loginOrSignup")
-                    .font(.iransansBoldLargeTitle)
+                    .font(.fBoldLargeTitle)
                     .foregroundColor(Color.App.textPrimary)
                 Text("Login.subtitle")
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .foregroundColor(Color.App.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 48)
@@ -34,7 +34,7 @@ struct LoginContentView: View {
                 TextField(placeholder, text: $viewModel.text)
                     .focused($isFocused)
                     .keyboardType(.phonePad)
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .padding()
                     .frame(maxWidth: 420)
                     .applyAppTextfieldStyle(topPlaceholder: viewModel.selectedServerType == .integration ? "Login.staticToken" : "Settings.phoneNumber", isFocused: isFocused) {
@@ -53,7 +53,7 @@ struct LoginContentView: View {
 
 //                Text("Login.footer")
 //                    .multilineTextAlignment(.center)
-//                    .font(.iransansFootnote)
+//                    .font(.fFootnote)
 //                    .fixedSize(horizontal: false, vertical: true)
 //                    .foregroundColor(.gray.opacity(1))
                 if EnvironmentValues.isTalkTest {

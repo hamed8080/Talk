@@ -22,7 +22,7 @@ struct ManageSessionsView: View {
             loadingView
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.iransansSubheadline)
+        .font(.fSubheadline)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .normalToolbarView(title: "Settings.ManageSessions.title", innerBack: true, type: ManageSessionsNavigationValue.self)
@@ -145,7 +145,7 @@ struct DeviceSessionRow: View {
                 Text(value ?? "")
                     .multilineTextAlignment(.leading)
                     .foregroundStyle(.gray)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                 
                 if isNameAndCurrent {
                     Spacer()
@@ -204,13 +204,13 @@ struct RemoveSessionDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("ManageSessions.RemoveOneSession.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubheadline)
+                .font(.fBoldSubheadline)
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             
             Text(attributedString)
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubheadline)
+                .font(.fBoldSubheadline)
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             
@@ -223,7 +223,7 @@ struct RemoveSessionDialog: View {
                 } label: {
                     Text("Genreal.confirm")
                         .foregroundStyle(Color.App.red)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -233,7 +233,7 @@ struct RemoveSessionDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -262,13 +262,13 @@ struct RemoveAllSessionDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("ManageSessions.RemoveAllSessions.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubheadline)
+                .font(.fBoldSubheadline)
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         
             Text("ManageSessions.RemoveAllSessions.subtitle")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubheadline)
+                .font(.fBoldSubheadline)
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             HStack {
@@ -280,7 +280,7 @@ struct RemoveAllSessionDialog: View {
                 } label: {
                     Text("Genreal.confirm")
                         .foregroundStyle(Color.App.red)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -290,7 +290,7 @@ struct RemoveAllSessionDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

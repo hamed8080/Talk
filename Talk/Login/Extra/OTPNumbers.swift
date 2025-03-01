@@ -31,7 +31,7 @@ struct OTPNumbers: View {
                     .textFieldStyle(borderStyle)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
-                    .font(.iransansBoldLargeTitle)
+                    .font(.fBoldLargeTitle)
                     .focused($focusField, equals: VerifyFocusFileds.allCases.first(where: { i == $0.rawValue })!)
                     .disabled(viewModel.isLoading)
                     .opacity(viewModel.isLoading && !viewModel.showSuccessAnimation ? 0.5 : 1)

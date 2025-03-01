@@ -45,16 +45,16 @@ struct AssistantActionRow: View {
             
             VStack(alignment: .leading) {
                 Text(action.participant?.name ?? "")
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                 Text(action.actionTime?.date.localFormattedTime ?? "")
-                    .font(.iransansBoldCaption3)
+                    .font(.fBoldCaption3)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
             Text(action.actionType?.stringValue ?? "unknown")
                 .frame(width: 72)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .padding(EdgeInsets(top: 2, leading: 6, bottom: 2, trailing: 6))
                 .foregroundColor(action.actionType?.actionColor ?? .gray)
                 .overlay(

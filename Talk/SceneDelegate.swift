@@ -26,7 +26,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
 
         // Create the SwiftUI view that provides the window contents.
         let contentView = HomeContentView()
-            .font(.iransansBody)
+            .font(.fBody)
         TokenManager.shared.initSetIsLogin()
 
         // Use a UIHostingController as window root view controller.

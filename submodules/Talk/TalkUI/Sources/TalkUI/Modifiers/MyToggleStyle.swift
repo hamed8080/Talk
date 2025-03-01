@@ -38,7 +38,7 @@ public struct MyToggleStyle: ToggleStyle {
             HStack {
                 configuration.label
                     .foregroundStyle(Color.App.textPrimary)
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .animation(.easeInOut(duration: 0.2), value: configuration.isOn)
                     .padding([.top, .bottom], 16)
                 Spacer()

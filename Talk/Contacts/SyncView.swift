@@ -29,9 +29,9 @@ struct SyncView: View {
 
                     VStack(alignment: .leading) {
                         Text("Contacts.Sync.contacts")
-                            .font(.iransansSubtitle)
+                            .font(.fSubtitle)
                         Text("Contacts.Sync.subtitle")
-                            .font(.iransansCaption2)
+                            .font(.fCaption2)
                             .foregroundStyle(.gray)
                     }
                     Spacer()
@@ -47,7 +47,7 @@ struct SyncView: View {
                 } label: {
                     Text("Contacts.Sync.sync")
                         .foregroundColor(Color.App.accent)
-                        .font(.iransansBoldTitle)
+                        .font(.fBoldTitle)
                         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
                 }
                 .padding(4)

@@ -10,8 +10,8 @@ import UIKit
 
 public extension NSMutableAttributedString {
 
-    private static let userMentionFont = UIFont(name: "IRANSansX-Bold", size: 14)
-    private static let bodyFont = UIFont(name: "IRANSansX", size: 16)
+    private static let userMentionFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 14)
+    private static let bodyFont = UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 16)
 
     func addDefaultTextColor(_ color: UIColor) {
         let allRange = NSRange(string.startIndex..., in: string)

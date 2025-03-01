@@ -43,7 +43,7 @@ struct ConversationTabsView: View {
             VStack(spacing: selectedTab == tab ? 8 : 0) {
                 Text(tab.title.bundleLocalized())
                     .foregroundStyle(Color.App.textPrimary)
-                    .font(.iransansBoldCaption2)
+                    .font(.fBoldCaption2)
                 if selectedTab == tab {
                     barView
                 }

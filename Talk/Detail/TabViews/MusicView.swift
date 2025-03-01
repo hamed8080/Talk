@@ -85,18 +85,18 @@ struct MusicRowView: View {
 
             VStack(alignment: .leading) {
                 Text(message.fileMetaData?.name ?? message.messageTitle)
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .foregroundStyle(Color.App.textPrimary)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 HStack {
                     Text(message.time?.date.localFormattedTime ?? "" )
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.iransansCaption2)
+                        .font(.fCaption2)
                     Spacer()
                     Text(message.fileMetaData?.file?.size?.toSizeString(locale: Language.preferredLocale) ?? "")
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.iransansCaption3)
+                        .font(.fCaption3)
                 }
             }
             Spacer()

@@ -40,14 +40,14 @@ class ThreadNavigationPlayer: UIView {
         translatesAutoresizingMaskIntoConstraints = false
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont.uiiransansCaption
+        titleLabel.font = UIFont.fCaption
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "titleLabelThreadNavigationPlayer"
         addSubview(titleLabel)
 
         timerLabel.translatesAutoresizingMaskIntoConstraints = false
         timerLabel.textColor = .gray
-        timerLabel.font = .uiiransansCaption2
+        timerLabel.font = .fCaption2
         timerLabel.accessibilityIdentifier = "timerLabelThreadNavigationPlayer"
         addSubview(timerLabel)
 

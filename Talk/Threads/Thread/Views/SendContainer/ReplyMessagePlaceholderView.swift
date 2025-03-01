@@ -44,12 +44,12 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         vStack.alignment = .leading
         vStack.accessibilityIdentifier = "vStackReplyMessagePlaceholderView"
         
-        nameLabel.font = UIFont.uiiransansBody
+        nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor
         nameLabel.numberOfLines = 1
         nameLabel.accessibilityIdentifier = "nameLabelReplyMessagePlaceholderView"
         
-        messageLabel.font = UIFont.uiiransansCaption2
+        messageLabel.font = UIFont.fCaption2
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelReplyMessagePlaceholderView"

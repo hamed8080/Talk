@@ -155,10 +155,10 @@ struct ContactContentList: View {
             HStack(spacing: 4) {
                 Spacer()
                 Text("Contacts.total")
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .foregroundColor(.gray)
                 Text("\(viewModel.maxContactsCountInServer)")
-                    .font(.iransansBoldBody)
+                    .font(.fBoldBody)
                 Spacer()
             }
             .listRowBackground(Color.clear)

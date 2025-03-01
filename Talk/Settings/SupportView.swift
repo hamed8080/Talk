@@ -22,7 +22,7 @@ struct SupportView: View {
                 .padding(.bottom, 8)
 
             Text("Support.title")
-                .font(.iransansSubtitle)
+                .font(.fSubtitle)
                 .fontWeight(.bold)
                 .foregroundStyle(Color.App.textPrimary)
 
@@ -48,7 +48,7 @@ struct SupportView: View {
 
             Spacer()
         }
-        .font(.iransansBody)
+        .font(.fBody)
         .padding(EdgeInsets(top: 16, leading: 24, bottom: 30, trailing: 24))
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
         .background(Color.App.bgPrimary)

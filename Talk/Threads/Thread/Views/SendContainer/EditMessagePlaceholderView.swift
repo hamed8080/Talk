@@ -37,13 +37,13 @@ public final class EditMessagePlaceholderView: UIStackView {
         layoutMargins = .init(horizontal: 8, vertical: 8)
         isLayoutMarginsRelativeArrangement = true
 
-        nameLabel.font = UIFont.uiiransansBody
+        nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor
         nameLabel.numberOfLines = 1
         nameLabel.accessibilityIdentifier = "nameLabelSEditMessagePlaceholderView"
         nameLabel.setContentHuggingPriority(.required, for: .vertical)
 
-        messageLabel.font = UIFont.uiiransansCaption2
+        messageLabel.font = UIFont.fCaption2
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelEditMessagePlaceholderView"

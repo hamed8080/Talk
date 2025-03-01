@@ -93,7 +93,7 @@ struct ReactionParticipantRow: View {
                 ImageLoaderView(participant: reaction.participant)
                     .scaledToFit()
                     .id(reaction.participant?.id)
-                    .font(.iransansBoldCaption2)
+                    .font(.fBoldCaption2)
                     .foregroundColor(.white)
                     .frame(width: 64, height: 64)
                     .background(Color(uiColor: String.getMaterialColorByCharCode(str: reaction.participant?.name ?? "")))
@@ -120,11 +120,11 @@ struct ReactionParticipantRow: View {
                 Text(reaction.participant?.name ?? "")
                     .padding(.leading, 4)
                     .lineLimit(1)
-                    .font(.iransansBody)
+                    .font(.fBody)
                 if let time = reaction.time {
                     Text(time.date.localFormattedTime ?? "")
                         .padding(.leading, 4)
-                        .font(.iransansCaption3)
+                        .font(.fCaption3)
                         .foregroundColor(Color.App.textSecondary)
                 }
             }

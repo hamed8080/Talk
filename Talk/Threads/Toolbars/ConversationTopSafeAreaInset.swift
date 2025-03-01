@@ -60,7 +60,7 @@ struct ConversationTopSafeAreaInset: View {
                     .resizable()
                     .scaledToFit()
                     .padding(12)
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .foregroundStyle(Color.App.toolbarButton)
             }
             .buttonStyle(.borderless)

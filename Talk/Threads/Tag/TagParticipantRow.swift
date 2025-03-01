@@ -29,7 +29,7 @@ struct TagParticipantRow: View {
                             .clipShape(RoundedRectangle(cornerRadius:(14)))
                         VStack(alignment: .leading) {
                             Text(conversation.title ?? "")
-                                .font(.iransansBody)
+                                .font(.fBody)
                                 .foregroundColor(Color.App.textSecondary)
                         }
                         Spacer()

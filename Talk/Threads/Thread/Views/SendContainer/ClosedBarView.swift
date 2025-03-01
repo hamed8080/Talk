@@ -27,13 +27,13 @@ public final class ClosedBarView: UIView {
 
     private func configureViews() {
         // Configure lblCloesd
-        lblCloesd.font = UIFont.uiiransansSubheadline
+        lblCloesd.font = UIFont.fSubheadline
         lblCloesd.accessibilityIdentifier = "lblClosedBarView"
         lblCloesd.textColor = Color.App.textSecondaryUIColor
         lblCloesd.text = "Thread.groupCloesdByAdmin".bundleLocalized()
 
         // Configure btn
-        btn.titleLabel?.font = UIFont.uiiransansBoldSubheadline
+        btn.titleLabel?.font = UIFont.fBoldSubheadline
         btn.accessibilityIdentifier = "btnClosedBarView"
         btn.setTitleColor(Color.App.accentUIColor, for: .normal)
         btn.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(btnTapped)))

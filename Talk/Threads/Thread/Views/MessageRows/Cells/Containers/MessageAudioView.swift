@@ -65,7 +65,7 @@ final class MessageAudioView: UIView {
         addSubview(waveView)
         
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.uiiransansBoldCaption
+        fileSizeLabel.font = UIFont.fBoldCaption
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = Color.App.textSecondaryUIColor?.withAlphaComponent(0.7)
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageAudioView"
@@ -75,7 +75,7 @@ final class MessageAudioView: UIView {
         
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = Color.App.textPrimaryUIColor
-        timeLabel.font = UIFont.uiiransansBoldCaption
+        timeLabel.font = UIFont.fBoldCaption
         timeLabel.numberOfLines = 1
         timeLabel.textAlignment = .left
         timeLabel.accessibilityIdentifier = "timeLabelMessageAudioView"
@@ -90,7 +90,7 @@ final class MessageAudioView: UIView {
         playbackSpeedButton.accessibilityIdentifier = "playbackSpeedButtonMessageAudioView"
         playbackSpeedButton.tintColor = Color.App.textPrimaryUIColor
         playbackSpeedButton.layer.cornerRadius = 12
-        playbackSpeedButton.titleLabel?.font = UIFont.uiiransansBoldSubheadline
+        playbackSpeedButton.titleLabel?.font = UIFont.fBoldSubheadline
         playbackSpeedButton.setTitle("", for: .normal)
         playbackSpeedButton.addTarget(self, action: #selector(onPlaybackSpeedTapped), for: .touchUpInside)
         playbackSpeedButton.layer.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.8).cgColor

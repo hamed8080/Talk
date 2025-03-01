@@ -41,7 +41,7 @@ public struct SubmitBottomButton: View {
                 HStack(spacing: 8) {
                     Spacer()
                     Text(text)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .contentShape(Rectangle())
                         .foregroundStyle(Color.App.textPrimary)
                     if isLoading {
@@ -90,7 +90,7 @@ public final class SubmitBottomButtonUIView: UIView {
         btnSubmit.layer.masksToBounds = true
         btnSubmit.layer.cornerRadius = 12
         btnSubmit.backgroundColor = color
-        btnSubmit.titleLabel?.font = UIFont.uiiransansBody
+        btnSubmit.titleLabel?.font = UIFont.fBody
         btnSubmit.addTarget(self, action: #selector(submitTapped), for: .touchUpInside)
         btnSubmit.setTitle(text.bundleLocalized(), for: .normal)
         btnSubmit.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
@@ -161,7 +161,7 @@ public struct SubmitBottomLabel: View {
             HStack(spacing: 8) {
                 Spacer()
                 Text(text)
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .contentShape(Rectangle())
                     .foregroundStyle(Color.App.textPrimary)
                 if isLoading {

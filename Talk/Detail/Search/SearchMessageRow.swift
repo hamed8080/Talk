@@ -22,7 +22,7 @@ struct SearchMessageRow: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(message.message ?? "")
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .multilineTextAlignment(.leading)
                         .foregroundStyle(Color.App.textPrimary)
                         .lineLimit(1)

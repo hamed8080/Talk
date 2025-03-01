@@ -50,7 +50,7 @@ struct ThreadListSearchBarFilterView: View {
 
     private var searchField: some View {
         TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
-            .font(.iransansBody)
+            .font(.fBody)
             .textFieldStyle(.clear)
             .submitLabel(.done)
             .focused($searchFocus, equals: .saerch)
@@ -106,7 +106,7 @@ struct ThreadListSearchBarFilterView: View {
     //                } label: {
     //                    HStack {
     //                        Text(String(localized: .init(viewModel.searchType.rawValue)))
-    //                            .font(.iransansBoldCaption3)
+    //                            .font(.fBoldCaption3)
     //                            .foregroundColor(Color.App.textSecondary)
     //                        Image(systemName: "chevron.down")
     //                            .resizable()
@@ -151,7 +151,7 @@ struct FilterChip: View {
                 .contentShape(Rectangle())
             Text(String(localized: .init(text)))
                 .lineLimit(1)
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .foregroundColor(isSelectedToDelete ? Color.App.white : Color.App.textPrimary)
         }
         .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))

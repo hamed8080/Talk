@@ -38,7 +38,7 @@ struct ManageTagView: View {
                     HStack {
                         Spacer()
                         Text("Tags.manageFolders")
-                            .font(.iransansSubtitle)
+                            .font(.fSubtitle)
                             .foregroundColor(Color.App.textSecondary)
                         Spacer()
                     }

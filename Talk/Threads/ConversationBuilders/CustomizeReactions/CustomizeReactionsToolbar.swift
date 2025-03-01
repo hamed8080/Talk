@@ -47,7 +47,7 @@ public final class CustomizeReactionsToolbar: UIView {
 
         title.text = "EditGroup.customizedReactions".bundleLocalized()
         title.textColor = Color.App.textPrimaryUIColor
-        title.font = UIFont.uiiransansSubheadline
+        title.font = UIFont.fSubheadline
         title.translatesAutoresizingMaskIntoConstraints = false
         addSubview(title)
 

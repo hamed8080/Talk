@@ -23,8 +23,8 @@ public struct ToastView<ContentView: View>: View {
                 titleColor: Color = Color.App.textPrimary,
                 message: String,
                 messageColor: Color = Color.App.red,
-                titleFont: Font = .iransansBoldBody,
-                messageFont: Font = .iransansCaption,
+                titleFont: Font = .fBoldBody,
+                messageFont: Font = .fCaption,
                 showSandBox: Bool = false,
                 @ViewBuilder leadingView: @escaping () -> ContentView)
     {
@@ -90,8 +90,8 @@ public final class ToastUIView: UIStackView {
                 titleColor: UIColor = Color.App.textPrimaryUIColor!,
                 message: String,
                 messageColor: UIColor = Color.App.redUIColor!,
-                titleFont: UIFont = .uiiransansBoldBody!,
-                messageFont: UIFont = .uiiransansCaption!,
+                titleFont: UIFont = .fBoldBody!,
+                messageFont: UIFont = .fCaption!,
                 leadingView: UIView? = nil,
                 disableWidthConstraint: Bool = false
     )

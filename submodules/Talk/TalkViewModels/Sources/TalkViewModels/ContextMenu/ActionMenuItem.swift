@@ -35,7 +35,7 @@ public class ActionMenuItem: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = model.title
         label.textColor = model.color
-        label.font = UIFont(name: "IRANSansX", size: 16)
+        label.font = UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 16)
         addSubview(label)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false

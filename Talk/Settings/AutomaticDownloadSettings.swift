@@ -79,7 +79,7 @@ struct AutomaticDownloadSettings: View {
             .listRowSeparatorTint(Color.clear)
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.iransansSubheadline)
+        .font(.fSubheadline)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .normalToolbarView(title: "Settings.download", type: AutomaticDownloadsNavigationValue.self)

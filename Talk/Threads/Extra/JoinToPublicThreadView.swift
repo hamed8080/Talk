@@ -47,7 +47,7 @@ struct JoinToPublicThreadView: View {
                     }
                     .opacity(isThreadExist ? 1.0 : 0.5)
                     .disabled(!isThreadExist)
-                    .font(.iransansSubheadline)
+                    .font(.fSubheadline)
                     .buttonStyle(.bordered)
                 }
                 .listRowBackground(Color.clear)

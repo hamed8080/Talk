@@ -47,13 +47,13 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         vStack.alignment = .leading
         vStack.accessibilityIdentifier = "vStackReplyPrivatelyMessagePlaceholderView"
 
-        nameLabel.font = UIFont.uiiransansBody
+        nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor
         nameLabel.numberOfLines = 1
         nameLabel.accessibilityIdentifier = "nameLabelPrivatelyMessagePlaceholderView"
         vStack.addArrangedSubview(nameLabel)
 
-        messageLabel.font = UIFont.uiiransansCaption2
+        messageLabel.font = UIFont.fCaption2
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         vStack.addArrangedSubview(messageLabel)

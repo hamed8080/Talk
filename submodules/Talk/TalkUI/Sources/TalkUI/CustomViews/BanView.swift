@@ -38,11 +38,11 @@ struct BanView: View {
         let attr = NSMutableAttributedString(string: string)
         if let range = string.range(of: string) {
             let allRange = NSRange(range, in: string)
-            attr.addAttributes([.foregroundColor: Color.App.textPrimary, .font: UIFont.uiiransansLargeTitle], range: allRange)
+            attr.addAttributes([.foregroundColor: Color.App.textPrimary, .font: UIFont.fLargeTitle], range: allRange)
         }
         if let range = string.range(of: timerValue) {
             let nsRange = NSRange(range, in: string)
-            attr.addAttributes([.foregroundColor: UIColor.red, .font: UIFont.uiiransansBoldLargeTitle], range: nsRange)
+            attr.addAttributes([.foregroundColor: UIColor.red, .font: UIFont.fBoldLargeTitle], range: nsRange)
         }
         return AttributedString(attr)
     }

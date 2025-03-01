@@ -49,13 +49,13 @@ public final class SelectionView: UIStackView {
         }
         addArrangedSubview(btnForward)
 
-        lblCount.font = UIFont.uiiransansBoldBody
+        lblCount.font = UIFont.fBoldBody
         lblCount.textColor = Color.App.accentUIColor
         lblCount.accessibilityIdentifier = "lblCountSelectionView"
         addArrangedSubview(lblCount)
 
         lblStatic.text = "General.selected".bundleLocalized()
-        lblStatic.font = UIFont.uiiransansBody
+        lblStatic.font = UIFont.fBody
         lblStatic.textColor = Color.App.textSecondaryUIColor
         lblStatic.accessibilityIdentifier = "lblStaticSelectionView"
         addArrangedSubview(lblStatic)

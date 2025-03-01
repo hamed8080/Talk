@@ -20,7 +20,7 @@ public struct ImageLoaderView: View {
 
     public init(imageLoader: ImageLoaderViewModel,
                 contentMode: ContentMode = .fill,
-                textFont: Font = .iransansBody
+                textFont: Font = .fBody
     ) {
         self.textFont = textFont
         self.contentMode = contentMode
@@ -34,7 +34,7 @@ public struct ImageLoaderView: View {
         self.init(imageLoader: .init(config: config))
     }
     
-    public init(contact: Contact?, font: Font = .iransansBody) {
+    public init(contact: Contact?, font: Font = .fBody) {
         let image = contact?.image ?? contact?.user?.image ?? ""
         let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
         let contactName = "\(contact?.firstName ?? "") \(contact?.lastName ?? "")"

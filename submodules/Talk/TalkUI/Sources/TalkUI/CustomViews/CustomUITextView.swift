@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TalkExtensions
 
 public struct CustomUITextView: UIViewRepresentable {
     let attributedText: NSAttributedString
@@ -23,7 +24,7 @@ public struct CustomUITextView: UIViewRepresentable {
          isScrollingEnabled: Bool = false,
          isSelectable: Bool = false,
          iseUserInteractionEnabled: Bool = true,
-         font: UIFont = UIFont(name: "IRANSansX", size: 14) ?? UIFont.systemFont(ofSize: 14),
+                font: UIFont = UIFont.fBody ?? UIFont.systemFont(ofSize: 14),
          textColor: UIColor? = UIColor(named: "text")) {
         self.attributedText = attributedText
         self.isEditable = isEditable

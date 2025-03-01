@@ -39,7 +39,7 @@ struct ThreadSearchList: View {
                         .id(UUID())
                 } else if viewModel.isInSearchMode {
                     Text("General.nothingFound")
-                        .font(.iransansTitle)
+                        .font(.fTitle)
                 }
             }
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)

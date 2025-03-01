@@ -25,7 +25,7 @@ final class GroupParticipantNameView: UILabel {
 
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
-        font = UIFont.uiiransansBoldBody
+        font = UIFont.fBoldBody
         numberOfLines = 1
         isOpaque = true
         heightConstraint = heightAnchor.constraint(equalToConstant: 16)

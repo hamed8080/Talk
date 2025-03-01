@@ -36,7 +36,7 @@ final class MentionCell: UITableViewCell {
         hStack.isLayoutMarginsRelativeArrangement = true
         hStack.accessibilityIdentifier = "hStackMentionCell"
 
-        lblName.font = .uiiransansCaption2
+        lblName.font = .fCaption2
         lblName.textColor = Color.App.textPrimaryUIColor
         lblName.numberOfLines = 1
         lblName.accessibilityIdentifier = "lblNameMentionCell"

@@ -50,7 +50,7 @@ public final class AttchmentButton: UIStackView {
         imageContainer.addSubview(imageView)
 
         label.textColor = Color.App.textSecondaryUIColor
-        label.font = UIFont.uiiransansCaption3
+        label.font = UIFont.fCaption3
         label.textAlignment = .center
         label.numberOfLines = 1
         label.adjustsFontSizeToFitWidth = true

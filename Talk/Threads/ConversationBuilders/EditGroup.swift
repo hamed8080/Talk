@@ -159,7 +159,7 @@ struct EditGroup: View {
                         ImageLoaderView(conversation: viewModel.thread)
                             .scaledToFit()
                             .id(viewModel.thread.id)
-                            .font(.iransansBoldCaption2)
+                            .font(.fBoldCaption2)
                             .foregroundColor(.white)
                             .frame(width: 72, height: 72)
                             .background(Color(uiColor: String.getMaterialColorByCharCode(str: viewModel.thread.computedTitle)))
@@ -271,7 +271,7 @@ struct EditGroup: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .foregroundStyle(iconColor)
                 } else {
                     Image(systemName: image)
@@ -279,7 +279,7 @@ struct EditGroup: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .foregroundStyle(iconColor)
                 }
                 Text(title)
@@ -287,7 +287,7 @@ struct EditGroup: View {
                 Spacer()
                 Text(rightLabelText)
                     .foregroundStyle(Color.App.accent)
-                    .font(.iransansBoldBody)
+                    .font(.fBoldBody)
             }
         }
         .buttonStyle(.borderless)
@@ -310,7 +310,7 @@ struct EditGroup: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .foregroundStyle(Color.App.textSecondary)
 
                     Text("EditGroup.enableReactions".bundleLocalized())
@@ -351,7 +351,7 @@ struct CustomizeReactionsNavigationLink: View {
                     .scaledToFit()
                     .frame(width: 16, height: 16)
                     .clipped()
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .foregroundStyle(Color.App.textSecondary)
 
                 Text("EditGroup.customizedReactions".bundleLocalized())

@@ -26,7 +26,7 @@ public final class BackgroundLabelView: UICollectionReusableView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.textColor = Color.App.textPrimaryUIColor
-        label.font = UIFont.uiiransansBody
+        label.font = UIFont.fBody
         addSubview(label)
 
         NSLayoutConstraint.activate([

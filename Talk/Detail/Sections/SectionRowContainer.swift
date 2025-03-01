@@ -24,10 +24,10 @@ struct SectionRowContainer: View {
         HStack {
             VStack(alignment: .leading) {
                 Text(key)
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                     .foregroundStyle(Color.App.textSecondary)
                 Text(value)
-                    .font(.iransansBody)
+                    .font(.fBody)
                     .foregroundStyle(Color.App.textPrimary)
                     .lineLimit(lineLimit)
                     .fixedSize(horizontal: false, vertical: true)

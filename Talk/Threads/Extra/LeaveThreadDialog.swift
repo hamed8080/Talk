@@ -18,7 +18,7 @@ struct LeaveThreadDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("Thread.leave.footer")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansSubheadline)
+                .font(.fSubheadline)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -29,7 +29,7 @@ struct LeaveThreadDialog: View {
                 } label: {
                     Text("Thread.leaveButton")
                         .foregroundStyle(Color.App.accent)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -39,7 +39,7 @@ struct LeaveThreadDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.iransansBody)
+                        .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

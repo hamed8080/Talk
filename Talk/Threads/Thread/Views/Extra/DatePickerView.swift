@@ -50,7 +50,7 @@ class DatePickerView: UIView {
         let btn = UIButton(type: .system)
         btn.setTitle("General.cancel".bundleLocalized(), for: .normal)
         btn.addTarget(self, action: #selector(btnCanceledTapped), for: .touchUpInside)
-        btn.titleLabel?.font = UIFont.uiiransansBoldBody
+        btn.titleLabel?.font = UIFont.fBoldBody
         btn.setTitleColor(Color.App.textSecondaryUIColor?.withAlphaComponent(0.8), for: .normal)
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
@@ -60,7 +60,7 @@ class DatePickerView: UIView {
         let btn = UIButton(type: .system)
         btn.setTitle("General.submit".bundleLocalized(), for: .normal)
         btn.addTarget(self, action: #selector(btnSubmitTapped), for: .touchUpInside)
-        btn.titleLabel?.font = UIFont.uiiransansBoldBody
+        btn.titleLabel?.font = UIFont.fBoldBody
         btn.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn

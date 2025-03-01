@@ -20,13 +20,13 @@ public struct DeleteMessageDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("DeleteMessageDialog.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBoldSubheadline)
+                .font(.fBoldSubheadline)
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             Text("DeleteMessageDialog.subtitle")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.iransansBody)
+                .font(.fBody)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
@@ -34,7 +34,7 @@ public struct DeleteMessageDialog: View {
             if viewModel.hasPinnedMessage {
                 Text(viewModel.isSingle ? "DeleteMessageDialog.singleDeleteIsPinMessage" : "DeleteMessageDialog.multipleDeleteContainsPinMessage")
                     .foregroundStyle(Color.App.textSecondary)
-                    .font(.iransansCaption2)
+                    .font(.fCaption2)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
@@ -71,7 +71,7 @@ public struct DeleteMessageDialog: View {
             } label: {
                 Text(viewModel.isSelfThread ? "General.delete" : "Messages.deleteForMe")
                     .foregroundStyle(viewModel.isSelfThread ? Color.App.red : Color.App.accent)
-                    .font(.iransansBoldCaption)
+                    .font(.fBoldCaption)
             }
         }
 
@@ -81,7 +81,7 @@ public struct DeleteMessageDialog: View {
             } label: {
                 Text("Messages.deleteForAll")
                     .foregroundStyle(Color.App.red)
-                    .font(.iransansBoldCaption)
+                    .font(.fBoldCaption)
             }
         } else if viewModel.deleteForOthserIfPossible {
             Button {
@@ -92,7 +92,7 @@ public struct DeleteMessageDialog: View {
                 Text("DeleteMessageDialog.deleteForMeAllOtherIfPossible")
                     .foregroundStyle(Color.App.red)
                     .multilineTextAlignment(.leading)
-                    .font(.iransansBoldCaption)
+                    .font(.fBoldCaption)
             }
         }
     }

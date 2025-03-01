@@ -52,12 +52,12 @@ public final class RecordingAudioView: UIStackView {
 
         let lblStaticRecording = UILabel()
         lblStaticRecording.text = "Thread.isVoiceRecording".bundleLocalized()
-        lblStaticRecording.font = .uiiransansCaption
+        lblStaticRecording.font = .fCaption
         lblStaticRecording.textColor = Color.App.textSecondaryUIColor
         lblStaticRecording.accessibilityIdentifier = "lblStaticRecordingRecordingAudioView"
         lblStaticRecording.setContentHuggingPriority(.defaultHigh, for: .horizontal)
 
-        lblTimer.font = .uiiransansBody
+        lblTimer.font = .fBody
         lblTimer.textColor = Color.App.textPrimaryUIColor
         lblTimer.accessibilityIdentifier = "lblTimerRecordingAudioView"
         lblTimer.setContentHuggingPriority(.defaultLow, for: .horizontal)

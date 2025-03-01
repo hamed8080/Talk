@@ -76,7 +76,7 @@ struct ThreadSearchView: View {
         HStack {
             Spacer()
             Text("General.noResult")
-                .font(.iransansCaption2)
+                .font(.fCaption2)
                 .fontWeight(.light)
                 .foregroundColor(Color.App.textSecondary)
             Spacer()

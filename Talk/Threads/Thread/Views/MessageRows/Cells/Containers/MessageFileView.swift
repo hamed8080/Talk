@@ -64,7 +64,7 @@ final class MessageFileView: UIStackView {
         typeSizeHStack.isOpaque = true
 
         fileTypeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileTypeLabel.font = UIFont.uiiransansBoldCaption2
+        fileTypeLabel.font = UIFont.fBoldCaption2
         fileTypeLabel.textAlignment = .left
         fileTypeLabel.textColor = Color.App.textSecondaryUIColor
         fileTypeLabel.accessibilityIdentifier = "fileTypeLabelMessageFileView"
@@ -73,7 +73,7 @@ final class MessageFileView: UIStackView {
         typeSizeHStack.addArrangedSubview(fileTypeLabel)
 
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.uiiransansBoldCaption2
+        fileSizeLabel.font = UIFont.fBoldCaption2
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = Color.App.textPrimaryUIColor
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageFileView"
@@ -89,7 +89,7 @@ final class MessageFileView: UIStackView {
         vStack.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         vStack.isOpaque = true
 
-        fileNameLabel.font = UIFont.uiiransansBoldCaption2
+        fileNameLabel.font = UIFont.fBoldCaption2
         fileNameLabel.textAlignment = .left
         fileNameLabel.textColor = Color.App.textPrimaryUIColor
         fileNameLabel.numberOfLines = 1

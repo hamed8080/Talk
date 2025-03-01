@@ -25,11 +25,11 @@ struct AssistantRow: View {
                 .clipShape(RoundedRectangle(cornerRadius:(18)))
 
             Text(assistant.participant?.name ?? "")
-                .font(.iransansCaption)
+                .font(.fCaption)
             if assistant.block == true {
                 Spacer()
                 Text("General.blocked")
-                    .font(.iransansCaption2)
+                    .font(.fCaption2)
                     .padding(EdgeInsets(top: 2, leading: 6, bottom: 2, trailing: 6))
                     .foregroundColor(Color.App.red)
                     .overlay(

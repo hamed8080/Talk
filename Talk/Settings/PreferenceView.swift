@@ -33,7 +33,7 @@ struct PreferenceView: View {
                         Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
                         Text("Contacts.Sync.subtitle")
                             .foregroundColor(.gray)
-                            .font(.iransansCaption3)
+                            .font(.fCaption3)
                     }
                     .sandboxLabel()
                 }

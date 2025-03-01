@@ -188,10 +188,10 @@ struct InfoRowItem: View {
         HStack {
             VStack(alignment: .leading) {
                 Text(String(localized: .init(key)))
-                    .font(.iransansCaption)
+                    .font(.fCaption)
                     .foregroundStyle(Color.App.textSecondary)
                 Text(value)
-                    .font(.iransansSubtitle)
+                    .font(.fSubtitle)
                     .foregroundStyle(Color.App.textPrimary)
                     .lineLimit(lineLimit)
                     .fixedSize(horizontal: false, vertical: true)

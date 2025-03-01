@@ -43,14 +43,14 @@ public class CustomConversationNavigationBar: UIView {
         
         titlebutton.translatesAutoresizingMaskIntoConstraints = false
         titlebutton.setAttributedTitle(titleAttributedStirng, for: .normal)
-        titlebutton.titleLabel?.font = UIFont.uiiransansBoldBody
+        titlebutton.titleLabel?.font = UIFont.fBoldBody
         titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
         titlebutton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
-        subtitleLabel.font = UIFont.uiiransansFootnote
+        subtitleLabel.font = UIFont.fFootnote
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
 
         let isSelfThread = viewModel?.thread.type == .selfThread
@@ -81,7 +81,7 @@ public class CustomConversationNavigationBar: UIView {
         }
 
         threadTitleSupplementary.translatesAutoresizingMaskIntoConstraints = false
-        threadTitleSupplementary.font = UIFont.uiiransansCaption3
+        threadTitleSupplementary.font = UIFont.fCaption3
         threadTitleSupplementary.textColor = .white
         threadTitleSupplementary.accessibilityIdentifier = "threadTitleSupplementaryCustomConversationNavigationBar"
 

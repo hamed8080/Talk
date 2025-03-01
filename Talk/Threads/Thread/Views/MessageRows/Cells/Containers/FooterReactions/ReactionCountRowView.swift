@@ -40,7 +40,7 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
         semanticContentAttribute = isMe == true ? .forceRightToLeft : .forceLeftToRight
 
         reactionEmojiCount.translatesAutoresizingMaskIntoConstraints = false
-        reactionEmojiCount.font = UIFont.uiiransansBody
+        reactionEmojiCount.font = UIFont.fBody
         reactionEmojiCount.textAlignment = .center
         reactionEmojiCount.accessibilityIdentifier = "reactionEmoji"
         reactionEmojiCount.setContentCompressionResistancePriority(.required, for: .horizontal)

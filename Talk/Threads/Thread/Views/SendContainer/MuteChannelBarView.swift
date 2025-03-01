@@ -27,7 +27,7 @@ public final class MuteChannelBarView: UIView {
 
     private func configureViews() {
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.titleLabel?.font = UIFont.uiiransansSubheadline
+        btn.titleLabel?.font = UIFont.fSubheadline
         btn.accessibilityIdentifier = "btnMuteChannelBarView"
         btn.setTitleColor(Color.App.accentUIColor, for: .normal)
         btn.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(muteTapped)))
