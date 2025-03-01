@@ -9,6 +9,7 @@ import TalkModels
 import MapKit
 import Chat
 import SwiftUI
+import Spec
 
 public class MessageHistoryStatics {
     public static let textTypes = [ChatModels.MessageType.text, MessageType.link, MessageType.location]
@@ -32,7 +33,7 @@ public extension HistoryMessageProtocol {
     var forwardMessage: ForwardMessage? { self as? ForwardMessage }
     var forwardCount: Int? { forwardMessage?.forwardMessageRequest.messageIds.count }
     var messageTitle: String { message ?? "" }
-    var isPublicLink: Bool { message?.contains(AppRoutes.joinLink) == true }
+    func isPublicLink(joinLink: String) -> Bool { message?.contains(joinLink) == true }
     var type: ChatModels.MessageType? { messageType ?? .unknown }
     var isTextMessageType: Bool { MessageHistoryStatics.textTypes.contains(messageType ?? .unknown) || isFileType }
     func isMe(currentUserId: Int?) -> Bool { (ownerId ?? 0 == currentUserId ?? 0) || isUnsentMessage }
@@ -66,16 +67,16 @@ public extension HistoryMessageProtocol {
 
     var url: URL? {
         get async {
-            let path = isImage == true ? Routes.images.rawValue : Routes.files.rawValue
-            let fileServer = await fileServerOnChatActor()
-            let url = "\(fileServer)\(path)/\(fileHashCode)"
+            guard let spec = await fileServerOnChatActor() else { return nil }
+            let path = isImage == true ? spec.paths.podspace.download.images : spec.paths.podspace.download.files
+            let url = "\(spec.server.file)\(path)/\(fileHashCode)"
             return URL(string: url)
         }
     }
     
     @ChatGlobalActor
-    func fileServerOnChatActor() -> String {
-        ChatManager.activeInstance?.config.fileServer ?? ""
+    func fileServerOnChatActor() -> Spec? {
+        ChatManager.activeInstance?.config.spec
     }
 
     var hardLink: URL? {
@@ -177,9 +178,9 @@ public extension HistoryMessageProtocol {
         return MessageHistoryStatics.fileTypes.contains(messageType ?? .unknown)
     }
 
-    var mapCoordinate: Coordinate? {
+    func mapCoordinate(basePath: String) -> Coordinate? {
         guard
-            let array = fileMetaData?.mapLink?.replacingOccurrences(of: Routes.baseMapLink.rawValue, with: "").split(separator: ","),
+            let array = fileMetaData?.mapLink?.replacingOccurrences(of: basePath, with: "").split(separator: ","),
             let lat = Double(String(array[0])),
             let lng = Double(String(array[1]))
         else { return nil }
@@ -191,13 +192,13 @@ public extension HistoryMessageProtocol {
         return Coordinate(lat: latitude, lng: longitude)
     }
 
-    var neshanURL: URL? {
-        guard let coordinate = mapCoordinate else { return nil }
-        return URL(string: "https://neshan.org/maps/@\(coordinate.lat),\(coordinate.lng),18.1z,0p")
+    func neshanURL(basePath: String) -> URL? {
+        guard let coordinate = mapCoordinate(basePath: basePath) else { return nil }
+        return URL(string: "\(basePath)\(coordinate.lat),\(coordinate.lng),18.1z,0p")
     }
 
-    var appleMapsURL: URL? {
-        guard let coordinate = mapCoordinate else { return nil }
+    func appleMapsURL(basePath: String) -> URL? {
+        guard let coordinate = mapCoordinate(basePath: basePath) else { return nil }
         return URL(string: "maps://?q=\(message ?? "")&ll=\(coordinate.lat),\(coordinate.lng)")
     }
 

@@ -67,7 +67,9 @@ public final class LoginViewModel: ObservableObject {
                                          deviceOsVersion: UIDevice.current.systemVersion,
                                          deviceType: isiPad ? "TABLET" : "MOBILE_PHONE",
                                          deviceUID: UIDevice.current.identifierForVendor?.uuidString ?? "")
-        var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: selectedServerType).handshake)!)
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.handshake)"
+        var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.httpBody = req.parameterData
         urlReq.method = .post
         Task { @AppBackgroundActor in
@@ -95,7 +97,9 @@ public final class LoginViewModel: ObservableObject {
     @MainActor
     public func requestOTP(identity: String, keyId: String, resend: Bool = false) {
         if isLoading { return }
-        var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: selectedServerType).authorize)!)
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.authorize)"
+        var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
@@ -127,7 +131,7 @@ public final class LoginViewModel: ObservableObject {
     public func saveTokenAndCreateChatObject(_ ssoToken: SSOTokenResponse) async {
         await MainActor.run {
             TokenManager.shared.saveSSOToken(ssoToken: ssoToken)
-            let config = Config.config(token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
+            let config = AppState.config(spec: AppState.shared.spec, token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
             UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
             state = .successLoggedIn
         }
@@ -139,7 +143,9 @@ public final class LoginViewModel: ObservableObject {
         let codes = verifyCodes.joined(separator:"").replacingOccurrences(of: "\u{200B}", with: "").replaceRTLNumbers()
         guard let keyId = keyId, codes.count == verifyCodes.count else { return }
         isLoading = true
-        var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: selectedServerType).verify)!)
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.verify)"
+        var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.url?.append(queryItems: [.init(name: "identity", value: text.replaceRTLNumbers()), .init(name: "otp", value: codes)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
@@ -234,11 +240,11 @@ public final class LoginViewModel: ObservableObject {
 
     public func startNewPKCESession() {
         let bundleIdentifier = Bundle.main.bundleIdentifier!
-        let auth0domain = "accounts.pod.ir"
-        let authorizeURL = "https://\(auth0domain)/oauth2/authorize"
-        let tokenURL = "https://\(auth0domain)/oauth2/token"
-        let clientId = "88413l69cd4051a039cf115ee4e073"
-        let redirectUri = "talk://login"
+        let auth0domain = AppState.shared.spec.server.sso
+        let authorizeURL = "\(auth0domain)\(AppState.shared.spec.paths.sso.authorize)"
+        let tokenURL = "\(auth0domain)\(AppState.shared.spec.paths.sso.token)"
+        let clientId = AppState.shared.spec.paths.sso.clientId
+        let redirectUri = AppState.shared.spec.paths.talk.redirect
         let parameters = OAuth2PKCEParameters(authorizeUrl: authorizeURL,
                                               tokenUrl: tokenURL,
                                               clientId: clientId,

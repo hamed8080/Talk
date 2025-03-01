@@ -301,8 +301,6 @@
 		0570CC7A2AAEE98F001832E9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC42AAEE98E001832E9 /* Localizable.strings */; };
 		0570CC7B2AAEE98F001832E9 /* LaunchScreen.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */; };
 		0570CC7C2AAEE98F001832E9 /* LaunchScreen.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */; };
-		0570CC812AAEE98F001832E9 /* Config.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD22AAEE98E001832E9 /* Config.json */; };
-		0570CC822AAEE98F001832E9 /* Config.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD22AAEE98E001832E9 /* Config.json */; };
 		0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD42AAEE98E001832E9 /* Assets.xcassets */; };
 		0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD42AAEE98E001832E9 /* Assets.xcassets */; };
 		0570CC872AAEE98F001832E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD62AAEE98E001832E9 /* LaunchScreen.storyboard */; };
@@ -485,6 +483,8 @@
 		AC39BF052D0EB86D00AB7447 /* ManageSessionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */; };
 		AC6F9BDC2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
 		AC6F9BDD2D0D7C7300CA7B70 /* ManageSessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */; };
+		AC78B72E2D733AD900FFF4F8 /* Spec.json in Resources */ = {isa = PBXBuildFile; fileRef = AC78B72D2D733AD900FFF4F8 /* Spec.json */; };
+		AC78B72F2D733AD900FFF4F8 /* Spec.json in Resources */ = {isa = PBXBuildFile; fileRef = AC78B72D2D733AD900FFF4F8 /* Spec.json */; };
 		ACA089972D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */; };
 		ACA089982D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */; };
 		ACB5BBE82D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
@@ -681,7 +681,6 @@
 		0570CBCD2AAEE98E001832E9 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		0570CBCF2AAEE98E001832E9 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		0570CBD12AAEE98E001832E9 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		0570CBD22AAEE98E001832E9 /* Config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Config.json; sourceTree = "<group>"; };
 		0570CBD42AAEE98E001832E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0570CBD52AAEE98E001832E9 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		0570CBD72AAEE98E001832E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -772,6 +771,7 @@
 		AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkModeSection.swift; sourceTree = "<group>"; };
 		AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsSection.swift; sourceTree = "<group>"; };
 		AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsView.swift; sourceTree = "<group>"; };
+		AC78B72D2D733AD900FFF4F8 /* Spec.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Spec.json; sourceTree = "<group>"; };
 		ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveFormView.swift; sourceTree = "<group>"; };
 		ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealAnimation.swift; sourceTree = "<group>"; };
 		ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleEmojiCell.swift; sourceTree = "<group>"; };
@@ -1239,10 +1239,10 @@
 			children = (
 				0570CBC42AAEE98E001832E9 /* Localizable.strings */,
 				0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */,
-				0570CBD22AAEE98E001832E9 /* Config.json */,
 				0570CBD42AAEE98E001832E9 /* Assets.xcassets */,
 				0570CBD62AAEE98E001832E9 /* LaunchScreen.storyboard */,
 				0570CBD92AAEE98E001832E9 /* sent_message.mp3 */,
+				AC78B72D2D733AD900FFF4F8 /* Spec.json */,
 				0570CBDA2AAEE98E001832E9 /* new_message.mp3 */,
 				0570CBDB2AAEE98E001832E9 /* Ringtone.aif */,
 				0570CBDC2AAEE98E001832E9 /* MockData.json */,
@@ -1545,8 +1545,8 @@
 			files = (
 				0570CC872AAEE98F001832E9 /* LaunchScreen.storyboard in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
+				AC78B72E2D733AD900FFF4F8 /* Spec.json in Resources */,
 				0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */,
-				0570CC812AAEE98F001832E9 /* Config.json in Resources */,
 				0570CC892AAEE98F001832E9 /* sent_message.mp3 in Resources */,
 				0570CC7B2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
 				0570CC8D2AAEE98F001832E9 /* Ringtone.aif in Resources */,
@@ -1562,8 +1562,8 @@
 			files = (
 				0570CC882AAEE98F001832E9 /* LaunchScreen.storyboard in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
+				AC78B72F2D733AD900FFF4F8 /* Spec.json in Resources */,
 				0570CC902AAEE98F001832E9 /* MockData.json in Resources */,
-				0570CC822AAEE98F001832E9 /* Config.json in Resources */,
 				0570CC8A2AAEE98F001832E9 /* sent_message.mp3 in Resources */,
 				0570CC7C2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
 				0570CC8E2AAEE98F001832E9 /* Ringtone.aif in Resources */,

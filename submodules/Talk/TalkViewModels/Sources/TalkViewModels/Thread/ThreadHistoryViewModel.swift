@@ -1308,7 +1308,8 @@ public extension ThreadHistoryViewModel {
         return MainRequirements(appUserId: AppState.shared.user?.id,
                                 thread: viewModel?.thread,
                                 participantsColorVM: viewModel?.participantsColorVM,
-                                isInSelectMode: viewModel?.selectedMessagesViewModel.isInSelectMode ?? false)
+                                isInSelectMode: viewModel?.selectedMessagesViewModel.isInSelectMode ?? false,
+                                joinLink: AppState.shared.spec.paths.talk.join)
     }
 }
 

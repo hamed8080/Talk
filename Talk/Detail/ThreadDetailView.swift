@@ -131,7 +131,11 @@ struct ThreadDescription: View {
 struct PublicLink: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel
     private var shortJoinLink: String { "talk/\(viewModel.thread?.uniqueName ?? "")" }
-    private var joinLink: String { "\(AppRoutes.joinLink)\(viewModel.thread?.uniqueName ?? "")" }
+    private var joinLink: String {
+        let talk = AppState.shared.spec.server.talk
+        let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"
+        return "\(talkJoin)\(viewModel.thread?.uniqueName ?? "")"
+    }
 
     var body: some View {
         if viewModel.thread?.uniqueName != nil {

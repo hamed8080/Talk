@@ -26,7 +26,8 @@ public final class ManageSessionsViewModel: ObservableObject {
     public func getDevices() async throws {
         isLoading = true
         let urlSession = URLSession(configuration: .default)
-        let base = AppRoutes(serverType: .main).devices
+        let spec = AppState.shared.spec
+        let base = "\(spec.server.sso)\(spec.paths.sso.devices)"
         let url = URL(string: "\(base)?size=\(size)&offset=\(offset)")!
         var req = URLRequest(url: url)
         req.method = .get
@@ -48,7 +49,8 @@ public final class ManageSessionsViewModel: ObservableObject {
     
     public func removeAllSessions() async throws {
         let urlSession = URLSession(configuration: .default)
-        let url = URL(string: AppRoutes(serverType: .main).devices)!
+        let spec = AppState.shared.spec
+        let url = URL(string: "\(spec.server.sso)\(spec.paths.sso.devices)")!
         var req = URLRequest(url: url)
         req.method = .delete
         let token = await getToken()
@@ -64,7 +66,8 @@ public final class ManageSessionsViewModel: ObservableObject {
     public func removeSession(session: DeviceSession) async throws {
         let urlSession = URLSession(configuration: .default)
         guard let uid = session.uid else { throw URLError(.badURL) }
-        let url = URL(string: "\(AppRoutes(serverType: .main).devices)/\(uid)")!
+        let spec = AppState.shared.spec
+        let url = URL(string: "\(spec.server.sso)\(spec.paths.sso.devices)/\(uid)")!
         var req = URLRequest(url: url)
         req.method = .delete
         let token = await getToken()

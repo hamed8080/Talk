@@ -18,12 +18,14 @@ public struct MainRequirements: Sendable {
     let thread: Conversation?
     let participantsColorVM: ParticipantsColorViewModel?
     let isInSelectMode: Bool
+    let joinLink: String
     
-    public init(appUserId: Int?, thread: Conversation?, participantsColorVM: ParticipantsColorViewModel?, isInSelectMode: Bool) {
+    public init(appUserId: Int?, thread: Conversation?, participantsColorVM: ParticipantsColorViewModel?, isInSelectMode: Bool, joinLink: String) {
         self.appUserId = appUserId
         self.thread = thread
         self.participantsColorVM = participantsColorVM
         self.isInSelectMode = isInSelectMode
+        self.joinLink = joinLink
     }
 }
 
@@ -127,7 +129,7 @@ class MessageRowCalculators {
         calculatedMessage.isLastMessageOfTheUser = isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
         calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading
         calculatedMessage.markdownTitle = calculateAttributeedString(message: message)
-        rowType.isPublicLink = message.isPublicLink
+        rowType.isPublicLink = message.isPublicLink(joinLink: mainData.joinLink)
         rowType.isFile = message.isFileType && !rowType.isMap && !message.isImage && !message.isAudio && !message.isVideo
         rowType.isReply = message.replyInfo != nil
         if let date = message.time?.date {

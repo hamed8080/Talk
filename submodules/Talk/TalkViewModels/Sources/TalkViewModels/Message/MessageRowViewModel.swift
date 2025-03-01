@@ -153,7 +153,7 @@ public extension MessageRowViewModel {
 
     @MainActor
     private func openMap() {
-        if let url = message.neshanURL, UIApplication.shared.canOpenURL(url) {
+        if let url = message.neshanURL(basePath: AppState.shared.spec.server.neshan), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         }
     }
@@ -286,6 +286,8 @@ public extension MessageRowViewModel {
         return MainRequirements(appUserId: AppState.shared.user?.id,
                                 thread: threadVM?.thread,
                                 participantsColorVM: threadVM?.participantsColorVM,
-                                isInSelectMode: threadVM?.selectedMessagesViewModel.isInSelectMode ?? false)
+                                isInSelectMode: threadVM?.selectedMessagesViewModel.isInSelectMode ?? false,
+                                joinLink: AppState.shared.spec.paths.talk.join
+        )
     }
 }

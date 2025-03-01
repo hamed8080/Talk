@@ -35,12 +35,11 @@ public final class SettingViewModel: ObservableObject {
     }
 
     public func updateProfilePicture(image: UIImage?) async {
-        guard let image = image else { return }        
+        guard let image = image, let config = await config() else { return }
         await showLoading(true)
-        let config = await config()
-        let serverType = Config.serverType(config: config) ?? .main
-        var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: serverType).updateProfileImage)!)
-        urlReq.url?.appendQueryItems(with: ["token": config?.token ?? ""])
+        let urlString = "\(config.spec.server.talkback)\(config.spec.paths.talkBack.updateImageProfile)"
+        var urlReq = URLRequest(url: URL(string: urlString)!)
+        urlReq.url?.appendQueryItems(with: ["token": config.token ?? ""])
         urlReq.method = .post
         urlReq.httpBody = image.pngData()
         do {

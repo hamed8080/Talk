@@ -138,9 +138,12 @@ public final class ThreadViewModel {
 
     public func clearCacheFile(message: Message) {
         if let fileHashCode = message.fileMetaData?.fileHash {
+            let spec = AppState.shared.spec
+            let fileServer = spec.server.file
+            let address = "\(spec.server.sso)/\(spec.paths.sso.token)"
             Task { @ChatGlobalActor in
-                let path = message.isImage ? Routes.images.rawValue : Routes.files.rawValue
-                let url = "\(ChatManager.activeInstance?.config.fileServer ?? "")\(path)/\(fileHashCode)"
+                let path = message.isImage ? spec.paths.podspace.download.images : spec.paths.podspace.download.files
+                let url = "\(fileServer)\(path)/\(fileHashCode)"
                 ChatManager.activeInstance?.file.deleteCacheFile(URL(string: url)!)
             }
             NotificationCenter.message.post(.init(name: .message, object: message))

@@ -107,7 +107,7 @@ In this new line we are going to test if it can break the line.
         joinLinkVM = {
             let message = Message(
                 id: 1,
-                message: "\(AppRoutes.joinLink)FAKEUNIQUENAME",
+                message: "FAKEUNIQUENAME",
                 messageType: .text,
                 ownerId: 2,
                 seen: true,

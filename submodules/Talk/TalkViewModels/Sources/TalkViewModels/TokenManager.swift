@@ -52,9 +52,11 @@ public final class TokenManager: ObservableObject {
         try JSONDecoder().decode(SSOTokenResponse.self, from: data)
     }
     
-    private func pkceURLRequest(refreshToken: String, codeVerifier: String) -> URLRequest {
-        let clientId = "88413l69cd4051a039cf115ee4e073"
-        let url = URL(string: AppRoutes(serverType: .main).ssoToken)!
+    private func pkceURLRequest(refreshToken: String, codeVerifier: String) -> URLRequest {                
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.sso)\(spec.paths.sso.token)"
+        let clientId = spec.paths.sso.clientId
+        let url = URL(string: address)!
         var urlReq = URLRequest(url: url)
         urlReq.url?.append(queryItems: [.init(name: "refreshToken", value: refreshToken)])
         urlReq.httpMethod = "POST"
@@ -64,9 +66,9 @@ public final class TokenManager: ObservableObject {
     }
     
     private func otpURLrequest(refreshToken: String, keyId: String) async -> URLRequest {
-        let config = await config()
-        let serverType = Config.serverType(config: config) ?? .main
-        var urlReq = URLRequest(url: URL(string: AppRoutes(serverType: serverType).refreshToken)!)
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.refreshToken)"
+        var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.url?.append(queryItems: [.init(name: "refreshToken", value: refreshToken)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         return urlReq

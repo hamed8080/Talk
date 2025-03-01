@@ -46,7 +46,7 @@ final class MessageLocationView: UIImageView {
     
     @objc private func onTap(_ sender: UIGestureRecognizer) {
         let message = viewModel?.message
-        if let url = message?.neshanURL, UIApplication.shared.canOpenURL(url) {
+        if let url = message?.neshanURL(basePath: AppState.shared.spec.server.neshan), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         }
     }
