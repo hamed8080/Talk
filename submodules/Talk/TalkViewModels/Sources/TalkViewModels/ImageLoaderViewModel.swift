@@ -233,12 +233,21 @@ public final class ImageLoaderViewModel: ObservableObject {
     @AppBackgroundActor
     private func getHashByLastPath() async -> String? {
         guard let url = await getURL() else { return nil }
-        let isPodspaceFile = url.absoluteString.contains("https://podspace.pod.ir/api/files/")
-        let isPodspaceImage = url.absoluteString.contains("https://podspace.pod.ir/api/images/")
+        let (images, files) = await getPaths()
+        let isPodspaceFile = url.absoluteString.contains(images)
+        let isPodspaceImage = url.absoluteString.contains(files)
         if isPodspaceFile || isPodspaceImage {
             return url.lastPathComponent
         }
         return nil
+    }
+    
+    @MainActor
+    private func getPaths() -> (images: String, files: String) {
+        let podspace = AppState.shared.spec.server.file
+        let images = "\(podspace)\(AppState.shared.spec.paths.podspace.download.images)"
+        let files = "\(podspace)\(AppState.shared.spec.paths.podspace.download.files)"
+        return (images, files)
     }
 
     private func getCachedFileURL() async -> URL? {
@@ -275,7 +284,8 @@ public final class ImageLoaderViewModel: ObservableObject {
 
     private func isPodURL() -> Bool {
         let url = getURL()
-        return url?.host() == "core.pod.ir" || url?.host() == "podspace.pod.ir"
+        let subDomains = AppState.shared.spec.subDomains
+        return url?.host() == subDomains.core || url?.host() == subDomains.podspace
     }
 
     @AppBackgroundActor

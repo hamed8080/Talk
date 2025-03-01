@@ -129,7 +129,8 @@ struct EditProfileView: View {
                     .frame(maxWidth: 420, alignment: .leading)
 
 
-                Link(destination: URL(string: "https://panel.pod.ir/Users/Info")!) {
+                let address = "\(AppState.shared.spec.server.panel)\(AppState.shared.spec.paths.panel.info)"
+                Link(destination: URL(string: address)!) {
                     HStack {
                         Text("Setting.EditProfile.enterToPodAccount")
                             .foregroundStyle(Color.App.textPrimary)

@@ -410,7 +410,8 @@ extension Spec {
                 talkback: "",
                 log: "",
                 neshan: "",
-                neshanAPI: ""
+                neshanAPI: "",
+                panel: ""
             ),
             paths: .init(
                 social: .init(
@@ -447,7 +448,9 @@ extension Spec {
                 talk: .init(
                     join: "",
                     redirect: ""),
-                log: .init(talk: "")))
+                log: .init(talk: ""),
+                panel: .init(info: "")),
+            subDomains: .init(core: "", podspace: ""))
     }
 }
 

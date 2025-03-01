@@ -16,7 +16,8 @@
         "talkback": "https://talkback.pod.ir",        
         "log": "http://10.56.34.61:8080",
         "neshan": "https://maps.neshan.org",
-        "neshanAPI": "https://api.neshan.org/v1"
+        "neshanAPI": "https://api.neshan.org/v1",
+        "panel": "https://panel.pod.ir"
     },
     "servers": [
         {
@@ -30,7 +31,8 @@
             "talkback": "https://talkback.pod.ir",
             "log": "http://10.56.34.61:8080",
             "neshan": "https://maps.neshan.org",
-            "neshanAPI": "https://api.neshan.org/v1"
+            "neshanAPI": "https://api.neshan.org/v1",
+            "panel": "https://panel.pod.ir"
         },
         {
             "server": "sandbox",
@@ -43,7 +45,8 @@
             "talkback": "https://talkback.sandpod.ir",
             "log": "http://10.56.34.61:8080",
             "neshan": "https://maps.neshan.org",
-            "neshanAPI": "https://api.neshan.org/v1"
+            "neshanAPI": "https://api.neshan.org/v1",
+            "panel": "https://panel.pod.ir"
         },
         {
             "server": "integration",
@@ -56,7 +59,8 @@
             "talkback": "https://talkotp-d.fanapsoft.ir",
             "log": "http://10.56.34.61:8080",
             "neshan": "https://maps.neshan.org",
-            "neshanAPI": "https://api.neshan.org/v1"
+            "neshanAPI": "https://api.neshan.org/v1",
+            "panel": "https://panel.pod.ir"
         }
     ],
     "paths": {
@@ -106,6 +110,13 @@
         },
         "log": {
             "talk": "/1m-http-server-test-chat"
+        },
+        "panel": {
+            "info": "/Users/Info"
         }
+    },
+    "subDomains": {
+        "core": "core.pod.ir",
+        "podspace": "podspace.pod.ir"
     }
 }
