@@ -76,6 +76,7 @@ struct ThreadContentList: View {
     }
 }
 
+#if DEBUG
 private struct Preview: View {
     @State var container = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
 
@@ -119,3 +120,4 @@ struct ThreadContentList_Previews: PreviewProvider {
         Preview()
     }
 }
+#endif

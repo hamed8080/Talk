@@ -43,8 +43,10 @@ struct TagParticipantRow: View {
     }
 }
 
+#if DEBUG
 struct TagParticipantRow_Previews: PreviewProvider {
     static var previews: some View {
         TagParticipantRow(tag: MockData.tag, tagParticipant: MockData.tag.tagParticipants!.first!, viewModel: TagsViewModel())
     }
 }
+#endif

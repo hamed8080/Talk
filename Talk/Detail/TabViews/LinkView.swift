@@ -126,8 +126,10 @@ struct LinkRowView: View {
     }
 }
 
+#if DEBUG
 struct LinkView_Previews: PreviewProvider {
     static var previews: some View {
         LinkView(conversation: MockData.thread, messageType: .link)
     }
 }
+#endif

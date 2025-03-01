@@ -144,6 +144,7 @@ public extension EnvironmentValues {
     }
 }
 
+#if DEBUG
 struct ContactRow_Previews: PreviewProvider {
     @State static var isInSelectionMode = false
 
@@ -155,3 +156,4 @@ struct ContactRow_Previews: PreviewProvider {
         }
     }
 }
+#endif

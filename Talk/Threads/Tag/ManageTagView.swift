@@ -98,6 +98,7 @@ struct ManageTagView: View {
     }
 }
 
+#if DEBUG
 struct ManageTagView_Previews: PreviewProvider {
     static var previews: some View {
         let appState = AppState.shared
@@ -107,3 +108,4 @@ struct ManageTagView_Previews: PreviewProvider {
         .environmentObject(appState)
     }
 }
+#endif

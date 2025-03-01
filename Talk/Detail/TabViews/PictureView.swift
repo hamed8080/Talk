@@ -251,8 +251,10 @@ struct DownloadPictureButtonView: View {
     }
 }
 
+#if DEBUG
 struct PictureView_Previews: PreviewProvider {
     static var previews: some View {
         PictureView(conversation: MockData.thread, messageType: .podSpacePicture)
     }
 }
+#endif

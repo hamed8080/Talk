@@ -208,6 +208,7 @@ struct FullScreenPlayer: View {
     }
 }
 
+#if DEBUG
 struct VideoView_Previews: PreviewProvider {
     static let thread = MockData.thread
 
@@ -215,3 +216,4 @@ struct VideoView_Previews: PreviewProvider {
         FileView(conversation: thread, messageType: .file)
     }
 }
+#endif

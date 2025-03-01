@@ -240,6 +240,7 @@ struct ThreadTimeText: View {
     }
 }
 
+#if DEBUG
 struct ThreadRow_Previews: PreviewProvider {
     static var thread: Conversation {
         var thread = MockData.thread
@@ -260,3 +261,4 @@ struct ThreadRow_Previews: PreviewProvider {
         .environmentObject(ThreadsViewModel())
     }
 }
+#endif

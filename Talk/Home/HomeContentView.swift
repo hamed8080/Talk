@@ -143,6 +143,7 @@ struct SplitViewContent: View {
     }
 }
 
+#if DEBUG
 struct HomePreview: View {
     @State var container = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
     var body: some View {
@@ -163,3 +164,4 @@ struct HomeView_Previews: PreviewProvider {
         HomePreview()
     }
 }
+#endif

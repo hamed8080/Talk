@@ -200,8 +200,10 @@ struct DownloadMusicButtonView: View {
     }
 }
 
+#if DEBUG
 struct MusicView_Previews: PreviewProvider {
     static var previews: some View {
         MusicView(conversation: MockData.thread, messageType: .podSpaceSound)
     }
 }
+#endif

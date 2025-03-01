@@ -96,8 +96,10 @@ struct ParticipantRowLables: View {
     }
 }
 
+#if DEBUG
 struct ParticipantRow_Previews: PreviewProvider {
     static var previews: some View {
         ParticipantRow(participant: MockData.participant(1))
     }
 }
+#endif

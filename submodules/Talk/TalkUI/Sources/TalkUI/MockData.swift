@@ -3,6 +3,7 @@ import Foundation
 import TalkModels
 import Chat
 
+#if DEBUG
 public struct MockDataModel: Decodable {
     public let threads: [Conversation]
     public let messages: [Message]
@@ -243,3 +244,4 @@ public final class MockData {
         return callPrticipants
     }
 }
+#endif

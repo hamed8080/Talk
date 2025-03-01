@@ -76,8 +76,10 @@ struct TagRow: View {
     }
 }
 
+#if DEBUG
 struct TagRow_Previews: PreviewProvider {
     static var previews: some View {
         TagRow(tag: MockData.tag, viewModel: TagsViewModel())
     }
 }
+#endif

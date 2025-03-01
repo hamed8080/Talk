@@ -165,6 +165,7 @@ struct DownloadFileButtonView: View {
     }
 }
 
+#if DEBUG
 struct FileView_Previews: PreviewProvider {
     static let thread = MockData.thread
 
@@ -172,3 +173,4 @@ struct FileView_Previews: PreviewProvider {
         FileView(conversation: thread, messageType: .file)
     }
 }
+#endif

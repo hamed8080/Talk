@@ -227,8 +227,10 @@ struct DownloadVoiceButtonView: View {
     }
 }
 
+#if DEBUG
 struct VoiceView_Previews: PreviewProvider {
     static var previews: some View {
         VoiceView(conversation: MockData.thread, messageType: .podSpaceVoice)
     }
 }
+#endif
