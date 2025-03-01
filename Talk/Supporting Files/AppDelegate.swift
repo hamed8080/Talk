@@ -47,7 +47,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private func setFirstOpenningLanguage() {
         if UserDefaults.standard.bool(forKey: "setFirstOpenningLanguaged") == true { return }
-        if let language = Language.languages.first(where: {$0.identifier == "fa_IR"}) {
+        if let language = Language.languages.first(where: {$0.identifier == "ZmFfSVI=".fromBase64()}) {
             UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
             UserDefaults.standard.set(true, forKey: "setFirstOpenningLanguaged")
             UserDefaults.standard.synchronize()

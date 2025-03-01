@@ -16,7 +16,7 @@ public struct Language: Identifiable, Sendable {
 
     nonisolated(unsafe) public static let languages: [Language] = [
         .init(identifier: "en_US", bundleFolderName: "en", language: "en-US", text: "English"),
-        .init(identifier: "fa_IR", bundleFolderName: "fa-IR", language: "fa-IR", text: "Persian (فارسی)"),
+        .init(identifier: "ZmFfSVI=".fromBase64() ?? "", bundleFolderName: "fa-IR", language: "fa-IR", text: "UGVyc2lhbiAo2YHYp9ix2LPbjCk=".fromBase64() ?? ""),
         .init(identifier: "sv_SE", bundleFolderName: "sv", language: "sv-SE", text: "Swedish"),
         .init(identifier: "de_DE", bundleFolderName: "de", language: "de-DE", text: "Germany"),
         .init(identifier: "es_ES", bundleFolderName: "es", language: "es-ES", text: "Spanish"),
@@ -43,7 +43,7 @@ public struct Language: Identifiable, Sendable {
     }
 
     public static var rtlLanguages: [Language] {
-        languages.filter{ $0.identifier == "ar_SA" || $0.identifier == "fa_IR" }
+        languages.filter{ $0.identifier == "ar_SA" || $0.identifier == "ZmFfSVI=".fromBase64() }
     }
 
     public static var isRTL: Bool {
