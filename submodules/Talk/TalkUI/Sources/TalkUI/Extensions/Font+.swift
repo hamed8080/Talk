@@ -14,8 +14,8 @@ fileprivate let fRegualrBoldName = "SVJBTlNhbnNYLVJlZ3VsYXI=".fromBase64() ?? ""
 
 public extension UIFont {
     static func register() {
-        registerFont(name: fBoldName)
-        registerFont(name: fRegualrBoldName)
+        registerFont(name: "bold")
+        registerFont(name: "regular")
     }
 
     private static func registerFont(name: String) {
