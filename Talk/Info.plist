@@ -70,13 +70,6 @@
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
-			<key>talkotp-d.fanapsoft.ir</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
