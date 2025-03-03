@@ -297,8 +297,6 @@
 		0570CC762AAEE98F001832E9 /* AssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBC02AAEE98E001832E9 /* AssistantView.swift */; };
 		0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
 		0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
-		0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD42AAEE98E001832E9 /* Assets.xcassets */; };
-		0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBD42AAEE98E001832E9 /* Assets.xcassets */; };
 		0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBDC2AAEE98E001832E9 /* MockData.json */; };
 		0570CC902AAEE98F001832E9 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBDC2AAEE98E001832E9 /* MockData.json */; };
 		0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
@@ -660,7 +658,6 @@
 		0570CBBF2AAEE98E001832E9 /* AssistantHistoryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssistantHistoryView.swift; sourceTree = "<group>"; };
 		0570CBC02AAEE98E001832E9 /* AssistantView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssistantView.swift; sourceTree = "<group>"; };
 		0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		0570CBD42AAEE98E001832E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0570CBDC2AAEE98E001832E9 /* MockData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = MockData.json; sourceTree = "<group>"; };
 		0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0570CC952AAEE9B2001832E9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1210,7 +1207,6 @@
 			isa = PBXGroup;
 			children = (
 				AC78B7352D73688F00FFF4F8 /* exclude */,
-				0570CBD42AAEE98E001832E9 /* Assets.xcassets */,
 				AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */,
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
 			);
@@ -1521,7 +1517,6 @@
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */,
 				AC78B73A2D737B4400FFF4F8 /* LaunchScreen.storyboard in Resources */,
-				0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1532,7 +1527,6 @@
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC902AAEE98F001832E9 /* MockData.json in Resources */,
 				AC78B73B2D737B4400FFF4F8 /* LaunchScreen.storyboard in Resources */,
-				0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
