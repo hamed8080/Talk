@@ -35,7 +35,7 @@ public final class TokenManager: ObservableObject {
         else { return }
         do {
             let refreshToken = ssoTokenModel.refreshToken ?? ""
-            let urlReq = pkceURLRequest(refreshToken: refreshToken, codeVerifier: codeVerifier)
+            let urlReq = try pkceURLRequest(refreshToken: refreshToken, codeVerifier: codeVerifier)
             let resp = try await session.data(for: urlReq)
             let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: resp)
             post(log: log)
@@ -52,23 +52,27 @@ public final class TokenManager: ObservableObject {
         try JSONDecoder().decode(SSOTokenResponse.self, from: data)
     }
     
-    private func pkceURLRequest(refreshToken: String, codeVerifier: String) -> URLRequest {                
+    private func pkceURLRequest(refreshToken: String, codeVerifier: String) throws -> URLRequest {
         let spec = AppState.shared.spec
         let address = "\(spec.server.sso)\(spec.paths.sso.token)"
         let clientId = spec.paths.sso.clientId
-        let url = URL(string: address)!
+        let query = "grant_type=refresh_token&client_id=\(clientId)&code_verifier=\(codeVerifier)&refresh_token=\(refreshToken)"
+        guard let url = URL(string: address),
+              let data = query.data(using: String.Encoding.utf8)
+        else { throw URLError(.badURL) }
         var urlReq = URLRequest(url: url)
         urlReq.url?.append(queryItems: [.init(name: "refreshToken", value: refreshToken)])
         urlReq.httpMethod = "POST"
-        urlReq.httpBody = NSMutableData(data: "grant_type=refresh_token&client_id=\(clientId)&code_verifier=\(codeVerifier)&refresh_token=\(refreshToken)".data(using: String.Encoding.utf8)!) as Data
+        urlReq.httpBody = NSMutableData(data: data) as Data
         urlReq.allHTTPHeaderFields = ["content-type": "application/x-www-form-urlencoded"]
         return urlReq
     }
     
-    private func otpURLrequest(refreshToken: String, keyId: String) async -> URLRequest {
+    private func otpURLrequest(refreshToken: String, keyId: String) async throws -> URLRequest {
         let spec = AppState.shared.spec
         let address = "\(spec.server.talkback)\(spec.paths.talkBack.refreshToken)"
-        var urlReq = URLRequest(url: URL(string: address)!)
+        guard let url = URL(string: address) else { throw URLError.init(.badURL) }
+        var urlReq = URLRequest(url: url)
         urlReq.url?.append(queryItems: [.init(name: "refreshToken", value: refreshToken)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         return urlReq
@@ -93,7 +97,7 @@ public final class TokenManager: ObservableObject {
         else { return }
         do {
             let refreshToken = ssoTokenModel.refreshToken ?? ""
-            let urlReq = await otpURLrequest(refreshToken: refreshToken, keyId: keyId)
+            let urlReq = try await otpURLrequest(refreshToken: refreshToken, keyId: keyId)
             let tuple = try await session.data(for: urlReq)
             if let resp = tuple.1 as? HTTPURLResponse, resp.statusCode >= 400 && resp.statusCode < 500 {
                 throw AppErrors.revokedToken

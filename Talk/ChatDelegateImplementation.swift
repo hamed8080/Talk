@@ -12,10 +12,34 @@ import TalkModels
 import TalkViewModels
 import OSLog
 import SwiftUI
+import TalkExtensions
 
 final class ChatDelegateImplementation: ChatDelegate {
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
     private(set) static var sharedInstance = ChatDelegateImplementation()
+    
+    @MainActor
+    func initialize() {
+        let manager = BundleManager.init()
+        if let spec = Spec.cachedSpec() {
+            AppState.shared.spec = spec
+            let bundle = manager.getBundle()
+            Language.setBundle(bundle: bundle)
+            UIFont.register(bundle: bundle)
+            // Override point for customization after application launch.
+            ChatDelegateImplementation.sharedInstance.createChatObject()
+        } else {
+            /// Download the Spec
+            Task {
+                if let spec = try? await Spec.dl() {
+                    AppState.shared.spec = spec
+                    // Override point for customization after application launch.
+                    ChatDelegateImplementation.sharedInstance.createChatObject()
+                }
+                _ = try? await manager.st()
+            }
+        }
+    }
 
     @MainActor
     func createChatObject() {

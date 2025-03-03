@@ -131,7 +131,7 @@ public final class LoginViewModel: ObservableObject {
     public func saveTokenAndCreateChatObject(_ ssoToken: SSOTokenResponse) async {
         await MainActor.run {
             TokenManager.shared.saveSSOToken(ssoToken: ssoToken)
-            let config = AppState.config(spec: AppState.shared.spec, token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
+            let config = Spec.config(spec: AppState.shared.spec, token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
             UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
             state = .successLoggedIn
         }

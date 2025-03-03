@@ -22,12 +22,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        if let spec = AppState.specJson() {
-            AppState.shared.spec = spec
-        }
-        // Override point for customization after application launch.
-        ChatDelegateImplementation.sharedInstance.createChatObject()
-        UIFont.register()
+        ChatDelegateImplementation.sharedInstance.initialize()
         return true
     }
 

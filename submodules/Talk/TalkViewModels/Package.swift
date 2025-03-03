@@ -18,18 +18,23 @@ let package = Package(
     dependencies: [
         .package(path: "../TalkModels"),
         .package(path: "../TalkExtensions"),
+        .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5")
     ],
     targets: [
         .target(
             name: "TalkViewModels",
             dependencies: [
                 "TalkModels",
-                "TalkExtensions"
+                "TalkExtensions",
+                .product(name: "ZipArchive", package: "ZipArchive")
             ]
         ),
         .testTarget(
             name: "TalkViewModelsTests",
-            dependencies: ["TalkViewModels"],
+            dependencies: [
+                "TalkViewModels",
+                .product(name: "ZipArchive", package: "ZipArchive")
+            ],
             resources: [
                 .copy("Resources/icon.png")
             ]

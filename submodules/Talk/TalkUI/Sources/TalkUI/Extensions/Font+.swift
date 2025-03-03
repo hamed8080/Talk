@@ -13,13 +13,13 @@ fileprivate let fBoldName = "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? ""
 fileprivate let fRegualrBoldName = "SVJBTlNhbnNYLVJlZ3VsYXI=".fromBase64() ?? ""
 
 public extension UIFont {
-    static func register() {
-        registerFont(name: "bold")
-        registerFont(name: "regular")
+    static func register(bundle: Bundle) {
+        registerFont(name: "bold", bundle: bundle)
+        registerFont(name: "regular", bundle: bundle)
     }
 
-    private static func registerFont(name: String) {
-        guard let fontURL = Bundle.module.url(forResource: name, withExtension: "ttf") else { return }
+    private static func registerFont(name: String, bundle: Bundle) {
+        guard let fontURL = bundle.url(forResource: name, withExtension: "ttf") else { return }
         var error: Unmanaged<CFError>?
         CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
     }

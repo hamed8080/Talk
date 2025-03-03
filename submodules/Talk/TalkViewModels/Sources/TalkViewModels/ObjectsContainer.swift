@@ -1,6 +1,7 @@
 import Combine
 import SwiftUI
 import Chat
+import TalkModels
 
 @MainActor
 public final class ObjectsContainer: ObservableObject {
@@ -104,7 +105,7 @@ public final class ObjectsContainer: ObservableObject {
     }
 
     private func playMessageSound(sent: Bool) async {
-        if let fileURL = Bundle.main.url(forResource: sent ? "sent_message" : "new_message", withExtension: "mp3") {
+        if let fileURL = Language.rootBundle?.url(forResource: sent ? "sent_message" : "new_message", withExtension: "mp3") {
             try? messagePlayer.setup(message: nil, fileURL: fileURL, ext: "mp3", category: .ambient)
             messagePlayer.toggle()
         }

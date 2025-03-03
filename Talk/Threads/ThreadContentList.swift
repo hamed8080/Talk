@@ -91,7 +91,7 @@ private struct Preview: View {
                     for thread in MockData.generateThreads(count: 5) {
                         await container.threadsVM.calculateAppendSortAnimate(thread)
                     }
-                    if let fileURL = Bundle.main.url(forResource: "new_message", withExtension: "mp3") {
+                    if let fileURL = Language.rootBundle?.url(forResource: "new_message", withExtension: "mp3") {
                         try? container.audioPlayerVM.setup(fileURL: fileURL, ext: "mp3", title: "Note")
                         container.audioPlayerVM.toggle()
                     }

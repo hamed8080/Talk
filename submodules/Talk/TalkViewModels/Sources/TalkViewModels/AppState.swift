@@ -7,8 +7,6 @@
 
 import Chat
 import Combine
-import Spec
-import Logger
 import SwiftUI
 import TalkExtensions
 import TalkModels
@@ -28,7 +26,7 @@ public struct AppStateNavigationModel: Sendable {
 @MainActor
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
-    public var spec: Spec = Spec(empty: true)
+    public var spec: Spec = Spec.empty()
     public var user: User?
     @Published public var error: ChatError?
     @Published public var isLoading: Bool = false
@@ -395,122 +393,7 @@ extension AppState {
     }
 }
 
-extension Spec {
-    init(empty: Bool) {
-        self = Spec(
-            servers: [],
-            server: .init(
-                server: "",
-                socket: "",
-                sso: "",
-                social: "",
-                file: "",
-                serverName: "",
-                talk: "",
-                talkback: "",
-                log: "",
-                neshan: "",
-                neshanAPI: "",
-                panel: ""
-            ),
-            paths: .init(
-                social: .init(
-                    listContacts: "",
-                    addContacts: "",
-                    updateContacts: "",
-                    removeContacts: ""),
-                podspace: .init(
-                    download: .init(
-                        thumbnail: "",
-                        images: "", files: ""),
-                    upload: .init(
-                        images: "", files: "",
-                        usergroupsFiles: "",
-                        usergroupsImages: "")),
-                neshan: .init(
-                    reverse: "",
-                    search: "",
-                    routing: "",
-                    staticImage: ""),
-                sso: .init(
-                    oauth: "",
-                    token: "",
-                    devices: "",
-                    authorize: "",
-                    clientId: ""),
-                talkBack: .init(
-                    updateImageProfile: "",
-                    opt: "",
-                    refreshToken: "",
-                    verify: "",
-                    authorize: "",
-                    handshake: ""),
-                talk: .init(
-                    join: "",
-                    redirect: ""),
-                log: .init(talk: ""),
-                panel: .init(info: "")),
-            subDomains: .init(core: "", podspace: ""))
-    }
-}
-
-extension AppState {
-    
-    public static func specJson() -> Spec? {
-        guard let path = Bundle.main.path(forResource: "Spec", ofType: ".json") else { return nil }
-        do {
-            let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
-            let spec = try JSONDecoder().decode(Spec.self, from: data)
-            return spec
-        } catch {
-            return nil
-        }
-    }
-    
-    
-    static func config(spec: Spec, token: String, selectedServerType: ServerTypes) -> ChatConfig {
-        let callConfig = CallConfigBuilder()
-            .callTimeout(20)
-            .targetVideoWidth(640)
-            .targetVideoHeight(480)
-            .maxActiveVideoSessions(2)
-            .targetFPS(15)
-            .build()
-        let asyncLoggerConfig = LoggerConfig(spec: spec,
-                                             prefix: "ASYNC_SDK",
-                                             logServerMethod: "PUT",
-                                             persistLogsOnServer: true,
-                                             isDebuggingLogEnabled: true,
-                                             sendLogInterval: 5 * 60,
-                                             logServerRequestheaders: ["Authorization": "Basic Y2hhdDpjaGF0MTIz", "Content-Type": "application/json"])
-        let chatLoggerConfig = LoggerConfig(spec: spec,
-                                            prefix: "CHAT_SDK",
-                                            logServerMethod: "PUT",
-                                            persistLogsOnServer: true,
-                                            isDebuggingLogEnabled: true,
-                                            sendLogInterval: 5 * 60,
-                                            logServerRequestheaders: ["Authorization": "Basic Y2hhdDpjaGF0MTIz", "Content-Type": "application/json"])
-        let asyncConfig = try! AsyncConfigBuilder(spec: spec)
-            .reconnectCount(Int.max)
-            .reconnectOnClose(true)
-            .appId("PodChat")
-            .peerName(spec.server.serverName)
-            .loggerConfig(asyncLoggerConfig)
-            .build()
-        let chatConfig = ChatConfigBuilder(spec: spec, asyncConfig)
-            .callConfig(callConfig)
-            .token(token)
-            .enableCache(true)
-            .msgTTL(800_000) // for integeration server need to be long time
-            .persistLogsOnServer(true)
-            .appGroup(AppGroup.group)
-            .loggerConfig(chatLoggerConfig)
-            .mapApiKey("8b77db18704aa646ee5aaea13e7370f4f88b9e8c")
-            .typeCodes([.init(typeCode: "default", ownerId: nil)])
-            .build()
-        return chatConfig
-    }
-    
+extension AppState {    
     static func serverType(config: ChatConfig?) -> ServerTypes? {
         if config?.spec.server.server == ServerTypes.main.rawValue {
             return .main

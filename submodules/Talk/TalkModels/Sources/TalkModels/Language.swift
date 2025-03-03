@@ -79,6 +79,18 @@ public struct Language: Identifiable, Sendable {
         cachedbundel = bundle
     }
 
+    public static func setBundle(bundle: Bundle) {
+        rootBundle = bundle
+        guard let path = bundle.path(forResource: preferredLocaleLanguageCode, ofType: "lproj") else { return }
+        cachedbundel = Bundle(path: path)
+    }
+    
+    /// root bundle is the main folder of MyBundle.bundle,
+    /// which is contains ringtones and fonts.
+    nonisolated(unsafe) public static var rootBundle: Bundle?
+    
+    /// cachedBundle is language specific bundle such as MyBundle.bundle/fa-IR.lproj ,
+    /// which is not contains ringtones and fonts.
     nonisolated(unsafe) private static var cachedbundel: Bundle?
     nonisolated(unsafe) private static var cachedIsRTL: Bool?
     nonisolated(unsafe) private static var cachedPreferedLocale: Locale?

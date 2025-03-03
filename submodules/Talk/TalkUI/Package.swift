@@ -29,8 +29,7 @@ let package = Package(
                 "TalkModels",
                 "TalkExtensions",
                 "TalkViewModels"
-            ],
-            resources: [.process("Resources/Fonts/")]
+            ]
         ),
         .testTarget(
             name: "TalkUITests",
