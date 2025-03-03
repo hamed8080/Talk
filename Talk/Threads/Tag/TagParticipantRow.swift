@@ -11,6 +11,7 @@ import TalkUI
 import TalkViewModels
 
 struct TagParticipantRow: View {
+    typealias Tag = ChatModels.Tag
     var tag: Tag
     var tagParticipant: TagParticipant
     @StateObject var viewModel: TagsViewModel

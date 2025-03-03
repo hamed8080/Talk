@@ -11,6 +11,7 @@ import TalkUI
 import TalkViewModels
 
 struct TagRow: View {
+    typealias Tag = ChatModels.Tag
     var tag: Tag
     @StateObject var viewModel: TagsViewModel
     @State var isSelected: Bool = false

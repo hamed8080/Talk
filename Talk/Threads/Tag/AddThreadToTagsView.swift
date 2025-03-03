@@ -12,6 +12,7 @@ import TalkUI
 import TalkViewModels
 
 struct AddThreadToTagsView: View {
+    typealias Tag = ChatModels.Tag
     @StateObject var viewModel: TagsViewModel
     @State var showAddNewFolderDialog = false
     var onCompleted: (Tag) -> Void
