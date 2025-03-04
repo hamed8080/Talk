@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "talk_first_page.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
