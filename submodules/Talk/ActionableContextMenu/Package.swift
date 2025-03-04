@@ -23,10 +23,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ActionableContextMenuTests",
-            dependencies: ["ActionableContextMenu"],
-            resources: [
-                .copy("Resources/icon.png")
-            ]
+            dependencies: ["ActionableContextMenu"]
         ),
     ]
 )

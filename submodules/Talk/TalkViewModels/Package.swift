@@ -8,7 +8,7 @@ let package = Package(
     platforms: [
         .iOS(.v16),
         .macOS(.v12),
-        .macCatayst(.v15),
+        .macCatalyst(.v15),
     ],
     products: [
         .library(
@@ -38,10 +38,7 @@ let package = Package(
             dependencies: [
                 "TalkViewModels",
                 .product(name: "ZipArchive", package: "ZipArchive")
-            ],
-            resources: [
-                .copy("Resources/icon.png")
             ]
-        ),
+        )
     ]
 )

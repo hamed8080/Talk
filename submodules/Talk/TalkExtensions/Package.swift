@@ -27,10 +27,7 @@ let package = Package(
         ),
         .testTarget(
             name: "TalkExtensionsTests",
-            dependencies: ["TalkExtensions"],
-            resources: [
-                .copy("Resources/icon.png")
-            ]
+            dependencies: ["TalkExtensions"]
         ),
     ]
 )

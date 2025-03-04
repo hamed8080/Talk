@@ -25,10 +25,7 @@ let package = Package(
         ),
         .testTarget(
             name: "AdditiveUITests",
-            dependencies: ["AdditiveUI"],
-            resources: [
-                .copy("Resources/icon.png")
-            ]
+            dependencies: ["AdditiveUI"]
         ),
     ]
 )

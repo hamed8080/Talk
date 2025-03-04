@@ -36,9 +36,6 @@ let package = Package(
             dependencies: [
                 "TalkUI",
                 .product(name: "AdditiveUI", package: "AdditiveUI"),
-            ],
-            resources: [
-                .copy("Resources/icon.png")
             ]
         ),
     ]
