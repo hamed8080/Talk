@@ -8,7 +8,7 @@ let package = Package(
     platforms: [
         .iOS(.v16),
         .macOS(.v12),
-        .macCatalyst(.v15),
+        .macCatayst(.v15),
     ],
     products: [
         .library(
@@ -18,7 +18,9 @@ let package = Package(
     dependencies: [
         .package(path: "../TalkModels"),
         .package(path: "../TalkExtensions"),
-        .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5")
+        .package(path: "../../FFMpegKitContainer"),
+        .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5"),
+        .package(url: "https://github.com/dmrschmidt/DSWaveformImage", exact: "14.2.1")
     ],
     targets: [
         .target(
@@ -26,7 +28,9 @@ let package = Package(
             dependencies: [
                 "TalkModels",
                 "TalkExtensions",
-                .product(name: "ZipArchive", package: "ZipArchive")
+                .product(name: "ZipArchive", package: "ZipArchive"),
+                .product(name: "DSWaveformImage", package: "DSWaveformImage"),
+                .product(name: "FFMpegKitContainer", package: "FFMpegKitContainer")
             ]
         ),
         .testTarget(

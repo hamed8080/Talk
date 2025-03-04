@@ -7,22 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0501B3FF2CCD1DAF00CC1C2A /* libswscale.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACF2CCD1BE1002C1335 /* libswscale.xcframework */; };
-		0501B4002CCD1DAF00CC1C2A /* libswscale.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACF2CCD1BE1002C1335 /* libswscale.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B4012CCD1DAF00CC1C2A /* ffmpegkit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACA2CCD1BE1002C1335 /* ffmpegkit.xcframework */; };
-		0501B4022CCD1DAF00CC1C2A /* ffmpegkit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACA2CCD1BE1002C1335 /* ffmpegkit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B4032CCD1DAF00CC1C2A /* libavcodec.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACC2CCD1BE1002C1335 /* libavcodec.xcframework */; };
-		0501B4042CCD1DAF00CC1C2A /* libavcodec.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACC2CCD1BE1002C1335 /* libavcodec.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B4052CCD1DAF00CC1C2A /* libavdevice.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD02CCD1BE1002C1335 /* libavdevice.xcframework */; };
-		0501B4062CCD1DAF00CC1C2A /* libavdevice.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD02CCD1BE1002C1335 /* libavdevice.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B4072CCD1DAF00CC1C2A /* libavfilter.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACE2CCD1BE1002C1335 /* libavfilter.xcframework */; };
-		0501B4082CCD1DAF00CC1C2A /* libavfilter.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACE2CCD1BE1002C1335 /* libavfilter.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B4092CCD1DAF00CC1C2A /* libavformat.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACB2CCD1BE1002C1335 /* libavformat.xcframework */; };
-		0501B40A2CCD1DAF00CC1C2A /* libavformat.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACB2CCD1BE1002C1335 /* libavformat.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B40B2CCD1DAF00CC1C2A /* libavutil.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACD2CCD1BE1002C1335 /* libavutil.xcframework */; };
-		0501B40C2CCD1DAF00CC1C2A /* libavutil.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACD2CCD1BE1002C1335 /* libavutil.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0501B40D2CCD1DAF00CC1C2A /* libswresample.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD12CCD1BE1002C1335 /* libswresample.xcframework */; };
-		0501B40E2CCD1DAF00CC1C2A /* libswresample.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD12CCD1BE1002C1335 /* libswresample.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		050260782B15C408005F3E64 /* ManuallyConnectionManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050260772B15C408005F3E64 /* ManuallyConnectionManagerView.swift */; };
 		050260792B15C408005F3E64 /* ManuallyConnectionManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050260772B15C408005F3E64 /* ManuallyConnectionManagerView.swift */; };
 		0505D5AC2AE2CEC900A5B081 /* EditGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0505D5AB2AE2CEC900A5B081 /* EditGroup.swift */; };
@@ -135,22 +119,6 @@
 		0537E6F82C07B7F700EA2BF6 /* DetailViewNumberOfParticipants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0537E6F62C07B7F700EA2BF6 /* DetailViewNumberOfParticipants.swift */; };
 		053803D02B11F879005C8FAB /* DeleteThreadDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053803CF2B11F879005C8FAB /* DeleteThreadDialog.swift */; };
 		053803D12B11F879005C8FAB /* DeleteThreadDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053803CF2B11F879005C8FAB /* DeleteThreadDialog.swift */; };
-		053EBAD22CCD1BE1002C1335 /* ffmpegkit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACA2CCD1BE1002C1335 /* ffmpegkit.xcframework */; };
-		053EBAD32CCD1BE1002C1335 /* ffmpegkit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACA2CCD1BE1002C1335 /* ffmpegkit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBAD42CCD1BE1002C1335 /* libavformat.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACB2CCD1BE1002C1335 /* libavformat.xcframework */; };
-		053EBAD52CCD1BE1002C1335 /* libavformat.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACB2CCD1BE1002C1335 /* libavformat.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBAD62CCD1BE1002C1335 /* libavcodec.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACC2CCD1BE1002C1335 /* libavcodec.xcframework */; };
-		053EBAD72CCD1BE1002C1335 /* libavcodec.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACC2CCD1BE1002C1335 /* libavcodec.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBAD82CCD1BE1002C1335 /* libavutil.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACD2CCD1BE1002C1335 /* libavutil.xcframework */; };
-		053EBAD92CCD1BE1002C1335 /* libavutil.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACD2CCD1BE1002C1335 /* libavutil.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBADA2CCD1BE1002C1335 /* libavfilter.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACE2CCD1BE1002C1335 /* libavfilter.xcframework */; };
-		053EBADB2CCD1BE1002C1335 /* libavfilter.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACE2CCD1BE1002C1335 /* libavfilter.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBADC2CCD1BE1002C1335 /* libswscale.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACF2CCD1BE1002C1335 /* libswscale.xcframework */; };
-		053EBADD2CCD1BE1002C1335 /* libswscale.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBACF2CCD1BE1002C1335 /* libswscale.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBADE2CCD1BE1002C1335 /* libavdevice.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD02CCD1BE1002C1335 /* libavdevice.xcframework */; };
-		053EBADF2CCD1BE1002C1335 /* libavdevice.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD02CCD1BE1002C1335 /* libavdevice.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		053EBAE02CCD1BE1002C1335 /* libswresample.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD12CCD1BE1002C1335 /* libswresample.xcframework */; };
-		053EBAE12CCD1BE1002C1335 /* libswresample.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 053EBAD12CCD1BE1002C1335 /* libswresample.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		05466B0A2AEEA3F7005CC176 /* ArchivesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05466B092AEEA3F7005CC176 /* ArchivesView.swift */; };
 		05466B0B2AEEA3F7005CC176 /* ArchivesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05466B092AEEA3F7005CC176 /* ArchivesView.swift */; };
 		054ED7EC2BEB735800F9EDB3 /* OTPTimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 054ED7EB2BEB735800F9EDB3 /* OTPTimerView.swift */; };
@@ -179,8 +147,6 @@
 		0564D5962B4D16C6003B4322 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0564D5942B4D16C6003B4322 /* ColorSchemeModifier.swift */; };
 		05682B622C21B22B007DBBE6 /* ThreadNavigationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05682B612C21B22B007DBBE6 /* ThreadNavigationPlayer.swift */; };
 		05682B632C21B22B007DBBE6 /* ThreadNavigationPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05682B612C21B22B007DBBE6 /* ThreadNavigationPlayer.swift */; };
-		056ACA4D2B28485800C7E9FF /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = 056ACA4C2B28485800C7E9FF /* DSWaveformImage */; };
-		056ACA4F2B286F6000C7E9FF /* DSWaveformImage in Frameworks */ = {isa = PBXBuildFile; productRef = 056ACA4E2B286F6000C7E9FF /* DSWaveformImage */; };
 		0570CBDF2AAEE98E001832E9 /* ChatDelegateImplementation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CB632AAEE98C001832E9 /* ChatDelegateImplementation.swift */; };
 		0570CBE02AAEE98E001832E9 /* ChatDelegateImplementation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CB632AAEE98C001832E9 /* ChatDelegateImplementation.swift */; };
 		0570CBE32AAEE98F001832E9 /* HomeContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CB662AAEE98C001832E9 /* HomeContentView.swift */; };
@@ -301,10 +267,6 @@
 		0570CC902AAEE98F001832E9 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBDC2AAEE98E001832E9 /* MockData.json */; };
 		0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
 		0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
-		0570CCB82AAEEE78001832E9 /* TalkExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 0570CCB72AAEEE78001832E9 /* TalkExtensions */; };
-		0570CCBA2AAEEE78001832E9 /* TalkModels in Frameworks */ = {isa = PBXBuildFile; productRef = 0570CCB92AAEEE78001832E9 /* TalkModels */; };
-		0570CCBC2AAEEE78001832E9 /* TalkUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0570CCBB2AAEEE78001832E9 /* TalkUI */; };
-		0570CCBE2AAEEE78001832E9 /* TalkViewModels in Frameworks */ = {isa = PBXBuildFile; productRef = 0570CCBD2AAEEE78001832E9 /* TalkViewModels */; };
 		05729A562B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05729A552B8DACDA00D62D69 /* DeleteParticipantDialog.swift */; };
 		05729A572B8DACDA00D62D69 /* DeleteParticipantDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05729A552B8DACDA00D62D69 /* DeleteParticipantDialog.swift */; };
 		0572C78D2CCF4D6C00EE8655 /* ConversationTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572C78C2CCF4D6C00EE8655 /* ConversationTabsView.swift */; };
@@ -319,11 +281,6 @@
 		05807A172CBA8BCA00B6B433 /* DatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05807A152CBA8BCA00B6B433 /* DatePickerView.swift */; };
 		05840A742C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */; };
 		05840A752C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05840A732C0843E0003CE45B /* MutableMessageStatusView.swift */; };
-		05853A772C5F416D00720FB3 /* TalkModels in Frameworks */ = {isa = PBXBuildFile; productRef = 05853A762C5F416D00720FB3 /* TalkModels */; };
-		05853A792C5F416D00720FB3 /* TalkExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 05853A782C5F416D00720FB3 /* TalkExtensions */; };
-		05853A7B2C5F416D00720FB3 /* TalkUI in Frameworks */ = {isa = PBXBuildFile; productRef = 05853A7A2C5F416D00720FB3 /* TalkUI */; };
-		05853A7D2C5F416D00720FB3 /* TalkViewModels in Frameworks */ = {isa = PBXBuildFile; productRef = 05853A7C2C5F416D00720FB3 /* TalkViewModels */; };
-		05853A7F2C5F419400720FB3 /* ActionableContextMenu in Frameworks */ = {isa = PBXBuildFile; productRef = 05853A7E2C5F419400720FB3 /* ActionableContextMenu */; };
 		058ACC2C2BA32CE60076BDA5 /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058ACC2B2BA32CE60076BDA5 /* SectionHeaderView.swift */; };
 		058ACC2D2BA32CE60076BDA5 /* SectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058ACC2B2BA32CE60076BDA5 /* SectionHeaderView.swift */; };
 		05903B5D2BBD08100098F382 /* AttachmentFilesTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05903B5C2BBD08100098F382 /* AttachmentFilesTableView.swift */; };
@@ -411,7 +368,6 @@
 		05DAA4362B29BF39007427DC /* ContactListToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DAA4342B29BF39007427DC /* ContactListToolbar.swift */; };
 		05DCC0652AE183EA0025B3B7 /* ConversationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DCC0642AE183EA0025B3B7 /* ConversationBuilder.swift */; };
 		05DCC0662AE187D80025B3B7 /* ConversationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DCC0642AE183EA0025B3B7 /* ConversationBuilder.swift */; };
-		05DDC8482AEC240D009F9942 /* ActionableContextMenu in Frameworks */ = {isa = PBXBuildFile; productRef = 05DDC8472AEC240D009F9942 /* ActionableContextMenu */; };
 		05E781EE2C2060CA002262AD /* GallleryMediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781ED2C2060CA002262AD /* GallleryMediaPickerViewController.swift */; };
 		05E781EF2C2060CA002262AD /* GallleryMediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781ED2C2060CA002262AD /* GallleryMediaPickerViewController.swift */; };
 		05E781F12C2062FA002262AD /* AttchmentButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E781F02C2062FA002262AD /* AttchmentButton.swift */; };
@@ -475,6 +431,8 @@
 		ACA089982D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */; };
 		ACA238F32D76CB8E00D8E43A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		ACA238F42D76CB8E00D8E43A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
+		ACA238FA2D774F6E00D8E43A /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = ACA238F92D774F6E00D8E43A /* Dependencies */; };
+		ACA238FC2D774F7E00D8E43A /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = ACA238FB2D774F7E00D8E43A /* Dependencies */; };
 		ACB5BBE82D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
 		ACB5BBE92D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
 		ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
@@ -488,14 +446,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				053EBADF2CCD1BE1002C1335 /* libavdevice.xcframework in Embed Frameworks */,
-				053EBAD92CCD1BE1002C1335 /* libavutil.xcframework in Embed Frameworks */,
-				053EBAE12CCD1BE1002C1335 /* libswresample.xcframework in Embed Frameworks */,
-				053EBAD32CCD1BE1002C1335 /* ffmpegkit.xcframework in Embed Frameworks */,
-				053EBAD72CCD1BE1002C1335 /* libavcodec.xcframework in Embed Frameworks */,
-				053EBADB2CCD1BE1002C1335 /* libavfilter.xcframework in Embed Frameworks */,
-				053EBADD2CCD1BE1002C1335 /* libswscale.xcframework in Embed Frameworks */,
-				053EBAD52CCD1BE1002C1335 /* libavformat.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -506,14 +456,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0501B4062CCD1DAF00CC1C2A /* libavdevice.xcframework in Embed Frameworks */,
-				0501B40A2CCD1DAF00CC1C2A /* libavformat.xcframework in Embed Frameworks */,
-				0501B40E2CCD1DAF00CC1C2A /* libswresample.xcframework in Embed Frameworks */,
-				0501B4002CCD1DAF00CC1C2A /* libswscale.xcframework in Embed Frameworks */,
-				0501B4042CCD1DAF00CC1C2A /* libavcodec.xcframework in Embed Frameworks */,
-				0501B4082CCD1DAF00CC1C2A /* libavfilter.xcframework in Embed Frameworks */,
-				0501B40C2CCD1DAF00CC1C2A /* libavutil.xcframework in Embed Frameworks */,
-				0501B4022CCD1DAF00CC1C2A /* ffmpegkit.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -578,14 +520,6 @@
 		0537C1F22C31C5A100B6ECDB /* UIHistoryTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIHistoryTableView.swift; sourceTree = "<group>"; };
 		0537E6F62C07B7F700EA2BF6 /* DetailViewNumberOfParticipants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewNumberOfParticipants.swift; sourceTree = "<group>"; };
 		053803CF2B11F879005C8FAB /* DeleteThreadDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteThreadDialog.swift; sourceTree = "<group>"; };
-		053EBACA2CCD1BE1002C1335 /* ffmpegkit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ffmpegkit.xcframework; path = Frameworks/ffmpegkit.xcframework; sourceTree = "<group>"; };
-		053EBACB2CCD1BE1002C1335 /* libavformat.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavformat.xcframework; path = Frameworks/libavformat.xcframework; sourceTree = "<group>"; };
-		053EBACC2CCD1BE1002C1335 /* libavcodec.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavcodec.xcframework; path = Frameworks/libavcodec.xcframework; sourceTree = "<group>"; };
-		053EBACD2CCD1BE1002C1335 /* libavutil.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavutil.xcframework; path = Frameworks/libavutil.xcframework; sourceTree = "<group>"; };
-		053EBACE2CCD1BE1002C1335 /* libavfilter.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavfilter.xcframework; path = Frameworks/libavfilter.xcframework; sourceTree = "<group>"; };
-		053EBACF2CCD1BE1002C1335 /* libswscale.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libswscale.xcframework; path = Frameworks/libswscale.xcframework; sourceTree = "<group>"; };
-		053EBAD02CCD1BE1002C1335 /* libavdevice.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavdevice.xcframework; path = Frameworks/libavdevice.xcframework; sourceTree = "<group>"; };
-		053EBAD12CCD1BE1002C1335 /* libswresample.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libswresample.xcframework; path = Frameworks/libswresample.xcframework; sourceTree = "<group>"; };
 		05466B092AEEA3F7005CC176 /* ArchivesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivesView.swift; sourceTree = "<group>"; };
 		054ED7EB2BEB735800F9EDB3 /* OTPTimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPTimerView.swift; sourceTree = "<group>"; };
 		054ED7EE2BEB739000F9EDB3 /* OTPNumbers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OTPNumbers.swift; sourceTree = "<group>"; };
@@ -755,21 +689,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				056ACA4D2B28485800C7E9FF /* DSWaveformImage in Frameworks */,
-				0501B40D2CCD1DAF00CC1C2A /* libswresample.xcframework in Frameworks */,
-				0501B4032CCD1DAF00CC1C2A /* libavcodec.xcframework in Frameworks */,
-				0570CCBC2AAEEE78001832E9 /* TalkUI in Frameworks */,
-				0501B4012CCD1DAF00CC1C2A /* ffmpegkit.xcframework in Frameworks */,
-				0570CCB82AAEEE78001832E9 /* TalkExtensions in Frameworks */,
-				0501B4052CCD1DAF00CC1C2A /* libavdevice.xcframework in Frameworks */,
-				0501B4072CCD1DAF00CC1C2A /* libavfilter.xcframework in Frameworks */,
-				0570CCBE2AAEEE78001832E9 /* TalkViewModels in Frameworks */,
-				0570CCBA2AAEEE78001832E9 /* TalkModels in Frameworks */,
-				0501B4092CCD1DAF00CC1C2A /* libavformat.xcframework in Frameworks */,
 				05D493932B21FF3800508472 /* PhotosUI.framework in Frameworks */,
-				0501B3FF2CCD1DAF00CC1C2A /* libswscale.xcframework in Frameworks */,
-				0501B40B2CCD1DAF00CC1C2A /* libavutil.xcframework in Frameworks */,
-				05DDC8482AEC240D009F9942 /* ActionableContextMenu in Frameworks */,
+				ACA238FC2D774F7E00D8E43A /* Dependencies in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -777,21 +698,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				053EBADE2CCD1BE1002C1335 /* libavdevice.xcframework in Frameworks */,
-				053EBAE02CCD1BE1002C1335 /* libswresample.xcframework in Frameworks */,
-				05853A7F2C5F419400720FB3 /* ActionableContextMenu in Frameworks */,
-				053EBAD62CCD1BE1002C1335 /* libavcodec.xcframework in Frameworks */,
-				053EBADC2CCD1BE1002C1335 /* libswscale.xcframework in Frameworks */,
-				053EBAD22CCD1BE1002C1335 /* ffmpegkit.xcframework in Frameworks */,
-				05853A7B2C5F416D00720FB3 /* TalkUI in Frameworks */,
-				056ACA4F2B286F6000C7E9FF /* DSWaveformImage in Frameworks */,
 				05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */,
-				053EBADA2CCD1BE1002C1335 /* libavfilter.xcframework in Frameworks */,
-				05853A792C5F416D00720FB3 /* TalkExtensions in Frameworks */,
-				05853A772C5F416D00720FB3 /* TalkModels in Frameworks */,
-				053EBAD82CCD1BE1002C1335 /* libavutil.xcframework in Frameworks */,
-				053EBAD42CCD1BE1002C1335 /* libavformat.xcframework in Frameworks */,
-				05853A7D2C5F416D00720FB3 /* TalkViewModels in Frameworks */,
+				ACA238FA2D774F6E00D8E43A /* Dependencies in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1220,14 +1128,6 @@
 		0570CCA92AAEEE22001832E9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				053EBACA2CCD1BE1002C1335 /* ffmpegkit.xcframework */,
-				053EBACC2CCD1BE1002C1335 /* libavcodec.xcframework */,
-				053EBAD02CCD1BE1002C1335 /* libavdevice.xcframework */,
-				053EBACE2CCD1BE1002C1335 /* libavfilter.xcframework */,
-				053EBACB2CCD1BE1002C1335 /* libavformat.xcframework */,
-				053EBACD2CCD1BE1002C1335 /* libavutil.xcframework */,
-				053EBAD12CCD1BE1002C1335 /* libswresample.xcframework */,
-				053EBACF2CCD1BE1002C1335 /* libswscale.xcframework */,
 				052F46652B21F5B400085C26 /* PhotosUI.framework */,
 			);
 			name = Frameworks;
@@ -1425,12 +1325,7 @@
 			);
 			name = Talk;
 			packageProductDependencies = (
-				0570CCB72AAEEE78001832E9 /* TalkExtensions */,
-				0570CCB92AAEEE78001832E9 /* TalkModels */,
-				0570CCBB2AAEEE78001832E9 /* TalkUI */,
-				0570CCBD2AAEEE78001832E9 /* TalkViewModels */,
-				05DDC8472AEC240D009F9942 /* ActionableContextMenu */,
-				056ACA4C2B28485800C7E9FF /* DSWaveformImage */,
+				ACA238FB2D774F7E00D8E43A /* Dependencies */,
 			);
 			productName = Talk;
 			productReference = 0570CB172AAEE02A001832E9 /* Talk.app */;
@@ -1451,12 +1346,7 @@
 			);
 			name = "Talk-Test";
 			packageProductDependencies = (
-				056ACA4E2B286F6000C7E9FF /* DSWaveformImage */,
-				05853A762C5F416D00720FB3 /* TalkModels */,
-				05853A782C5F416D00720FB3 /* TalkExtensions */,
-				05853A7A2C5F416D00720FB3 /* TalkUI */,
-				05853A7C2C5F416D00720FB3 /* TalkViewModels */,
-				05853A7E2C5F419400720FB3 /* ActionableContextMenu */,
+				ACA238F92D774F6E00D8E43A /* Dependencies */,
 			);
 			productName = Talk;
 			productReference = 0570CB332AAEE04B001832E9 /* Talk-Test.app */;
@@ -1496,12 +1386,7 @@
 			);
 			mainGroup = 0570CB0E2AAEE02A001832E9;
 			packageReferences = (
-				056ACA4B2B28485800C7E9FF /* XCRemoteSwiftPackageReference "DSWaveformImage" */,
-				05853A712C5F3E6700720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkModels" */,
-				05853A722C5F3E8C00720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkExtensions" */,
-				05853A732C5F3ED300720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/ActionableContextMenu" */,
-				05853A742C5F3EE400720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkUI" */,
-				05853A752C5F3EF200720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkViewModels" */,
+				ACA238F82D774F0D00D8E43A /* XCLocalSwiftPackageReference "submodules/Talk/Dependencies" */,
 			);
 			productRefGroup = 0570CB182AAEE02A001832E9 /* Products */;
 			projectDirPath = "";
@@ -2279,94 +2164,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		05853A712C5F3E6700720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkModels" */ = {
+		ACA238F82D774F0D00D8E43A /* XCLocalSwiftPackageReference "submodules/Talk/Dependencies" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = submodules/Talk/TalkModels;
-		};
-		05853A722C5F3E8C00720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkExtensions" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = submodules/Talk/TalkExtensions;
-		};
-		05853A732C5F3ED300720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/ActionableContextMenu" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = submodules/Talk/ActionableContextMenu;
-		};
-		05853A742C5F3EE400720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = submodules/Talk/TalkUI;
-		};
-		05853A752C5F3EF200720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkViewModels" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = submodules/Talk/TalkViewModels;
+			relativePath = submodules/Talk/Dependencies;
 		};
 /* End XCLocalSwiftPackageReference section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		056ACA4B2B28485800C7E9FF /* XCRemoteSwiftPackageReference "DSWaveformImage" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/dmrschmidt/DSWaveformImage";
-			requirement = {
-				kind = exactVersion;
-				version = 14.2.1;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		056ACA4C2B28485800C7E9FF /* DSWaveformImage */ = {
+		ACA238F92D774F6E00D8E43A /* Dependencies */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 056ACA4B2B28485800C7E9FF /* XCRemoteSwiftPackageReference "DSWaveformImage" */;
-			productName = DSWaveformImage;
+			package = ACA238F82D774F0D00D8E43A /* XCLocalSwiftPackageReference "submodules/Talk/Dependencies" */;
+			productName = Dependencies;
 		};
-		056ACA4E2B286F6000C7E9FF /* DSWaveformImage */ = {
+		ACA238FB2D774F7E00D8E43A /* Dependencies */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 056ACA4B2B28485800C7E9FF /* XCRemoteSwiftPackageReference "DSWaveformImage" */;
-			productName = DSWaveformImage;
-		};
-		0570CCB72AAEEE78001832E9 /* TalkExtensions */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TalkExtensions;
-		};
-		0570CCB92AAEEE78001832E9 /* TalkModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TalkModels;
-		};
-		0570CCBB2AAEEE78001832E9 /* TalkUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TalkUI;
-		};
-		0570CCBD2AAEEE78001832E9 /* TalkViewModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = TalkViewModels;
-		};
-		05853A762C5F416D00720FB3 /* TalkModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 05853A712C5F3E6700720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkModels" */;
-			productName = TalkModels;
-		};
-		05853A782C5F416D00720FB3 /* TalkExtensions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 05853A722C5F3E8C00720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkExtensions" */;
-			productName = TalkExtensions;
-		};
-		05853A7A2C5F416D00720FB3 /* TalkUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 05853A742C5F3EE400720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkUI" */;
-			productName = TalkUI;
-		};
-		05853A7C2C5F416D00720FB3 /* TalkViewModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 05853A752C5F3EF200720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/TalkViewModels" */;
-			productName = TalkViewModels;
-		};
-		05853A7E2C5F419400720FB3 /* ActionableContextMenu */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 05853A732C5F3ED300720FB3 /* XCLocalSwiftPackageReference "submodules/Talk/ActionableContextMenu" */;
-			productName = ActionableContextMenu;
-		};
-		05DDC8472AEC240D009F9942 /* ActionableContextMenu */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ActionableContextMenu;
+			package = ACA238F82D774F0D00D8E43A /* XCLocalSwiftPackageReference "submodules/Talk/Dependencies" */;
+			productName = Dependencies;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
