@@ -127,7 +127,12 @@ extension ThreadHistoryViewModel {
         let hasAnythingToLoadOnOpen = await AppState.shared.appStateNavigationModel.moveToMessageId != nil
         await moveToMessageTimeOnOpenConversation()
         await showEmptyThread(show: false)
-        if sections.count > 0 || hasAnythingToLoadOnOpen || isSimulatedThread { return }
+        if isSimulatedThread {
+            await showEmptyThread(show: true)
+            await showCenterLoading(false)
+            return 
+        }
+        if sections.count > 0 || hasAnythingToLoadOnOpen { return }
         Task.detached {
             /// We won't set this variable to prevent duplicate call on connection status for the first time.
             /// If we don't sleep we will get a crash.
