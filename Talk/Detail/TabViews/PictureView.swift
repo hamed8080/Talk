@@ -184,8 +184,8 @@ struct DownloadPictureButtonView: View {
             .resizable()
             .frame(width: itemWidth, height: itemWidth)
             .scaledToFit()
-            .clipped()
             .transition(.opacity)
+            .clipShape(RoundedRectangle(cornerRadius:(8)))
             .contentShape(RoundedRectangle(cornerRadius: 8))
             .onAppear {
                 /// After downloading the image inside the gallery,
@@ -208,11 +208,10 @@ struct DownloadPictureButtonView: View {
                     .clipped()
                     .zIndex(0)
                     .background(Color.App.dividerSecondary)
-                    .clipShape(RoundedRectangle(cornerRadius:(8)))
-                    .contentShape(RoundedRectangle(cornerRadius: 8))
             }
         }
         .frame(width: itemWidth, height: itemWidth)
+        .clipShape(RoundedRectangle(cornerRadius:(8)))
         .contentShape(RoundedRectangle(cornerRadius: 8))
         .transition(.opacity)
         .task {
@@ -245,7 +244,7 @@ struct DownloadPictureButtonView: View {
     
     @AppBackgroundActor
     private func scaledImage(url: URL?) async -> UIImage? {
-        if let fileURL = url, let scaledImage = fileURL.imageScale(width: 128)?.image {
+        if let fileURL = url, let scaledImage = fileURL.imageScale(width: 96)?.image {
             return UIImage(cgImage: scaledImage)
         }
         return nil
