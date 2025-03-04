@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 import UIKit
 import TalkModels
 
+@MainActor
 public protocol AttachmentDelegate: AnyObject {
     func reload()
     func reloadItem(indexPath: IndexPath)

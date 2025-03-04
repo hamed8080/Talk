@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 
-@available(iOS 16.1, *)
 public struct SectionTitleView: View {
     var title: String
 
@@ -30,7 +29,6 @@ public struct SectionTitleView: View {
     }
 }
 
-@available(iOS 16.1, *)
 public struct SectionImageView: View {
     var image: Image
 

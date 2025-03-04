@@ -5,19 +5,17 @@
 //  Created by Hamed Hosseini on 5/27/21.
 //
 
-import Chat
 import SwiftUI
-import TalkUI
-import TalkViewModels
 import UIKit
 import BackgroundTasks
-import TalkModels
-import Logger
+import TalkApp
+import Combine
 
 @MainActor
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDelegate {
     var window: UIWindow?
     private var backgroundTaskID: UIBackgroundTaskIdentifier?
+    private var cancellableSet = Set<AnyCancellable>()
 
     func scene(_ scene: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -44,6 +42,24 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
                 self?.handleTaskRefreshToken(task)
             }
         }
+        
+        NotificationCenter.default.publisher(for: Notification.Name("RELAOD"))
+            .sink { [weak self] notif in
+                self?.reloadApp()
+            }
+            .store(in: &cancellableSet)
+    }
+    
+    public func reloadApp() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        Language.onChangeLanguage()
+        let window = UIWindow(windowScene: windowScene)
+        let contentView = HomeContentView()
+            .font(.fBody)
+        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
+        UIApplication.shared.delegate?.window??.rootViewController = window.rootViewController
+        (windowScene.delegate as? SceneDelegate)?.window = window
+        window.makeKeyAndVisible()
     }
 
     func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
