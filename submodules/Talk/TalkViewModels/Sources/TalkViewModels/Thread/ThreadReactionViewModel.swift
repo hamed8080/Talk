@@ -17,7 +17,7 @@ public final class ThreadReactionViewModel {
     private var threadId: Int { thread?.id ?? -1 }
     private var hasEverDisonnected = false
     private var inQueueToGetReactions: [Int] = []
-    public var allowedReactions: [Sticker] = []
+    public var allowedReactions: [Sticker]?
     private let objectId = UUID().uuidString
     private let REACTION_COUNT_LIST_KEY: String
     
@@ -74,12 +74,14 @@ public final class ThreadReactionViewModel {
     /// Add/Remove/Replace
     public func reaction(_ sticker: Sticker, messageId: Int, myReactionId: Int?, myReactionSticker: Sticker?) {
         let threadId = threadId
-        let isExistInCollection = allowedReactions.contains(where: {$0.emoji == sticker.emoji}) || thread?.group == false
+        let isLimitedByAdmin = allowedReactions != nil
+        let isInAllowedRange = allowedReactions?.contains(where: {$0.emoji == sticker.emoji}) == true
+        let canSendReaction = (isLimitedByAdmin && isInAllowedRange) || !isLimitedByAdmin || thread?.group == false
         Task { @ChatGlobalActor in
             if myReactionSticker == sticker, let reactionId = myReactionId {
                 let req = DeleteReactionRequest(reactionId: reactionId, conversationId: threadId)
                 ChatManager.activeInstance?.reaction.delete(req)
-            } else if isExistInCollection {
+            } else if canSendReaction {
                 if let reactionId = myReactionId {
                     let req = ReplaceReactionRequest(messageId: messageId, conversationId: threadId, reactionId: reactionId, reaction: sticker)
                     ChatManager.activeInstance?.reaction.replace(req)

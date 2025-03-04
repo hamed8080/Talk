@@ -125,6 +125,7 @@ public final class TokenManager: ObservableObject {
     }
     
     private func onRefreshTokenError(error: Error) {
+        isInFetchingRefreshToken
         let log = Log(prefix: "TALK_APP", time: .now, message: error.localizedDescription, level: .error, type: .sent, userInfo: nil)
         post(log: log)
         self.log("error on getNewTokenWithRefreshToken:\(error.localizedDescription)")
