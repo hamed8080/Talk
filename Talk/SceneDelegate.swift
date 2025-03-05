@@ -28,7 +28,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         }
         
         // MARK: Registering Launch Handlers for Tasks
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).refreshToken", using: nil) { [weak self] task in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).rft", using: nil) { [weak self] task in
             // Downcast the parameter to an app refresh task as this identifier is used for a refresh request.
             if let task = task as? BGAppRefreshTask {
                 self?.handleTaskRefreshToken(task)
@@ -132,7 +132,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     private func scheduleAppRefreshToken() async {
         if let ssoToken = await TokenManager.shared.getSSOTokenFromUserDefaultsAsync(), let createDate = TokenManager.shared.getCreateTokenDate() {
             let timeToStart = createDate.advanced(by: Double(ssoToken.expiresIn - 50)).timeIntervalSince1970 - Date().timeIntervalSince1970
-            let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).refreshToken")
+            let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).rft")
             request.earliestBeginDate = Date(timeIntervalSince1970: timeToStart)
             do {
                 try BGTaskScheduler.shared.submit(request)

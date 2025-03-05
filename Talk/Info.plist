@@ -4,7 +4,7 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>ir.pod.talk.refreshToken</string>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).rft</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -24,17 +24,17 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>ir.pod.talk</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>showUser</string>
-				<string>openURL</string>
-			</array>
-		</dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>showUser</string>
+                <string>openURL</string>
+            </array>
+        </dict>
 		<dict>
 			<key>CFBundleURLName</key>
 			<string>talk</string>
@@ -57,22 +57,22 @@
 		<key>NSExceptionDomains</key>
 		<dict/>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) Requires camera access in order to capture and transmit video</string>
-	<key>NSContactsUsageDescription</key>
-	<string>This app access to your contacts to sync with application.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Talk uses your location in the case of sending a message to your friends or group if you are in need.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Talk uses your location in the case of sending a message to your friends or group if you are in need.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Talk uses your location in the case of sending a message to your friends or group if you are in need.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>$(PRODUCT_NAME) Requires microphone access in order to capture and transmit audio</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Please allow access to save photo in your photo library</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Send photos and vidoes through Chats</string>
+    <key>NSCameraUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires camera access if you want to store an image to recall.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires contact access to share the app with othters.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires location access to store and recall.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires location access to store and recall.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires location access to store and recall.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires microphone access in to store your voice for review.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires library access to use an image as review.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>$(PRODUCT_NAME) Requires library access to use an image as review.</string>
 	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -104,8 +104,8 @@
 	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
-    <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
