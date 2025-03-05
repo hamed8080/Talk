@@ -22,17 +22,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
 
-        // Create the SwiftUI view that provides the window contents.
-        let contentView = HomeContentView()
-            .font(.fBody)
         TokenManager.shared.initSetIsLogin()
-
-        // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
-            let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = CustomUIHostinViewController(rootView: contentView) // CustomUIHosting is Needed for change status bar color per page
-            self.window = window
-            window.makeKeyAndVisible()
+            setupRoot(windowScene: windowScene)
         }
         
         // MARK: Registering Launch Handlers for Tasks
@@ -45,20 +37,21 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         
         NotificationCenter.default.publisher(for: Notification.Name("RELAOD"))
             .sink { [weak self] notif in
-                self?.reloadApp()
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+                self?.setupRoot(windowScene: windowScene)
             }
             .store(in: &cancellableSet)
     }
     
-    public func reloadApp() {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+    public func setupRoot(windowScene: UIWindowScene) {
         Language.onChangeLanguage()
         let window = UIWindow(windowScene: windowScene)
         let contentView = HomeContentView()
             .font(.fBody)
+        /// CustomUIHosting is Needed for change status bar color per page
         window.rootViewController = CustomUIHostinViewController(rootView: contentView)
         UIApplication.shared.delegate?.window??.rootViewController = window.rootViewController
-        (windowScene.delegate as? SceneDelegate)?.window = window
+        self.window = window
         window.makeKeyAndVisible()
     }
 

@@ -13,7 +13,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     override init() {
         super.init()
-        setFirstOpenningLanguage()
     }
 
     class var shared: AppDelegate! {
@@ -39,14 +38,5 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the user discards a scene session.
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
-    }
-
-    private func setFirstOpenningLanguage() {
-        if UserDefaults.standard.bool(forKey: "setFirstOpenningLanguaged") == true { return }
-        if let language = Language.languages.first(where: {$0.identifier == "ZmFfSVI=".fromBase64()}) {
-            UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
-            UserDefaults.standard.set(true, forKey: "setFirstOpenningLanguaged")
-            UserDefaults.standard.synchronize()
-        }
     }
 }

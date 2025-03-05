@@ -27,23 +27,30 @@ public final class ChatDelegateImplementation: ChatDelegate {
     public func initialize() {
         let manager = BundleManager.init()
         if let spec = Spec.cachedSpec() {
-            AppState.shared.spec = spec
-            let bundle = manager.getBundle()
-            Language.setBundle(bundle: bundle)
-            UIFont.register(bundle: bundle)
-            // Override point for customization after application launch.
-            ChatDelegateImplementation.sharedInstance.createChatObject()
+            setup(spec: spec, manager: manager)
         } else {
             /// Download the Spec
             Task {
-                if let spec = try? await Spec.dl() {
-                    AppState.shared.spec = spec
-                    // Override point for customization after application launch.
-                    ChatDelegateImplementation.sharedInstance.createChatObject()
-                }
+                let spec = try? await Spec.dl()
                 _ = try? await manager.st()
+                if let language = Language.languages.first(where: { $0.identifier == "ZmFfSVI=".fromBase64() }) {
+                    UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
+                    UserDefaults.standard.synchronize()
+                }
+                Language.onChangeLanguage()
+                setup(spec: spec ?? .empty(), manager: manager)
+                NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
             }
         }
+    }
+    
+    private func setup(spec: Spec, manager: BundleManager) {
+        AppState.shared.spec = spec
+        let bundle = manager.getBundle()
+        Language.setBundle(bundle: bundle)
+        UIFont.register(bundle: bundle)
+        // Override point for customization after application launch.
+        ChatDelegateImplementation.sharedInstance.createChatObject()
     }
 
     @MainActor
