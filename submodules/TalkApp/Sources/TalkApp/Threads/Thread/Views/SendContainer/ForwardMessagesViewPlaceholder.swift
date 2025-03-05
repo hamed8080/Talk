@@ -100,7 +100,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
             let message = model.forwardMessages?.first?.message ?? ""
             messageLabel.text = message
         } else {
-            let localized = String(localized: .init("Thread.forwardMessages"))
+            let localized = "Thread.forwardMessages".bundleLocalized()
             let localNumber = (model.forwardMessages?.count ?? 0).localNumber(locale: Language.preferredLocale) ?? ""
             let staticMessage = String(format: localized, localNumber)
             staticForwardLabel.text = staticMessage

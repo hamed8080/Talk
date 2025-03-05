@@ -20,6 +20,7 @@ public struct PrimaryCustomDialog: View {
     var onSubmit: ((String) -> Void)?
     var onClose: (() -> Void)?
     @Environment(\.colorScheme) var colorScheme
+    let bundle: Bundle
 
     public init(title: String,
                 message: String? = nil,
@@ -29,6 +30,7 @@ public struct PrimaryCustomDialog: View {
                 textPlaceholder: String? = nil,
                 submitTitle: String = "General.submit",
                 cancelTitle: String = "General.cancel",
+                bundle: Bundle,
                 onSubmit: ((String) -> Void)? = nil,
                 onClose: (() -> Void)? = nil) {
         self.title = title
@@ -39,6 +41,7 @@ public struct PrimaryCustomDialog: View {
         self.textPlaceholder = textPlaceholder
         self.submitTitle = submitTitle
         self.cancelTitle = cancelTitle
+        self.bundle = bundle
         self.onSubmit = onSubmit
         self.onClose = onClose
     }
@@ -54,11 +57,11 @@ public struct PrimaryCustomDialog: View {
                     .foregroundColor(Color.gray)
             }
 
-            Text(String(localized: .init(title)))
+            Text(String(localized: .init(title), bundle: bundle))
                 .font(titleFont)
                 .padding([.top, .bottom])
             if let message = message {
-                Text(String(localized: .init(message)))
+                Text(String(localized: .init(message), bundle: bundle))
                     .font(messageFont)
                     .multilineTextAlignment(.leading)
                     .foregroundColor(Color.gray)
@@ -74,12 +77,12 @@ public struct PrimaryCustomDialog: View {
                     .padding(.bottom)
             }
 
-            Button(String(localized: .init(submitTitle))) {
+            Button(String(localized: .init(submitTitle), bundle: bundle)) {
                 onSubmit?(textBinding?.wrappedValue ?? "")
                 hideDialog.toggle()
             }
 
-            Button(String(localized: .init(cancelTitle))) {
+            Button(String(localized: .init(cancelTitle), bundle: bundle)) {
                 withAnimation {
                     hideDialog.toggle()
                     onClose?()
@@ -95,7 +98,8 @@ struct PrimaryCustomDialog_Previews: PreviewProvider {
                             message: "Message",
                             systemImageName: "trash.fill",
                             textBinding: .constant("Text"),
-                            hideDialog: .constant(false))
+                            hideDialog: .constant(false),
+                            bundle: .main)
             .preferredColorScheme(.dark)
     }
 }

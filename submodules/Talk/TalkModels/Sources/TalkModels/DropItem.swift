@@ -5,7 +5,7 @@ public struct DropItem: Identifiable, Sendable {
     public let name: String?
     public let iconName: String?
     public let ext: String?
-    public var fileSize: String { data?.count.toSizeString(locale: Language.preferredLocale) ?? "" }
+    public var fileSize: String { data?.count.toSizeString(locale: Language.preferredLocale, bundle: Language.preferedBundle) ?? "" }
 
     public init(data: Data? = nil, name: String? = nil, iconName: String? = nil, ext: String? = nil) {
         self.data = data

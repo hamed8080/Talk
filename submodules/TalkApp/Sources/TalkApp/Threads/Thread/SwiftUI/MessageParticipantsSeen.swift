@@ -75,7 +75,7 @@ struct MessageSeenParticipantRow: View {
                             .foregroundColor(.primary.opacity(0.5))
                     }
                     if  let notSeenDuration = participant.notSeenDuration?.localFormattedTime {
-                        let lastVisitedLabel = String(localized: .init("Contacts.lastVisited"), bundle: Language.preferedBundle)
+                        let lastVisitedLabel = "Contacts.lastVisited".bundleLocalized()
                         let time = String(format: lastVisitedLabel, notSeenDuration)
                         Text(time)
                             .font(.fBody)

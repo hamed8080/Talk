@@ -161,7 +161,6 @@ public extension String {
     }
 }
 
-
 public extension String {
     func links() -> [String] {
         var links: [String] = []

@@ -43,7 +43,8 @@ struct AddThreadToTagsView: View {
                                     systemImageName: "folder.badge.plus",
                                     textBinding: $tagName,
                                     hideDialog: $showAddNewFolderDialog,
-                                    textPlaceholder: "Tags.enterNewFolderName") { _ in
+                                    textPlaceholder: "Tags.enterNewFolderName",
+                                    bundle: Language.preferedBundle) { _ in
                     viewModel.createTag(name: tagName)
                 }
                 .keyboardResponsive()

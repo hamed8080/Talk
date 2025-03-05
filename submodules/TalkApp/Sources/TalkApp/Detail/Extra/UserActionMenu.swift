@@ -20,24 +20,24 @@ struct UserActionMenu: View {
     var body: some View {
         Divider()
         if participant.contactId == nil {
-            ContextMenuButton(title: "General.add".bundleLocalized(), image: "person.badge.plus") {
+            ContextMenuButton(title: "General.add".bundleLocalized(), image: "person.badge.plus", bundle: Language.preferedBundle) {
                onAddContactTapped()
             }
         }
 
         let blockKey = participant.blocked == true ? "General.unblock" : "General.block"
-        ContextMenuButton(title: blockKey.bundleLocalized(), image: participant.blocked == true ? "hand.raised.slash" : "hand.raised") {
+        ContextMenuButton(title: blockKey.bundleLocalized(), image: participant.blocked == true ? "hand.raised.slash" : "hand.raised", bundle: Language.preferedBundle) {
            onBlockUnblockTapped()
         }
 
         if EnvironmentValues.isTalkTest {
-            ContextMenuButton(title: "General.share".bundleLocalized(), image: "square.and.arrow.up") {
+            ContextMenuButton(title: "General.share".bundleLocalized(), image: "square.and.arrow.up", bundle: Language.preferedBundle) {
                 showPopover = false
             }
             .disabled(true)
             .sandboxLabel()
 
-            ContextMenuButton(title: "Thread.export".bundleLocalized(), image: "tray.and.arrow.up") {
+            ContextMenuButton(title: "Thread.export".bundleLocalized(), image: "tray.and.arrow.up", bundle: Language.preferedBundle) {
                 showPopover = false
             }
             .disabled(true)
@@ -45,7 +45,7 @@ struct UserActionMenu: View {
         }
 
         if participant.contactId != nil {
-            ContextMenuButton(title: "Contacts.delete".bundleLocalized(), image: "trash", iconColor: Color.App.red) {
+            ContextMenuButton(title: "Contacts.delete".bundleLocalized(), image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle) {
                 onDeleteContactTapped()
             }
             .foregroundStyle(Color.App.red)

@@ -33,7 +33,7 @@ import OSLog
 //            }
 //        }
 //        .overlay(alignment: .topLeading) {
-//            Text(String(localized:.init(videoPlayerVM.timerString)))
+//            Text(videoPlayerVM.timerString.bundleLocalized())
 //                .padding(6)
 //                .background(.ultraThinMaterial)
 //                .clipShape(RoundedRectangle(cornerRadius:(8)))

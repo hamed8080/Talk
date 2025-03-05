@@ -58,8 +58,8 @@ struct DeleteParticipantDialog: View {
 
     private var attributedString: AttributedString {
         let type = viewModel.thread?.type?.isChannelType == true ? "Thread.channel" : "Thread.group"
-        let locaizedType = String(localized: .init(type), bundle: Language.preferedBundle).lowercased()
-        let key = String(localized: .init("DeleteParticipantDialog.title"), bundle: Language.preferedBundle)
+        let locaizedType = type.bundleLocalized().lowercased()
+        let key = "DeleteParticipantDialog.title".bundleLocalized()
         let participantName = participant.contactName ?? participant.name ?? ""
         let string = String(format: key, participantName, locaizedType)
         let attr = NSMutableAttributedString(string: string)

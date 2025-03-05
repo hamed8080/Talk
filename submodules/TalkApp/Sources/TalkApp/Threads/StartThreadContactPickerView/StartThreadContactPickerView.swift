@@ -31,7 +31,7 @@ struct StartThreadContactPickerView: View {
                             }
 
                     } label: {
-                        Label("Contacts.createGroup", systemImage: "person.2")
+                        Label("Contacts.createGroup".bundleLocalized(), systemImage: "person.2")
                             .foregroundStyle(Color.App.accent)
                     }
                     .listRowBackground(Color.App.bgPrimary)
@@ -46,7 +46,7 @@ struct StartThreadContactPickerView: View {
                                 }
                             }
                     } label: {
-                        Label("Contacts.createChannel", systemImage: "megaphone")
+                        Label("Contacts.createChannel".bundleLocalized(), systemImage: "megaphone")
                             .foregroundStyle(Color.App.accent)
                     }
                     .listRowBackground(Color.App.bgPrimary)

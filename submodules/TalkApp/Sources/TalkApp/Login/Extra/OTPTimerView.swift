@@ -15,7 +15,7 @@ struct OTPTimerView: View {
     var body: some View {
         HStack {
             if !viewModel.timerHasFinished {
-                let localized = String(localized: .init("Login.Verify.timer"), bundle: Language.preferedBundle)
+                let localized = "Login.Verify.timer".bundleLocalized()
                 let formatted = String(format: localized, viewModel.timerString)
                 Text(formatted)
                     .foregroundStyle(Color.App.textSecondary)

@@ -101,7 +101,7 @@ struct VideoRowView: View {
                         .foregroundColor(Color.App.textSecondary)
                         .font(.fCaption2)
                     Spacer()
-                    Text(message.fileMetaData?.file?.size?.toSizeString(locale: Language.preferredLocale) ?? "")
+                    Text(message.fileMetaData?.file?.size?.toSizeString(locale: Language.preferredLocale, bundle: Language.preferedBundle) ?? "")
                         .foregroundColor(Color.App.textSecondary)
                         .font(.fCaption3)
                 }
@@ -129,7 +129,7 @@ struct VideoRowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         } menus: {
             VStack {
-                ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
+                ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill", bundle: Language.preferedBundle) {
                     Task {
                         await threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
                         viewModel.dismiss = true

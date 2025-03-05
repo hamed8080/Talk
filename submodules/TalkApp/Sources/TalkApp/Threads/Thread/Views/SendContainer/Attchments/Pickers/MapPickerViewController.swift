@@ -225,7 +225,7 @@ final class LocationManager: NSObject, @preconcurrency CLLocationManagerDelegate
         DispatchQueue.main.async { [weak self] in
             if let currentLocation = locations.first,
                MKMapPoint(currentLocation.coordinate).distance(to: MKMapPoint(self?.currentLocation?.location ?? CLLocationCoordinate2D())) > 100 {
-                self?.userLocation = .init(name: String(localized: .init("Map.mayLocation"), bundle: Language.preferedBundle), description: String(localized: .init("Map.hereIAm"), bundle: Language.preferedBundle), location: currentLocation.coordinate)
+                self?.userLocation = .init(name: "Map.mayLocation".bundleLocalized(), description: "Map.hereIAm".bundleLocalized(), location: currentLocation.coordinate)
                 self?.currentLocation = self?.userLocation
                 self?.region?.center = currentLocation.coordinate
             }
@@ -277,7 +277,7 @@ extension MapPickerViewController: MKMapViewDelegate {
     
     public func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
         let coordinate = mapView.centerCoordinate
-        locationManager.currentLocation = .init(name: String(localized: .init("Map.mayLocation"), bundle: Language.preferedBundle), description: String(localized: .init("Map.hereIAm"), bundle: Language.preferedBundle), location: coordinate)
+        locationManager.currentLocation = .init(name: "Map.mayLocation".bundleLocalized(), description: "Map.hereIAm".bundleLocalized(), location: coordinate)
         annotation.coordinate = mapView.centerCoordinate
     }
 }

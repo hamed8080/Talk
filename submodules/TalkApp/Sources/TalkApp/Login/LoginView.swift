@@ -30,7 +30,7 @@ struct LoginContentView: View {
                     .frame(maxWidth: 420)
 
                 let key = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumber"
-                let placeholder = String(localized: .init(key), bundle: Language.preferedBundle)
+                let placeholder = key.bundleLocalized()
                 TextField(placeholder, text: $viewModel.text)
                     .focused($isFocused)
                     .keyboardType(.phonePad)

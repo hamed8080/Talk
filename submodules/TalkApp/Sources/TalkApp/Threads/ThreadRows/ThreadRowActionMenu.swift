@@ -23,47 +23,47 @@ struct ThreadRowActionMenu: View {
 
     var body: some View {
         if canPinUnPin {
-            ContextMenuButton(title: pinUnpinTitle, image: "pin") {
+            ContextMenuButton(title: pinUnpinTitle, image: "pin", bundle: Language.preferedBundle) {
                 onPinUnpinTapped()
             }
         }
 
         if canMuteUnmute {
-            ContextMenuButton(title: muteUnmuteTitle, image: "speaker.slash") {
+            ContextMenuButton(title: muteUnmuteTitle, image: "speaker.slash", bundle: Language.preferedBundle) {
                 onMuteUnmuteTapped()
             }
         }
 
         if !isDetailView, !thread.closed {
-            ContextMenuButton(title: archiveTitle, image: archiveImage) {
+            ContextMenuButton(title: archiveTitle, image: archiveImage, bundle: Language.preferedBundle) {
                 onArchiveUnArchiveTapped()
             }
         }
 
         if EnvironmentValues.isTalkTest {
-            ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock") {
+            ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock", bundle: Language.preferedBundle) {
                 onClearHistoryTapped()
             }
             .sandboxLabel()
             
-            ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus") {
+            ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus", bundle: Language.preferedBundle) {
                 onAddToFolderTapped()
             }
             .sandboxLabel()
             
-            ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug") {
+            ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug", bundle: Language.preferedBundle) {
                 onSpamTapped()
             }
             .sandboxLabel()
             
             if canAddParticipant {
-                ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus") {
+                ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle) {
                     onInviteTapped()
                 }
                 .sandboxLabel()
             }
             
-            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info") {
+            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info", bundle: Language.preferedBundle) {
                 UIPasteboard.general.string = "\(thread.id ?? -1)"
                 dump(thread)
             }
@@ -73,7 +73,7 @@ struct ThreadRowActionMenu: View {
         Divider()
 
         if isDetailView, thread.group == true {
-            ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red) {
+            ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red, bundle: Language.preferedBundle) {
                 onLeaveConversationTapped()
             }
             .foregroundStyle(Color.App.red)
@@ -81,7 +81,7 @@ struct ThreadRowActionMenu: View {
 
         /// You should be admin or the thread should be a p2p thread with two people.
         if isDetailView, thread.admin == true || thread.group == false {
-            ContextMenuButton(title: deleteTitle, image: "trash", iconColor: Color.App.red) {
+            ContextMenuButton(title: deleteTitle, image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle) {
                 onDeleteConversationTapped()
             }
             .foregroundStyle(Color.App.red)
@@ -89,7 +89,7 @@ struct ThreadRowActionMenu: View {
 
         if isDetailView, thread.group == true, thread.type?.isChannelType == false, thread.admin == true {
             Divider()
-            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock") {
+            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock", bundle: Language.preferedBundle) {
                 onCloseConversationTapped()
             }
         }
@@ -174,15 +174,15 @@ struct ThreadRowActionMenu: View {
     private var deleteTitle: String {
         let deleteKey = thread.group == false ? "" : "Thread.delete".bundleLocalized()
         let key = thread.type?.isChannelType == true ? "Thread.channel" : thread.group == true ? "Thread.group" : ""
-        let groupLocalized = String(format: deleteKey, String(localized: .init(key), bundle: Language.preferedBundle))
-        let p2pLocalized = String(localized: .init("Genreal.deleteConversation"), bundle: Language.preferedBundle)
+        let groupLocalized = String(format: deleteKey, key.bundleLocalized())
+        let p2pLocalized = "Genreal.deleteConversation".bundleLocalized()
         return thread.group == true ? groupLocalized : p2pLocalized
     }
 
     private var  leaveTitle: String {
-        let leaveKey = String(localized: .init("Thread.leave"), bundle: Language.preferedBundle)
+        let leaveKey = "Thread.leave".bundleLocalized()
         let key = thread.type?.isChannelType == true ? "Thread.channel" : "Thread.group"
-        return String(format: leaveKey, String(localized: .init(key), bundle: Language.preferedBundle))
+        return String(format: leaveKey, key.bundleLocalized())
     }
 
     private var archiveTitle: String {

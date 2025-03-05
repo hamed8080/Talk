@@ -23,7 +23,7 @@ public class SelfThreadBuilder {
 
     public func create(completion: CompletionHandler? = nil) {
         self.completion = completion
-        let title = String(localized: .init("Thread.selfThread"), bundle: Language.preferedBundle)
+        let title = "Thread.selfThread".bundleLocalized()
         let req = CreateThreadRequest(title: title, type: StrictThreadTypeCreation.selfThread.threadType)
         RequestsManager.shared.append(prepend: id, value: req)
         Task { @ChatGlobalActor in

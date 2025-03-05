@@ -44,13 +44,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     }
     
     public func setupRoot(windowScene: UIWindowScene) {
-        Language.onChangeLanguage()
         let window = UIWindow(windowScene: windowScene)
         let contentView = HomeContentView()
             .font(.fBody)
         /// CustomUIHosting is Needed for change status bar color per page
         window.rootViewController = CustomUIHostinViewController(rootView: contentView)
-        UIApplication.shared.delegate?.window??.rootViewController = window.rootViewController
         self.window = window
         window.makeKeyAndVisible()
     }

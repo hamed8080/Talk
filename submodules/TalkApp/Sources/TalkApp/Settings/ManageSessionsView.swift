@@ -246,7 +246,7 @@ struct RemoveSessionDialog: View {
     
     private var attributedString: AttributedString {
         let deviceName = session.name ?? ""
-        let key = String(localized: .init("ManageSessions.RemoveOneSession.subtitle"), bundle: Language.preferedBundle)
+        let key = "ManageSessions.RemoveOneSession.subtitle".bundleLocalized()
         let string = String(format: key, deviceName)
         let attr = NSMutableAttributedString(string: string)
         let range = (attr.string as NSString).range(of: deviceName)

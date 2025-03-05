@@ -107,7 +107,7 @@ struct ThreadListSearchBarFilterView: View {
     //                    showPopover.toggle()
     //                } label: {
     //                    HStack {
-    //                        Text(String(localized: .init(viewModel.searchType.rawValue)))
+    //                        Text(viewModel.searchType.rawValue.bundleLocalized())
     //                            .font(.fBoldCaption3)
     //                            .foregroundColor(Color.App.textSecondary)
     //                        Image(systemName: "chevron.down")
@@ -121,7 +121,7 @@ struct ThreadListSearchBarFilterView: View {
     //                .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .bottom) {
     //                    VStack(alignment: .leading, spacing: 0) {
     //                        ForEach(SearchParticipantType.allCases.filter({ $0 != .admin })) { item in
-    //                            ContextMenuButton(title: String(localized: .init(item.rawValue)), image: "") {
+    //                            ContextMenuButton(title: item.rawValue.bundleLocalized()), image: "") {
     //                                withAnimation {
     //                                    showPopover.toggle()
     //                                    viewModel.searchType = item
@@ -151,7 +151,7 @@ struct FilterChip: View {
                 .frame(width: 14, height: 14)
                 .foregroundStyle(Color.App.white)
                 .contentShape(Rectangle())
-            Text(String(localized: .init(text)))
+            Text(text.bundleLocalized())
                 .lineLimit(1)
                 .font(.fCaption2)
                 .foregroundColor(isSelectedToDelete ? Color.App.white : Color.App.textPrimary)

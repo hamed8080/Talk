@@ -28,7 +28,7 @@ public struct Language: Identifiable, Sendable {
             return cachedPreferedLocale
         } else {
             let localIdentifier = Language.languages.first(where: {$0.language == Locale.preferredLanguages[0] })?.identifier
-            let preferedLocale =  Locale(identifier: localIdentifier ?? "en_US")
+            let preferedLocale = Locale(identifier: localIdentifier ?? "en_US")
             cachedPreferedLocale = preferedLocale
             return preferedLocale
         }
@@ -36,10 +36,6 @@ public struct Language: Identifiable, Sendable {
 
     public static var preferredLocaleLanguageCode: String {
         return Language.languages.first(where: {$0.language == Locale.preferredLanguages[0] })?.language ?? "en"
-    }
-    
-    public static var preferredFolderName: String {
-        return Language.languages.first(where: {$0.language == Locale.preferredLanguages[0] })?.bundleFolderName ?? "en"
     }
 
     public static var rtlLanguages: [Language] {
@@ -68,21 +64,24 @@ public struct Language: Identifiable, Sendable {
         return bundle
     }
     
-    public static func onChangeLanguage() {
-        let isRTL = rtlLanguages.contains(where: {$0.language == Locale.preferredLanguages[0] })
+    public static func setLanguageTo(bundle: Bundle, language: Language) {
+        
+        if language.language != Locale.preferredLanguages[0] {
+            UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
+            UserDefaults.standard.synchronize()
+        }
+        
+        rootBundle = bundle
+        
+        let isRTL = rtlLanguages.contains(where: { $0.language == language.language })
         cachedIsRTL = isRTL
         
-        guard
-            let path = Bundle.main.path(forResource: preferredFolderName, ofType: "lproj"),
-            let bundle = Bundle(path: path)
-        else {  return }
-        cachedbundel = bundle
-    }
-
-    public static func setBundle(bundle: Bundle) {
-        rootBundle = bundle
-        guard let path = bundle.path(forResource: preferredLocaleLanguageCode, ofType: "lproj") else { return }
-        cachedbundel = Bundle(path: path)
+        if let path = bundle.path(forResource: language.bundleFolderName, ofType: "lproj") {
+            cachedbundel = Bundle(path: path)
+        }
+        
+        let preferedLocale = Locale(identifier: language.identifier ?? "en_US")
+        cachedPreferedLocale = preferedLocale
     }
     
     /// root bundle is the main folder of MyBundle.bundle,

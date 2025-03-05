@@ -74,10 +74,10 @@ struct EditGroup: View {
     private var buttonRows: some View {
         let isChannel = viewModel.thread.type?.isChannelType == true
         let isPublic = viewModel.thread.type?.isPrivate == false
-        let typeName = String(localized: .init(isChannel ? "Thread.channel" : "Thread.group"), bundle: Language.preferedBundle)
-        let localizedPublic = String(localized: isPublic ? .init("Thread.public") : "Thread.private", bundle: Language.preferedBundle)
-        let localizedDelete = String(localized: .init("Thread.delete"), bundle: Language.preferedBundle)
-        let localizedMainString = String(localized: .init("Thread.typeString"), bundle: Language.preferedBundle)
+        let typeName = (isChannel ? "Thread.channel" : "Thread.group").bundleLocalized()
+        let localizedPublic = (isPublic ? "Thread.public" : "Thread.private").bundleLocalized()
+        let localizedDelete = "Thread.delete".bundleLocalized()
+        let localizedMainString = "Thread.typeString".bundleLocalized()
 
         Group {
             StickyHeaderSection(header: "", height: 2)
@@ -93,10 +93,10 @@ struct EditGroup: View {
 
 
             let adminsCount = viewModel.adminCounts.localNumber(locale: Language.preferredLocale) ?? ""
-            item(title: String(localized: .init("EditGroup.admins"), bundle: Language.preferedBundle), image: "person.badge.shield.checkmark", rightLabelText: adminsCount)
+            item(title: "EditGroup.admins".bundleLocalized(), image: "person.badge.shield.checkmark", rightLabelText: adminsCount)
 
             let participantsCount = threadVM?.thread.participantCount?.localNumber(locale: Language.preferredLocale) ?? ""
-            item(title: String(localized: .init("Thread.Tabs.members"), bundle: Language.preferedBundle), image: "person.2", rightLabelText: participantsCount)
+            item(title: "Thread.Tabs.members".bundleLocalized(), image: "person.2", rightLabelText: participantsCount)
 
             toggleReactionsView
             if viewModel.isReactionsEnabled {

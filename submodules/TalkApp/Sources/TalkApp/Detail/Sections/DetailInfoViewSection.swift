@@ -142,7 +142,7 @@ struct DetailInfoViewSection: View {
     @ViewBuilder
     private var lastSeen: some View {
         if let notSeenString = viewModel.participantDetailViewModel?.notSeenString {
-            let localized = String(localized: .init("Contacts.lastVisited"), bundle: Language.preferedBundle)
+            let localized = "Contacts.lastVisited".bundleLocalized()
             let formatted = String(format: localized, notSeenString)
             Text(formatted)
                 .font(.fCaption3)

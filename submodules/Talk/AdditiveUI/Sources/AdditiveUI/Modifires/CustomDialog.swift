@@ -70,13 +70,14 @@ public extension View {
         modifier(CustomDialog(isShowing: isShowing, dialogContent: content))
     }
 
-    func dialog(_ title: String, _ message: String = "", _ iconName: String? = nil, _ isShowing: Binding<Bool>, onSubmit: @escaping (String) -> Void, onClose: (() -> Void)? = nil) -> some View {
+    func dialog(_ title: String, _ message: String = "", _ iconName: String? = nil, _ isShowing: Binding<Bool>, bundle: Bundle, onSubmit: @escaping (String) -> Void, onClose: (() -> Void)? = nil) -> some View {
         let dialog = {
             PrimaryCustomDialog(
                 title: title,
                 message: message,
                 systemImageName: iconName,
                 hideDialog: isShowing,
+                bundle: bundle,
                 onSubmit: onSubmit,
                 onClose: onClose
             )

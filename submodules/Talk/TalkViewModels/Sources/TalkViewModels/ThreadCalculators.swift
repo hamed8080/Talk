@@ -179,7 +179,7 @@ public class ThreadCalculators {
     
     private class func calculateComputedTitle(_ conversation: Conversation) -> String {
         if conversation.type == .selfThread {
-            return String(localized: .init("Thread.selfThread"), bundle: Language.preferedBundle)
+            return "Thread.selfThread".bundleLocalized()
         }
         return conversation.title ?? ""
     }
@@ -291,8 +291,8 @@ public class ThreadCalculators {
 
     private class func calculateParticipantName(_ conversation: Conversation, _ myId: Int) -> String? {
         if let participantName = conversation.lastMessageVO?.participant?.contactName ?? conversation.lastMessageVO?.participant?.name, conversation.group == true {
-            let meVerb = String(localized: .init("General.you"), bundle: Language.preferedBundle)
-            let localized = String(localized: .init("Thread.Row.lastMessageSender"), bundle: Language.preferedBundle)
+            let meVerb = "General.you".bundleLocalized()
+            let localized = "Thread.Row.lastMessageSender".bundleLocalized()
             let participantName = String(format: localized, participantName)
             let isMe = conversation.lastMessageVO?.ownerId ?? 0 == myId
             let name = isMe ? "\(meVerb):" : participantName
@@ -306,7 +306,7 @@ public class ThreadCalculators {
         if conversation.lastMessageVO == nil, let creator = conversation.inviter?.name {
             let type = conversation.type
             let key = type?.isChannelType == true ? "Thread.createdAChannel" : "Thread.createdAGroup"
-            let localizedLabel = String(localized: .init(key), bundle: Language.preferedBundle)
+            let localizedLabel = key.bundleLocalized()
             let text = String(format: localizedLabel, creator)
             return text
         } else {
@@ -318,7 +318,7 @@ public class ThreadCalculators {
         if isFileType {
             let fileStringName = conversation.lastMessageVO?.messageType?.fileStringName ?? "MessageType.file"
             let isMe = conversation.lastMessageVO?.ownerId ?? 0 == myId
-            let sentVerb = String(localized: .init(isMe ? "Genral.mineSendVerb" : "General.thirdSentVerb"), bundle: Language.preferedBundle)
+            let sentVerb = (isMe ? "Genral.mineSendVerb" : "General.thirdSentVerb").bundleLocalized()
             let formatted = String(format: sentVerb, fileStringName.bundleLocalized())
             return MessageHistoryStatics.textDirectionMark + "\(formatted)"
         } else {

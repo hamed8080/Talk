@@ -77,7 +77,7 @@ public class ExpandView: UIView {
     }
 
     public func set() {
-        let localized = String(localized: .init("Thread.sendAttachments"))
+        let localized = "Thread.sendAttachments".bundleLocalized()
         let count = viewModel?.attachmentsViewModel.attachments.count ?? 0
         let value = count.localNumber(locale: Language.preferredLocale) ?? ""
         fileCountLabel.text = String(format: localized, "\(value)")

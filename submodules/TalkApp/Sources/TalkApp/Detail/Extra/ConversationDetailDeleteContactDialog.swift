@@ -56,7 +56,7 @@ struct ConversationDetailDeleteContactDialog: View {
     }
 
     private var attributedString: AttributedString {
-        let key = String(localized: .init("ConversationDetail.deleteContact"), bundle: Language.preferedBundle)
+        let key = "ConversationDetail.deleteContact".bundleLocalized()
         let contactName = participant.contactName ?? participant.name ?? ""
         let string = String(format: key, contactName)
         let attr = NSMutableAttributedString(string: string)

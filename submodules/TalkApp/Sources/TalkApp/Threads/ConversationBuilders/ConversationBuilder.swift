@@ -182,8 +182,8 @@ struct EditCreatedConversationDetail: View {
 
             let type = viewModel.createConversationType
             let isChannel = type?.isChannelType == true
-            let typeName = String(localized: .init(isChannel ? "Thread.channel" : "Thread.group"), bundle: Language.preferedBundle)
-            let localizedPublic = String(localized: .init("Thread.public"), bundle: Language.preferedBundle)
+            let typeName = (isChannel ? "Thread.channel" : "Thread.group").bundleLocalized()
+            let localizedPublic = "Thread.public".bundleLocalized()
 
 
             HStack(spacing: 8) {
@@ -225,7 +225,7 @@ struct EditCreatedConversationDetail: View {
                 .foregroundStyle(Color.App.accent)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            SubmitBottomButton(text: viewModel.createConversationType?.isGroupType == true ? "Contacts.createGroup" : "Contacts.createChannel",
+            SubmitBottomButton(text: viewModel.createConversationType?.isGroupType == true ? "Contacts.createGroup".bundleLocalized() : "Contacts.createChannel".bundleLocalized(),
                                enableButton: .constant(!isLoading),
                                isLoading: .constant(isLoading))
             {
@@ -389,7 +389,7 @@ struct ‌BuilderContactRow: View {
                         .font(.fBoldBody)
                         .foregroundColor(Color.App.textPrimary)
 //                    if let notSeenDuration = contact.notSeenDuration?.localFormattedTime {
-//                        let lastVisitedLabel = String(localized: .init("Contacts.lastVisited"), bundle: Language.preferedBundle)
+//                        let lastVisitedLabel = "Contacts.lastVisited".bundleLocalized()
 //                        let time = String(format: lastVisitedLabel, notSeenDuration)
 //                        Text(time)
 //                            .padding(.leading, 16)

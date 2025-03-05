@@ -468,7 +468,7 @@ struct VersionNumberView: View {
         HStack(spacing: 2) {
             Spacer()
             Text("Support.title")
-            Text(String(format: String(localized: "Support.version", bundle: Language.preferedBundle), localVersionNumber))
+            Text(String(format: "Support.version".bundleLocalized(), localVersionNumber))
             Spacer()
         }
         .foregroundStyle(Color.App.textSecondary)

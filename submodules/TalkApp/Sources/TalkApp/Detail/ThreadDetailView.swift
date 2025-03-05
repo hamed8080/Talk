@@ -189,7 +189,7 @@ struct InfoRowItem: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
-                Text(String(localized: .init(key)))
+                Text(key.bundleLocalized())
                     .font(.fCaption)
                     .foregroundStyle(Color.App.textSecondary)
                 Text(value)
@@ -216,7 +216,7 @@ struct SectionItem: View {
         Button {
             action()
         } label: {
-            Label(String(localized: .init(title)), systemImage: systemName)
+            Label(title.bundleLocalized(), systemImage: systemName)
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36, alignment: .leading)
         }
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)

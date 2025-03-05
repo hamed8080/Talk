@@ -14,7 +14,7 @@ struct DetailViewNumberOfParticipants: View {
     var viewModel: ThreadViewModel
 
     var body: some View {
-        let label = String(localized: .init("Thread.Toolbar.participants"), bundle: Language.preferedBundle)
+        let label = "Thread.Toolbar.participants".bundleLocalized()
         Text(verbatim: "\(countString ?? "") \(label)")
             .font(.fCaption3)
             .foregroundStyle(Color.App.textSecondary)

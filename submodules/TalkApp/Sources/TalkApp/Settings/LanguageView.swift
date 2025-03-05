@@ -47,9 +47,8 @@ struct LanguageView: View {
     }
 
     func changeLanguage(language: TalkModels.Language) {
-        UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
-        UserDefaults.standard.synchronize()
-        Language.onChangeLanguage()
+        let bundle = BundleManager().getBundle()
+        Language.setLanguageTo(bundle: bundle, language: language)
         Task {
             await container.reset()
             NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)

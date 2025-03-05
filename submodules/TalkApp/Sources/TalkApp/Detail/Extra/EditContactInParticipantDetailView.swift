@@ -104,7 +104,7 @@ struct EditContactInParticipantDetailView: View {
     }
 
     func optioanlAppend(text: String) -> String {
-        "\(String(localized: .init(text), bundle: Language.preferedBundle)) \(String(localized: "General.optional", bundle: Language.preferedBundle))"
+        "\(text.bundleLocalized()) \("General.optional".bundleLocalized())"
     }
 
     var toolbarView: some View {

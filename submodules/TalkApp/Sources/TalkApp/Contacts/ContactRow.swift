@@ -49,7 +49,7 @@ struct ContactRow: View {
                             .fontWeight(.semibold)
                     }
 //                    if let notSeenDuration = contact.notSeenDuration?.localFormattedTime {
-//                        let lastVisitedLabel = String(localized: .init("Contacts.lastVisited"))
+//                        let lastVisitedLabel = : "Contacts.lastVisited".bundleLocalized())
 //                        let time = String(format: lastVisitedLabel, notSeenDuration)
 //                        Text(time)
 //                            .padding(.leading, 16)

@@ -73,7 +73,7 @@ struct VerifyContentView: View {
                 .padding(.bottom, 2)
 
             HStack(spacing: 2) {
-                let localized = String(localized: "Login.Verfiy.verificationCodeSentTo", bundle: Language.preferedBundle)
+                let localized = "Login.Verfiy.verificationCodeSentTo".bundleLocalized()
                 let formatted = String(format: localized, viewModel.text)
                 Text(formatted)
                     .foregroundStyle(Color.App.textSecondary)

@@ -147,7 +147,7 @@ struct PictureRowView: View {
 
     private var contextMenuView: some View {
         VStack {
-            ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill") {
+            ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill", bundle: Language.preferedBundle) {
                 Task {
                     await threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
                     viewModel.dismiss = true
