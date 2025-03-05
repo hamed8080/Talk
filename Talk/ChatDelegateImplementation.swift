@@ -77,7 +77,7 @@ final class ChatDelegateImplementation: ChatDelegate {
         case let .user(response):
             if let user = response.result {
                 UserConfigManagerVM.instance.onUser(user)
-                AppState.shared.updateUserCache()
+                AppState.shared.updateUserCache(user: user)
             }
         default:
             break

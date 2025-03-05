@@ -49,14 +49,13 @@ public final class AppState: ObservableObject, Sendable {
     private init() {
         registerObservers()
         updateWindowMode()
-        updateUserCache()
+        updateUserCache(user: UserConfigManagerVM.instance.currentUserConfig?.user)
     }
 
-    public func updateUserCache() {
+    public func updateUserCache(user: User?) {
         Task { @ChatGlobalActor in
-            let fetchedUser = ChatManager.activeInstance?.userInfo
             await MainActor.run {
-                self.user = UserConfigManagerVM.instance.currentUserConfig?.user ?? user
+                self.user = user
             }
         }
     }
