@@ -1,4 +1,5 @@
 import Foundation
+import Additive
 
 public struct Language: Identifiable, Sendable {
     public var id: String { identifier }
@@ -16,7 +17,10 @@ public struct Language: Identifiable, Sendable {
 
     nonisolated(unsafe) public static let languages: [Language] = [
         .init(identifier: "en_US", bundleFolderName: "en", language: "en-US", text: "English"),
-        .init(identifier: "ZmFfSVI=".fromBase64() ?? "", bundleFolderName: "fa-IR", language: "fa-IR", text: "UGVyc2lhbiAo2YHYp9ix2LPbjCk=".fromBase64() ?? ""),
+        .init(identifier: "ZmFfSVI=".fromBase64() ?? "",
+              bundleFolderName: "ZmEtSVI=".fromBase64() ?? "",
+              language: "ZmEtSVI=".fromBase64() ?? "",
+              text: "UGVyc2lhbiAo2YHYp9ix2LPbjCk=".fromBase64() ?? ""),
         .init(identifier: "sv_SE", bundleFolderName: "sv", language: "sv-SE", text: "Swedish"),
         .init(identifier: "de_DE", bundleFolderName: "de", language: "de-DE", text: "Germany"),
         .init(identifier: "es_ES", bundleFolderName: "es", language: "es-ES", text: "Spanish"),
