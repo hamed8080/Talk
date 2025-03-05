@@ -1097,7 +1097,7 @@ extension ThreadHistoryViewModel {
     
     private func observe<P: Publisher>(_ publisher: P, action: @escaping (P.Output) async -> Void) where P.Failure == Never {
         publisher
-            .sink { value in
+            .sink { [weak self] value in
                 Task {
                     await action(value)
                 }

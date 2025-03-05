@@ -31,7 +31,7 @@ public final class FoldersViewModel: ObservableObject {
         CONVERSATION_INSIDE_FOLDER_KEY = "CONVERSATION-INSIDE-FOLDER-\(objectId)"
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 self?.onThreadEvent(event)
             }
             .store(in: &cancelable)

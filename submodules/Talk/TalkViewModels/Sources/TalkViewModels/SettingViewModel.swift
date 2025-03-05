@@ -22,7 +22,7 @@ public final class SettingViewModel: ObservableObject {
     public init(session: URLSession = .shared) {
         self.session = session
         AppState.shared.$connectionStatus
-            .sink{ [weak self] status in
+            .sink { [weak self] status in
                 self?.onConnectionStatusChanged(status)
             }
             .store(in: &cancellableSet)

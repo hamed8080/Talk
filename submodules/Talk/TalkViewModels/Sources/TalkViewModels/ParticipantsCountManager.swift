@@ -22,7 +22,7 @@ public class ParticipantsCountManager {
     init() {
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onThreadEvent(event)
                 }
@@ -30,7 +30,7 @@ public class ParticipantsCountManager {
             .store(in: &cancelable)
         NotificationCenter.participant.publisher(for: .participant)
             .compactMap { $0.object as? ParticipantEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onParticipantEvent(event)
                 }

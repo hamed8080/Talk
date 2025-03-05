@@ -32,7 +32,7 @@ public final class ObjectsContainer: ObservableObject {
         loginVM = LoginViewModel(delegate: delegate)
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
-            .sink { event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onMessageEvent(event)
                 }

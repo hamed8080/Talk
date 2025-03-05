@@ -46,7 +46,8 @@ public class ContactsViewModel: ObservableObject {
     }
 
     public func setupPublishers() {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             lazyList.objectWillChange.sink { [weak self] _ in
                 self?.animateObjectWillChange()
             }
@@ -88,7 +89,7 @@ public class ContactsViewModel: ObservableObject {
             .store(in: &canceableSet)
         NotificationCenter.contact.publisher(for: .contact)
             .compactMap { $0.object as? ContactEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onContactEvent(event)
                 }

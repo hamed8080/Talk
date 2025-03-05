@@ -50,7 +50,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
 
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onThreadEvent(event)
                 }
@@ -76,7 +76,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             .store(in: &cancelable)
         NotificationCenter.contact.publisher(for: .contact)
             .compactMap { $0.object as? ContactEventTypes }
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 self?.onContactEvent(event)
             }
             .store(in: &cancelable)

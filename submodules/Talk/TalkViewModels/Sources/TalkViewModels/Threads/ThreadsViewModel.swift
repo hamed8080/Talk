@@ -17,7 +17,6 @@ import Logger
 @MainActor
 public final class ThreadsViewModel: ObservableObject {
     public var threads: ContiguousArray<CalculatedConversation> = []
-    @Published private(set) var tagViewModel = TagsViewModel()
     @Published public var activeCallThreads: [CallToJoin] = []
     @Published public var sheetType: ThreadsSheetType?
     public var cancelable: Set<AnyCancellable> = []

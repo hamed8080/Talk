@@ -20,7 +20,7 @@ public final class BotViewModel: ObservableObject {
 
     public init() {
         AppState.shared.$connectionStatus
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 self?.onConnectionStatusChanged(event)
             }
             .store(in: &cancelable)

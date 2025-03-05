@@ -14,7 +14,6 @@ import TalkModels
 
 struct LanguageView: View {
     let container: ObjectsContainer
-    @State private var restart: Bool = false
     @State private var selectedLanguage = Locale.preferredLanguages[0]
 
     var body: some View {
@@ -46,13 +45,6 @@ struct LanguageView: View {
         .animation(.easeInOut, value: selectedLanguage)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .alert("Settings.restartToChangeLanguage", isPresented: $restart) {
-            Button {
-                restart = true
-            } label: {
-                Text("General.close")
-            }
-        }
         .normalToolbarView(title: "Settings.language", type: LanguageNavigationValue.self)
     }
 
@@ -60,6 +52,21 @@ struct LanguageView: View {
         selectedLanguage = language.language
         UserDefaults.standard.set([language.identifier], forKey: "AppleLanguages")
         UserDefaults.standard.synchronize()
-        restart = true
+        Task {
+            await container.reset()
+            reloadApp()
+        }
+    }
+    
+    private func reloadApp() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        Language.onChangeLanguage()
+        let window = UIWindow(windowScene: windowScene)
+        let contentView = HomeContentView()
+            .font(.iransansBody)
+        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
+        UIApplication.shared.delegate?.window??.rootViewController = window.rootViewController
+        (windowScene.delegate as? SceneDelegate)?.window = window
+        window.makeKeyAndVisible()
     }
 }
