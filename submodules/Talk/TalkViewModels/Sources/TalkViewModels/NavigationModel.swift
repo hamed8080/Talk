@@ -143,6 +143,7 @@ public extension NavigationModel {
             popLastPathTracking()
         }
         setSelectedThreadId()
+        AppState.shared.appStateNavigationModel = .init()
     }
 }
 

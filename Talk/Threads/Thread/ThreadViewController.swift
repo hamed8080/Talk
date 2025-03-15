@@ -23,19 +23,14 @@ final class ThreadViewController: UIViewController {
     private lazy var unreadMentionsButton = UnreadMenitonsButton(viewModel: viewModel)
     private lazy var cancelAudioRecordingButton = CancelAudioRecordingButton(viewModel: viewModel)
     public private(set) lazy var topThreadToolbar = TopThreadToolbar(viewModel: viewModel)
+    private let loadingManager = ThreadLoadingManager()
     private var sendContainerBottomConstraint: NSLayoutConstraint?
     private var keyboardheight: CGFloat = 0
     private var hasExternalKeyboard = false
     private let emptyThreadView = EmptyThreadView()
-    private var topLoading = UILoadingView()
-    private var centerLoading = UILoadingView()
-    private var bottomLoading = UILoadingView()
     private let vStackOverlayButtons = UIStackView()
     private lazy var dimView = DimView()
     public var contextMenuContainer: ContextMenuContainerView!
-    private static let loadingViewWidth: CGFloat = 26
-    private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
-    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private var isViewControllerVisible: Bool = true
     private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
 
@@ -94,11 +89,13 @@ final class ThreadViewController: UIViewController {
 // MARK: Configure Views
 extension ThreadViewController {
     func configureViews() {
+        emptyThreadView.attachToParent(parent: view)
+        dimView.viewModel = viewModel
         configureTableView()
         configureOverlayActionButtons()
         configureSendContainer()
         configureTopToolbarVStack()
-        configureLoadings()
+        loadingManager.configureLoadings(parent: view, tableView: tableView)
         let vStackOverlayButtonsConstraint: NSLayoutConstraint
         if Language.isRTL {
             vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
@@ -109,8 +106,6 @@ extension ThreadViewController {
         sendContainerBottomConstraint = sendContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         sendContainerBottomConstraint?.identifier = "sendContainerBottomConstraintThreadViewController"
         NSLayoutConstraint.activate([
-            moveToBottom.widthAnchor.constraint(equalToConstant: 40),
-            moveToBottom.heightAnchor.constraint(equalToConstant: 40),
             unreadMentionsButton.widthAnchor.constraint(equalToConstant: 40),
             unreadMentionsButton.heightAnchor.constraint(equalToConstant: 40),
             vStackOverlayButtonsConstraint,
@@ -141,9 +136,6 @@ extension ThreadViewController {
     private func configureSendContainer() {
         sendContainer.translatesAutoresizingMaskIntoConstraints = false
         sendContainer.accessibilityIdentifier = "sendContainerThreadViewController"
-        dimView.translatesAutoresizingMaskIntoConstraints = false
-        dimView.accessibilityIdentifier = "dimViewThreadViewController"
-        dimView.viewModel = viewModel
         view.addSubview(sendContainer)
         sendContainer.onUpdateHeight = { [weak self] (height: CGFloat) in
             self?.onSendHeightChanged(height)
@@ -151,7 +143,7 @@ extension ThreadViewController {
     }
     
     private func onSendHeightChanged(_ height: CGFloat, duration: Double = 0.25, options: UIView.AnimationOptions = []) {
-        let isButtonsVisible = viewModel?.sendContainerViewModel.mode.type == .showButtonsPicker
+        let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let height = (height - safeAreaHeight) + keyboardheight
         if tableView.contentInset.bottom != height {
@@ -173,7 +165,6 @@ extension ThreadViewController {
         vStackOverlayButtons.spacing = 24
         vStackOverlayButtons.alignment = .leading
         vStackOverlayButtons.accessibilityIdentifier = "vStackOverlayButtonsThreadViewController"
-        moveToBottom.accessibilityIdentifier = "moveToBottomThreadViewController"
         vStackOverlayButtons.addArrangedSubview(moveToBottom)
         unreadMentionsButton.accessibilityIdentifier = "unreadMentionsButtonThreadViewController"
         vStackOverlayButtons.addArrangedSubview(unreadMentionsButton)
@@ -181,78 +172,9 @@ extension ThreadViewController {
         vStackOverlayButtons.addArrangedSubview(cancelAudioRecordingButton)
         view.addSubview(vStackOverlayButtons)
     }
-    
-    private func configureEmptyThreadView() {
-        emptyThreadView.alpha = 0.0
-        view.addSubview(emptyThreadView)
-        emptyThreadView.translatesAutoresizingMaskIntoConstraints = false
-        emptyThreadView.accessibilityIdentifier = "emptyThreadViewThreadViewController"
-        NSLayoutConstraint.activate([
-            emptyThreadView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            emptyThreadView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            emptyThreadView.topAnchor.constraint(equalTo: topThreadToolbar.bottomAnchor),
-            emptyThreadView.bottomAnchor.constraint(equalTo: sendContainer.topAnchor),
-        ])
-    }
-    
-    private func configureDimView() {
-        if dimView.superview == nil {
-            dimView.alpha = 0.0
-            view.addSubview(dimView)
-            view.bringSubviewToFront(dimView)
-            dimView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-            dimView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-            dimView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-            dimView.bottomAnchor.constraint(equalTo: sendContainer.topAnchor).isActive = true
-        }
-    }
-    
-    private func configureLoadings() {
-        topLoading.translatesAutoresizingMaskIntoConstraints = false
-        topLoading.accessibilityIdentifier = "topLoadingThreadViewController"
-        topLoadingContainer.addSubview(topLoading)
-        topLoading.animate(false)
-        tableView.tableHeaderView = topLoadingContainer
-
-        centerLoading.translatesAutoresizingMaskIntoConstraints = false
-        centerLoading.accessibilityIdentifier = "centerLoadingThreadViewController"
-
-        bottomLoading.translatesAutoresizingMaskIntoConstraints = false
-        bottomLoading.accessibilityIdentifier = "bottomLoadingThreadViewController"
-        bottomLoadingContainer.addSubview(self.bottomLoading)
-        bottomLoading.animate(false)
-        tableView.tableFooterView = bottomLoadingContainer
-
-        NSLayoutConstraint.activate([
-            topLoading.centerYAnchor.constraint(equalTo: topLoadingContainer.centerYAnchor),
-            topLoading.centerXAnchor.constraint(equalTo: topLoadingContainer.centerXAnchor),
-            topLoading.widthAnchor.constraint(equalToConstant: ThreadViewController.loadingViewWidth),
-            topLoading.heightAnchor.constraint(equalToConstant: ThreadViewController.loadingViewWidth),
-
-            bottomLoading.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
-            bottomLoading.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
-            bottomLoading.widthAnchor.constraint(equalToConstant: ThreadViewController.loadingViewWidth),
-            bottomLoading.heightAnchor.constraint(equalToConstant: ThreadViewController.loadingViewWidth)
-        ])
-    }
-
-    private func attachCenterLoading() {
-        let width: CGFloat = 28
-        centerLoading.alpha = 1.0
-        view.addSubview(centerLoading)
-        centerLoading.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
-        centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        centerLoading.widthAnchor.constraint(equalToConstant: width).isActive = true
-        centerLoading.heightAnchor.constraint(equalToConstant: width).isActive = true
-    }
 
     private func showEmptyThread(show: Bool) {
-        if show {
-            configureEmptyThreadView()
-            emptyThreadView.showWithAniamtion(true)
-        } else {
-            self.emptyThreadView.removeFromSuperViewWithAnimation()
-        }
+        emptyThreadView.show(show, parent: view)
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
             self.moveToBottom.show(false)
@@ -323,7 +245,7 @@ extension ThreadViewController: ThreadViewDelegate {
         if self.viewModel?.scrollVM.isAtBottomOfTheList == true {
             self.tableView.tableFooterView = nil
         } else {
-            self.tableView.tableFooterView = self.bottomLoadingContainer
+            self.tableView.tableFooterView = self.loadingManager.getBottomLoadingContainer()
         }
     }
     
@@ -332,16 +254,11 @@ extension ThreadViewController: ThreadViewDelegate {
         UIView.animate(withDuration: 0.25) {
             self.tableView.tableHeaderView?.layoutIfNeeded()
         }
-        self.topLoading.animate(animate)
+        self.loadingManager.startTopAnimation(animate)
     }
     
     func startCenterAnimation(_ animate: Bool) {
-        if animate {
-            self.attachCenterLoading()
-            self.centerLoading.animate(animate)
-        } else {
-            self.centerLoading.removeFromSuperViewWithAnimation()
-        }
+        self.loadingManager.startCenterAnimation(animate)
     }
 
     func startBottomAnimation(_ animate: Bool) {
@@ -349,7 +266,7 @@ extension ThreadViewController: ThreadViewDelegate {
         UIView.animate(withDuration: 0.25) {
             self.tableView.tableFooterView?.layoutIfNeeded()
         }
-        self.bottomLoading.animate(animate)
+        self.loadingManager.startBottomAnimation(animate)
     }
 
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?) {
@@ -461,7 +378,7 @@ extension ThreadViewController: BottomToolbarDelegate {
 
     func showPickerButtons(_ show: Bool) {
         sendContainer.showPickerButtons(show)
-        configureDimView()
+        dimView.attachToParent(parent: view, bottomYAxis: sendContainer.topAnchor)
         dimView.show(show)
     }
 
@@ -471,7 +388,6 @@ extension ThreadViewController: BottomToolbarDelegate {
     }
 
     func openEditMode(_ message: HistoryMessageType?) {
-        sendContainer.openEditMode(message)
         // We only check if we select a message to edit. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
         if message != nil {
             focusOnTextView(focus: true)

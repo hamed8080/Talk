@@ -91,6 +91,7 @@ final class AvatarView: UIImageView {
 
     @objc func onTap(_ sender: UIGestureRecognizer) {
         if let participant = viewModel?.message.participant {
+            AppState.shared.appStateNavigationModel = .init()
             AppState.shared.openThread(participant: participant)
         }
     }

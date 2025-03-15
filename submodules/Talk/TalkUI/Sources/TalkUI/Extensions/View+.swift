@@ -82,10 +82,13 @@ public extension UIView {
     }
 
     func showWithAniamtion(_ show: Bool) {
-        UIView.animate(withDuration: 0.2) { [weak self] in
-            guard let self = self else { return }
-            alpha = show ? 1.0 : 0.0
-            setIsHidden(!show)
+        let hidden = !show
+        if isHidden != hidden {
+            UIView.animate(withDuration: 0.2) { [weak self] in
+                guard let self = self else { return }
+                alpha = show ? 1.0 : 0.0
+                setIsHidden(!show)
+            }
         }
     }
 
@@ -104,3 +107,66 @@ public extension UIView {
         }
     }
 }
+
+@MainActor
+public class FadeInOutAnimator {
+    private weak var targetView: UIView?
+    private var animator: UIViewPropertyAnimator?
+    
+    public init(view: UIView) {
+        self.targetView = view
+    }
+    
+    public func startAnimation(duration: TimeInterval = 0.2, show: Bool) {
+        guard let view = targetView else { return }
+        
+        view.alpha = show ? 0.0 : 1.0
+        animator = UIViewPropertyAnimator(duration: duration, curve: .easeInOut) {
+            view.alpha = show ? 1.0 : 0.0
+        }
+        
+        animator?.addCompletion { [weak self] position in
+            if position == .end, !show {
+                self?.targetView?.removeFromSuperview()
+            }
+        }
+        
+        animator?.startAnimation()
+    }
+    
+    public func cancelAnimation() {
+        animator?.stopAnimation(true) // Cancel without triggering the completion block
+        animator?.finishAnimation(at: .current) // Keep the current alpha state
+    }
+}
+
+@MainActor
+public class TransformAnimator {
+    private weak var targetView: UIView?
+    private var animator: UIViewPropertyAnimator?
+    
+    public init(view: UIView) {
+        self.targetView = view
+    }
+    
+    public func startAnimation(duration: TimeInterval = 0.2, show: Bool, completion: @escaping @Sendable (UIViewAnimatingPosition) -> Void) {
+        guard let view = targetView else { return }
+        
+        if show, view.isHidden {
+            view.setIsHidden(false)
+            view.transform = CGAffineTransform(scaleX: 0.01, y: 0.01)
+        }
+        
+        animator = UIViewPropertyAnimator(duration: duration, curve: .easeInOut) {
+            view.transform = show ? .identity : CGAffineTransform(scaleX: 0.01, y: 0.01)
+        }
+        animator?.addCompletion(completion)
+        animator?.startAnimation()
+    }
+    
+    public func cancelAnimation() {
+        animator?.stopAnimation(true) // Cancel without triggering the completion block
+        animator?.finishAnimation(at: .current) // Keep the current alpha state
+    }
+}
+
