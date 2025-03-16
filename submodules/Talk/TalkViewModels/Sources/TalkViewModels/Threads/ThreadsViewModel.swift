@@ -466,8 +466,8 @@ public final class ThreadsViewModel: ObservableObject {
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
-            if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
-                AppState.shared.objectsContainer.threadDetailVM.updateThreadInfo(arrItem.toStruct())
+            if let detailVM = AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId) {
+                detailVM.updateThreadInfo(arrItem.toStruct())
             }
             animateObjectWillChange()
         }

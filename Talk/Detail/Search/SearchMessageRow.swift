@@ -49,7 +49,7 @@ struct SearchMessageRow: View {
     private func onTap() {
         Task { @MainActor in
             if let time = message.time, let messageId = message.id {
-                AppState.shared.objectsContainer.threadDetailVM.clear()
+                AppState.shared.objectsContainer.navVM.popLastDetail()
                 AppState.shared.appStateNavigationModel.userToCreateThread = nil
                 AppState.shared.objectsContainer.navVM.remove(innerBack: true)
                 threadVM?.scrollVM.disableExcessiveLoading()
