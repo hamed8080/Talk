@@ -17,7 +17,7 @@ import Combine
 public final class MapPickerViewController: UIViewController {
     // Views
     private let mapView = MKMapView()
-    private let btnClose = UIImageButton(imagePadding: .init(all: 4))
+    private let btnClose = UIImageButton(imagePadding: .init(all: 8))
     private let btnSubmit = SubmitBottomButtonUIView(text: "General.add")
     private let toastView = ToastUIView(message: AppErrorTypes.location_access_denied.localized, disableWidthConstraint: true)
     private let btnLocateMe = UIButton()
@@ -64,7 +64,7 @@ public final class MapPickerViewController: UIViewController {
         btnClose.imageView.image = image
         btnClose.tintColor = Color.App.accentUIColor
         btnClose.layer.masksToBounds = true
-        btnClose.layer.cornerRadius = 14
+        btnClose.layer.cornerRadius = 24
         btnClose.backgroundColor = Color.App.bgSendInputUIColor
         btnClose.accessibilityIdentifier = "btnCloseMapPickerViewController"
 
@@ -94,8 +94,8 @@ public final class MapPickerViewController: UIViewController {
             toastView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             toastView.heightAnchor.constraint(equalToConstant: 96),
             btnClose.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            btnClose.widthAnchor.constraint(equalToConstant: 28),
-            btnClose.heightAnchor.constraint(equalToConstant: 28),
+            btnClose.widthAnchor.constraint(equalToConstant: 42),
+            btnClose.heightAnchor.constraint(equalToConstant: 42),
             btnClose.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
             mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
