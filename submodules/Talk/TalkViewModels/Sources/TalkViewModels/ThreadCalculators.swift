@@ -197,7 +197,7 @@ public class ThreadCalculators {
         return conversations
     }
     
-    private class func calculateImageURL(_ image: String?, _ metaData: FileMetaData?) -> String? {
+    public class func calculateImageURL(_ image: String?, _ metaData: FileMetaData?) -> String? {
         let computedImageURL = (image ?? metaData?.file?.link)?.replacingOccurrences(of: "http://", with: "https://")
         return computedImageURL
     }
