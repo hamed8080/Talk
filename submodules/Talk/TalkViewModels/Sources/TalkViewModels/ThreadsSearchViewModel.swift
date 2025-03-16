@@ -56,6 +56,14 @@ public final class ThreadsSearchViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
+        NotificationCenter.message.publisher(for: .message)
+            .compactMap { $0.object as? MessageEventTypes }
+            .sink { [weak self] event in
+                Task { [weak self] in
+                    await self?.onMessageEvent(event)
+                }
+            }
+            .store(in: &cancelable)
         $searchText
             .dropFirst() // Drop first to prevent send request for the first time app launches
             .debounce(for: 0.5, scheduler: RunLoop.main)
@@ -128,6 +136,15 @@ public final class ThreadsSearchViewModel: ObservableObject {
             await onPublicThreadSearch(response)
             await onSearch(response)
             await onSearchLoadMore(response)
+        default:
+            break
+        }
+    }
+    
+    private func onMessageEvent(_ event: MessageEventTypes?) async {
+        switch event {
+        case .new(let response):
+            onNewMessage(response)
         default:
             break
         }
@@ -281,6 +298,19 @@ public final class ThreadsSearchViewModel: ObservableObject {
                 lazyList.setLoading(false)
                 animateObjectWillChange()
             }
+        }
+    }
+    
+    private func onNewMessage(_ response: ChatResponse<Message>) {
+        if let index = searchedConversations.firstIndex(where: {$0.id == response.subjectId}) {
+            let calculatedConversation = searchedConversations[index]
+            let message = response.result
+            let conversation = calculatedConversation.toStruct()
+            calculatedConversation.lastMessageVO = message?.toLastMessageVO
+            calculatedConversation.lastMessage = message?.message
+            calculatedConversation.fiftyFirstCharacter = String((message?.message ?? "").replacingOccurrences(of: "\n", with: " ").prefix(50))
+            calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
+            calculatedConversation.animateObjectWillChange()
         }
     }
 }

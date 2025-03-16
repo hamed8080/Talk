@@ -222,7 +222,7 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 5
     private func tryFifthScenario(status: ConnectionStatus) async {
         /// 1- Get the bottom part of the list of what is inside the memory.
-        if await canGetNewMessagesAfterConnectionEstablished(status), let lastMessageInListTime = sections.last?.vms.last?.message.time {
+        if let lastMessageInListTime = sections.last?.vms.last?.message.time {
             await showBottomLoading(true)
             let req = await makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
             await doRequestQueue(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
@@ -230,6 +230,8 @@ extension ThreadHistoryViewModel {
     }
 
     private func canGetNewMessagesAfterConnectionEstablished(_ status: ConnectionStatus) async -> Bool {
+        /// Prevent updating bottom if we have moved to a specific date
+        if sections.last?.vms.last?.message.id != thread.lastMessageVO?.id { return false }
         let isActiveThread = await viewModel?.isActiveThread == true
         return await !isSimulated() && status == .connected && isFetchedServerFirstResponse == true && isActiveThread
     }
@@ -356,7 +358,13 @@ extension ThreadHistoryViewModel {
     }
 
     // MARK: Scenario 11
-    public func moveToTimeByDate(time: UInt) {
+    public func moveToTimeByDate(time: UInt) async {
+        await removeAllSections()
+        /// Getting the first message of the day will take time, specially if the message is an archive message.
+        /// So we have to show the center loading imediately.
+        await viewModel?.delegate?.startCenterAnimation(true)
+        await viewModel?.delegate?.startTopAnimation(false)
+        
         firstMessageOfTheDayVM = FirstMessageOfTheDayViewModel(threadId: threadId, readOnly: false)
         firstMessageOfTheDayVM?.completion = { [weak self] message in
             guard let message = message else { return }

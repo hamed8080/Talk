@@ -104,11 +104,15 @@ public final class EmptyThreadView: UIView {
     }
     
     public func show(_ show: Bool, parent: UIView) {
+        if animator == nil {
+            animator = FadeInOutAnimator(view: self)
+        } else {
+            animator?.cancelAnimation()
+        }
         if show, superview == nil {
             attachToParent(parent: parent)
         }
-        animator?.cancelAnimation()
-        animator = FadeInOutAnimator(view: self)
+        parent.bringSubviewToFront(self)
         animator?.startAnimation(show: show)
     }
 }
