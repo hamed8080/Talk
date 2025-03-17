@@ -145,7 +145,13 @@ extension PickerButtonsView {
     func presentMapPicker() {
         let mapVC = MapPickerViewController()
         mapVC.viewModel = threadVM
-        mapVC.modalPresentationStyle = .formSheet
+        if let sheet = mapVC.sheetPresentationController {
+            sheet.detents = [.large()] // Full height
+            sheet.prefersGrabberVisible = true // Optional grabber at the top
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false // Prevents dismissal by scrolling
+            sheet.largestUndimmedDetentIdentifier = .large // Keep it undimmed
+        }
+        mapVC.modalPresentationStyle = .pageSheet
         vc?.present(mapVC, animated: true)
     }
 }

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        // Override console.log to send logs to Swift via message handler
+        window.console.log = function(message) {
+            if (window.webkit && window.webkit.messageHandlers.consoleHandler) {
+                window.webkit.messageHandlers.consoleHandler.postMessage(message);  // Sends message to Swift
+            }
+        };
+        
+        var marker;
+        var map;
+        var localMarkerPath = '';
+    
+        // Initialize map
+        function initializeMap() {
+            map = L.map('map').setView([35.701002, 51.377188], 12); // Default to San Francisco
+
+            // Add OpenStreetMap layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Custom red marker icon
+            var customIcon = L.icon({
+                iconUrl: localMarkerPath, // Use your own marker image
+                iconSize: [36, 38],
+                iconAnchor: [12, 41]
+            });
+            console.log("This is a test log from JavaScript!" + localMarkerPath);
+
+            // Initial marker at the center
+            marker = L.marker(map.getCenter(), { icon: customIcon }).addTo(map);
+            
+            // Listen for map movements and keep the marker at the center
+            map.on('move', updateMarkerToCenter);
+
+            // Call the function once to position the marker at the start
+            updateMarkerToCenter();
+            
+            console.log("call fater");
+        }
+        
+        // Function to update marker position to the center of the map
+        function updateMarkerToCenter() {
+            var center = map.getCenter();
+            marker.setLatLng(center);
+
+            // Send new coordinates to Swift
+            if (window.webkit && window.webkit.messageHandlers.locationHandler) {
+                window.webkit.messageHandlers.locationHandler.postMessage({
+                    latitude: center.lat,
+                    longitude: center.lng
+                });
+            }
+        }
+
+        function moveMapToLocation(lat, lng) {
+            map.setView([lat, lng], 18); // Center map on new location
+            marker.setLatLng([lat, lng]); // Move marker
+        }
+    </script>
+
+</body>
+</html>

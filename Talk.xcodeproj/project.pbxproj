@@ -477,6 +477,10 @@
 		05FE15F32ADA82D9009AC44A /* NavigationBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B4C1772ACEF1FA00FBC4DC /* NavigationBackButton.swift */; };
 		05FF13332AF8CD8200F120DF /* SelectedContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FF13322AF8CD8200F120DF /* SelectedContact.swift */; };
 		05FF13342AF8CD8200F120DF /* SelectedContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FF13322AF8CD8200F120DF /* SelectedContact.swift */; };
+		AC2651FE2D8808010095DB8D /* map.html in Resources */ = {isa = PBXBuildFile; fileRef = AC2651FD2D8807F80095DB8D /* map.html */; };
+		AC2651FF2D8808010095DB8D /* map.html in Resources */ = {isa = PBXBuildFile; fileRef = AC2651FD2D8807F80095DB8D /* map.html */; };
+		AC2652012D8808F60095DB8D /* location_pin.png in Resources */ = {isa = PBXBuildFile; fileRef = AC2652002D8808F60095DB8D /* location_pin.png */; };
+		AC2652022D8808F60095DB8D /* location_pin.png in Resources */ = {isa = PBXBuildFile; fileRef = AC2652002D8808F60095DB8D /* location_pin.png */; };
 		AC39BEFE2D0EB23F00AB7447 /* PreferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */; };
 		AC39BEFF2D0EB23F00AB7447 /* PreferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */; };
 		AC39BF012D0EB7E200AB7447 /* DarkModeSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */; };
@@ -770,6 +774,8 @@
 		05FB7D692B8EE85D00C14ABE /* SearchFiltersMessagesDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFiltersMessagesDialog.swift; sourceTree = "<group>"; };
 		05FE15F02ADA5591009AC44A /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
 		05FF13322AF8CD8200F120DF /* SelectedContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedContact.swift; sourceTree = "<group>"; };
+		AC2651FD2D8807F80095DB8D /* map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = map.html; sourceTree = "<group>"; };
+		AC2652002D8808F60095DB8D /* location_pin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = location_pin.png; sourceTree = "<group>"; };
 		AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceView.swift; sourceTree = "<group>"; };
 		AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkModeSection.swift; sourceTree = "<group>"; };
 		AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsSection.swift; sourceTree = "<group>"; };
@@ -1240,11 +1246,13 @@
 		0570CBCB2AAEE98E001832E9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AC2651FD2D8807F80095DB8D /* map.html */,
 				0570CBC42AAEE98E001832E9 /* Localizable.strings */,
 				0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */,
 				0570CBD22AAEE98E001832E9 /* Config.json */,
 				0570CBD42AAEE98E001832E9 /* Assets.xcassets */,
 				0570CBD62AAEE98E001832E9 /* LaunchScreen.storyboard */,
+				AC2652002D8808F60095DB8D /* location_pin.png */,
 				0570CBD92AAEE98E001832E9 /* sent_message.mp3 */,
 				0570CBDA2AAEE98E001832E9 /* new_message.mp3 */,
 				0570CBDB2AAEE98E001832E9 /* Ringtone.aif */,
@@ -1551,7 +1559,9 @@
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */,
 				0570CC812AAEE98F001832E9 /* Config.json in Resources */,
+				AC2651FF2D8808010095DB8D /* map.html in Resources */,
 				0570CC892AAEE98F001832E9 /* sent_message.mp3 in Resources */,
+				AC2652022D8808F60095DB8D /* location_pin.png in Resources */,
 				0570CC7B2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
 				0570CC8D2AAEE98F001832E9 /* Ringtone.aif in Resources */,
 				0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */,
@@ -1568,7 +1578,9 @@
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC902AAEE98F001832E9 /* MockData.json in Resources */,
 				0570CC822AAEE98F001832E9 /* Config.json in Resources */,
+				AC2651FE2D8808010095DB8D /* map.html in Resources */,
 				0570CC8A2AAEE98F001832E9 /* sent_message.mp3 in Resources */,
+				AC2652012D8808F60095DB8D /* location_pin.png in Resources */,
 				0570CC7C2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
 				0570CC8E2AAEE98F001832E9 /* Ringtone.aif in Resources */,
 				0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */,

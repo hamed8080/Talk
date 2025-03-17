@@ -13,14 +13,18 @@ import TalkUI
 import TalkViewModels
 import ChatCore
 import Combine
+import WebKit
 
-public final class MapPickerViewController: UIViewController {
+@MainActor
+public final class MapPickerViewController: UIViewController, WKScriptMessageHandler, WKNavigationDelegate {
     // Views
     private let mapView = MKMapView()
     private let btnClose = UIImageButton(imagePadding: .init(all: 8))
     private let btnSubmit = SubmitBottomButtonUIView(text: "General.add")
     private let toastView = ToastUIView(message: AppErrorTypes.location_access_denied.localized, disableWidthConstraint: true)
     private let btnLocateMe = UIButton()
+    private let btnMapSwap = UIButton()
+    private var webView = WKWebView()
 
     // Models
     private var cancellableSet = Set<AnyCancellable>()
@@ -28,6 +32,7 @@ public final class MapPickerViewController: UIViewController {
     public var viewModel: ThreadViewModel?
     private var canUpdate = true
     private let annotation = MKPointAnnotation()
+    private var showOSMMap = true
 
     // Constarints
     private var heightSubmitConstraint: NSLayoutConstraint!
@@ -35,6 +40,7 @@ public final class MapPickerViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         configureViews()
+        showOSM()
         registerObservers()
     }
 
@@ -47,7 +53,22 @@ public final class MapPickerViewController: UIViewController {
         mapView.delegate = self
         mapView.accessibilityIdentifier = "mapViewMapPickerViewController"
         mapView.overrideUserInterfaceStyle = style
-        view.addSubview(mapView)
+        
+        let config = WKWebViewConfiguration()
+        config.userContentController.add(self, name: "locationHandler") // Add message handler
+        config.userContentController.add(self, name: "consoleHandler") // Add log handler
+        webView = WKWebView(frame: .zero, configuration: config)
+        webView.translatesAutoresizingMaskIntoConstraints = false
+  
+        
+        // Swap between Apple Maps and OSM
+        btnMapSwap.translatesAutoresizingMaskIntoConstraints = false
+        btnMapSwap.setImage(UIImage(systemName: "apple.logo"), for: .normal)
+        btnMapSwap.tintColor = Color.App.accentUIColor
+        btnMapSwap.backgroundColor = .black
+        btnMapSwap.layer.cornerRadius = 24
+        btnMapSwap.addTarget(self, action: #selector(swapToAppleMaps), for: .touchUpInside)
+        view.addSubview(btnMapSwap)
         
         // Configure Locate Me button
         btnLocateMe.translatesAutoresizingMaskIntoConstraints = false
@@ -64,7 +85,7 @@ public final class MapPickerViewController: UIViewController {
         btnClose.imageView.image = image
         btnClose.tintColor = Color.App.accentUIColor
         btnClose.layer.masksToBounds = true
-        btnClose.layer.cornerRadius = 24
+        btnClose.layer.cornerRadius = 21
         btnClose.backgroundColor = Color.App.bgSendInputUIColor
         btnClose.accessibilityIdentifier = "btnCloseMapPickerViewController"
 
@@ -93,14 +114,10 @@ public final class MapPickerViewController: UIViewController {
             toastView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             toastView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             toastView.heightAnchor.constraint(equalToConstant: 96),
-            btnClose.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            btnClose.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             btnClose.widthAnchor.constraint(equalToConstant: 42),
             btnClose.heightAnchor.constraint(equalToConstant: 42),
             btnClose.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
-            mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            mapView.topAnchor.constraint(equalTo: view.topAnchor),
-            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             btnSubmit.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             btnSubmit.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             heightSubmitConstraint,
@@ -108,8 +125,70 @@ public final class MapPickerViewController: UIViewController {
             btnLocateMe.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             btnLocateMe.bottomAnchor.constraint(equalTo: btnSubmit.topAnchor, constant: -16),
             btnLocateMe.widthAnchor.constraint(equalToConstant: 48),
-            btnLocateMe.heightAnchor.constraint(equalToConstant: 48)
+            btnLocateMe.heightAnchor.constraint(equalToConstant: 48),
+            btnMapSwap.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            btnMapSwap.bottomAnchor.constraint(equalTo: btnLocateMe.topAnchor, constant: -16),
+            btnMapSwap.widthAnchor.constraint(equalToConstant: 48),
+            btnMapSwap.heightAnchor.constraint(equalToConstant: 48)
         ])
+    }
+    
+    private func showOSM() {
+        mapView.removeFromSuperview()
+        showOSMMap = true
+        view.addSubview(webView)
+        view.sendSubviewToBack(webView)
+        
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        // Load the local HTML file
+        guard let filePath = Bundle.main.path(forResource: "map", ofType: "html") else { return }
+        let fileURL = URL(fileURLWithPath: filePath)
+        webView.loadFileURL(fileURL, allowingReadAccessTo: fileURL.deletingLastPathComponent())
+        webView.navigationDelegate = self
+    }
+    
+    private func showAppleMaps() {
+        webView.removeFromSuperview()
+        showOSMMap = false
+        
+        view.addSubview(mapView)
+        view.sendSubviewToBack(mapView)
+        
+        NSLayoutConstraint.activate([
+            mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mapView.topAnchor.constraint(equalTo: view.topAnchor),
+            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+    
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if let markerPath = Bundle.main.path(forResource: "location_pin", ofType: "png") {
+            let fileURL = URL(fileURLWithPath: markerPath)
+            let jsCode = "localMarkerPath = '\(fileURL.path())';"
+            webView.evaluateJavaScript(jsCode, completionHandler: nil)
+        }
+        webView.evaluateJavaScript("initializeMap();", completionHandler: nil)
+    }
+    
+    // Receive messages from JavaScript
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "locationHandler",
+           let body = message.body as? [String: Any],
+           let lat = body["latitude"] as? Double, let lng = body["longitude"] as? Double {
+            self.locationManager.currentLocation = .init(name: String(localized: .init("Map.mayLocation"), bundle: Language.preferedBundle), description: String(localized: .init("Map.hereIAm"), bundle: Language.preferedBundle), location: CLLocationCoordinate2D(latitude: lat, longitude: lng))
+        }
+#if DEBUG
+        if message.name == "consoleHandler", let log = message.body as? String {
+            
+            print("JavaScript Log: \(log)")
+        }
+#endif
     }
     
     public override func viewDidAppear(_ animated: Bool) {
@@ -140,11 +219,24 @@ public final class MapPickerViewController: UIViewController {
         }
         .store(in: &cancellableSet)
         
+        locationManager.$userLocation.sink { [weak self] userLocation in
+            if self?.showOSMMap == true, let location = userLocation?.location {
+                /// A delay to load osm for the first time
+                Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
+                    Task { @MainActor [weak self] in
+                        self?.moveOSMTo(location: location)
+                    }
+                }
+            }
+        }
+        .store(in: &cancellableSet)
         
         /// Wait 2 seconds to get an accurate user location
         /// Then we don't want to bog down the user with a rapid return to the user location
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
-            self?.canUpdate = false
+            Task { @MainActor [weak self] in
+                self?.canUpdate = false
+            }
         }
     }
 
@@ -167,9 +259,11 @@ public final class MapPickerViewController: UIViewController {
     private func onError() {
         toastView.setIsHidden(false)
         Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { _ in
-            withAnimation {
-                self.locationManager.error = nil
-                self.toastView.setIsHidden(true)
+            Task { @MainActor [weak self] in
+                withAnimation {
+                    self?.locationManager.error = nil
+                    self?.toastView.setIsHidden(true)
+                }
             }
         }
     }
@@ -184,6 +278,14 @@ public final class MapPickerViewController: UIViewController {
         }
     }
     
+    @objc private func swapToAppleMaps() {
+        if showOSMMap {
+            showAppleMaps()
+        } else {
+            showOSM()
+        }
+    }
+    
     @objc private func moveToUserLocation() {
         guard let location = locationManager.userLocation else { return }
         
@@ -191,8 +293,18 @@ public final class MapPickerViewController: UIViewController {
             center: location.location,
             span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
         )
-
-        mapView.setRegion(region, animated: true)
+        
+        // Send location to JavaScript
+        if showOSMMap {
+            moveOSMTo(location: location.location)
+        } else {
+            mapView.setRegion(region, animated: true)
+        }
+    }
+    
+    private func moveOSMTo(location: CLLocationCoordinate2D) {
+        let jsCode = "moveMapToLocation(\(location.latitude), \(location.longitude));"
+        webView.evaluateJavaScript(jsCode, completionHandler: nil)
     }
 }
 
