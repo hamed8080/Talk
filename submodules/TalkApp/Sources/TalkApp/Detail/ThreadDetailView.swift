@@ -40,9 +40,6 @@ struct ThreadDetailView: View {
                 prepareToDismiss()
             }
         }
-        .onAppear {
-//            setupPreviousDetailViewModel()
-        }
         .onDisappear {
             Task(priority: .background) {
                 viewModel.threadVM?.searchedMessagesViewModel.reset()
@@ -52,7 +49,7 @@ struct ThreadDetailView: View {
 
     private func prepareToDismiss() {
         AppState.shared.objectsContainer.navVM.remove(innerBack: false)
-        AppState.shared.objectsContainer.threadDetailVM.clear()
+        AppState.shared.objectsContainer.navVM.popLastDetail()
         AppState.shared.appStateNavigationModel.userToCreateThread = nil
         dismiss()
     }

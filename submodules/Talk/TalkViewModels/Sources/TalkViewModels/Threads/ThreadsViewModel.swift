@@ -447,8 +447,9 @@ public final class ThreadsViewModel: ObservableObject {
             /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
             /// So to update the UI properly we have to set it to link.
             var arrItem = threads[index]
-            if let metadatImagelink = thread.metaData?.file?.link {
-                arrItem.image = metadatImagelink
+            if let metadata = thread.metaData {
+                arrItem.image = metadata.file?.link
+                arrItem.computedImageURL = ThreadCalculators.calculateImageURL( arrItem.image, metadata)
             }
             arrItem.title = replacedEmoji
             arrItem.closed = thread.closed
@@ -466,8 +467,8 @@ public final class ThreadsViewModel: ObservableObject {
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
-            if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
-                AppState.shared.objectsContainer.threadDetailVM.updateThreadInfo(arrItem.toStruct())
+            if let detailVM = AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId) {
+                detailVM.updateThreadInfo(arrItem.toStruct())
             }
             animateObjectWillChange()
         }

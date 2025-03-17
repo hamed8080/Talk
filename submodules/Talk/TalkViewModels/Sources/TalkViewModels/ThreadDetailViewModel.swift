@@ -28,17 +28,17 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     public init() {}
 
-    public func setup(thread: Conversation? = nil, threadVM: ThreadViewModel? = nil, participant: Participant? = nil) {
+    public func setup(threadVM: ThreadViewModel? = nil, participant: Participant? = nil) {
         clear()
-        self.thread = thread
+        self.thread = threadVM?.thread
         self.threadVM = threadVM
 
         setupParticipantDetailViewModel(participant: participant)
         setupEditConversationViewModel()
 
         registerObservers()
-        Task {
-            await fetchPartnerParticipant()
+        Task { [weak self] in
+            await self?.fetchPartnerParticipant()
         }
     }
 

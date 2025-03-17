@@ -16,10 +16,12 @@ public final class EditMessagePlaceholderView: UIStackView {
     private let messageImageView = UIImageView()
     private let messageLabel = UILabel()
     private let nameLabel = UILabel()
+    public weak var superViewStack: UIStackView?
 
     private weak var viewModel: ThreadViewModel?
     private var sendVM: SendContainerViewModel { viewModel?.sendContainerViewModel ?? .init() }
-    private var cancellable: AnyCancellable?
+    private var cancellableSet = Set<AnyCancellable>()
+    private var animator: FadeInOutAnimator?
 
     public init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -36,6 +38,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         spacing = 4
         layoutMargins = .init(horizontal: 8, vertical: 8)
         isLayoutMarginsRelativeArrangement = true
+        translatesAutoresizingMaskIntoConstraints = false
 
         nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor
@@ -44,6 +47,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         nameLabel.setContentHuggingPriority(.required, for: .vertical)
 
         messageLabel.font = UIFont.fCaption2
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelEditMessagePlaceholderView"
@@ -56,18 +60,18 @@ public final class EditMessagePlaceholderView: UIStackView {
         vStack.addArrangedSubview(nameLabel)
         vStack.addArrangedSubview(messageLabel)
 
-        let staticImageReply = UIImageButton(imagePadding: .init(all: 8))
-        staticImageReply.isUserInteractionEnabled = false
-        staticImageReply.imageView.image = UIImage(systemName: "pencil")
-        staticImageReply.translatesAutoresizingMaskIntoConstraints = false
-        staticImageReply.imageView.tintColor = Color.App.accentUIColor
-        staticImageReply.contentMode = .scaleAspectFit
-        staticImageReply.accessibilityIdentifier = "staticImageReplyEditMessagePlaceholderView"
+        let staticEditImageView = UIImageButton(imagePadding: .init(all: 8))
+        staticEditImageView.isUserInteractionEnabled = false
+        staticEditImageView.imageView.image = UIImage(systemName: "pencil")
+        staticEditImageView.translatesAutoresizingMaskIntoConstraints = false
+        staticEditImageView.imageView.tintColor = Color.App.accentUIColor
+        staticEditImageView.contentMode = .scaleAspectFit
+        staticEditImageView.accessibilityIdentifier = "staticEditImageViewEditMessagePlaceholderView"
 
         messageImageView.layer.cornerRadius = 4
         messageImageView.layer.masksToBounds = true
         messageImageView.contentMode = .scaleAspectFit
-        messageImageView.translatesAutoresizingMaskIntoConstraints = true
+        messageImageView.translatesAutoresizingMaskIntoConstraints = false
         messageImageView.accessibilityIdentifier = "messageImageViewEditMessagePlaceholderView"
         messageImageView.setIsHidden(true)
 
@@ -77,50 +81,52 @@ public final class EditMessagePlaceholderView: UIStackView {
             self?.close()
         }
 
-        addArrangedSubview(staticImageReply)
+        addArrangedSubview(staticEditImageView)
         addArrangedSubview(messageImageView)
         addArrangedSubview(vStack)
         addArrangedSubview(closeButton)
-
+        messageLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 20).isActive = true
         NSLayoutConstraint.activate([
             messageImageView.widthAnchor.constraint(equalToConstant: 36),
             messageImageView.heightAnchor.constraint(equalToConstant: 36),
-            staticImageReply.widthAnchor.constraint(equalToConstant: 36),
-            staticImageReply.heightAnchor.constraint(equalToConstant: 36),
+            staticEditImageView.widthAnchor.constraint(equalToConstant: 36),
+            staticEditImageView.heightAnchor.constraint(equalToConstant: 36),
         ])
     }
 
-    public func set(stack: UIStackView) {
-        let editMessage = sendVM.getEditMessage()
-        let showEdit = editMessage != nil
-        alpha = showEdit ? 0.0 : 1.0
-        if !showEdit {
-            removeFromSuperViewWithAnimation()
-        } else if superview == nil {
-            alpha = 0.0
-            stack.insertArrangedSubview(self, at: 0)
-            UIView.animate(withDuration: 0.2) {
-                self.alpha = 1.0
-            }
+    public func registerObservers() {
+        sendVM.modePublisher.sink { [weak self] newMode in
+            self?.set(editMessage: newMode.editMessage)
         }
-
-        let iconName = editMessage?.iconName
-        let isFileType = editMessage?.isFileType == true
-        let isImage = editMessage?.isImage == true
-        messageImageView.layer.cornerRadius = isImage ? 4 : 16
-        messageLabel.text = editMessage?.message ?? ""
-        nameLabel.text = editMessage?.participant?.name
-        nameLabel.setIsHidden(editMessage?.participant?.name == nil)
-
-        if isImage, let fileURL = viewModel?.historyVM.sectionsHolder.sections.messageViewModel(for: editMessage?.uniqueId ?? "")?.calMessage.fileURL {
-            Task.detached {
-                if let scaledImage = fileURL.imageScale(width: 36)?.image {
-                    await MainActor.run {
-                        self.messageImageView.image = UIImage(cgImage: scaledImage)
-                        self.messageImageView.setIsHidden(false)
-                    }
-                }
+        .store(in: &cancellableSet)
+    }
+    
+    private func set(editMessage: Message?) {
+        animator?.cancelAnimation()
+        if let editMessage = editMessage {
+            animator = FadeInOutAnimator(view: self)
+            if superview == nil {
+                superViewStack?.insertArrangedSubview(self, at: 0)
             }
+            animator?.startAnimation(show: true)
+            setValues(editMessage: editMessage)
+        } else {
+            animator = FadeInOutAnimator(view: self)
+            animator?.startAnimation(show: false)
+        }
+    }
+    
+    private func setValues(editMessage: Message) {
+        let iconName = editMessage.iconName
+        let isFileType = editMessage.isFileType == true
+        let isImage = editMessage.isImage == true
+        messageImageView.layer.cornerRadius = isImage ? 4 : 16
+        messageLabel.text = editMessage.message ?? ""
+        nameLabel.text = editMessage.participant?.name
+        nameLabel.setIsHidden(editMessage.participant?.name == nil)
+
+        if isImage, let uniqueId = editMessage.uniqueId {
+            setImage(uniqueId)
         } else if isFileType, let iconName = iconName {
             messageImageView.image = UIImage(systemName: iconName)
             messageImageView.setIsHidden(false)
@@ -135,5 +141,17 @@ public final class EditMessagePlaceholderView: UIStackView {
         viewModel?.delegate?.openEditMode(nil) // close the UI and show normal send buttons
         viewModel?.scrollVM.disableExcessiveLoading()
         sendVM.clear()
+    }
+    
+    private func setImage(_ uniqueId: String) {
+        guard let fileURL = viewModel?.historyVM.sectionsHolder.sections.messageViewModel(for: uniqueId)?.calMessage.fileURL else { return }
+        Task.detached {
+            if let scaledImage = fileURL.imageScale(width: 36)?.image {
+                await MainActor.run {
+                    self.messageImageView.image = UIImage(cgImage: scaledImage)
+                    self.messageImageView.setIsHidden(false)
+                }
+            }
+        }
     }
 }

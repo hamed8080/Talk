@@ -23,7 +23,7 @@ struct ThreadSearchView: View {
                 }
 
                 ForEach(viewModel.searchedConversations) { thread in
-                    ThreadRow() {
+                    ThreadRow(isSearchRow: true) {
                         AppState.shared.objectsContainer.navVM.append(thread: thread.toStruct())
                     }
                     .environmentObject(thread)

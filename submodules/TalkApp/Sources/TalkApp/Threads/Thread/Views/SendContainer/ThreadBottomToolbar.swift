@@ -44,6 +44,9 @@ public final class ThreadBottomToolbar: UIStackView {
         self.closedBarView = ClosedBarView(viewModel: viewModel)
         self.mentionTableView = MentionTableView(viewModel: viewModel)
         super.init(frame: .zero)
+        editMessagePlaceholderView.superViewStack = self
+        editMessagePlaceholderView.registerObservers()
+        
         configureViews()
     }
 
@@ -65,6 +68,7 @@ public final class ThreadBottomToolbar: UIStackView {
         effectView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         effectView.accessibilityIdentifier = "effectViewThreadBottomToolbar"
         addSubview(effectView)
+        sendSubviewToBack(effectView)
 
         // addArrangedSubview(replyPrivatelyPlaceholderView)
         attachmentFilesTableView.stack = self
@@ -130,12 +134,7 @@ public final class ThreadBottomToolbar: UIStackView {
             }
         }
     }
-
-    public func openEditMode(_ message: HistoryMessageType?) {
-        editMessagePlaceholderView.set(stack: self)
-        viewModel?.sendContainerViewModel.setEditText(message)
-    }
-
+    
     public func openReplyMode(_ message: HistoryMessageType?) {
         replyPlaceholderView.set(stack: self)
     }

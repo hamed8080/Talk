@@ -64,9 +64,7 @@ struct EditGroup: View {
             }
         }
         .onAppear {
-            if viewModel.adminCounts == 0 {
-                viewModel.getAdminsCount()
-            }
+            viewModel.getAdminsCount()
         }
     }
 

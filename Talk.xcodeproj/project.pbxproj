@@ -17,14 +17,10 @@
 		0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
 		05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 052F46652B21F5B400085C26 /* PhotosUI.framework */; };
 		05D493932B21FF3800508472 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 052F46652B21F5B400085C26 /* PhotosUI.framework */; };
+		AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
+		AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC7408932D777A81009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408922D777A81009217C8 /* TalkApp */; };
 		AC7408952D777A86009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408942D777A86009217C8 /* TalkApp */; };
-		AC78B73A2D737B4400FFF4F8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */; };
-		AC78B73B2D737B4400FFF4F8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */; };
-		ACA238F32D76CB8E00D8E43A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
-		ACA238F42D76CB8E00D8E43A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
-		ACE1EFAD2D7861E9003DEEDB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = ACE1EFAB2D7861E9003DEEDB /* Localizable.strings */; };
-		ACE1EFAE2D7861E9003DEEDB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = ACE1EFAB2D7861E9003DEEDB /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -248,10 +244,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
-				ACE1EFAD2D7861E9003DEEDB /* Localizable.strings in Resources */,
-				ACA238F42D76CB8E00D8E43A /* Assets.xcassets in Resources */,
-				AC78B73A2D737B4400FFF4F8 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,10 +253,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
-				ACE1EFAE2D7861E9003DEEDB /* Localizable.strings in Resources */,
-				ACA238F32D76CB8E00D8E43A /* Assets.xcassets in Resources */,
-				AC78B73B2D737B4400FFF4F8 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -533,7 +525,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 207;
+				MARKETING_VERSION = 209;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -575,7 +567,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 207;
+				MARKETING_VERSION = 209;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

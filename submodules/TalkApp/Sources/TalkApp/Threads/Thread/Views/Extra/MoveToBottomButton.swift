@@ -17,6 +17,7 @@ public final class MoveToBottomButton: UIButton {
     public weak var viewModel: ThreadViewModel?
     private let imgCenter = UIImageView()
     private let lblUnreadCount = PaddingUILabel(frame: .zero, horizontal: 4, vertical: 4)
+    private var animator: TransformAnimator?
 
     public init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -30,6 +31,7 @@ public final class MoveToBottomButton: UIButton {
     }
 
     private func configureView() {
+        accessibilityIdentifier = "moveToBottomThreadViewController"
         layer.backgroundColor = Color.App.bgPrimaryUIColor?.cgColor
         backgroundColor = Color.App.bgPrimaryUIColor
         layer.cornerRadius = 20
@@ -60,6 +62,8 @@ public final class MoveToBottomButton: UIButton {
         addSubview(lblUnreadCount)
 
         NSLayoutConstraint.activate([
+            widthAnchor.constraint(equalToConstant: 40),
+            heightAnchor.constraint(equalToConstant: 40),
             imgCenter.centerXAnchor.constraint(equalTo: centerXAnchor),
             imgCenter.centerYAnchor.constraint(equalTo: centerYAnchor),
             imgCenter.widthAnchor.constraint(equalToConstant: 20),
@@ -88,26 +92,19 @@ public final class MoveToBottomButton: UIButton {
         lblUnreadCount.setIsHidden(unreadCount == 0)
         self.lblUnreadCount.label.addFlipAnimation(text: thread?.unreadCountString)
     }
-
-    private func setVisibilityWithAnimation(visible: Bool) {
-        // Cancel all animations if the user scrolls fast when it's in the bottom part to prevent double-scale transform.
-        self.layer.removeAllAnimations()
-        
-        if visible {
-            self.setIsHidden(false)
-        }
-        UIView.animate(withDuration: 0.3) { [weak self] in
-            self?.transform = CGAffineTransform(scaleX: visible ? 1.0 : 0.01, y: visible ? 1.0 : 0.01)
-        } completion: { completed in
-            if completed {
-                self.setIsHidden(!visible)
-                self.isUserInteractionEnabled = visible
+    
+    public func show(_ show: Bool) {
+        animator?.cancelAnimation()
+        animator = TransformAnimator(view: self)
+        animator?.startAnimation(show: show) { @Sendable [weak self] position in
+            if position == .end {
+                Task { @MainActor [weak self] in
+                    if let self = self {
+                        self.setIsHidden(!show)
+                        self.isUserInteractionEnabled = show
+                    }
+                }
             }
         }
-    }
-    
-    /// Do not make setVisibilityWithAnimation public; it will lead to inconsistency due to its animation.
-    public func show(_ show: Bool) {
-        setVisibilityWithAnimation(visible: show)
     }
 }

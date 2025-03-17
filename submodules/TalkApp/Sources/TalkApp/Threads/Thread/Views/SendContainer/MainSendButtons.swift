@@ -10,6 +10,7 @@ import TalkViewModels
 import TalkExtensions
 import TalkUI
 import TalkModels
+import Chat
 import UIKit
 import Combine
 
@@ -164,7 +165,7 @@ public final class MainSendButtons: UIStackView {
     }
     
     private func registerModeChange() {
-        viewModel.$mode.sink { [weak self] newMode in
+        viewModel.modePublisher.sink { [weak self] newMode in
             guard let self = self else { return }
             showMicButton(viewModel.showAudio(mode: newMode))
             showCameraButton(viewModel.showCamera(mode: newMode))
@@ -186,10 +187,11 @@ public final class MainSendButtons: UIStackView {
     }
     
     private func registerAttachmentsChange() {
-        threadVM?.attachmentsViewModel.$attachments.sink { [weak self] attachments in
+        /// We have to drop first to prevent emptying the send button if it has a draft / editMessage draft
+        threadVM?.attachmentsViewModel.$attachments.dropFirst().sink { [weak self] attachments in
             guard let self = self else { return }
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.mode = .init(type: .voice, attachmentsCount: attachments.count)
+            viewModel.setMode(type: .voice, attachmentsCount: attachments.count)
         }
         .store(in: &cancellableSet)
     }
@@ -198,6 +200,7 @@ public final class MainSendButtons: UIStackView {
         multilineTextField.onTextChanged = { [weak self] text in
             guard let self = self else { return }
             viewModel.setText(newValue: text ?? "")
+            showSendButton(viewModel.showSendButton(mode: viewModel.getMode()))
         }
 
         viewModel.onTextChanged = { [weak self] newValue in
@@ -237,9 +240,9 @@ public final class MainSendButtons: UIStackView {
     }
 
     @objc private func toggleMode(_ sender: UIGestureRecognizer) {
-        let currentValueIsVideo = viewModel.mode.type == .video
+        let currentValueIsVideo = viewModel.getMode().type == .video
         let isNewValueVideo = !currentValueIsVideo
-        viewModel.mode = .init(type: isNewValueVideo ? .video : .voice)
+        viewModel.setMode(type: isNewValueVideo ? .video : .voice)
         btnCamera.showWithAniamtion(isNewValueVideo)
         btnMic.showWithAniamtion(!isNewValueVideo)
     }
@@ -249,7 +252,7 @@ public final class MainSendButtons: UIStackView {
         // Check if it is began then show the UI unless we don't call it twice.
         if sender.state != .began { return }
         threadVM?.delegate?.showRecording(true)
-        viewModel.mode = .init(type: .voice)
+        viewModel.setMode(type: .voice)
     }
 
     @objc private func showPopup(_ sender: UIGestureRecognizer) {
@@ -294,8 +297,8 @@ public final class MainSendButtons: UIStackView {
     }
 
     @objc private func onBtnToggleAttachmentButtonsTapped() {
-        let isShowingButtonsPicker = threadVM?.sendContainerViewModel.mode.type == .showButtonsPicker
-        viewModel.mode = .init(type: isShowingButtonsPicker ? .voice : .showButtonsPicker)
+        let isShowingButtonsPicker = threadVM?.sendContainerViewModel.getMode().type == .showButtonsPicker
+        viewModel.setMode(type: isShowingButtonsPicker ? .voice : .showButtonsPicker)
         toggleAttchmentButton(show: !isShowingButtonsPicker)
         onViewModelChanged()
     }
@@ -310,9 +313,10 @@ public final class MainSendButtons: UIStackView {
     private func animateMainButtons() {
         UIView.animate(withDuration: 0.2) { [weak self] in
             guard let self = self else { return }
-            btnMic.setIsHidden(!viewModel.showAudio(mode: viewModel.mode))
-            btnCamera.showWithAniamtion(viewModel.showCamera(mode: viewModel.mode))
-            btnSend.showWithAniamtion(viewModel.showSendButton(mode: viewModel.mode))
+            let mode = viewModel.getMode()
+            btnMic.setIsHidden(!viewModel.showAudio(mode: mode))
+            btnCamera.showWithAniamtion(viewModel.showCamera(mode: mode))
+            btnSend.showWithAniamtion(viewModel.showSendButton(mode: mode))
         }
     }
 
@@ -336,7 +340,7 @@ public final class MainSendButtons: UIStackView {
             let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.mode = .init(type: .voice, attachmentsCount: 1)
+            viewModel.setMode(type: .voice, attachmentsCount: 1)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
@@ -352,7 +356,7 @@ public final class MainSendButtons: UIStackView {
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             self.cameraCapturer = nil
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.mode = .init(type: .voice, attachmentsCount: 1)
+            viewModel.setMode(type: .voice, attachmentsCount: 1)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)

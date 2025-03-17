@@ -76,19 +76,12 @@ public class ParticipantsCountManager {
             threadsVM.threads[index].participantCount = count
             threadViewModel(threadId: threadId)?.thread.participantCount = count
 //            threadViewModel(threadId: threadId)?.animateObjectWillChange()
-            detailViewModel(threadId: threadId)?.animateObjectWillChange()
+            AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
     }
 
     private func threadViewModel(threadId: Int) -> ThreadViewModel? {
         AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
-    }
-
-    private func detailViewModel(threadId: Int) -> ThreadDetailViewModel? {
-        if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
-            return AppState.shared.objectsContainer.threadDetailVM
-        }
-        return nil
     }
 
     private func currentCount(threadId: Int?) -> Int {
