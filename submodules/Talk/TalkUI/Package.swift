@@ -20,6 +20,7 @@ let package = Package(
         .package(path: "../TalkModels"),
         .package(path: "../TalkExtensions"),
         .package(path: "../TalkViewModels"),
+        .package(path: "../ImageEditor"),
     ],
     targets: [
         .target(
@@ -28,7 +29,8 @@ let package = Package(
                 .product(name: "AdditiveUI", package: "AdditiveUI"),
                 "TalkModels",
                 "TalkExtensions",
-                "TalkViewModels"
+                "TalkViewModels",
+                "ImageEditor"
             ],
             resources: [.process("Resources/Fonts/")]
         ),
