@@ -25,7 +25,8 @@ let package = Package(
             dependencies: [
                 .product(name: "Dependencies", package: "Dependencies"),
             ],
-            exclude: ["Exclude"]
+            exclude: ["Exclude"],
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "TalkAppTests",

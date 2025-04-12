@@ -146,7 +146,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
         // Load the local HTML file
-        guard let filePath = Bundle.main.path(forResource: "map", ofType: "html") else { return }
+        guard let filePath = Bundle.module.path(forResource: "map", ofType: "html") else { return }
         let fileURL = URL(fileURLWithPath: filePath)
         webView.loadFileURL(fileURL, allowingReadAccessTo: fileURL.deletingLastPathComponent())
         webView.navigationDelegate = self
@@ -168,7 +168,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
     }
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        if let markerPath = Bundle.main.path(forResource: "location_pin", ofType: "png") {
+        if let markerPath = Bundle.module.path(forResource: "location_pin", ofType: "png") {
             let fileURL = URL(fileURLWithPath: markerPath)
             let jsCode = "localMarkerPath = '\(fileURL.path())';"
             webView.evaluateJavaScript(jsCode, completionHandler: nil)
