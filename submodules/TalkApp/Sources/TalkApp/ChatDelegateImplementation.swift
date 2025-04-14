@@ -19,6 +19,7 @@ import SwiftUI
 
 @MainActor
 public final class ChatDelegateImplementation: ChatDelegate {
+    private var retryCount = 0
     let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
     @MainActor
     public private(set) static var sharedInstance = ChatDelegateImplementation()
@@ -26,23 +27,39 @@ public final class ChatDelegateImplementation: ChatDelegate {
     @MainActor
     public func initialize() {
         let manager = BundleManager.init()
-        if let spec = Spec.cachedSpec() {
+        if let spec = Spec.cachedSpec(), manager.hasBundle {
             if let language = Language.languages.first(where: {$0.language == Locale.preferredLanguages[0] }) {
                 Language.setLanguageTo(bundle: manager.getBundle(), language: language)
             }
             setup(spec: spec, bundle: manager.getBundle())
         } else {
-            /// Download the Spec
+            /// Download Spec and Bundle
             Task {
-                let spec = try? await Spec.dl()
-                _ = try? await manager.st()
-                if let language = Language.languages.first(where: { $0.identifier == "ZmFfSVI=".fromBase64() }) {
-                    Language.setLanguageTo(bundle: manager.getBundle(), language: language)
-                }
-                setup(spec: spec ?? .empty(), bundle: manager.getBundle())
-                NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
+                await dlReload(manager: manager)
             }
         }
+    }
+    
+    private func dlReload(manager: BundleManager) async {
+        do {
+            let spec = try await Spec.dl()
+            _ = try await manager.st()
+            reload(spec: spec, bundle: manager.getBundle())
+        } catch {
+            // Failed to download spec or bundle
+            if retryCount < 3 {
+                retryCount += 1
+                await dlReload(manager: manager)
+            }
+        }
+    }
+    
+    private func reload(spec: Spec, bundle: Bundle) {
+        if let language = Language.languages.first(where: { $0.identifier == "ZmFfSVI=".fromBase64() }) {
+            Language.setLanguageTo(bundle: bundle, language: language)
+        }
+        setup(spec: spec ?? .empty(), bundle: bundle)
+        NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }
     
     private func setup(spec: Spec, bundle: Bundle) {
