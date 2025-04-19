@@ -254,6 +254,7 @@ private extension MessageContainerStackView {
     }
 
     func onSelectAction(_ model: ActionModel) {
+        model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
         if let uniqueId = model.message.uniqueId,
