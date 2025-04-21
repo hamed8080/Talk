@@ -18,6 +18,7 @@ public final class ConversationSubtitleViewModel {
     private var p2pPartnerFinderVM: FindPartnerParticipantViewModel?
     public weak var viewModel: ThreadViewModel?
     private var cancellableSet: Set<AnyCancellable> = []
+    private let PARTICIPANTS_COUNT_KEY: String = "GET-PARTICIPANTS-COUNT-\(UUID().uuidString)"
 
     public init() {}
 
@@ -41,12 +42,22 @@ public final class ConversationSubtitleViewModel {
                 }
             }
             .store(in: &cancellableSet)
+        
+        NotificationCenter.thread.publisher(for: .thread)
+            .compactMap { $0.object as? ThreadEventTypes }
+            .sink { [weak self] event in
+                self?.onThreadEvent(event)
+            }
+            .store(in: &cancellableSet)
     }
 
     private func getParticipantsCountOrLastSeen() -> String? {
         let threadsItem = viewModel?.threadsViewModel?.threads.first(where: {$0.id == thread?.id})
         let count = thread?.participantCount ?? threadsItem?.participantCount ?? 0
         if thread?.group == true, let participantsCount = count.localNumber(locale: Language.preferredLocale) {
+            if count == 0 {
+                requestParticipantsCount()
+            }
             let localizedLabel = String(localized: "Thread.Toolbar.participants", bundle: Language.preferedBundle)
             return "\(participantsCount) \(localizedLabel)"
         } else if thread?.id == LocalId.emptyThread.rawValue {
@@ -109,6 +120,22 @@ public final class ConversationSubtitleViewModel {
             await MainActor.run { [weak self] in
                 self?.updateTo(self?.getParticipantsCountOrLastSeen())
             }
+        }
+    }
+    
+    private func requestParticipantsCount() {
+        guard let threadId = thread?.id else { return }
+        let req = ThreadsRequest(threadIds: [threadId])
+        RequestsManager.shared.append(prepend: PARTICIPANTS_COUNT_KEY, value: req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
+    }
+    
+    private func onThreadEvent(_ event: ThreadEventTypes?) {
+        if case .threads(let response) = event, response.cache == false, response.pop(prepend: PARTICIPANTS_COUNT_KEY) != nil {
+            viewModel?.thread.participantCount = response.result?.first?.participantCount
+            updateTo(getParticipantsCountOrLastSeen())
         }
     }
 }
