@@ -451,6 +451,7 @@ public final class ThreadsViewModel: ObservableObject {
                 arrItem.image = metadata.file?.link
                 arrItem.computedImageURL = ThreadCalculators.calculateImageURL( arrItem.image, metadata)
             }
+            arrItem.metadata = thread.metadata
             arrItem.title = replacedEmoji
             arrItem.closed = thread.closed
             arrItem.time = thread.time ?? arrItem.time
