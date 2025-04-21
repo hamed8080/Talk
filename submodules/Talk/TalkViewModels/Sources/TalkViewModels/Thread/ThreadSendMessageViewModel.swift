@@ -383,14 +383,19 @@ public final class ThreadSendMessageViewModel {
             switch send {
             case .normal(let request):
                 message.send(request)
+                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .forward(let request):
                 message.send(request)
+                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .reply(let request):
                 message.reply(request)
+                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .replyPrivately(let request):
                 message.replyPrivately(request)
+                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .edit(let request):
                 message.edit(request)
+                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
             }
         }
     }
