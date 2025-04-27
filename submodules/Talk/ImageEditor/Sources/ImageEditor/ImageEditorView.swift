@@ -12,19 +12,31 @@ import CoreImage
 public final class ImageEditorView: UIView, UIScrollViewDelegate {
     private let scrollView = UIScrollView()
     private let imageView = UIImageView()
-    private let btnClose = UIButton(type: .system)
-    private let btnReset = UIButton(type: .system)
+    private let btnClose = CircularSymbolButton("xmark")
+    private let btnReset = CircularSymbolButton("arrow.trianglehead.2.counterclockwise.rotate.90")
     private let buttonsHStack = UIStackView()
-    private let btnAddText = UIButton(type: .system)
-    private let btnFlip = UIButton(type: .system)
-    private let btnRotate = UIButton(type: .system)
-    private let btnCrop = UIButton(type: .system)
+    private let btnAddText = CircularSymbolButton("t.square", width: 32, height: 32, radius: 0, addBGEffect: false)
+    private let btnFlip = CircularSymbolButton("arrow.trianglehead.left.and.right.righttriangle.left.righttriangle.right", width: 32, height: 32, radius: 0, addBGEffect: false)
+    private let btnRotate = CircularSymbolButton("rotate.left", width: 32, height: 32, radius: 0, addBGEffect: false)
+    private let btnCrop = CircularSymbolButton("crop", width: 32, height: 32, radius: 0, addBGEffect: false)
+    private let btnDone = UIButton(type: .system)
+    
+    private let cropOverlay = CropOverlayView()
+    private var isCropping = false
     
     private let url: URL
+    private let doneTitle: String
+    private let font: UIFont
     private let padding: CGFloat = 16
     
-    public init(url: URL) {
+    public var onDone: (URL?, Error?) -> Void
+    public var onClose: (() -> Void)?
+    
+    public init(url: URL, font: UIFont = .systemFont(ofSize: 16), doneTitle: String, onDone: @escaping (URL?, Error?) -> Void) {
         self.url = url
+        self.doneTitle = doneTitle
+        self.font = font
+        self.onDone = onDone
         super.init(frame: .zero)
         configureView()
     }
@@ -34,6 +46,9 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     }
     
     private func configureView() {
+        // Force Left-to-Right
+        semanticContentAttribute = .forceLeftToRight
+        
         /// Setup scrollView
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.delegate = self
@@ -43,69 +58,75 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         
         /// Setup imageView
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.backgroundColor = .green
         imageView.contentMode = .scaleAspectFit
         imageView.image = UIImage(contentsOfFile: url.path())
+        imageView.isUserInteractionEnabled = true
         scrollView.addSubview(imageView)
         
         /// Setup btnClose
-        btnClose.translatesAutoresizingMaskIntoConstraints = false
-        btnClose.setTitle("close", for: .normal)
-        btnClose.titleLabel?.textColor = .red
-        btnClose.backgroundColor = .red
+        btnClose.onTap = {[weak self] in self?.onClose?() }
         addSubview(btnClose)
         
         /// Setup btnReset
-        btnReset.translatesAutoresizingMaskIntoConstraints = false
-        btnReset.setTitle("reset", for: .normal)
-        btnReset.titleLabel?.textColor = .red
-        btnReset.backgroundColor = .red
+        btnReset.onTap = {[weak self] in self?.resetTapped() }
         addSubview(btnReset)
         
         /// Setup btnAddText
-        btnAddText.translatesAutoresizingMaskIntoConstraints = false
-        btnAddText.setTitle("AddText", for: .normal)
-        btnAddText.titleLabel?.textColor = .red
-        btnAddText.addTarget(self, action: #selector(addTextTapped), for: .touchUpInside)
+        btnAddText.onTap = {[weak self] in self?.addTextTapped() }
         
         /// Setup btnFlip
-        btnFlip.translatesAutoresizingMaskIntoConstraints = false
-        btnFlip.setTitle("Flip", for: .normal)
-        btnFlip.titleLabel?.textColor = .red
-        btnFlip.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
+        btnFlip.onTap = {[weak self] in self?.flipTapped() }
         
         /// Setup btnRotate
-        btnRotate.translatesAutoresizingMaskIntoConstraints = false
-        btnRotate.setTitle("Rotate", for: .normal)
-        btnRotate.titleLabel?.textColor = .red
-        btnRotate.addTarget(self, action: #selector(rotateTapped), for: .touchUpInside)
+        btnRotate.onTap = {[weak self] in self?.rotateTapped() }
         
         /// Setup btnCrop
-        btnCrop.translatesAutoresizingMaskIntoConstraints = false
-        btnCrop.setTitle("Crop", for: .normal)
-        btnCrop.titleLabel?.textColor = .red
-        btnCrop.addTarget(self, action: #selector(cropTapped), for: .touchUpInside)
-                
+        btnCrop.onTap = {[weak self] in self?.cropTapped() }
+        
+        /// Setup btnDone
+        btnDone.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
+        btnDone.setTitle(doneTitle, for: .normal)
+        btnDone.setTitleColor(.white, for: .normal)
+        btnDone.titleLabel?.font = font
+        
+        let dividerContainer = UIView()
+        dividerContainer.translatesAutoresizingMaskIntoConstraints = false
+        let divider = UIView()
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        divider.backgroundColor = .white.withAlphaComponent(0.4)
+        dividerContainer.addSubview(divider)
+        
         /// Setup buttonsHStack
+        let blurEffect = UIBlurEffect(style: .systemMaterialDark)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.layer.cornerRadius = 12
+        blurView.clipsToBounds = true
         buttonsHStack.axis = .horizontal
-        buttonsHStack.spacing = 4
+        buttonsHStack.spacing = 0
         buttonsHStack.distribution = .fillEqually
         buttonsHStack.alignment = .center
         buttonsHStack.translatesAutoresizingMaskIntoConstraints = false
-        buttonsHStack.backgroundColor = .red
-        buttonsHStack.layer.cornerRadius = 8
+        buttonsHStack.layer.cornerRadius = 12
+        buttonsHStack.clipsToBounds = true
+        buttonsHStack.layoutMargins = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
+        buttonsHStack.isLayoutMarginsRelativeArrangement = true
+        buttonsHStack.addSubview(blurView)
+        buttonsHStack.semanticContentAttribute = .forceLeftToRight
         addSubview(buttonsHStack)
         
+        buttonsHStack.addArrangedSubview(btnDone)
+        buttonsHStack.addArrangedSubview(dividerContainer)
         buttonsHStack.addArrangedSubview(btnAddText)
         buttonsHStack.addArrangedSubview(btnFlip)
         buttonsHStack.addArrangedSubview(btnRotate)
         buttonsHStack.addArrangedSubview(btnCrop)
         
         NSLayoutConstraint.activate([
-            scrollView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
             
             imageView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
@@ -115,31 +136,25 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
             imageView.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
             
             btnClose.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
-            btnClose.topAnchor.constraint(equalTo: topAnchor),
-            btnClose.heightAnchor.constraint(equalToConstant: 48),
-            btnClose.widthAnchor.constraint(equalToConstant: 48),
+            btnClose.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             
             btnReset.trailingAnchor.constraint(equalTo: btnClose.leadingAnchor, constant: -padding),
-            btnReset.topAnchor.constraint(equalTo: topAnchor),
-            btnReset.heightAnchor.constraint(equalToConstant: 48),
-            btnReset.widthAnchor.constraint(equalToConstant: 48),
+            btnReset.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             
-            btnAddText.heightAnchor.constraint(equalToConstant: 48),
-            btnAddText.widthAnchor.constraint(equalToConstant: 48),
+            buttonsHStack.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.7),
+            buttonsHStack.centerXAnchor.constraint(equalTo: centerXAnchor),
+            buttonsHStack.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -padding),
             
-            btnFlip.heightAnchor.constraint(equalToConstant: 48),
-            btnFlip.widthAnchor.constraint(equalToConstant: 48),
+            dividerContainer.heightAnchor.constraint(equalToConstant: 32),
+            divider.widthAnchor.constraint(equalToConstant: 1),
+            divider.topAnchor.constraint(equalTo: dividerContainer.topAnchor, constant: 6),
+            divider.bottomAnchor.constraint(equalTo: dividerContainer.bottomAnchor, constant: -6),
+            divider.centerXAnchor.constraint(equalTo: dividerContainer.centerXAnchor),
             
-            btnRotate.heightAnchor.constraint(equalToConstant: 48),
-            btnRotate.widthAnchor.constraint(equalToConstant: 48),
-            
-            btnCrop.heightAnchor.constraint(equalToConstant: 48),
-            btnCrop.widthAnchor.constraint(equalToConstant: 48),
-            
-            buttonsHStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
-            buttonsHStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
-            buttonsHStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding),
-            buttonsHStack.heightAnchor.constraint(equalToConstant: 48),
+            blurView.topAnchor.constraint(equalTo: buttonsHStack.topAnchor),
+            blurView.bottomAnchor.constraint(equalTo: buttonsHStack.bottomAnchor),
+            blurView.leadingAnchor.constraint(equalTo: buttonsHStack.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: buttonsHStack.trailingAnchor),
         ])
     }
     
@@ -154,12 +169,6 @@ extension ImageEditorView {
         return renderer.image { _ in
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
-    }
-}
-
-public extension ImageEditorView {
-    func getCGImage() -> CGImage? {
-        return nil
     }
 }
 
@@ -183,7 +192,10 @@ extension ImageEditorView {
 
 extension ImageEditorView {
     @objc func addTextTapped() {
-        
+        let textView = EditableTextView()
+        textView.text = "Edit me"
+        textView.frame = CGRect(x: imageView.center.x - 100, y: imageView.center.y - 100, width: 200, height: textView.fontSize + 16)
+        imageView.addSubview(textView)
     }
 }
 
@@ -202,28 +214,60 @@ extension ImageEditorView {
     }
 }
 
+/// Actions
 extension ImageEditorView {
+    @objc func doneTapped() {
+        if isCropping {
+            imageView.subviews.forEach { view in
+                if view is CropOverlayView {
+                    view.removeFromSuperview()
+                }
+            }
+        }
+        guard
+            let cgImage = imageView.getClippedCroppedImage(),
+            let outputURL = cgImage.storeInTemp()
+        else {
+            onDone(nil, NSError(domain: "failed to get the image", code: -1))
+            return
+        }
+        onDone(outputURL, nil)
+    }
+    
     @objc func cropTapped() {
-        
+        if !isCropping {
+            enterCropMode()
+        } else {
+            applyCrop()
+        }
     }
-}
-
-struct ImageEditorWrapper: UIViewRepresentable {
-    let url: URL
     
-    func makeUIView(context: Context) -> UIView {
-        let view = ImageEditorView(url: url)
-        return view
+    private func enterCropMode() {
+        isCropping = true
+        cropOverlay.frame = imageView.bounds
+        cropOverlay.backgroundColor = .clear
+        cropOverlay.isUserInteractionEnabled = true
+        imageView.addSubview(cropOverlay)
     }
-
-    func updateUIView(_ uiView: UIViewType, context: Context) {}
     
-}
+    private func applyCrop() {
+        guard let image = imageView.image, let croppedCgImage = cropOverlay.getCropped(bounds: imageView.bounds, image: image) else { return }
+        imageView.image = UIImage(cgImage: croppedCgImage, scale: image.scale, orientation: image.imageOrientation)
+        cropOverlay.removeFromSuperview()
+        isCropping = false
+        resetScrollView()
+    }
+    
+    private func resetScrollView() {
+        scrollView.setZoomScale(1.0, animated: false)
+        scrollView.contentOffset = .zero
+        imageView.frame = scrollView.bounds
+    }
 
-#if DEBUG
-#Preview {
-    if let url = Bundle.module.url(forResource: "test", withExtension: "png") {
-        ImageEditorWrapper(url: url)
+    @objc private func resetTapped() {
+        imageView.subviews.forEach { view in
+            view.removeFromSuperview()
+        }
+        imageView.image = UIImage(contentsOfFile: url.path())
     }
 }
-#endif

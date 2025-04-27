@@ -18,8 +18,7 @@ let package = Package(
     dependencies: [],
     targets: [
         .target(
-            name: "ImageEditor",
-            resources: [.process("Resources/")]
+            name: "ImageEditor"
         ),
         .testTarget(
             name: "ImageEditorTests",

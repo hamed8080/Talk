@@ -9,6 +9,7 @@ xcuserdata
 *.xcodeproj
 swift-format.xcodeproj/
 Package.resolved
+TestImageEditor/
 
 ### DOCC
 .docs/
