@@ -45,10 +45,12 @@ public final class ThreadUnreadMentionsViewModel {
     }
 
     public func fetchAllUnreadMentions() {
-//        guard let threadId = thread?.id else { return }
-//        let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)
-//        RequestsManager.shared.append(prepend: UNREAD_MENTIONS_KEY, value: req)
-//        ChatManager.activeInstance?.message.history(req)
+        guard let threadId = thread?.id else { return }
+        let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)
+        RequestsManager.shared.append(prepend: UNREAD_MENTIONS_KEY, value: req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.message.history(req)
+        }
     }
 
     public func setAsRead(id: Int?) {
