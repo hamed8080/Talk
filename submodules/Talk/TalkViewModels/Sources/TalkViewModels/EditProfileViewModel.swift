@@ -37,7 +37,7 @@ public final class EditProfileViewModel: ObservableObject {
 
         NotificationCenter.user.publisher(for: .user)
             .compactMap { $0.object as? UserEventTypes }
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 if case .setProfile(let response) = event {
                     self?.onUpdateProfile(response)
                 }

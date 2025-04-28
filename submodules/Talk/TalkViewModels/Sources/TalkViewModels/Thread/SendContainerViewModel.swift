@@ -18,7 +18,7 @@ public final class SendContainerViewModel: ObservableObject {
     private var textMessage: String = ""
     private var cancelable: Set<AnyCancellable> = []
     /// We will need this for UserDefault purposes because ViewModel.thread is nil when the view appears.
-    @Published public var mode: SendcContainerMode = .init(type: .voice)
+    @Published private var mode: SendcContainerMode = .init(type: .voice)
     public var height: CGFloat = 0
     private let draftManager = DraftManager.shared
     public var onTextChanged: ((String?) -> Void)?
@@ -53,6 +53,7 @@ public final class SendContainerViewModel: ObservableObject {
         mode = .init(type: .voice)
         setText(newValue: "")
         onTextChanged?(textMessage)
+        setEditMessageDraft(nil)
     }
 
     public func isTextEmpty() -> Bool {
@@ -88,6 +89,7 @@ public final class SendContainerViewModel: ObservableObject {
         onEditMessageChanged(message)
         if let message = message {
             mode = .init(type: .edit, editMessage: message)
+            setEditText(message)
         } else {
             mode = .init(type: .voice)
         }
@@ -150,7 +152,7 @@ public final class SendContainerViewModel: ObservableObject {
         !isTextEmpty() ||
         mode.attachmentsCount > 0 ||
         hasForward() ||
-        mode.type == .edit // when we add a peice of text to an empty image we should be able to show send button eventhough it's empty
+        (mode.type == .edit && !isTextEmpty()) // when we add a peice of text to an empty image we should be able to show send button eventhough it's empty
     }
 
     private func hasForward() -> Bool {
@@ -169,11 +171,8 @@ public final class SendContainerViewModel: ObservableObject {
         mode.type == .edit
     }
     
-    public func setEditText(_ message: HistoryMessageType?) {
-        guard
-            let message = message as? Message,
-            let text = message.message
-        else { return }
+    private func setEditText(_ message: Message) {
+        guard let text = message.message else { return }
         let isFirstRTL = isFirstCharacterRTL(string: text)
         onEditMessageChanged(message)
         onTextMessageChanged(message.message ?? "")
@@ -184,5 +183,17 @@ public final class SendContainerViewModel: ObservableObject {
     private func isFirstCharacterRTL(string: String) -> Bool {
         guard let char = string.replacingOccurrences(of: RTLMarker, with: "").first else { return false }
         return char.isEnglishCharacter == false
+    }
+    
+    public func getMode() -> SendcContainerMode {
+        return mode
+    }
+    
+    public func setMode(type: SendcContainerMode.ModeType, editMessage: Message? = nil, attachmentsCount: Int = 0) {
+        self.mode = .init(type: type, editMessage: editMessage, attachmentsCount: attachmentsCount)
+    }
+    
+    public var modePublisher: Published<SendcContainerMode>.Publisher {
+        return $mode
     }
 }

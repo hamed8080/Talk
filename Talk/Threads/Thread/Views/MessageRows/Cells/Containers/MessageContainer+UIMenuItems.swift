@@ -142,18 +142,21 @@ extension MessageContainerStackView {
 private extension MessageContainerStackView {
     func onReplyAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
+        model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.replyMessage = message
         model.threadVM?.delegate?.openReplyMode(message)
     }
 
     func onReplyPrivatelyAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
+        model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         guard let participant = model.message.participant else { return }
         AppState.shared.appStateNavigationModel.replyPrivately = message
         AppState.shared.openThread(participant: participant)
     }
 
     func onForwardAction(_ model: ActionModel) {
+        model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
         cell?.select()
     }
@@ -251,6 +254,7 @@ private extension MessageContainerStackView {
     }
 
     func onSelectAction(_ model: ActionModel) {
+        model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
         if let uniqueId = model.message.uniqueId,
            let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {

@@ -21,7 +21,7 @@ public final class TagsViewModel: ObservableObject {
 
     public init() {
 //        AppState.shared.$connectionStatus
-//            .sink{ [weak self] status in
+//            .sink { [weak self] status in
 //                self?.onConnectionStatusChanged(status)
 //            }
 //            .store(in: &cancelable)

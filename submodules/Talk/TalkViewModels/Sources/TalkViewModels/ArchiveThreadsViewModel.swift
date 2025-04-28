@@ -31,7 +31,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         GET_ARCHIVES_KEY = "GET-ARCHIVES-\(objectId)"
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 Task {
                     await self?.onThreadEvent(event)
                 }
@@ -39,7 +39,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             .store(in: &cancelable)
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 self?.onMessageEvent(event)
             }
             .store(in: &cancelable)
@@ -255,8 +255,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
-            if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
-                AppState.shared.objectsContainer.threadDetailVM.updateThreadInfo(calculated.toStruct())
+            if let detailVM = AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId) {
+                detailVM.updateThreadInfo(calculated.toStruct())
             }
             animateObjectWillChange()
         }

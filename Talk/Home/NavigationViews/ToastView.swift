@@ -16,6 +16,7 @@ public struct ToastView<ContentView: View>: View {
     let titleFont: Font
     let messageFont: Font
     let messageColor: Color
+    let showSandBox: Bool
     let leadingView: () -> ContentView
 
     public init(title: String? = nil,
@@ -24,6 +25,7 @@ public struct ToastView<ContentView: View>: View {
                 messageColor: Color = Color.App.red,
                 titleFont: Font = .iransansBoldBody,
                 messageFont: Font = .iransansCaption,
+                showSandBox: Bool = false,
                 @ViewBuilder leadingView: @escaping () -> ContentView)
     {
         self.title = title
@@ -32,6 +34,7 @@ public struct ToastView<ContentView: View>: View {
         self.leadingView = leadingView
         self.titleFont = titleFont
         self.messageFont = messageFont
+        self.showSandBox = showSandBox
         self.messageColor = messageColor
     }
 
@@ -58,6 +61,12 @@ public struct ToastView<ContentView: View>: View {
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius:(12)))
                 .frame(maxWidth: 380)
+                .overlay(alignment: .topTrailing) {
+                    if showSandBox {
+                        Color.clear
+                            .sandboxLabel()
+                    }
+                }
             }
             .padding(EdgeInsets(top: 0, leading: 8, bottom: 96, trailing: 8))
         }

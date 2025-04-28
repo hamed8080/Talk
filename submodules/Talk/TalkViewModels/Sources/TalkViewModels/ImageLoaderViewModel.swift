@@ -47,7 +47,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         self.config = config
         NotificationCenter.download.publisher(for: .download)
             .compactMap { $0.object as? DownloadEventTypes }
-            .sink{ [weak self] event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onDownloadEvent(event)
                 }

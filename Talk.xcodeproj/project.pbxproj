@@ -481,6 +481,10 @@
 		AC31A6BD2D15464900F71B33 /* UICodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC31A6BB2D15464900F71B33 /* UICodeView.swift */; };
 		AC31A6BF2D15481300F71B33 /* CATextLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC31A6BE2D15481300F71B33 /* CATextLayerView.swift */; };
 		AC31A6C02D15481300F71B33 /* CATextLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC31A6BE2D15481300F71B33 /* CATextLayerView.swift */; };
+		AC2651FE2D8808010095DB8D /* map.html in Resources */ = {isa = PBXBuildFile; fileRef = AC2651FD2D8807F80095DB8D /* map.html */; };
+		AC2651FF2D8808010095DB8D /* map.html in Resources */ = {isa = PBXBuildFile; fileRef = AC2651FD2D8807F80095DB8D /* map.html */; };
+		AC2652012D8808F60095DB8D /* location_pin.png in Resources */ = {isa = PBXBuildFile; fileRef = AC2652002D8808F60095DB8D /* location_pin.png */; };
+		AC2652022D8808F60095DB8D /* location_pin.png in Resources */ = {isa = PBXBuildFile; fileRef = AC2652002D8808F60095DB8D /* location_pin.png */; };
 		AC39BEFE2D0EB23F00AB7447 /* PreferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */; };
 		AC39BEFF2D0EB23F00AB7447 /* PreferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */; };
 		AC39BF012D0EB7E200AB7447 /* DarkModeSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */; };
@@ -493,6 +497,8 @@
 		ACA089982D3F7D4300E4DF7C /* AudioWaveFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */; };
 		ACB5BBE82D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
 		ACB5BBE92D255FE800233C08 /* RevealAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */; };
+		ACEA835D2D859CED003CD5CA /* ThreadLoadingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEA835C2D859CEB003CD5CA /* ThreadLoadingManager.swift */; };
+		ACEA835E2D859CED003CD5CA /* ThreadLoadingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEA835C2D859CEB003CD5CA /* ThreadLoadingManager.swift */; };
 		ACF914702CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 		ACF914712CD75B49001A70AE /* SingleEmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */; };
 /* End PBXBuildFile section */
@@ -774,12 +780,15 @@
 		05FF13322AF8CD8200F120DF /* SelectedContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedContact.swift; sourceTree = "<group>"; };
 		AC31A6BB2D15464900F71B33 /* UICodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UICodeView.swift; sourceTree = "<group>"; };
 		AC31A6BE2D15481300F71B33 /* CATextLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CATextLayerView.swift; sourceTree = "<group>"; };
+		AC2651FD2D8807F80095DB8D /* map.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = map.html; sourceTree = "<group>"; };
+		AC2652002D8808F60095DB8D /* location_pin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = location_pin.png; sourceTree = "<group>"; };
 		AC39BEFD2D0EB23F00AB7447 /* PreferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferenceView.swift; sourceTree = "<group>"; };
 		AC39BF002D0EB7E200AB7447 /* DarkModeSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarkModeSection.swift; sourceTree = "<group>"; };
 		AC39BF032D0EB86D00AB7447 /* ManageSessionsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsSection.swift; sourceTree = "<group>"; };
 		AC6F9BDB2D0D7C7300CA7B70 /* ManageSessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSessionsView.swift; sourceTree = "<group>"; };
 		ACA089962D3F7D4300E4DF7C /* AudioWaveFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveFormView.swift; sourceTree = "<group>"; };
 		ACB5BBE72D255FE800233C08 /* RevealAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealAnimation.swift; sourceTree = "<group>"; };
+		ACEA835C2D859CEB003CD5CA /* ThreadLoadingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadLoadingManager.swift; sourceTree = "<group>"; };
 		ACF9146F2CD75B49001A70AE /* SingleEmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleEmojiCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1245,11 +1254,13 @@
 		0570CBCB2AAEE98E001832E9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AC2651FD2D8807F80095DB8D /* map.html */,
 				0570CBC42AAEE98E001832E9 /* Localizable.strings */,
 				0570CBCC2AAEE98E001832E9 /* LaunchScreen.strings */,
 				0570CBD22AAEE98E001832E9 /* Config.json */,
 				0570CBD42AAEE98E001832E9 /* Assets.xcassets */,
 				0570CBD62AAEE98E001832E9 /* LaunchScreen.storyboard */,
+				AC2652002D8808F60095DB8D /* location_pin.png */,
 				0570CBD92AAEE98E001832E9 /* sent_message.mp3 */,
 				0570CBDA2AAEE98E001832E9 /* new_message.mp3 */,
 				0570CBDB2AAEE98E001832E9 /* Ringtone.aif */,
@@ -1320,6 +1331,7 @@
 		05A3AD6D2B99F47000536022 /* Extra */ = {
 			isa = PBXGroup;
 			children = (
+				ACEA835C2D859CEB003CD5CA /* ThreadLoadingManager.swift */,
 				052CA3ED2BA41DF300E38E19 /* UnreadMentionsButton.swift */,
 				052CA3E62BA4167B00E38E19 /* MoveToBottomButton.swift */,
 				052CA3DD2BA4162600E38E19 /* ThreadEventView.swift */,
@@ -1555,7 +1567,9 @@
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC8F2AAEE98F001832E9 /* MockData.json in Resources */,
 				0570CC812AAEE98F001832E9 /* Config.json in Resources */,
+				AC2651FF2D8808010095DB8D /* map.html in Resources */,
 				0570CC892AAEE98F001832E9 /* sent_message.mp3 in Resources */,
+				AC2652022D8808F60095DB8D /* location_pin.png in Resources */,
 				0570CC7B2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
 				0570CC8D2AAEE98F001832E9 /* Ringtone.aif in Resources */,
 				0570CC852AAEE98F001832E9 /* Assets.xcassets in Resources */,
@@ -1572,7 +1586,9 @@
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 				0570CC902AAEE98F001832E9 /* MockData.json in Resources */,
 				0570CC822AAEE98F001832E9 /* Config.json in Resources */,
+				AC2651FE2D8808010095DB8D /* map.html in Resources */,
 				0570CC8A2AAEE98F001832E9 /* sent_message.mp3 in Resources */,
+				AC2652012D8808F60095DB8D /* location_pin.png in Resources */,
 				0570CC7C2AAEE98F001832E9 /* LaunchScreen.strings in Resources */,
 				0570CC8E2AAEE98F001832E9 /* Ringtone.aif in Resources */,
 				0570CC862AAEE98F001832E9 /* Assets.xcassets in Resources */,
@@ -1681,6 +1697,7 @@
 				050B51B22AE7848100B8DD49 /* VerifyContentView.swift in Sources */,
 				0570CBFD2AAEE98F001832E9 /* AddParticipantsToThreadView.swift in Sources */,
 				0570CC052AAEE98F001832E9 /* MapPickerViewController.swift in Sources */,
+				ACEA835E2D859CED003CD5CA /* ThreadLoadingManager.swift in Sources */,
 				05840A742C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */,
 				05593BA52AFF560A00316E39 /* ThreadSearchView.swift in Sources */,
 				0570CC532AAEE98F001832E9 /* PictureView.swift in Sources */,
@@ -1899,6 +1916,7 @@
 				0570CC662AAEE98F001832E9 /* ContactRow.swift in Sources */,
 				050B51B32AE7848100B8DD49 /* VerifyContentView.swift in Sources */,
 				0570CBFE2AAEE98F001832E9 /* AddParticipantsToThreadView.swift in Sources */,
+				ACEA835D2D859CED003CD5CA /* ThreadLoadingManager.swift in Sources */,
 				0570CC062AAEE98F001832E9 /* MapPickerViewController.swift in Sources */,
 				05840A752C0843E0003CE45B /* MutableMessageStatusView.swift in Sources */,
 				05593BA62AFF560A00316E39 /* ThreadSearchView.swift in Sources */,
@@ -2205,7 +2223,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.8;
+				MARKETING_VERSION = 1.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ir.pod.talk;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2241,7 +2259,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.8;
+				MARKETING_VERSION = 1.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ir.pod.talk;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2276,7 +2294,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 206;
+				MARKETING_VERSION = 209;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -2312,7 +2330,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 206;
+				MARKETING_VERSION = 209;
 				PRODUCT_BUNDLE_IDENTIFIER = "ir.pod.talk-test";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

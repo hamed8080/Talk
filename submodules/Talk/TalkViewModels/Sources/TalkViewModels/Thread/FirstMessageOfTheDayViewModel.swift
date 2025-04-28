@@ -34,10 +34,10 @@ final class FirstMessageOfTheDayViewModel {
 
     @MainActor
     private func registerObservers() {
-        cancelable = NotificationCenter.message.publisher(for: .message).sink { notif in
+        cancelable = NotificationCenter.message.publisher(for: .message).sink { [weak self] notif in
             if let event = notif.object as? MessageEventTypes {
-                Task { @HistoryActor in
-                    await self.onMessageEvent(event)
+                Task { @HistoryActor [weak self] in
+                    await self?.onMessageEvent(event)
                 }
             }
         }

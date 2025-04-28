@@ -51,7 +51,7 @@ public final class ThreadSendMessageViewModel {
             sendReplyPrivatelyMessage()
         case viewModel?.replyMessage != nil:
             sendReplyMessage()
-        case sendVM.mode.type == .edit:
+        case sendVM.getMode().type == .edit:
             sendEditMessage()
         case attVM.attachments.count > 0:
             sendAttachmentsMessage()

@@ -44,7 +44,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         super.init(isBuilder: true)
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink { event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onConversationEvent(event)
                 }
@@ -52,7 +52,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
             .store(in: &canceableSet)
         
         NotificationCenter.error.publisher(for: .error)
-            .sink { notif in
+            .sink { [weak self] notif in
                 if let response = notif.object as? ChatResponse<Sendable> {
                     Task { [weak self] in
                         await self?.handleCreationError(response)

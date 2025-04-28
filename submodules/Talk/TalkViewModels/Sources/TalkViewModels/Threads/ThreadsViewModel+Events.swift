@@ -17,7 +17,7 @@ extension ThreadsViewModel {
         }
         .store(in: &cancelable)
         AppState.shared.$connectionStatus
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onConnectionStatusChanged(event)
                 }
@@ -25,7 +25,7 @@ extension ThreadsViewModel {
             .store(in: &cancelable)
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onThreadEvent(event)
                 }
@@ -33,7 +33,7 @@ extension ThreadsViewModel {
             .store(in: &cancelable)
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onMessageEvent(event)
                 }
@@ -42,7 +42,7 @@ extension ThreadsViewModel {
 
         NotificationCenter.call.publisher(for: .call)
             .compactMap { $0.object as? CallEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onCallEvent(event)
                 }
@@ -50,7 +50,7 @@ extension ThreadsViewModel {
             .store(in: &cancelable)
         NotificationCenter.participant.publisher(for: .participant)
             .compactMap { $0.object as? ParticipantEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onParticipantEvent(event)
                 }

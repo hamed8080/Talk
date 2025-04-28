@@ -23,9 +23,9 @@ public class BanViewModel: ObservableObject {
     
     private func registerEvent() {
         NotificationCenter.error.publisher(for: .error)
-            .sink { notif in
+            .sink { [weak self] notif in
                 if let response = notif.object as? ChatResponse<Sendable> {
-                    self.handelBanError(response: response)
+                    self?.handelBanError(response: response)
                 }
             }
             .store(in: &cancelable)

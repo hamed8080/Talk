@@ -14,6 +14,7 @@ import ActionableContextMenu
 import TalkExtensions
 
 struct ThreadRow: View {
+    var isSearchRow: Bool = false
     @EnvironmentObject var thread: CalculatedConversation
     let onTap: (() -> Void)?
     
@@ -24,7 +25,7 @@ struct ThreadRow: View {
                 .id(thread.computedImageURL)
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    ThreadRowIcons()
+                    ThreadRowIcons(isSearchRow: isSearchRow)
                     Spacer()
                     
                     MutableMessageStatusView(isSelected: thread.isSelected)
@@ -63,6 +64,7 @@ struct ThreadRow: View {
 }
 
 struct ThreadRowIcons: View {
+    let isSearchRow: Bool
     @EnvironmentObject var thread: CalculatedConversation
     
     var body: some View {
@@ -81,7 +83,7 @@ struct ThreadRowIcons: View {
                 .frame(width: 16, height: 16)
                 .foregroundColor(thread.isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
         }
-        if AppState.shared.objectsContainer.searchVM.isInSearchMode {
+        if isSearchRow {
             Text(AppState.shared.objectsContainer.searchVM.attributdTitle(for: thread.titleRTLString ?? ""))
                 .lineLimit(1)
                 .font(.iransansSubheadline)

@@ -7,6 +7,7 @@ public final class NavigationModel: ObservableObject {
     @Published public var selectedId: Int?
     @Published public var paths = NavigationPath()
     var pathsTracking: [Any] = []
+    var detailsStack: [ThreadDetailViewModel] = []
     public init() {}
 
     public func append<T: NavigaitonValueProtocol>(value: T) {
@@ -143,16 +144,18 @@ public extension NavigationModel {
             popLastPathTracking()
         }
         setSelectedThreadId()
+        AppState.shared.appStateNavigationModel = .init()
     }
 }
 
 // ThreadDetailViewModel
 public extension NavigationModel {
     func appendThreadDetail(threadViewModel: ThreadViewModel) {
-        let detailViewModel = AppState.shared.objectsContainer.threadDetailVM
-        detailViewModel.setup(thread: threadViewModel.thread, threadVM: threadViewModel)
+        let detailViewModel = ThreadDetailViewModel()
+        detailViewModel.setup(threadVM: threadViewModel)
         let value = ConversationDetailNavigationValue(viewModel: detailViewModel)
         append(value: value)
+        detailsStack.append(detailViewModel)
         selectedId = threadViewModel.threadId
         animateObjectWillChange()
     }
@@ -160,6 +163,19 @@ public extension NavigationModel {
     func removeDetail() {
         popLastPath()
         popLastPathTracking()
+        popLastDetail()
+    }
+    
+    func popLastDetail() {
+        if detailsStack.isEmpty { return }
+        detailsStack.removeLast()
+    }
+    
+    func detailViewModel(threadId: Int) -> ThreadDetailViewModel? {
+        if let detailVM = detailsStack.first(where: {$0.thread?.id == threadId}) {
+            return detailVM
+        }
+        return nil
     }
 }
 

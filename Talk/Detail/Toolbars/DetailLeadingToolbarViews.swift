@@ -17,7 +17,6 @@ struct DetailLeadingToolbarViews: View {
                 viewModel.threadVM?.scrollVM.disableExcessiveLoading()
                 AppState.shared.objectsContainer.contactsVM.editContact = nil
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    AppState.shared.objectsContainer.threadDetailVM.clear()
                     AppState.shared.appStateNavigationModel.userToCreateThread = nil
                 }
                 AppState.shared.objectsContainer.navVM.removeDetail()

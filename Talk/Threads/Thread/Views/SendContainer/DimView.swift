@@ -24,6 +24,9 @@ class DimView: UIView {
     }
 
     private func configureView() {
+        translatesAutoresizingMaskIntoConstraints = false
+        accessibilityIdentifier = "dimViewThreadViewController"
+        
         setIsHidden(true)
         backgroundColor = Color.App.bgChatUserDarkUIColor?.withAlphaComponent(0.3)
         tapGesture.isEnabled = false
@@ -45,6 +48,18 @@ class DimView: UIView {
     }
 
     @objc private func onTap() {
-        viewModel?.sendContainerViewModel.mode = .init(type: .voice)
+        viewModel?.sendContainerViewModel.setMode(type: .voice)
+    }
+    
+    public func attachToParent(parent: UIView, bottomYAxis: NSLayoutYAxisAnchor) {
+        if superview == nil {
+            alpha = 0.0
+            parent.addSubview(self)
+            parent.bringSubviewToFront(self)
+            leadingAnchor.constraint(equalTo: parent.leadingAnchor).isActive = true
+            trailingAnchor.constraint(equalTo: parent.trailingAnchor).isActive = true
+            topAnchor.constraint(equalTo: parent.topAnchor).isActive = true
+            bottomAnchor.constraint(equalTo: bottomYAxis).isActive = true
+        }
     }
 }

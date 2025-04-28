@@ -94,7 +94,7 @@ public final class AttachmentsViewModel: ObservableObject {
     
     private func resetSendContainerIfIsEmpty() {
         if viewModel?.sendContainerViewModel.isTextEmpty() == true, attachments.count == 0 {
-            viewModel?.sendContainerViewModel.mode = .init(type: .voice)
+            viewModel?.sendContainerViewModel.clear()
         }
     }
     

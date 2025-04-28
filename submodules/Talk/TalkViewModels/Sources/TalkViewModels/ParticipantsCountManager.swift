@@ -22,7 +22,7 @@ public class ParticipantsCountManager {
     init() {
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onThreadEvent(event)
                 }
@@ -30,7 +30,7 @@ public class ParticipantsCountManager {
             .store(in: &cancelable)
         NotificationCenter.participant.publisher(for: .participant)
             .compactMap { $0.object as? ParticipantEventTypes }
-            .sink{ event in
+            .sink { [weak self] event in
                 Task { [weak self] in
                     await self?.onParticipantEvent(event)
                 }
@@ -76,19 +76,12 @@ public class ParticipantsCountManager {
             threadsVM.threads[index].participantCount = count
             threadViewModel(threadId: threadId)?.thread.participantCount = count
 //            threadViewModel(threadId: threadId)?.animateObjectWillChange()
-            detailViewModel(threadId: threadId)?.animateObjectWillChange()
+            AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
     }
 
     private func threadViewModel(threadId: Int) -> ThreadViewModel? {
         AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
-    }
-
-    private func detailViewModel(threadId: Int) -> ThreadDetailViewModel? {
-        if AppState.shared.objectsContainer.threadDetailVM.thread?.id == threadId {
-            return AppState.shared.objectsContainer.threadDetailVM
-        }
-        return nil
     }
 
     private func currentCount(threadId: Int?) -> Int {

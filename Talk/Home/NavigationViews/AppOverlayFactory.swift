@@ -42,8 +42,7 @@ struct AppOverlayFactory: View {
             let isUnknown = error?.code == ServerErrorType.unknownError.rawValue
             if EnvironmentValues.isTalkTest, isUnknown {
                 let title = String(format: String(localized: "Errors.occuredTitle"), "\(error?.code ?? 0)")
-                ToastView(title: title, message: error?.message ?? "") {}
-                    .sandboxLabel()
+                ToastView(title: title, message: error?.message ?? "", showSandBox: true) {}
             } else if !isUnknown {
                 if let localizedError = error?.localizedError {
                     ToastView(title: "", message: localizedError) {}

@@ -12,6 +12,7 @@ import TalkUI
 public final class EmptyThreadView: UIView {
     private let vStack = UIStackView()
     private var vStackWidthConstraint: NSLayoutConstraint?
+    private var animator: FadeInOutAnimator?
 
     public init() {
         super.init(frame: .zero)
@@ -23,6 +24,9 @@ public final class EmptyThreadView: UIView {
     }
 
     private func configureView() {
+        translatesAutoresizingMaskIntoConstraints = false
+        accessibilityIdentifier = "emptyThreadViewThreadViewController"
+        
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.spacing = 4
@@ -83,9 +87,32 @@ public final class EmptyThreadView: UIView {
         }
     }
     
+    public func attachToParent(parent: UIView) {
+        parent.addSubview(self)
+        NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalTo: vStack.heightAnchor),
+            leadingAnchor.constraint(equalTo: parent.leadingAnchor),
+            trailingAnchor.constraint(equalTo: parent.trailingAnchor),
+            centerYAnchor.constraint(equalTo: parent.centerYAnchor),
+        ])
+    }
+
     public override func layoutSubviews() {
         super.layoutSubviews()
         let isLarge = bounds.width > 400
         vStackWidthConstraint?.constant = isLarge ? 340 : bounds.width - 16
+    }
+    
+    public func show(_ show: Bool, parent: UIView) {
+        if animator == nil {
+            animator = FadeInOutAnimator(view: self)
+        } else {
+            animator?.cancelAnimation()
+        }
+        if show, superview == nil {
+            attachToParent(parent: parent)
+        }
+        parent.bringSubviewToFront(self)
+        animator?.startAnimation(show: show)
     }
 }
