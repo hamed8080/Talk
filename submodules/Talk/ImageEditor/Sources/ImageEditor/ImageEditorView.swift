@@ -224,17 +224,26 @@ extension ImageEditorView {
                 }
             }
         }
-        guard
-            let cgImage = imageView.getClippedCroppedImage(),
-            let outputURL = cgImage.storeInTemp(pathExtension: self.url.pathExtension)
-        else {
-            onDone(nil, NSError(domain: "failed to get the image", code: -1))
-            return
+        imageView.subviews.forEach { view in
+            if view is EditableTextView {
+                view.resignFirstResponder()
+            }
         }
+        /// to clear out focus on text view
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            guard
+                let self = self,
+                let cgImage = self.imageView.getClippedCroppedImage(),
+                let outputURL = cgImage.storeInTemp(pathExtension: self.url.pathExtension)
+            else {
+                self?.onDone(nil, NSError(domain: "failed to get the image", code: -1))
+                return
+            }
 #if DEBUG
-        print("output eidted image url path is: \(outputURL.path())")
+            print("output edited image url path is: \(outputURL.path())")
 #endif
-        onDone(outputURL, nil)
+            self.onDone(outputURL, nil)
+        }
     }
     
     @objc func cropTapped() {
