@@ -602,21 +602,6 @@ class MessageRowCalculators {
         return .unknown
     }
     
-    class func calculateAttributeedString(message: HistoryMessageType) -> NSAttributedString? {
-        guard let text = calculateText(message: message) else { return nil }
-        let option: AttributedString.MarkdownParsingOptions = .init(allowsExtendedAttributes: false,
-                                                                    interpretedSyntax: .inlineOnly,
-                                                                    failurePolicy: .throwError,
-                                                                    languageCode: nil,
-                                                                    appliesSourcePositionAttributes: false)
-        guard let mutableAttr = try? NSMutableAttributedString(markdown: text, options: option) else { return NSAttributedString() }
-        mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
-        mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
-        mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
-        return NSAttributedString(attributedString: mutableAttr)
-    }
-
-    
     private class func calculateAttributedString(text: String) -> NSAttributedString? {
         let text = text.formatCodeBlocks()
         guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
@@ -916,7 +901,7 @@ extension String {
             in: self,
             options: [],
             range: NSRange(self.startIndex..., in: self),
-            withTemplate: "\n```\n$1\n```" // Ensure newline before and add two spaces inside
+            withTemplate: "\n```\n$1\n```\n" // Ensure newline before and add two spaces inside
         )
         return formattedText
     }
