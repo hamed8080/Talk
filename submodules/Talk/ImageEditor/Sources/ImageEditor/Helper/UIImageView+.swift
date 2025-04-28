@@ -9,17 +9,26 @@ import UIKit
 
 extension UIImageView {
     func getClippedCroppedImage() -> CGImage? {
-        let renderer = UIGraphicsImageRenderer(bounds: bounds)
-        let image = renderer.image { rendererContext in
-            layer.render(in: rendererContext.cgContext)
-        }
-        
-        // 2. Get the actual image frame inside the imageView
         guard let originalImage = self.image else { return nil }
         
         let imageSize = originalImage.size
+        let imageScale = originalImage.scale
         let viewSize = bounds.size
+
+        // Create a renderer that matches the original image size
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = imageScale
+        format.opaque = false
+
+        let renderer = UIGraphicsImageRenderer(size: viewSize, format: format)
         
+        let renderedImage = renderer.image { rendererContext in
+            layer.render(in: rendererContext.cgContext)
+        }
+        
+        guard let cgImage = renderedImage.cgImage else { return nil }
+
+        // Figure out the actual area where the image is drawn (in view coordinates)
         let imageAspect = imageSize.width / imageSize.height
         let viewAspect = viewSize.width / viewSize.height
         
@@ -45,21 +54,16 @@ extension UIImageView {
                 )
             }
         } else {
-            // Handle other contentModes if needed
             drawnImageFrame = bounds
         }
         
-        // 3. Crop the rendered image to the actual image area
-        guard let cgImage = image.cgImage else { return nil }
-        
-        let scale = image.scale
         let croppingRect = CGRect(
-            x: drawnImageFrame.origin.x * scale,
-            y: drawnImageFrame.origin.y * scale,
-            width: drawnImageFrame.size.width * scale,
-            height: drawnImageFrame.size.height * scale
+            x: drawnImageFrame.origin.x * imageScale,
+            y: drawnImageFrame.origin.y * imageScale,
+            width: drawnImageFrame.size.width * imageScale,
+            height: drawnImageFrame.size.height * imageScale
         )
-        
+
         return cgImage.cropping(to: croppingRect)
     }
 }

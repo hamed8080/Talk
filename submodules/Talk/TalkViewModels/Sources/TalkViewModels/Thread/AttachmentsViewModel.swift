@@ -103,11 +103,12 @@ public final class AttachmentsViewModel: ObservableObject {
         delegate?.reload()
     }
     
-    public func prepared(_ data: Data, _ id: UUID, width: CGFloat?, height: CGFloat?) {
+    public func prepared(_ data: Data, _ id: UUID, width: CGFloat?, height: CGFloat?, fileExt: String?) {
         if let index = attachments.firstIndex(where: {$0.id == id}) {
             (attachments[index].request as? ImageItem)?.data = data
             (attachments[index].request as? ImageItem)?.width = Int(width ?? 0)
             (attachments[index].request as? ImageItem)?.height = Int(height ?? 0)
+            (attachments[index].request as? ImageItem)?.fileExt = fileExt
             delegate?.reloadItem(indexPath: IndexPath(row: index, section: 0))
             animateObjectWillChange() // To enable/diable send button if it was downloading image/video form the iCloud
         }

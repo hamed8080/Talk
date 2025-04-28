@@ -226,11 +226,14 @@ extension ImageEditorView {
         }
         guard
             let cgImage = imageView.getClippedCroppedImage(),
-            let outputURL = cgImage.storeInTemp()
+            let outputURL = cgImage.storeInTemp(pathExtension: self.url.pathExtension)
         else {
             onDone(nil, NSError(domain: "failed to get the image", code: -1))
             return
         }
+#if DEBUG
+        print("output eidted image url path is: \(outputURL.path())")
+#endif
         onDone(outputURL, nil)
     }
     
