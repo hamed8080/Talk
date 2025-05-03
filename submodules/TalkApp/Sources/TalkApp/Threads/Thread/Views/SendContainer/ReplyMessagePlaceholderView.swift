@@ -53,6 +53,9 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelReplyMessagePlaceholderView"
+        messageLabel.isUserInteractionEnabled = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
+        messageLabel.addGestureRecognizer(tapGesture)
         
         replyImage.translatesAutoresizingMaskIntoConstraints = false
         replyImage.imageView.contentMode = .scaleAspectFit
@@ -151,6 +154,16 @@ public final class ReplyMessagePlaceholderView: UIStackView {
             downloadFileVM = nil
             cancellable?.cancel()
             cancellable = nil
+        }
+    }
+    
+    @objc private func tappedOnMessage() {
+        guard
+            let time = viewModel?.replyMessage?.time,
+            let id = viewModel?.replyMessage?.id
+        else { return }
+        Task { @HistoryActor [weak self] in
+            await self?.viewModel?.historyVM.moveToTime(time, id)
         }
     }
 }

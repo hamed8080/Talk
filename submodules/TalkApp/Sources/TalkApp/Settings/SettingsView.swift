@@ -164,6 +164,16 @@ struct UserInformationSection: View {
             }
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.App.dividerPrimary)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                let icon = Image(systemName: "person")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.App.textPrimary)
+                let key = "General.copied".bundleLocalized()
+                let message = "\(key) \(userName) "
+                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: message, messageColor: Color.App.textPrimary)
+                UIPasteboard.general.string = userName
+            }
         }
 
         if !phone.isEmpty {

@@ -13,6 +13,7 @@ public final class UploadFileViewModel: ObservableObject {
     public var uploadUniqueId: String?
     public private(set) var cancelable: Set<AnyCancellable> = []
     public private(set) var fileMetaData: FileMetaData?
+    private var pending: (sendRequest: SendTextMessageRequest, fileMessage: UploadFileMessage)?
     
     public init(message: HistoryMessageType) {
         self.message = message
@@ -20,6 +21,11 @@ public final class UploadFileViewModel: ObservableObject {
             .compactMap { $0.object as? UploadEventTypes }
             .sink { [weak self] event in
                 self?.onUploadEvent(event)
+            }
+            .store(in: &cancelable)
+        AppState.shared.$connectionStatus
+            .sink { [weak self] status in
+                self?.onConnectionStatusChanged(status)
             }
             .store(in: &cancelable)
     }
@@ -40,6 +46,7 @@ public final class UploadFileViewModel: ObservableObject {
         
         let textMessageType: ChatModels.MessageType = message.isImage ? .podSpacePicture : (message.messageType ?? .podSpaceFile)
         let sendRequest = SendTextMessageRequest(threadId: threadId, textMessage: message.message ?? "", messageType: textMessageType)
+        self.pending = (sendRequest, fileMessage)
         handleFileUpload(for: fileMessage, sendRequest: sendRequest)
     }
     
@@ -77,6 +84,7 @@ public final class UploadFileViewModel: ObservableObject {
         self.fileMetaData = metaData
         if uniqueId == uploadUniqueId {
             state = .completed
+            pending = nil
         }
     }
     
@@ -115,6 +123,12 @@ public final class UploadFileViewModel: ObservableObject {
             case .replyPrivatelyFile(let replyPrivatelyRequest, let fileReq): messageManager.replyPrivately(replyPrivatelyRequest, fileReq)
             case .location(let request): messageManager.send(request)
             }
+        }
+    }
+    
+    private func onConnectionStatusChanged(_ status: ConnectionStatus) {
+        if status == .connected, let pending = pending {
+            handleFileUpload(for: pending.fileMessage, sendRequest: pending.sendRequest)
         }
     }
 }

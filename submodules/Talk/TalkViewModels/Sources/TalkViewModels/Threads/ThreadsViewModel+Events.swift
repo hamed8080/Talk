@@ -185,6 +185,9 @@ extension ThreadsViewModel {
             if !isMeJoinedPublic {
                 await onNewMessage([message], conversationId: message.conversation?.id ?? -1)
             }
+            if let uniqueId = message.uniqueId {
+                AppState.shared.objectsContainer.pendingManager.remove(uniqueId: uniqueId)
+            }
         case .forward(let chatResponse):
             incQueue.onMessageEvent(chatResponse)
         case .cleared(let chatResponse):

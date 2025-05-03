@@ -160,6 +160,10 @@ private extension MessageContainerStackView {
     func onForwardAction(_ model: ActionModel) {
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
+        if let uniqueId = model.message.uniqueId,
+           let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+            model.threadVM?.delegate?.setTableRowSelected(indexPath)
+        }
         cell?.select()
     }
 
@@ -255,6 +259,7 @@ private extension MessageContainerStackView {
     }
 
     func onSelectAction(_ model: ActionModel) {
+        model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
         if let uniqueId = model.message.uniqueId,

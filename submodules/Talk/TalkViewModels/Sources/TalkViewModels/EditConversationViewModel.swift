@@ -11,6 +11,7 @@ import Combine
 import Photos
 import TalkModels
 import Chat
+import SwiftUI
 
 @MainActor
 public final class EditConversationViewModel: ObservableObject, @preconcurrency Hashable {
@@ -106,9 +107,20 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
         switch event {
         case .progress(let uniqueId, let progress):
             onUploadConversationProfile(uniqueId, progress)
+        case .failed(let uniqueId, let chatError):
+            if uniqueId == uploadProfileUniqueId {
+                onFailedUpdate()
+            }
         default:
             break
         }
+    }
+    
+    private func onFailedUpdate() {
+        isLoading = false // To reset the state of the button and make it availbale again to submit
+        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: EmptyView(),
+                                                            message: "Errors.failedTryAgain".bundleLocalized(),
+                                                            messageColor: .red)
     }
 
     private func onUploadConversationProfile(_ uniqueId: String, _ progress: UploadFileProgress?) {

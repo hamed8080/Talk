@@ -101,6 +101,7 @@ struct DetailInfoViewSection: View {
     
     private func onTapAvatarAction() {
         // We use cache image because in init fullScreenImageLoader we always set forcetodownload for image to true
+        if imageLink.isEmpty { return }
         if cachedImage == nil {
             showDownloading = true
             fullScreenImageLoader.fetch()
