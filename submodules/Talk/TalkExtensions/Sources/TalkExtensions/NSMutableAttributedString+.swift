@@ -9,8 +9,9 @@ import Foundation
 import UIKit
 
 public extension NSMutableAttributedString {
-
+    private static let heavyFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=", size: 16)
     private static let userMentionFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 14)
+    private static let boldFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=", size: 14)
     private static let bodyFont = UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 16)
 
     func addDefaultTextColor(_ color: UIColor) {
@@ -65,7 +66,7 @@ public extension NSMutableAttributedString {
     private func userColorAttributes(link: NSURL, color: UIColor) -> [NSAttributedString.Key: Any] {
         [NSAttributedString.Key.link: link,
          NSAttributedString.Key.foregroundColor: color,
-         NSAttributedString.Key.font: NSMutableAttributedString.userMentionFont ?? .systemFont(ofSize: 14, weight: .bold)]
+         NSAttributedString.Key.font: NSMutableAttributedString.boldFont ?? .systemFont(ofSize: 14, weight: .bold)]
     }
 
     private func linkColorAttributes(color: UIColor, link: NSURL) -> [NSAttributedString.Key: Any] {
@@ -73,5 +74,53 @@ public extension NSMutableAttributedString {
          NSAttributedString.Key.underlineColor: color,
          NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
          NSAttributedString.Key.link: link]
+    }
+    
+    public func addBold() {
+        let pattern = "\\*\\*(.*?)\\*\\*"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        
+        let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
+        for match in matches.reversed() {
+            let range = match.range
+            addAttributes([.font: NSMutableAttributedString.heavyFont ?? .systemFont(ofSize: 16, weight: .heavy)], range: range)
+            
+            // Remove the surrounding `**` by replacing them with an empty string
+            let fullRange = match.range
+            replaceCharacters(in: NSRange(location: fullRange.location + fullRange.length - 2, length: 2), with: "")
+            replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
+        }
+    }
+    
+    public func addItalic() {
+        let pattern = "\\_\\_(.*?)\\_\\_"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        
+        let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
+        for match in matches.reversed() {
+            let range = match.range
+            addAttributes([.font: UIFont.italicSystemFont(ofSize: 16)], range: range)
+            
+            // Remove the surrounding `**` by replacing them with an empty string
+            let fullRange = match.range
+            replaceCharacters(in: NSRange(location: fullRange.location + fullRange.length - 2, length: 2), with: "")
+            replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
+        }
+    }
+    
+    public func addStrikethrough() {
+        let pattern = "\\~\\~(.*?)\\~\\~"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return }
+        
+        let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
+        for match in matches.reversed() {
+            let range = match.range
+            addAttributes([.strikethroughStyle: NSUnderlineStyle.single.rawValue], range: range)
+            
+            // Remove the surrounding `**` by replacing them with an empty string
+            let fullRange = match.range
+            replaceCharacters(in: NSRange(location: fullRange.location + fullRange.length - 2, length: 2), with: "")
+            replaceCharacters(in: NSRange(location: fullRange.location, length: 2), with: "")
+        }
     }
 }

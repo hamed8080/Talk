@@ -32,10 +32,10 @@ final class ReplyInfoView: UIView {
     private static let repliedToStaticText = "Message.replyTo".bundleLocalized()
 
     // Sizes
-    private let margin: CGFloat = 6
-    private let imageSize: CGFloat = 36
-    private let barWidth: CGFloat = 2.5
-    private let barMargin: CGFloat = 0.5
+    private static let margin: CGFloat = 6
+    private static let imageSize: CGFloat = 36
+    private static let barWidth: CGFloat = 2.5
+    private static let barMargin: CGFloat = 0.5
 
     init(frame: CGRect, isMe: Bool) {
         super.init(frame: frame)
@@ -105,31 +105,31 @@ final class ReplyInfoView: UIView {
         bar.accessibilityIdentifier = "barReplyInfoView"
         addSubview(bar)
 
-        imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: margin)
+        imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ReplyInfoView.margin)
         NSLayoutConstraint.activate([
-            bar.widthAnchor.constraint(equalToConstant: barWidth),
-            bar.topAnchor.constraint(equalTo: topAnchor, constant: margin),
-            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin),
-            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: barMargin),
+            bar.widthAnchor.constraint(equalToConstant: ReplyInfoView.barWidth),
+            bar.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
+            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ReplyInfoView.margin),
+            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ReplyInfoView.barMargin),
 
             imageIconViewLeadingConstriant,
-            imageIconView.topAnchor.constraint(equalTo: topAnchor, constant: margin),
-            imageIconView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin),
-            imageIconView.widthAnchor.constraint(equalToConstant: imageSize),
-            imageIconView.heightAnchor.constraint(equalToConstant: imageSize),
+            imageIconView.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
+            imageIconView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ReplyInfoView.margin),
+            imageIconView.widthAnchor.constraint(equalToConstant: ReplyInfoView.imageSize),
+            imageIconView.heightAnchor.constraint(equalToConstant: ReplyInfoView.imageSize),
 
-            participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: margin),
-            participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: margin),
-            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
+            participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: ReplyInfoView.margin),
+            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ReplyInfoView.margin),
 
-            deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: margin),
+            deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
             deletedLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
-            deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ReplyInfoView.margin),
 
-            replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: margin),
-            replyLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -margin),
+            replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: ReplyInfoView.margin),
+            replyLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ReplyInfoView.margin),
             replyLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
-            replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin)
+            replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ReplyInfoView.margin)
         ])
     }
 
@@ -149,7 +149,7 @@ final class ReplyInfoView: UIView {
         let hasImage = viewModel.calMessage.isReplyImage
         imageIconView.image = viewModel.fileState.replyImage
         imageIconView.setIsHidden(!hasImage)
-        imageIconViewLeadingConstriant.constant = hasImage ? margin : -imageSize
+        imageIconViewLeadingConstriant.constant = hasImage ? ReplyInfoView.margin : -ReplyInfoView.imageSize
     }
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {

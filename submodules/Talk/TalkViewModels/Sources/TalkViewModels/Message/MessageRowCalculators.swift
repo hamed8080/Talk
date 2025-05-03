@@ -64,7 +64,7 @@ class MessageRowCalculators {
         let msgsCal = await withTaskGroup(of: CalculatedDataResult.self) { group in
             for message in messages {
                 group.addTask {
-                    let calculatedData = calculate(message: message, mainData: mainData, appendMessages: messages)
+                    let calculatedData = await calculate(message: message, mainData: mainData, appendMessages: messages)
                     return CalculatedDataResult(calData: calculatedData, message: message)
                 }
             }
@@ -102,7 +102,7 @@ class MessageRowCalculators {
     nonisolated class func calculate(message: HistoryMessageType,
                                      mainData: MainRequirements,
                                      appendMessages: [HistoryMessageType] = []
-    ) -> MessageRowCalculatedData {
+    ) async -> MessageRowCalculatedData {
         var calculatedMessage = MessageRowCalculatedData()
         var sizes = MessageRowSizes()
         var rowType = MessageViewRowType()
@@ -127,8 +127,11 @@ class MessageRowCalculators {
         let isFirstMessageOfTheUser = isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: mainData.thread?.type?.isChannelType == true)
         calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
         calculatedMessage.isLastMessageOfTheUser = isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
-        calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading
-        calculatedMessage.markdownTitle = calculateAttributeedString(message: message)
+        calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading                
+        if let attributedString = calculateAttributedString(text: message.message ?? "") {
+            calculatedMessage.attributedString = attributedString
+        }
+        calculatedMessage.rangeCodebackground = tripleGraveAccentRanges(text: calculatedMessage.attributedString?.string ?? "")
         rowType.isPublicLink = message.isPublicLink(joinLink: mainData.joinLink)
         rowType.isFile = message.isFileType && !rowType.isMap && !message.isImage && !message.isAudio && !message.isVideo
         rowType.isReply = message.replyInfo != nil
@@ -156,7 +159,7 @@ class MessageRowCalculators {
         sizes.forwardContainerWidth = calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
         //        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
-        calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.markdownTitle, width: ThreadViewModel.maxAllowedWidth - 16)
+//        calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.markdownTitle, width: ThreadViewModel.maxAllowedWidth - 16)
         
         let originalPaddings = sizes.paddings
         sizes.paddings = calculateSpacingPaddings(message: message, calculatedMessage: calculatedMessage)
@@ -600,18 +603,50 @@ class MessageRowCalculators {
         return .unknown
     }
     
-    class func calculateAttributeedString(message: HistoryMessageType) -> NSAttributedString? {
-        guard let text = calculateText(message: message) else { return nil }
-        let option: AttributedString.MarkdownParsingOptions = .init(allowsExtendedAttributes: false,
-                                                                    interpretedSyntax: .inlineOnly,
-                                                                    failurePolicy: .throwError,
-                                                                    languageCode: nil,
-                                                                    appliesSourcePositionAttributes: false)
-        guard let mutableAttr = try? NSMutableAttributedString(markdown: text, options: option) else { return NSAttributedString() }
+    private class func calculateAttributedString(text: String) -> NSAttributedString? {
+        let text = text.formatCodeBlocks()
+        guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
+        let range = (text.startIndex..<text.endIndex)
+                
         mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
         mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
         mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
+        mutableAttr.addBold()
+        mutableAttr.addItalic()
+        mutableAttr.addStrikethrough()
+        
+        /// Add Space around all code text start with triple ``` and end with ```
+        tripleGraveAccentResults(mutableAttr.string, pattern: "(?s)```\n(.*?)\n```").forEach { result in
+            // Define paragraph style with leading padding
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.headIndent = 8 // Adds padding to all lines of the paragraph
+            paragraphStyle.firstLineHeadIndent = 8 // Adds padding to the first line
+            
+            mutableAttr.addAttribute(.paragraphStyle, value: paragraphStyle, range: result.range)
+        }
+        
+        /// Hide triple ``` by making them clear
+        /// We have to use ``mutableAttr.string`` instead of the ``text argument``,
+        /// because there is a chance the text contains both bold and triple grave accent in this case it will crash because bold will remove four **** sign therefore the index with ``text`` is bigger than mutableAttr.string.
+        tripleGraveAccentResults(mutableAttr.string, pattern: "```").forEach { result in
+            mutableAttr.addAttribute(.foregroundColor, value: UIColor.clear, range: result.range)
+            mutableAttr.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: result.range)
+        }
+                
         return NSAttributedString(attributedString: mutableAttr)
+    }
+    
+    private class func tripleGraveAccentResults(_ string: String, pattern: String) -> [NSTextCheckingResult] {
+        
+        let allRange = NSRange(location: 0, length: string.utf16.count)
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let matches = regex.matches(in: string, range: allRange)
+        return matches
+    }
+    
+    class func tripleGraveAccentRanges(text: String) -> [Range<String.Index>]? {
+        let pattern = "(?s)```\n(.*?)\n```"
+        return tripleGraveAccentResults(text, pattern: pattern).compactMap({ Range($0.range, in: text) })
     }
     
     class func calculateText(message: HistoryMessageType) -> String? {
@@ -854,5 +889,21 @@ class MessageRowCalculators {
         estimatedHeight += containerMargin
 
         return estimatedHeight
+    }
+}
+
+
+extension String {
+    func formatCodeBlocks() -> String {
+        let pattern = "```\\n?(.*?)\\n?```" // Match ``` and capture content between them
+        let regex = try! NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) // Allows multiline match
+        
+        let formattedText = regex.stringByReplacingMatches(
+            in: self,
+            options: [],
+            range: NSRange(self.startIndex..., in: self),
+            withTemplate: "\n```\n$1\n```\n" // Ensure newline before and add two spaces inside
+        )
+        return formattedText
     }
 }

@@ -291,3 +291,17 @@ public extension MessageRowViewModel {
         )
     }
 }
+//
+//public extension MessageRowViewModel {
+//    @MainActor
+//    func copy() -> MessageRowViewModel? {
+//        guard let threadVM = threadVM else { return nil }
+//        let copyViewModel = MessageRowViewModel(message: message, viewModel: threadVM)
+//        
+//        /// TextStack should have a new copy for each TextView
+//        copyViewModel.calMessage = calMessage
+//        copyViewModel.fileState = fileState
+//        copyViewModel.reactionsModel = reactionsModel
+//        return copyViewModel
+//    }
+//}

@@ -26,10 +26,11 @@ public final class MessageContainerStackView: UIStackView {
     private let replyInfoMessageRow: ReplyInfoView
     private let forwardMessageRow: ForwardInfoView
     private let singleEmojiView: SingleEmojiView
-    private let textMessageView = TextMessageView()
+    private let textMessageView: TextMessageView
     private static let tailImage = UIImage(named: "tail")
     private var tailImageView = UIImageView()
     private let footerView: FooterView
+    private let textKitStack: TextKitStack
 //    private let unsentMessageView = UnsentMessageView()
 
     // Models
@@ -37,9 +38,9 @@ public final class MessageContainerStackView: UIStackView {
     public weak var cell: MessageBaseCell?
 
     // Sizes
-    private let tailWidth: CGFloat = 16
-    private let tailHeight: CGFloat = 32
-    private let margin: CGFloat = 4
+    private static let tailWidth: CGFloat = 16
+    private static let tailHeight: CGFloat = 32
+    private static let margin: CGFloat = 4
 
     init(frame: CGRect, isMe: Bool) {
         self.groupParticipantNameView = .init(frame: frame)
@@ -52,6 +53,10 @@ public final class MessageContainerStackView: UIStackView {
         self.messageImageView = .init(frame: frame)
         self.messageVideoView = .init(frame: frame, isMe: isMe)
         self.singleEmojiView = .init(frame: frame, isMe: isMe)
+    
+        let textKitStack = TextKitStack(attributedString: NSAttributedString(string: ""))
+        textMessageView = TextMessageView(frame: .zero, textContainer: textKitStack.textContainer)
+        self.textKitStack = textKitStack
         super.init(frame: frame)
         configureView(isMe: isMe)
 
@@ -68,7 +73,7 @@ public final class MessageContainerStackView: UIStackView {
         spacing = 4
         alignment = .top
         distribution = .fill
-        layoutMargins = .init(all: margin)
+        layoutMargins = .init(all: MessageContainerStackView.margin)
         isLayoutMarginsRelativeArrangement = true
         layer.cornerRadius = 10
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
@@ -84,7 +89,6 @@ public final class MessageContainerStackView: UIStackView {
         locationRowView.translatesAutoresizingMaskIntoConstraints = false
         singleEmojiView.translatesAutoresizingMaskIntoConstraints = false
         textMessageView.translatesAutoresizingMaskIntoConstraints = false
-        textMessageView.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         footerView.translatesAutoresizingMaskIntoConstraints = false
 //        unsentMessageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -95,8 +99,8 @@ public final class MessageContainerStackView: UIStackView {
             tailImageView.tintColor = Color.App.bgChatUserUIColor!
             addSubview(tailImageView)
 
-            tailImageView.widthAnchor.constraint(equalToConstant: tailWidth).isActive = true
-            tailImageView.heightAnchor.constraint(equalToConstant: tailHeight).isActive = true
+            tailImageView.widthAnchor.constraint(equalToConstant: MessageContainerStackView.tailWidth).isActive = true
+            tailImageView.heightAnchor.constraint(equalToConstant: MessageContainerStackView.tailHeight).isActive = true
             tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -12).isActive = true
             tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         }
@@ -126,7 +130,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isReply {
             replyInfoMessageRow.set(viewModel)
             addArrangedSubview(replyInfoMessageRow)
-            replyInfoMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin).isActive = true
+            replyInfoMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageContainerStackView.margin).isActive = true
         } else {
             replyInfoMessageRow.removeFromSuperview()
         }
@@ -134,7 +138,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isForward {
             forwardMessageRow.set(viewModel)
             addArrangedSubview(forwardMessageRow)
-            forwardMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin).isActive = true
+            forwardMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageContainerStackView.margin).isActive = true
         } else {
             forwardMessageRow.removeFromSuperview()
         }
@@ -175,10 +179,9 @@ public final class MessageContainerStackView: UIStackView {
         } else {
             messageVideoView.removeFromSuperview()
         }
-
+        
         if viewModel.calMessage.rowType.hasText || viewModel.calMessage.rowType.isPublicLink {
-            textMessageView.set(viewModel)
-            addArrangedSubview(textMessageView)
+            createTextViewOnReuse(viewModel: viewModel)
         } else {
             textMessageView.removeFromSuperview()
         }
@@ -226,15 +229,37 @@ extension MessageContainerStackView {
         /// We have to call set because if row type changes we have to update the row view
         ///for example when two emoji converts to a single emoji
         set(viewModel)
-        
         if viewModel.calMessage.rowType.hasText, textMessageView.superview == nil {
             footerView.removeFromSuperview()
             addArrangedSubview(textMessageView)
             addArrangedSubview(footerView)
         }
+        
         UIView.animate(withDuration: 0.2) {
-            self.textMessageView.setText(viewModel: viewModel)
+            self.replaceTextViewOnEdit(viewModel: viewModel)
             self.footerView.edited()
+        }
+    }
+    
+    private func replaceTextViewOnEdit(viewModel: MessageRowViewModel) {
+        if let attributedString = viewModel.calMessage.attributedString {
+            textMessageView.textStorage.setAttributedString(attributedString)
+        }
+    }
+    
+    private func createTextViewOnReuse(viewModel: MessageRowViewModel) {
+        if textMessageView.superview != nil {
+            textMessageView.removeFromSuperview()
+        }
+        if let attributedString = viewModel.calMessage.attributedString {
+            textMessageView.textStorage.setAttributedString(attributedString)
+        }
+        textKitStack.roundedBackgroundLayoutManager.ranges = viewModel.calMessage.rangeCodebackground
+        addArrangedSubview(textMessageView)
+        textMessageView.backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
+        
+        viewModel.calMessage.rangeCodebackground?.forEach { codeRange in
+            textMessageView.setDirectionForRange(range: codeRange)
         }
     }
 
