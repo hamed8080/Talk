@@ -17,7 +17,7 @@ class CircularSymbolButton: UIView {
 
     init(
         _ systemName: String, width: CGFloat = 48, height: CGFloat = 48,
-        radius: CGFloat = 24, addBGEffect: Bool = true
+        radius: CGFloat = 24, imageIconSize: CGFloat = 22, addBGEffect: Bool = true
     ) {
         self.width = width
         self.height = height
@@ -69,9 +69,13 @@ class CircularSymbolButton: UIView {
         NSLayoutConstraint.activate([
             iconImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
             iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 22),
-            iconImageView.heightAnchor.constraint(equalToConstant: 22),
+            iconImageView.widthAnchor.constraint(equalToConstant: imageIconSize),
+            iconImageView.heightAnchor.constraint(equalToConstant: imageIconSize),
         ])
+    }
+    
+    public func setCustomImage(image: UIImage) {
+        iconImageView.image = image
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

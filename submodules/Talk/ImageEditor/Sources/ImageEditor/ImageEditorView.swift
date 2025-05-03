@@ -14,6 +14,7 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     private let imageView = UIImageView()
     private let btnClose = CircularSymbolButton("xmark")
     private let btnReset = CircularSymbolButton("arrow.trianglehead.2.counterclockwise.rotate.90")
+    private let btnDoneCropping = CircularSymbolButton("checkmark", imageIconSize: 36)
     private let buttonsHStack = UIStackView()
     private let btnAddText = CircularSymbolButton("t.square", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnFlip = CircularSymbolButton("arrow.trianglehead.left.and.right.righttriangle.left.righttriangle.right", width: 32, height: 32, radius: 0, addBGEffect: false)
@@ -70,6 +71,17 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         /// Setup btnReset
         btnReset.onTap = {[weak self] in self?.resetTapped() }
         addSubview(btnReset)
+        
+        /// Setup Done btnDoneCropping
+        btnDoneCropping.onTap = {[weak self] in self?.croppingDoneTapped() }
+        if let url = Bundle.module.url(forResource: "doneCropping", withExtension: "png"),
+           let data = try? Data(contentsOf: url),
+           let image = UIImage(data: data) {
+            btnDoneCropping.setCustomImage(image: image)
+        }
+        
+        addSubview(btnDoneCropping)
+        showBtnCroppingDone(show: false)
         
         /// Setup btnAddText
         btnAddText.onTap = {[weak self] in self?.addTextTapped() }
@@ -141,6 +153,9 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
             btnReset.trailingAnchor.constraint(equalTo: btnClose.leadingAnchor, constant: -padding),
             btnReset.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             
+            btnDoneCropping.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            btnDoneCropping.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            
             buttonsHStack.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.7),
             buttonsHStack.centerXAnchor.constraint(equalTo: centerXAnchor),
             buttonsHStack.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -padding),
@@ -174,19 +189,33 @@ extension ImageEditorView {
 
 extension ImageEditorView {
     @objc func rotateTapped() {
-        guard let image = imageView.image?.cgImage else { return }
-        let ciImage = CIImage(cgImage: image)
-        let size = UIImage(contentsOfFile: url.path())?.size ?? .zero
-        
-        /// Rotate horizontally
-        let transform = CGAffineTransform(translationX: size.height, y: 0)
-            .rotated(by: .pi / 2)
-        let rotatedCIImage = ciImage.transformed(by: transform)
-        let context = CIContext()
-        if let cgImage = context.createCGImage(rotatedCIImage, from: rotatedCIImage.extent) {
-            let rotatedImage = UIImage(cgImage: cgImage)
-            imageView.image = rotatedImage
-        }
+        //disable rotate button while rotating
+        btnRotate.isUserInteractionEnabled = false
+        btnRotate.alpha = 0.0
+        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseInOut], animations: {
+            self.imageView.transform = self.imageView.transform.rotated(by: .pi / 2)
+        }, completion: { _ in
+            // Render the imageView's current visual state into a new image
+            UIGraphicsBeginImageContextWithOptions(self.imageView.bounds.size, false, UIScreen.main.scale)
+            guard let context = UIGraphicsGetCurrentContext() else { return }
+            
+            // Apply the transform to the context
+            context.translateBy(x: self.imageView.bounds.midX, y: self.imageView.bounds.midY)
+            context.rotate(by: .pi / 2)
+            context.translateBy(x: -self.imageView.bounds.midX, y: -self.imageView.bounds.midY)
+            
+            self.imageView.layer.render(in: context)
+            let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            
+            // Set the rotated image and reset transform
+            self.imageView.image = rotatedImage
+            self.imageView.transform = .identity
+            
+            // Renable after animation
+            self.btnRotate.isUserInteractionEnabled = true
+            self.btnRotate.alpha = 1.0
+        })
     }
 }
 
@@ -209,7 +238,9 @@ extension ImageEditorView {
         let context = CIContext()
         if let cgImage = context.createCGImage(flippedCIImage, from: flippedCIImage.extent) {
             let flippedImage = UIImage(cgImage: cgImage)
-            imageView.image = flippedImage
+            UIView.transition(with: imageView, duration: 0.2, options: .transitionFlipFromLeft) {
+                self.imageView.image = flippedImage
+            }
         }
     }
 }
@@ -246,12 +277,44 @@ extension ImageEditorView {
         }
     }
     
-    @objc func cropTapped() {
-        if !isCropping {
-            enterCropMode()
-        } else {
-            applyCrop()
+    @objc func croppingDoneTapped() {
+        showActionButtons(show: true)
+        showBtnCroppingDone(show: false)
+        applyCrop()
+    }
+    
+    private func showActionButtons(show: Bool) {
+        // From alpha
+        buttonsHStack.alpha = show ? 0.0 : 1.0
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            guard let self = self else { return }
+            // To alpha
+            buttonsHStack.alpha = show ? 1.0 : 0.0
+        } completion: { [weak self] _ in
+            guard let self = self else { return }
+            buttonsHStack.isHidden = !show
+            buttonsHStack.isUserInteractionEnabled = show
         }
+    }
+    
+    private func showBtnCroppingDone(show: Bool) {
+        // From alpha
+        btnDoneCropping.alpha = show ? 0.0 : 1.0
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            guard let self = self else { return }
+            // To alpha
+            btnDoneCropping.alpha = show ? 1.0 : 0.0
+        } completion: { [weak self] _ in
+            guard let self = self else { return }
+            btnDoneCropping.isHidden = !show
+            btnDoneCropping.isUserInteractionEnabled = show
+        }
+    }
+    
+    @objc func cropTapped() {
+        enterCropMode()
+        showActionButtons(show: false)
+        showBtnCroppingDone(show: true)
     }
     
     private func enterCropMode() {
@@ -264,7 +327,9 @@ extension ImageEditorView {
     
     private func applyCrop() {
         guard let image = imageView.image, let croppedCgImage = cropOverlay.getCropped(bounds: imageView.bounds, image: image) else { return }
-        imageView.image = UIImage(cgImage: croppedCgImage, scale: image.scale, orientation: image.imageOrientation)
+        UIView.transition(with: imageView, duration: 0.2, options: .transitionCrossDissolve) {
+            self.imageView.image = UIImage(cgImage: croppedCgImage, scale: image.scale, orientation: image.imageOrientation)
+        }
         cropOverlay.removeFromSuperview()
         isCropping = false
         resetScrollView()
@@ -275,11 +340,16 @@ extension ImageEditorView {
         scrollView.contentOffset = .zero
         imageView.frame = scrollView.bounds
     }
-
+    
     @objc private func resetTapped() {
         imageView.subviews.forEach { view in
             view.removeFromSuperview()
         }
         imageView.image = UIImage(contentsOfFile: url.path())
+        showBtnCroppingDone(show: false)
+        if isCropping {
+            showActionButtons(show: true)
+            isCropping = false
+        }
     }
 }
