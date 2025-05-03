@@ -12,6 +12,7 @@ public class ImageItem: Hashable, Identifiable, ObservableObject {
     public let id: UUID
     public var data: Data
     public var originalFilename: String?
+    public var fileExt: String?
     public var fileName: String? { originalFilename }
     public var width: Int
     public var height: Int
@@ -25,6 +26,7 @@ public class ImageItem: Hashable, Identifiable, ObservableObject {
                 width: Int,
                 height: Int,
                 originalFilename: String? = nil,
+                fileExt: String? = nil,
                 progress: Progress? = nil,
                 failed: Bool = false
     ) {
@@ -34,6 +36,7 @@ public class ImageItem: Hashable, Identifiable, ObservableObject {
         self.data = data
         self.isVideo = isVideo
         self.originalFilename = originalFilename
+        self.fileExt = fileExt
         self.progress = progress
     }
 }
