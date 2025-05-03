@@ -17,41 +17,44 @@ public final class EditMessagePlaceholderView: UIStackView {
     private let messageLabel = UILabel()
     private let nameLabel = UILabel()
     public weak var superViewStack: UIStackView?
-
+    
     private weak var viewModel: ThreadViewModel?
     private var sendVM: SendContainerViewModel { viewModel?.sendContainerViewModel ?? .init() }
     private var cancellableSet = Set<AnyCancellable>()
     private var animator: FadeInOutAnimator?
-
+    
     public init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
     }
-
+    
     public required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     private func configureViews() {
         axis = .horizontal
         spacing = 4
         layoutMargins = .init(horizontal: 8, vertical: 8)
         isLayoutMarginsRelativeArrangement = true
         translatesAutoresizingMaskIntoConstraints = false
-
+        
         nameLabel.font = UIFont.uiiransansBody
         nameLabel.textColor = Color.App.accentUIColor
         nameLabel.numberOfLines = 1
         nameLabel.accessibilityIdentifier = "nameLabelSEditMessagePlaceholderView"
         nameLabel.setContentHuggingPriority(.required, for: .vertical)
-
+        
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.font = UIFont.uiiransansCaption2
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelEditMessagePlaceholderView"
-
+        messageLabel.isUserInteractionEnabled = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
+        messageLabel.addGestureRecognizer(tapGesture)
+        
         let vStack = UIStackView()
         vStack.axis = .vertical
         vStack.spacing = 2
@@ -59,7 +62,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         vStack.accessibilityIdentifier = "vStackEditMessagePlaceholderView"
         vStack.addArrangedSubview(nameLabel)
         vStack.addArrangedSubview(messageLabel)
-
+        
         let staticEditImageView = UIImageButton(imagePadding: .init(all: 8))
         staticEditImageView.isUserInteractionEnabled = false
         staticEditImageView.imageView.image = UIImage(systemName: "pencil")
@@ -67,20 +70,20 @@ public final class EditMessagePlaceholderView: UIStackView {
         staticEditImageView.imageView.tintColor = Color.App.accentUIColor
         staticEditImageView.contentMode = .scaleAspectFit
         staticEditImageView.accessibilityIdentifier = "staticEditImageViewEditMessagePlaceholderView"
-
+        
         messageImageView.layer.cornerRadius = 4
         messageImageView.layer.masksToBounds = true
         messageImageView.contentMode = .scaleAspectFit
         messageImageView.translatesAutoresizingMaskIntoConstraints = false
         messageImageView.accessibilityIdentifier = "messageImageViewEditMessagePlaceholderView"
         messageImageView.setIsHidden(true)
-
+        
         let closeButton = CloseButtonView()
         closeButton.accessibilityIdentifier = "closeButtonEditMessagePlaceholderView"
         closeButton.action = { [weak self] in
             self?.close()
         }
-
+        
         addArrangedSubview(staticEditImageView)
         addArrangedSubview(messageImageView)
         addArrangedSubview(vStack)
@@ -93,7 +96,7 @@ public final class EditMessagePlaceholderView: UIStackView {
             staticEditImageView.heightAnchor.constraint(equalToConstant: 36),
         ])
     }
-
+    
     public func registerObservers() {
         sendVM.modePublisher.sink { [weak self] newMode in
             self?.set(editMessage: newMode.editMessage)
@@ -124,7 +127,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         messageLabel.text = editMessage.message ?? ""
         nameLabel.text = editMessage.participant?.name
         nameLabel.setIsHidden(editMessage.participant?.name == nil)
-
+        
         if isImage, let uniqueId = editMessage.uniqueId {
             setImage(uniqueId)
         } else if isFileType, let iconName = iconName {
@@ -152,6 +155,16 @@ public final class EditMessagePlaceholderView: UIStackView {
                     self.messageImageView.setIsHidden(false)
                 }
             }
+        }
+    }
+    
+    @objc private func tappedOnMessage() {
+        guard
+            let time = sendVM.getEditMessage()?.time,
+            let id = sendVM.getEditMessage()?.id
+        else { return }
+        Task { @HistoryActor [weak self] in
+            await self?.viewModel?.historyVM.moveToTime(time, id)
         }
     }
 }
