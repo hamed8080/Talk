@@ -121,6 +121,7 @@ public final class AttachmentFileCell: UITableViewCell {
         let isVideo = imageItem?.isVideo == true
         let icon = attachment.icon
         let showIcouldDownloadImage = imageItem?.progress?.isFinished == false && imageItem != nil
+        let shouldShowEditImageIcon = !isVideo && attachment.type == .gallery
         
         if icon != nil || isVideo {
             let image = UIImage(systemName: isVideo ? "film.fill" : icon ?? "")
@@ -133,8 +134,8 @@ public final class AttachmentFileCell: UITableViewCell {
             }
         }
         imgIcloudDonwloading.isHidden = !showIcouldDownloadImage
-        btnEditImage.isHidden = attachment.type != .gallery
-        btnEditImage.isUserInteractionEnabled = attachment.type == .gallery
+        btnEditImage.isHidden = !shouldShowEditImageIcon
+        btnEditImage.isUserInteractionEnabled = shouldShowEditImageIcon
     }
     
     @AppBackgroundActor
