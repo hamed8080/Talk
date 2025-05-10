@@ -11,9 +11,11 @@ import ZipArchive
 @MainActor
 public class BundleManager {
     private let bundleName = "MyBundle.bundle"
-    private let bundleNameZipName = "MyBundle.zip"
+    private let bundleNameZipName = "MyBundle_v\(BundleManager.version).zip"
     private let unpackedFolderName = "UnzippedFiles"
-    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuMC56aXA="
+    // https://github.com/hamed8080/bundle/archive/refs/tags/v1.1.zip
+    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuMS56aXA="
+    private static let version = "1.1"
 
     public init(){}
 
@@ -85,7 +87,7 @@ public class BundleManager {
         SSZipArchive.unzipFile(atPath: diskPath.path(), toDestination: unpackedURL.path())
     }
 
-    // Move MyBundle.bundle file insdide the UnzippedFiles/bundle-0.0.1 to UnzippedFiles
+    // Move MyBundle.bundle file insdide the UnzippedFiles/bundle-0.0.1 to Documents/MyBundle.bundle
     private func mv() throws {
         guard let folderNamePath = try folderNamePath() else { return }
         let url = folderNamePath.appendingPathComponent(bundleName)
@@ -99,7 +101,7 @@ public class BundleManager {
     private func folderNamePath() throws -> URL? {
         guard let unpackedFolder = unpackedFolderPath() else { return nil }
         let paths = try FileManager.default.contentsOfDirectory(atPath: unpackedFolder.path())
-        guard let folderName = paths.first else { return nil }
+        guard let folderName = paths.first(where: {$0.contains("bundle")}) else { return nil }
         return unpackedFolder.appendingPathComponent(folderName)
     }
 
@@ -113,5 +115,23 @@ public class BundleManager {
     private func delZF() throws {
         guard let zipFile = bunldeZipPath() else { return }
         try FileManager.default.removeItem(atPath: zipFile.path())
+    }
+    
+    // Automatically update bundle if it's lower than the version we need
+    public func shouldUpdate() async throws {
+        let userDefaultversion = UserDefaults.standard.string(forKey: "version")
+        if userDefaultversion != BundleManager.version {
+            // Remove old unzip folder at Documents/UnzippedFiles/
+            if let url = unpackedFolderPath() {
+                try? FileManager.default.removeItem(atPath: url.path())
+            }
+            // Remove old file at Documents/MyBundle.bundle
+            if let url = bundleFilePath {
+                try? FileManager.default.removeItem(atPath: url.path())
+            }
+            await try st()
+            // Store version number for the next launch
+            UserDefaults.standard.setValue(BundleManager.version, forKey: "version")
+        }
     }
 }

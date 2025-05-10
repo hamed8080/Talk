@@ -196,20 +196,7 @@ extension ImageEditorView {
             self.imageView.transform = self.imageView.transform.rotated(by: .pi / 2)
         }, completion: { _ in
             // Render the imageView's current visual state into a new image
-            UIGraphicsBeginImageContextWithOptions(self.imageView.bounds.size, false, UIScreen.main.scale)
-            guard let context = UIGraphicsGetCurrentContext() else { return }
-            
-            // Apply the transform to the context
-            context.translateBy(x: self.imageView.bounds.midX, y: self.imageView.bounds.midY)
-            context.rotate(by: .pi / 2)
-            context.translateBy(x: -self.imageView.bounds.midX, y: -self.imageView.bounds.midY)
-            
-            self.imageView.layer.render(in: context)
-            let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-            
-            // Set the rotated image and reset transform
-            self.imageView.image = rotatedImage
+            self.storeImageState()
             self.imageView.transform = .identity
             
             // Renable after animation
@@ -224,7 +211,7 @@ extension ImageEditorView {
         let textView = EditableTextView()
         textView.text = "Edit me"
         textView.frame = CGRect(x: imageView.center.x - 100, y: imageView.center.y - 100, width: 200, height: textView.fontSize + 16)
-        imageView.addSubview(textView)
+        addSubview(textView)
     }
 }
 
@@ -249,17 +236,11 @@ extension ImageEditorView {
 extension ImageEditorView {
     @objc func doneTapped() {
         if isCropping {
-            imageView.subviews.forEach { view in
-                if view is CropOverlayView {
-                    view.removeFromSuperview()
-                }
-            }
+            removeCropOverlays()
         }
-        imageView.subviews.forEach { view in
-            if view is EditableTextView {
-                view.resignFirstResponder()
-            }
-        }
+        
+        resignAllTextViews()
+        addTextViewsToImageLayer()
         /// to clear out focus on text view
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             guard
@@ -353,3 +334,59 @@ extension ImageEditorView {
         }
     }
 }
+
+extension ImageEditorView {
+    private func storeImageState() {
+        // Render the imageView's current visual state into a new image
+        UIGraphicsBeginImageContextWithOptions(self.imageView.bounds.size, false, UIScreen.main.scale)
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        
+        // Apply the transform to the context
+        context.translateBy(x: self.imageView.bounds.midX, y: self.imageView.bounds.midY)
+        context.rotate(by: .pi / 2)
+        context.translateBy(x: -self.imageView.bounds.midX, y: -self.imageView.bounds.midY)
+        
+        self.imageView.layer.render(in: context)
+        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        // Set the rotated image and reset transform
+        self.imageView.image = rotatedImage
+    }
+}
+
+extension ImageEditorView {
+    private func removeAllTextViews() {
+        subviews.forEach { view in
+            if view is EditableTextView {
+                view.removeFromSuperview()
+            }
+        }
+    }
+
+    private func resignAllTextViews() {
+        subviews.forEach { view in
+            if view is EditableTextView {
+                view.resignFirstResponder()
+            }
+        }
+    }
+    
+    private func addTextViewsToImageLayer() {
+        subviews.forEach { view in
+            if view is EditableTextView {
+                view.removeFromSuperview()
+                imageView.addSubview(view)
+            }
+        }
+    }
+
+    private func removeCropOverlays() {
+        imageView.subviews.forEach { view in
+            if view is CropOverlayView {
+                view.removeFromSuperview()
+            }
+        }
+    }
+}
+

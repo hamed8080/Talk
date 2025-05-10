@@ -169,9 +169,8 @@ struct UserInformationSection: View {
                 let icon = Image(systemName: "person")
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.App.textPrimary)
-                let key = "General.copied".bundleLocalized()
-                let message = "\(key) \(userName) "
-                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: message, messageColor: Color.App.textPrimary)
+                let key = "Settings.userNameCopied".bundleLocalized()
+                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: key, messageColor: Color.App.textPrimary)
                 UIPasteboard.general.string = userName
             }
         }

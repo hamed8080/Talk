@@ -125,6 +125,7 @@ public extension Spec {
     }
     
     static func dl() async throws -> Spec {
+        // https://raw.githubusercontent.com/hamed8080/bundle/v1.0/Spec.json
         guard let string = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2hhbWVkODA4MC9idW5kbGUvdjEuMC9TcGVjLmpzb24=".fromBase64(),
         let url = URL(string: string)
         else { throw URLError.init(.badURL) }
