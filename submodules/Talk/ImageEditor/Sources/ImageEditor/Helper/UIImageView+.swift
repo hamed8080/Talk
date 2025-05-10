@@ -67,3 +67,37 @@ extension UIImageView {
         return cgImage.cropping(to: croppingRect)
     }
 }
+
+extension UIImageView {
+    func rotate() -> UIImage? {
+        guard let image = image else { return nil }
+        let radians: CGFloat = .pi / 2
+        var newSize = CGRect(origin: CGPoint.zero, size: image.size)
+            .applying(CGAffineTransform(rotationAngle: CGFloat(radians))).size
+
+        /// Get the next largest integer less than or equal to the size for width and height
+        newSize.width = floor(newSize.width)
+        newSize.height = floor(newSize.height)
+        
+        /// A new bitmap-based graphics context is created with the new image size, allowing for high-quality image manipulation
+        UIGraphicsBeginImageContextWithOptions(newSize, false, image.scale)
+        
+        /// The context's origin is translated to the new image's center, ensuring the rotation occurs around the center point
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+        context.translateBy(x: newSize.width/2, y: newSize.height/2)
+        
+        /// The context is rotated by the specified number of radians, setting the stage for the new image rendering
+        context.rotate(by: CGFloat(radians))
+        
+        /// The original image is drawn onto the rotated context, resulting in a rotated image
+        image.draw(in: CGRect(x: -image.size.width/2, y: -image.size.height/2, width: image.size.width, height: image.size.height))
+        
+        /// The rotated image is extracted from the context and prepared for return
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        
+        /// The graphics context is closed, ensuring that all resources are properly released
+        UIGraphicsEndImageContext()
+        
+        return newImage
+    }
+}

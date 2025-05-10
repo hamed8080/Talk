@@ -189,20 +189,20 @@ extension ImageEditorView {
 
 extension ImageEditorView {
     @objc func rotateTapped() {
-        //disable rotate button while rotating
+        guard let image = imageView.image else { return }
+        /// Disable rotate button while rotating
         btnRotate.isUserInteractionEnabled = false
         btnRotate.alpha = 0.0
-        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseInOut], animations: {
-            self.imageView.transform = self.imageView.transform.rotated(by: .pi / 2)
-        }, completion: { _ in
-            // Render the imageView's current visual state into a new image
-            self.storeImageState()
-            self.imageView.transform = .identity
-            
+        
+        let rotatedImage = imageView.rotate()
+        
+        UIView.transition(with: imageView, duration: 0.2, options: .transitionCrossDissolve) {
+            self.imageView.image = rotatedImage
+        } completion: { _ in
             // Renable after animation
             self.btnRotate.isUserInteractionEnabled = true
             self.btnRotate.alpha = 1.0
-        })
+        }
     }
 }
 
@@ -336,26 +336,6 @@ extension ImageEditorView {
 }
 
 extension ImageEditorView {
-    private func storeImageState() {
-        // Render the imageView's current visual state into a new image
-        UIGraphicsBeginImageContextWithOptions(self.imageView.bounds.size, false, UIScreen.main.scale)
-        guard let context = UIGraphicsGetCurrentContext() else { return }
-        
-        // Apply the transform to the context
-        context.translateBy(x: self.imageView.bounds.midX, y: self.imageView.bounds.midY)
-        context.rotate(by: .pi / 2)
-        context.translateBy(x: -self.imageView.bounds.midX, y: -self.imageView.bounds.midY)
-        
-        self.imageView.layer.render(in: context)
-        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        // Set the rotated image and reset transform
-        self.imageView.image = rotatedImage
-    }
-}
-
-extension ImageEditorView {
     private func removeAllTextViews() {
         subviews.forEach { view in
             if view is EditableTextView {
@@ -389,4 +369,3 @@ extension ImageEditorView {
         }
     }
 }
-
