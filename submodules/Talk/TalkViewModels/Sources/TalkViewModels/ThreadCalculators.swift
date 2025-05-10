@@ -283,10 +283,18 @@ public class ThreadCalculators {
     }
 
     private class func calculateFifityFirst(_ message: String, _ isFileType: Bool) -> String? {
+        let message = removeMessageTextStyle(message: message)
         if !isFileType {
             return String(message.replacingOccurrences(of: "\n", with: " ").prefix(50))
         }
         return nil
+    }
+
+    public class func removeMessageTextStyle(message: String) -> String {
+        message.replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "~~", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .replacingOccurrences(of: "__", with: "")
     }
 
     private class func calculateParticipantName(_ conversation: Conversation, _ myId: Int) -> String? {

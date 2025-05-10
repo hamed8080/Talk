@@ -122,6 +122,7 @@ public final class ThreadPinMessageViewModel {
     @AppBackgroundActor
     private func messageText(text: String?, fileName: String?) -> String {
         if let text = text, !text.isEmpty {
+            let text = ThreadCalculators.removeMessageTextStyle(message: text)
             return text.prefix(150).replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
         } else if let fileName = fileName {
             return fileName
