@@ -301,13 +301,18 @@ extension ImageEditorView {
     private func enterCropMode() {
         isCropping = true
         cropOverlay.frame = imageView.bounds
+        cropOverlay.setImageFrameInsideImageView(bounds: imageView.bounds, image: imageView.image ?? UIImage())
         cropOverlay.backgroundColor = .clear
         cropOverlay.isUserInteractionEnabled = true
         imageView.addSubview(cropOverlay)
     }
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        
+    }
     
     private func applyCrop() {
-        guard let image = imageView.image, let croppedCgImage = cropOverlay.getCropped(bounds: imageView.bounds, image: image) else { return }
+        guard let image = imageView.image, let croppedCgImage = cropOverlay.getCropped(image: image) else { return }
         UIView.transition(with: imageView, duration: 0.2, options: .transitionCrossDissolve) {
             self.imageView.image = UIImage(cgImage: croppedCgImage, scale: image.scale, orientation: image.imageOrientation)
         }

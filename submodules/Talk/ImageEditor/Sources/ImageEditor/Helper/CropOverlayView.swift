@@ -8,6 +8,8 @@
 import UIKit
 
 final class CropOverlayView: UIView {
+    private var imageRectInImageView = CGRect()
+    
     private var leftRect = CGRect(x: 0, y: 100, width: 24, height: 24)
     private var rightRect = CGRect(x: 200, y: 100, width: 24, height: 24)
     private var topRect = CGRect(x: 100, y: 0, width: 24, height: 24)
@@ -110,6 +112,15 @@ final class CropOverlayView: UIView {
             break
         }
         
+        // Prevent crop rect from getting bigger than the original image.
+        if newCropRect.width > imageRectInImageView.width || newCropRect.height > imageRectInImageView.height { return }
+        
+        // Prevent crop rect position is outside of the original image on x axis.
+        if newCropRect.origin.x < imageRectInImageView.origin.x || newCropRect.origin.x + newCropRect.width > imageRectInImageView.origin.x + imageRectInImageView.width { return }
+        
+        // Prevent crop rect position is outside of the original image on y axis.
+        if newCropRect.origin.y < imageRectInImageView.origin.y || newCropRect.origin.y + newCropRect.height > imageRectInImageView.origin.y + imageRectInImageView.height { return }
+        
         // Prevent inverted width/height
         if newCropRect.width >= 50, newCropRect.height >= 50 {
             cropRect = newCropRect
@@ -135,12 +146,9 @@ final class CropOverlayView: UIView {
         /// Initial position of the cropRect on the center of the screen
         cropRect = CGRect(x: bounds.midX - 100, y: bounds.midY - 100, width: 200, height: 200)
     }
-}
-
-extension CropOverlayView {
-    public func getCropped(bounds: CGRect, image: UIImage) -> CGImage? {
-        let cropRect = cropRect
-        
+    
+    /// This method will calculate the position of the UIImage inside the UIImageViewFrame
+    public func setImageFrameInsideImageView(bounds: CGRect, image: UIImage) {
         // Step 1: Get size ratios
         let imageSize = image.size
         let imageViewSize = bounds.size
@@ -153,23 +161,27 @@ extension CropOverlayView {
         let imageDisplaySize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
         let imageOrigin = CGPoint(x: (imageViewSize.width - imageDisplaySize.width) / 2,
                                   y: (imageViewSize.height - imageDisplaySize.height) / 2)
-        let imageFrameInImageView = CGRect(origin: imageOrigin, size: imageDisplaySize)
-        
-        // Step 3: Convert crop rect to image coordinate space
-        let normalizedX = (cropRect.origin.x - imageFrameInImageView.origin.x) / imageFrameInImageView.width
-        let normalizedY = (cropRect.origin.y - imageFrameInImageView.origin.y) / imageFrameInImageView.height
-        let normalizedWidth = cropRect.size.width / imageFrameInImageView.width
-        let normalizedHeight = cropRect.size.height / imageFrameInImageView.height
+        self.imageRectInImageView = CGRect(origin: imageOrigin, size: imageDisplaySize)
+    }
+}
+
+extension CropOverlayView {
+    public func getCropped(image: UIImage) -> CGImage? {
+        let cropRect = cropRect
+        // Step 1: Convert crop rect to image coordinate space
+        let normalizedX = (cropRect.origin.x - imageRectInImageView.origin.x) / imageRectInImageView.width
+        let normalizedY = (cropRect.origin.y - imageRectInImageView.origin.y) / imageRectInImageView.height
+        let normalizedWidth = cropRect.size.width / imageRectInImageView.width
+        let normalizedHeight = cropRect.size.height / imageRectInImageView.height
         
         let cropZone = CGRect(
-            x: normalizedX * imageSize.width,
-            y: normalizedY * imageSize.height,
-            width: normalizedWidth * imageSize.width,
-            height: normalizedHeight * imageSize.height
+            x: normalizedX * image.size.width,
+            y: normalizedY * image.size.height,
+            width: normalizedWidth * image.size.width,
+            height: normalizedHeight * image.size.height
         )
         
-        // Step 4: Perform cropping
-        guard let croppedCgImage = image.cgImage?.cropping(to: cropZone) else { return nil }
-        return croppedCgImage
+        // Step 2: Perform cropping
+        return image.cgImage?.cropping(to: cropZone)
     }
 }
