@@ -391,6 +391,7 @@ extension ThreadViewController: BottomToolbarDelegate {
         // We only check if we select a message to edit. For closing and sending message where message is nil we leave the focus remain on the textfield to send further messages.
         if message != nil {
             focusOnTextView(focus: true)
+            openReplyMode(nil)
         }
     }
 
@@ -675,6 +676,11 @@ extension ThreadViewController {
                     self.moveTolastMessageIfVisible()
                 }
             }
+        }
+        
+        /// Prevent overlaping with the text container if the thread is empty.
+        if viewModel?.historyVM.sectionsHolder.sections.isEmpty == true {
+            view.bringSubviewToFront(sendContainer)
         }
     }
         
