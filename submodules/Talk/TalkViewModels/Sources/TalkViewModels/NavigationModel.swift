@@ -98,10 +98,22 @@ public extension NavigationModel {
         Task { @MainActor in
             let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
             let value = ConversationNavigationValue(viewModel: viewModel)
+            // Pop until the same thread if exist
+            popUntilSameConversation(threadId: thread.id ?? 0)
             append(value: value)
             selectedId = thread.id
             // We have to update the object with animateObjectWillChange because inside the ThreadRow we use a chagne listener on this
             animateObjectWillChange()
+        }
+    }
+    
+    private func popUntilSameConversation(threadId: Int) {
+        if threadStack.contains(where: {$0.threadId == threadId }) {
+            if !paths.isEmpty {
+                paths.removeLast(paths.count)
+                pathsTracking.removeAll()
+                detailsStack.removeAll()
+            }
         }
     }
 
