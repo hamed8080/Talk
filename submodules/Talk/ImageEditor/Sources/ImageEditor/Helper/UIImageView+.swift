@@ -101,3 +101,22 @@ extension UIImageView {
         return newImage
     }
 }
+
+extension UIImageView {
+    /// This method will calculate the position of the UIImage inside the UIImageViewFrame
+    public func imageFrameInsideImageView() -> CGRect {
+        // Step 1: Get size ratios
+        let imageSize = image?.size ?? .zero
+        let imageViewSize = bounds.size
+        
+        let scaleWidth = imageViewSize.width / imageSize.width
+        let scaleHeight = imageViewSize.height / imageSize.height
+        let scale = min(scaleWidth, scaleHeight) // Maintain aspect ratio (like .scaleAspectFit)
+        
+        // Step 2: Calculate image's displayed frame inside imageView
+        let imageDisplaySize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        let imageOrigin = CGPoint(x: (imageViewSize.width - imageDisplaySize.width) / 2,
+                                  y: (imageViewSize.height - imageDisplaySize.height) / 2)
+        return CGRect(origin: imageOrigin, size: imageDisplaySize)
+    }
+}

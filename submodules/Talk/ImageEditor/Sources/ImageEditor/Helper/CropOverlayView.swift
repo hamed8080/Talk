@@ -8,7 +8,7 @@
 import UIKit
 
 final class CropOverlayView: UIView {
-    private var imageRectInImageView = CGRect()
+    public var imageRectInImageView = CGRect()
     
     private var leftRect = CGRect(x: 0, y: 100, width: 24, height: 24)
     private var rightRect = CGRect(x: 200, y: 100, width: 24, height: 24)
@@ -145,23 +145,6 @@ final class CropOverlayView: UIView {
         super.layoutSubviews()
         /// Initial position of the cropRect on the center of the screen
         cropRect = CGRect(x: bounds.midX - 100, y: bounds.midY - 100, width: 200, height: 200)
-    }
-    
-    /// This method will calculate the position of the UIImage inside the UIImageViewFrame
-    public func setImageFrameInsideImageView(bounds: CGRect, image: UIImage) {
-        // Step 1: Get size ratios
-        let imageSize = image.size
-        let imageViewSize = bounds.size
-        
-        let scaleWidth = imageViewSize.width / imageSize.width
-        let scaleHeight = imageViewSize.height / imageSize.height
-        let scale = min(scaleWidth, scaleHeight) // Maintain aspect ratio (like .scaleAspectFit)
-        
-        // Step 2: Calculate image's displayed frame inside imageView
-        let imageDisplaySize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
-        let imageOrigin = CGPoint(x: (imageViewSize.width - imageDisplaySize.width) / 2,
-                                  y: (imageViewSize.height - imageDisplaySize.height) / 2)
-        self.imageRectInImageView = CGRect(origin: imageOrigin, size: imageDisplaySize)
     }
 }
 

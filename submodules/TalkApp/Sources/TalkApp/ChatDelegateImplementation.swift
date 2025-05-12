@@ -33,8 +33,12 @@ public final class ChatDelegateImplementation: ChatDelegate {
             }
             setup(spec: spec, bundle: manager.getBundle())
             Task {
-                try? await manager.shouldUpdate()
-                reload(spec: spec, bundle: manager.getBundle())
+                do {
+                    try await manager.shouldUpdate()
+                    reload(spec: spec, bundle: manager.getBundle())
+                } catch {
+                    print(error)
+                }
             }
         } else {
             /// Download Spec and Bundle

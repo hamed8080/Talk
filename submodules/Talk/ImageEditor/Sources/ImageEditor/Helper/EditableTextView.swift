@@ -15,18 +15,26 @@ final class EditableTextView: UITextView {
     private var rotationGesture: UIRotationGestureRecognizer!
     private var toolbar = UIView()
     private var toolbarContainer = UIView()
-    public var fontSize: CGFloat = 24
-    private var lineBackgroundColor: UIColor = .black // Default
+    public var fontSize: CGFloat = 42
+    private var lineBackgroundColor: UIColor = .clear // Default
     private var cancellable = Set<AnyCancellable>()
     private let btnTextColor = UIButton(type: .system)
     private let btnBgColor = UIButton(type: .system)
+    private let doneCompletion: () -> Void
+    private let beginEditing: () -> Void
+    public var imageRectInImageView: CGRect = .zero
     
-    init() {
+    
+    init(beginEditing: @escaping () -> Void, doneCompletion: @escaping () -> Void) {
+        self.doneCompletion = doneCompletion
+        self.beginEditing = beginEditing
         super.init(frame: .zero, textContainer: nil)
         setup()
     }
     
     required init?(coder: NSCoder) {
+        doneCompletion = {}
+        beginEditing = {}
         super.init(coder: coder)
         setup()
     }
@@ -61,10 +69,12 @@ final class EditableTextView: UITextView {
         btnBgColor.setTitle("A", for: .normal)
         btnBgColor.addTarget(self, action: #selector(changeBGColor), for: .touchUpInside)
         btnBgColor.titleLabel?.font = UIFont.systemFont(ofSize: 22)
-        btnBgColor.backgroundColor = .black
+        btnBgColor.backgroundColor = .clear
         btnBgColor.layer.cornerRadius = 4
         btnBgColor.clipsToBounds = true
         btnBgColor.setTitleColor(.white, for: .normal)
+        btnBgColor.layer.borderColor = UIColor.orange.cgColor
+        btnBgColor.layer.borderWidth = 1
         
         let btnDone = UIButton(type: .system)
         btnDone.translatesAutoresizingMaskIntoConstraints = false
@@ -74,7 +84,7 @@ final class EditableTextView: UITextView {
         
         toolbar = UIView(frame: .init(x: 0, y: 0, width: 400, height: 48 + 16))
         
-        let blurEffect = UIBlurEffect(style: .regular)
+        let blurEffect = UIBlurEffect(style: .systemMaterialDark)
         let blurView = UIVisualEffectView(effect: blurEffect)
         blurView.layer.cornerRadius = 8
         blurView.clipsToBounds = true
@@ -147,7 +157,24 @@ final class EditableTextView: UITextView {
         guard isEditingMode == false else { return } // Don't drag while typing
         let translation = gesture.translation(in: superview)
         center = CGPoint(x: center.x + translation.x, y: center.y + translation.y)
+        
+        clampToImageRectBounds()
         gesture.setTranslation(.zero, in: superview)
+    }
+    
+    private func clampToImageRectBounds() {
+        let halfWidth = frame.width / 2
+        let halfHeight = frame.height / 2
+
+        // Calculate the minimum and maximum allowed center positions
+        let minX = imageRectInImageView.minX + halfWidth
+        let maxX = imageRectInImageView.maxX - halfWidth
+        let minY = imageRectInImageView.minY + halfHeight
+        let maxY = imageRectInImageView.maxY - halfHeight
+
+        // Clamp center to be within these bounds
+        center.x = max(min(center.x, maxX), minX)
+        center.y = max(min(center.y, maxY), minY)
     }
     
     @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
@@ -213,6 +240,7 @@ final class EditableTextView: UITextView {
     
     @objc private func doneTapped() {
         resignFirstResponder()
+        doneCompletion()
     }
     
     /// We should get the right view controller,
@@ -283,10 +311,12 @@ final class EditableTextView: UITextView {
 extension EditableTextView: UITextViewDelegate {
     func textViewDidBeginEditing(_ textView: UITextView) {
         isEditingMode = true
+        beginEditing()
     }
 
     func textViewDidEndEditing(_ textView: UITextView) {
         isEditingMode = false
+        doneCompletion()
     }
     
     func textViewDidChange(_ textView: UITextView) {

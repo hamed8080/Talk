@@ -25,6 +25,16 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     private let cropOverlay = CropOverlayView()
     private var isCropping = false
     
+    private var isEdittingText = false {
+        didSet{
+            if isEdittingText {
+                imageView.alpha = 0.4
+            } else {
+                imageView.alpha = 1.0
+            }
+        }
+    }
+    
     private let url: URL
     private let doneTitle: String
     private let font: UIFont
@@ -208,10 +218,20 @@ extension ImageEditorView {
 
 extension ImageEditorView {
     @objc func addTextTapped() {
-        let textView = EditableTextView()
-        textView.text = "Edit me"
+        let textView = EditableTextView { [weak self] in
+            /// Start Editing completion
+            self?.isEdittingText = true
+            self?.showActionButtons(show: false)
+            self?.btnReset.isHidden = true
+        } doneCompletion: { [weak self] in
+            self?.isEdittingText = false
+            self?.showActionButtons(show: true)
+            self?.btnReset.isHidden = false
+        }
         textView.frame = CGRect(x: imageView.center.x - 100, y: imageView.center.y - 100, width: 200, height: textView.fontSize + 16)
+        textView.imageRectInImageView = imageView.imageFrameInsideImageView()
         addSubview(textView)
+        textView.becomeFirstResponder()
     }
 }
 
@@ -301,7 +321,7 @@ extension ImageEditorView {
     private func enterCropMode() {
         isCropping = true
         cropOverlay.frame = imageView.bounds
-        cropOverlay.setImageFrameInsideImageView(bounds: imageView.bounds, image: imageView.image ?? UIImage())
+        cropOverlay.imageRectInImageView = imageView.imageFrameInsideImageView()
         cropOverlay.backgroundColor = .clear
         cropOverlay.isUserInteractionEnabled = true
         imageView.addSubview(cropOverlay)
@@ -330,6 +350,11 @@ extension ImageEditorView {
     @objc private func resetTapped() {
         imageView.subviews.forEach { view in
             view.removeFromSuperview()
+        }
+        subviews.forEach { view in
+            if view is EditableTextView {
+                view.removeFromSuperview()
+            }
         }
         imageView.image = UIImage(contentsOfFile: url.path())
         showBtnCroppingDone(show: false)
