@@ -14,7 +14,7 @@ import TalkExtensions
 
 @MainActor
 public final class ThreadDetailViewModel: ObservableObject {
-    private(set) var cancelable: Set<AnyCancellable> = []
+    private(set) var cancellable: Set<AnyCancellable> = []
     public var thread: Conversation?
     public weak var threadVM: ThreadViewModel?
     @Published public var dismiss = false
@@ -25,8 +25,62 @@ public final class ThreadDetailViewModel: ObservableObject {
     private let p2pPartnerFinder = FindPartnerParticipantViewModel()
     public let mutualGroupsVM = MutualGroupViewModel()
     public var scrollViewProxy: ScrollViewProxy?
+    @Published public var fullScreenImageLoader: ImageLoaderViewModel
+    @Published public var cachedImage: UIImage?
+    @Published public var showDownloading: Bool = false
+    private var appOverlayVM: AppOverlayViewModel { AppState.shared.objectsContainer.appOverlayVM }
 
-    public init() {}
+    public init() {
+        let emptyConfig = ImageLoaderConfig(url: "",
+                                            size: .ACTUAL,
+                                            metaData: thread?.metadata,
+                                            userName: String.splitedCharacter(thread?.title ?? ""),
+                                            forceToDownloadFromServer: true)
+        fullScreenImageLoader = .init(config: emptyConfig)
+    }
+    
+    private func setupFullScreenAvatarConfig() {
+        cachedImage = nil
+        let config = ImageLoaderConfig(url: imageLink,
+                                       size: .ACTUAL,
+                                       metaData: thread?.metadata,
+                                       userName: String.splitedCharacter(thread?.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        fullScreenImageLoader.updateCondig(config: config)
+    }
+    
+    public var avatarVM: ImageLoaderViewModel {
+        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        let avatarVM = threadsVM.avatars(for: imageLink, metaData: thread?.metadata, userName: String.splitedCharacter(thread?.title ?? ""))
+        return avatarVM
+    }
+
+    public var imageLink: String {
+        var image = ""
+        if let threadImage = thread?.computedImageURL {
+            image = threadImage
+        } else if thread?.group == false, let userImage = participantDetailViewModel?.participant.image {
+            image = userImage
+        }
+        return image.replacingOccurrences(of: "http://", with: "https://")
+    }
+        
+    private func onDonwloadAavtarCompleted(image: UIImage) {
+        appOverlayVM.galleryImageView = image
+        showDownloading = false
+        cachedImage = image
+    }
+    
+    public func onTapAvatarAction() {
+        // We use cache image because in init fullScreenImageLoader we always set forcetodownload for image to true
+        if imageLink.isEmpty { return }
+        if cachedImage == nil {
+           showDownloading = true
+           fullScreenImageLoader.fetch()
+        } else {
+            appOverlayVM.galleryImageView = cachedImage
+        }
+    }
 
     public func setup(threadVM: ThreadViewModel? = nil, participant: Participant? = nil) {
         clear()
@@ -35,7 +89,7 @@ public final class ThreadDetailViewModel: ObservableObject {
 
         setupParticipantDetailViewModel(participant: participant)
         setupEditConversationViewModel()
-
+        setupFullScreenAvatarConfig()
         registerObservers()
         Task { [weak self] in
             await self?.fetchPartnerParticipant()
@@ -61,6 +115,7 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     public func updateThreadInfo(_ newThread: Conversation) {
         thread = newThread
+        setupFullScreenAvatarConfig()
         animateObjectWillChange()
     }
 
@@ -152,7 +207,16 @@ public final class ThreadDetailViewModel: ObservableObject {
             .sink { [weak self] value in
                 self?.onThreadEvent(value)
             }
-            .store(in: &cancelable)
+            .store(in: &cancellable)
+        fullScreenImageLoader.$image
+            .sink { [weak self] newValue in
+                guard let self = self else { return }
+                if newValue.size.width > 0, self.cachedImage == nil {
+                    onDonwloadAavtarCompleted(image: newValue)
+                }
+            }
+            .store(in: &cancellable)
+        
         registerP2PParticipantObserver()
     }
 
@@ -178,7 +242,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
 
     public func cancelObservers() {
-        cancelable.forEach { cancelable in
+        cancellable.forEach { cancelable in
             cancelable.cancel()
         }
         participantDetailViewModel?.cancelObservers()
@@ -206,7 +270,7 @@ public final class ThreadDetailViewModel: ObservableObject {
             /// We have to update the ui all the time and keep it in sync with the ParticipantDetailViewModel.
             self?.animateObjectWillChange()
         }
-        .store(in: &cancelable)
+        .store(in: &cancellable)
         self.animateObjectWillChange()
     }
 

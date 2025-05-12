@@ -45,6 +45,8 @@ public final class GetSpecificConversationViewModel {
                     if let conversation = self?.handleThreadEvent(event) {
                         self?.log("Calling continuation for get a conversation by id: \(conversation.id ?? -1)")
                         continuation.resume(returning: conversation)
+                        self?.cancelable?.cancel() // ✅ Cancel after resuming
+                        self?.cancelable = nil
                     }
                 }
             }
