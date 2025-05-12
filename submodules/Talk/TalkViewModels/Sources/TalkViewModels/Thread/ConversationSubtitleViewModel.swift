@@ -124,7 +124,7 @@ public final class ConversationSubtitleViewModel {
     }
     
     private func requestParticipantsCount() {
-        guard let threadId = thread?.id else { return }
+        guard let threadId = thread?.id, thread?.participantCount == nil else { return }
         let req = ThreadsRequest(threadIds: [threadId])
         RequestsManager.shared.append(prepend: PARTICIPANTS_COUNT_KEY, value: req)
         Task { @ChatGlobalActor in
