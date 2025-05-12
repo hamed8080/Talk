@@ -89,39 +89,55 @@ final class CropOverlayView: UIView {
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard draggingHandle != .none, let point = touches.first?.location(in: self) else { return }
-        
+
         let dx = point.x - initialTouchPoint.x
         let dy = point.y - initialTouchPoint.y
-        
+
         var newCropRect = cropRect
-        
+
         switch draggingHandle {
         case .move:
             newCropRect = newCropRect.offsetBy(dx: dx, dy: dy)
+
+            // Clamp move within image bounds
+            if newCropRect.minX < imageRectInImageView.minX {
+                newCropRect.origin.x = imageRectInImageView.minX
+            }
+            if newCropRect.maxX > imageRectInImageView.maxX {
+                newCropRect.origin.x = imageRectInImageView.maxX - newCropRect.width
+            }
+            if newCropRect.minY < imageRectInImageView.minY {
+                newCropRect.origin.y = imageRectInImageView.minY
+            }
+            if newCropRect.maxY > imageRectInImageView.maxY {
+                newCropRect.origin.y = imageRectInImageView.maxY - newCropRect.height
+            }
+
         case .left:
-            newCropRect.origin.x += dx
-            newCropRect.size.width -= dx
+            let newX = max(cropRect.origin.x + dx, imageRectInImageView.minX)
+            let delta = cropRect.origin.x - newX
+            newCropRect.origin.x = newX
+            newCropRect.size.width += delta
+
         case .right:
-            newCropRect.size.width += dx
+            let newWidth = min(cropRect.width + dx, imageRectInImageView.maxX - cropRect.origin.x)
+            newCropRect.size.width = newWidth
+
         case .top:
-            newCropRect.origin.y += dy
-            newCropRect.size.height -= dy
+            let newY = max(cropRect.origin.y + dy, imageRectInImageView.minY)
+            let delta = cropRect.origin.y - newY
+            newCropRect.origin.y = newY
+            newCropRect.size.height += delta
+
         case .bottom:
-            newCropRect.size.height += dy
+            let newHeight = min(cropRect.height + dy, imageRectInImageView.maxY - cropRect.origin.y)
+            newCropRect.size.height = newHeight
+
         case .none:
             break
         }
-        
-        // Prevent crop rect from getting bigger than the original image.
-        if newCropRect.width > imageRectInImageView.width || newCropRect.height > imageRectInImageView.height { return }
-        
-        // Prevent crop rect position is outside of the original image on x axis.
-        if newCropRect.origin.x < imageRectInImageView.origin.x || newCropRect.origin.x + newCropRect.width > imageRectInImageView.origin.x + imageRectInImageView.width { return }
-        
-        // Prevent crop rect position is outside of the original image on y axis.
-        if newCropRect.origin.y < imageRectInImageView.origin.y || newCropRect.origin.y + newCropRect.height > imageRectInImageView.origin.y + imageRectInImageView.height { return }
-        
-        // Prevent inverted width/height
+
+        // Prevent inverted width/height or too small
         if newCropRect.width >= 50, newCropRect.height >= 50 {
             cropRect = newCropRect
             initialTouchPoint = point
