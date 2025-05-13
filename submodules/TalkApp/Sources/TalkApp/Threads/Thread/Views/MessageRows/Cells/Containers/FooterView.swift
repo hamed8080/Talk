@@ -213,9 +213,13 @@ final class FooterView: UIStackView {
         if isEmpty || (edited && attached) {
             reactionView.removeFromSuperview()// reset
         }
-        addArrangedSubview(reactionView)
-        fadeAnimateReactions(animation)
-        reactionView.set(viewModel)
+        
+        if !isEmpty {
+            /// We don't attach the footer to prevent height conflict with not reaction time
+            addArrangedSubview(reactionView)
+            fadeAnimateReactions(animation)
+            reactionView.set(viewModel)
+        }
         heightConstraint.constant = viewModel.reactionsModel.rows.isEmpty ? FooterView.heightWithoutReaction : FooterView.heightWithReaction
     }
 

@@ -44,6 +44,15 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.returnKeyType = .default
         textView.textAlignment = Language.isRTL ? .right : .left
         textView.backgroundColor = Color.App.bgSendInputUIColor
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = Language.isRTL ? .right : .left
+        
+        textView.typingAttributes = [
+            .font: UIFont.fSubheadline,
+            .foregroundColor: UIColor(named: "text_primary") ?? .black,
+            .paragraphStyle: paragraphStyle
+        ]
         addSubview(textView)
         
         placeholderLabel.text = "Thread.SendContainer.typeMessageHere".bundleLocalized()
@@ -65,8 +74,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
             
             placeholderLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -8),
             placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            placeholderLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            placeholderLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            placeholderLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2.5),
+            placeholderLabel.heightAnchor.constraint(equalToConstant: initSize),
         ])
     }
     
