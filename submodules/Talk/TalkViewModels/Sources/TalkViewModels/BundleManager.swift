@@ -64,6 +64,7 @@ public class BundleManager {
         try delZF()
         try mv()
         try de()
+        setVersion()
         return true
     }
 
@@ -130,11 +131,14 @@ public class BundleManager {
                 try? FileManager.default.removeItem(atPath: url.path())
             }
             await try st()
-            // Store version number for the next launch
-            UserDefaults.standard.setValue(BundleManager.version, forKey: "version")
             return true
         } else {
             return false
         }
+    }
+
+    private func setVersion() {
+        // Store version number for the next launch
+        UserDefaults.standard.setValue(BundleManager.version, forKey: "version")
     }
 }
