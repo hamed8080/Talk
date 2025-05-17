@@ -359,6 +359,7 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) async {
+        if time > thread.lastMessageVO?.time ?? 0 { return }
         await removeAllSections()
         /// Getting the first message of the day will take time, specially if the message is an archive message.
         /// So we have to show the center loading imediately.
