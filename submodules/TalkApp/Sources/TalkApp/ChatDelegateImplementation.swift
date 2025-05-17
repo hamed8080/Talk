@@ -34,8 +34,10 @@ public final class ChatDelegateImplementation: ChatDelegate {
             setup(spec: spec, bundle: manager.getBundle())
             Task {
                 do {
-                    try await manager.shouldUpdate()
-                    reload(spec: spec, bundle: manager.getBundle())
+                    let updated = try await manager.shouldUpdate()
+                    if updated {
+                        reload(spec: spec, bundle: manager.getBundle(), recreateChatObject: false)
+                    }
                 } catch {
                     print(error)
                 }
@@ -62,19 +64,21 @@ public final class ChatDelegateImplementation: ChatDelegate {
         }
     }
     
-    private func reload(spec: Spec, bundle: Bundle) {
+    private func reload(spec: Spec, bundle: Bundle, recreateChatObject: Bool = true) {
         if let language = Language.languages.first(where: { $0.identifier == "ZmFfSVI=".fromBase64() }) {
             Language.setLanguageTo(bundle: bundle, language: language)
         }
-        setup(spec: spec ?? .empty(), bundle: bundle)
+        setup(spec: spec ?? .empty(), bundle: bundle, recreateChatObject: recreateChatObject)
         NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }
     
-    private func setup(spec: Spec, bundle: Bundle) {
+    private func setup(spec: Spec, bundle: Bundle, recreateChatObject: Bool = true) {
         AppState.shared.spec = spec
         UIFont.register(bundle: bundle)
         // Override point for customization after application launch.
-        ChatDelegateImplementation.sharedInstance.createChatObject()
+        if recreateChatObject {
+            createChatObject()
+        }
     }
 
     @MainActor

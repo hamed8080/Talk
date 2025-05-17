@@ -220,7 +220,7 @@ final class FooterView: UIStackView {
             fadeAnimateReactions(animation)
             reactionView.set(viewModel)
         }
-        heightConstraint.constant = viewModel.reactionsModel.rows.isEmpty ? FooterView.heightWithoutReaction : FooterView.heightWithReaction
+        heightConstraint.constant = isEmpty ? FooterView.heightWithoutReaction : FooterView.heightWithReaction
     }
 
     // Prevent animation in reuse call method, yet has animation when updateReaction called
@@ -242,7 +242,15 @@ final class FooterView: UIStackView {
     }
     
     public func reactionAdded(_ reaction: Reaction) {
-        reactionView.reactionAdded(reaction)
+        if reactionView.superview == nil {
+            addArrangedSubview(reactionView)
+            reactionView.alpha = 1.0
+            if let viewModel = viewModel {
+                reactionView.set(viewModel)
+            }
+        } else {
+            reactionView.reactionAdded(reaction)
+        }
         heightConstraint.constant = viewModel?.reactionsModel.rows.isEmpty == true ? FooterView.heightWithoutReaction : FooterView.heightWithReaction
     }
     

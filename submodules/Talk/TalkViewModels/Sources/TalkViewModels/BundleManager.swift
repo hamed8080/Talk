@@ -118,7 +118,7 @@ public class BundleManager {
     }
     
     // Automatically update bundle if it's lower than the version we need
-    public func shouldUpdate() async throws {
+    public func shouldUpdate() async throws -> Bool {
         let userDefaultversion = UserDefaults.standard.string(forKey: "version")
         if userDefaultversion != BundleManager.version {
             // Remove old unzip folder at Documents/UnzippedFiles/
@@ -132,6 +132,9 @@ public class BundleManager {
             await try st()
             // Store version number for the next launch
             UserDefaults.standard.setValue(BundleManager.version, forKey: "version")
+            return true
+        } else {
+            return false
         }
     }
 }
