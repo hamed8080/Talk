@@ -324,7 +324,12 @@ public class ThreadCalculators {
 
     private class func sentFileString(_ conversation: Conversation, _ isFileType: Bool, _ myId: Int) -> String? {
         if isFileType {
-            let fileStringName = conversation.lastMessageVO?.messageType?.fileStringName ?? "MessageType.file"
+            var fileStringName = conversation.lastMessageVO?.messageType?.fileStringName ?? "MessageType.file"
+            var isLocation = false
+            if let data = conversation.lastMessageVO?.metadata?.data(using: .utf8),
+               let _ = try? JSONDecoder().decode(FileMetaData.self, from: data).mapLink {
+                fileStringName =  "MessageType.location"
+            }
             let isMe = conversation.lastMessageVO?.ownerId ?? 0 == myId
             let sentVerb = (isMe ? "Genral.mineSendVerb" : "General.thirdSentVerb").bundleLocalized()
             let formatted = String(format: sentVerb, fileStringName.bundleLocalized())
