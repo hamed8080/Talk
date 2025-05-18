@@ -391,6 +391,9 @@ extension ThreadHistoryViewModel {
 
     private func onMoreTop(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         // If the last message of the thread deleted and we have seen all the messages we move to top of the thread which is wrong
+        await waitingToFinishDecelerating()
+        await waitingToFinishUpdating()
+        
         let wasEmpty = sections.isEmpty
         let topVMBeforeJoin = sections.first?.vms.first
         let messages = response.result ?? []
@@ -398,10 +401,8 @@ extension ThreadHistoryViewModel {
         let beforeSectionCount = sections.count
         let sortedMessages = messages.sortedByTime()
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
-        let shouldUpdateOldTopSection = stitchAvatarsOnLoadMoreTop(viewModels)
-
-        await waitingToFinishDecelerating()
-        await waitingToFinishUpdating()
+        let shouldUpdateOldTopSection = StitchAvatarCalculator.forTop(sections, viewModels)
+        
         await appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
         await viewModel?.scrollVM.disableExcessiveLoading()
@@ -442,40 +443,6 @@ extension ThreadHistoryViewModel {
         await prepareAvatars(viewModels)
     }
     
-    private func stitchAvatarsOnLoadMoreTop(_ sortedVMS: [MessageRowViewModel]) -> MessageRowViewModel? {
-        let sorted = sortedVMS.sorted(by: {$0.message.id ?? 0 < $1.message.id ?? 0 })
-        guard
-            let sectionFirstMessage = sections.first?.vms.first,
-            let lastSortedMessage = sorted.last
-        else { return nil }
-        
-        var shouldUpdateTopInSection = false
-        if sectionFirstMessage.message.ownerId == lastSortedMessage.message.ownerId {
-            sectionFirstMessage.calMessage.isFirstMessageOfTheUser = false
-            lastSortedMessage.calMessage.isLastMessageOfTheUser = false
-            shouldUpdateTopInSection = true
-        }
-        
-        return shouldUpdateTopInSection ? sectionFirstMessage : nil
-    }
-    
-    private func stitchAvatarsOnLoadMoreBottom(_ sortedVMS: [MessageRowViewModel]) -> MessageRowViewModel? {
-        let sorted = sortedVMS.sorted(by: {$0.message.id ?? 0 < $1.message.id ?? 0 })
-        guard
-            let sectionLastMessage = sections.last?.vms.last,
-            let firstSortedMessage = sorted.first
-        else { return nil }
-        
-        var shouldUpdateBottomInSection = false
-        if sectionLastMessage.message.ownerId == firstSortedMessage.message.ownerId {
-            sectionLastMessage.calMessage.isLastMessageOfTheUser = false
-            firstSortedMessage.calMessage.isFirstMessageOfTheUser = false
-            shouldUpdateBottomInSection = true
-        }
-        
-        return shouldUpdateBottomInSection ? sectionLastMessage : nil
-    }
-
     private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) async {
         if await isLastMessageEqualToLastSeen(), await !isLastMessageExistInSortedMessages(sortedMessages) {
             let lastSortedMessage = sortedMessages.last
@@ -490,12 +457,8 @@ extension ThreadHistoryViewModel {
     }
     
     private func reloadIfStitchChangedOnNewMessage(_ bottomVMBeforeJoin: MessageRowViewModel?, _ newMessage: Message) async {
-        guard
-            let bottomVMBeforeJoin = bottomVMBeforeJoin,
-            bottomVMBeforeJoin.message.ownerId == newMessage.ownerId,
-            let indexPath = sections.indexPath(for: bottomVMBeforeJoin)
-        else { return }
-        bottomVMBeforeJoin.calMessage.isLastMessageOfTheUser = false
+        guard let indexPath = StitchAvatarCalculator.forNew(sections, newMessage, bottomVMBeforeJoin) else { return }
+        bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
         await delegate?.reloadData(at: indexPath)
     }
 
@@ -508,14 +471,15 @@ extension ThreadHistoryViewModel {
     }
 
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
+        await waitingToFinishDecelerating()
+        await waitingToFinishUpdating()
+        
         let messages = response.result ?? []
         let beforeSectionCount = sections.count
         let sortedMessages = messages.sortedByTime()
         let viewModels = await makeCalculateViewModelsFor(sortedMessages)
-        let shouldUpdateOldBottomSection = stitchAvatarsOnLoadMoreBottom(viewModels)
-
-        await waitingToFinishDecelerating()
-        await waitingToFinishUpdating()
+        let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, viewModels)
+        
         await appendSort(viewModels)
         /// 4- Disable excessive loading on the top part.
         await viewModel?.scrollVM.disableExcessiveLoading()

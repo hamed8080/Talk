@@ -50,7 +50,7 @@ public final class UploadFileManager {
     public func cancel(viewModelUniqueId: String) async {
         guard let vm = viewModel(for: viewModelUniqueId) else { return }
         if let indexPath = viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
-            viewModel?.historyVM.sectionsHolder.deleteIndices([indexPath])
+            await viewModel?.historyVM.sectionsHolder.deleteIndices([indexPath])
         }
         vm.action(.cancel)
         unRegister(viewModelUniqueId: viewModelUniqueId)

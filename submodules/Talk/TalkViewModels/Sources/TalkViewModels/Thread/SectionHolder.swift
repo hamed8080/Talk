@@ -8,27 +8,40 @@
 import Foundation
 import Chat
 
+public actor UpdatingActor {
+    public private(set) var isUpdating = false
+    
+    public func setUpdating(value: Bool) {
+        isUpdating = value
+    }
+}
+
 @MainActor
 public final class SectionHolder {
     public private(set) var sections: ContiguousArray<MessageSection> = .init()
-    public private(set) var isUpdating: Bool = false
     public weak var delegate: HistoryScrollDelegate?
+    public var updatingActor = UpdatingActor()
     
     public nonisolated init() {}
     
-    public func setSections(_ sections: ContiguousArray<MessageSection>) {
+    public func setSections(_ sections: ContiguousArray<MessageSection>) async {
+        await waitUntilIsUpdatingFalse()
+        log("setsections: \(sections.indices)")
         self.sections = sections
     }
     
-    public func removeAll() {
+    public func removeAll() async {
+        await waitUntilIsUpdatingFalse()
+        log("removeAll")
         sections.removeAll()
         delegate?.reload()
     }
     
-    public func deleteIndices(_ indices: [IndexPath]) {
+    public func deleteIndices(_ indices: [IndexPath]) async {
+        log("deleteIndicies: \(indices)")
         var sectionsToDelete: [Int] = []
         var rowsToDelete: [IndexPath] = indices
-        
+        await waitUntilIsUpdatingFalse()
         Dictionary(grouping: indices, by: {$0.section}).forEach { section, indexPaths in
             for indexPath in indexPaths.sorted(by: {$0.row > $1.row}) {
                 guard isSectionAndRowExist(indexPath) else {
@@ -52,7 +65,9 @@ public final class SectionHolder {
         delegate?.delete(sections: sectionsSet, rows: rowsToDelete)
     }
     
-    public func append(section: Int, vm: MessageRowViewModel) {
+    public func append(section: Int, vm: MessageRowViewModel) async {
+        await waitUntilIsUpdatingFalse()
+        log("append: \(section), vm messageId: \(vm.message.id)")
         sections[section].vms.append(vm)
         if let lastIndex = sections[section].vms.indices.last {
             let indexPath = IndexPath(row: lastIndex, section: section)
@@ -60,7 +75,9 @@ public final class SectionHolder {
         }
     }
     
-    public func reload(at: IndexPath, vm: MessageRowViewModel) {
+    public func reload(at: IndexPath, vm: MessageRowViewModel) async {
+        await waitUntilIsUpdatingFalse()
+        log("reload")
         sections[at.section].vms[at.row] = vm
         delegate?.reloadData(at: at)
     }
@@ -68,5 +85,21 @@ public final class SectionHolder {
     private func isSectionAndRowExist(_ indexPath: IndexPath) -> Bool {
         guard sections.indices.contains(where: {$0 == indexPath.section}) else { return false }
         return sections[indexPath.section].vms.indices.contains(where: {$0 == indexPath.row})
+    }
+    
+    public func setUpdating(value: Bool) {
+        Task {
+            await updatingActor.setUpdating(value: value)
+        }
+    }
+    
+    private func waitUntilIsUpdatingFalse() async {
+        while(await updatingActor.isUpdating) {}
+    }
+    
+    private func log(_ message: String) {
+#if DEBUG
+        LogManager.shared.log("SectionHolder: \(message)")
+#endif
     }
 }

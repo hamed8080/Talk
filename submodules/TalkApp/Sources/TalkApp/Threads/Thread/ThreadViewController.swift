@@ -460,7 +460,11 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func reload() {
+        self.viewModel?.historyVM.isUpdating = true
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
         tableView.reloadData()
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+        self.viewModel?.historyVM.isUpdating = false
     }
 
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
@@ -521,6 +525,13 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func inserted(at: IndexPath) {
+        self.viewModel?.historyVM.isUpdating = true
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+#if DEBUG
+        log("inserted(at: IndexPath)")
+        LogManager.shared.log("inserted at indexPath: \(at)")
+        LogManager.shared.log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
+#endif
         tableView.beginUpdates()
         // Insert a new section if we have a message in a new day.
         let beforeNumberOfSections = tableView.numberOfSections
@@ -529,36 +540,65 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
         tableView.insertRows(at: [at], with: .fade)
         tableView.endUpdates()
+        self.viewModel?.historyVM.isUpdating = false
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
     }
     
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
-        inserted(sections: sections, rows: rows, animate: animate, scrollTo: scrollTo)
+        if let scrollTo = scrollTo {
+            insertedWithoutAnimation(sections: sections, rows: rows, scrollTo: scrollTo)
+        } else {
+            insertedWithAnimation(sections: sections, rows: rows)
+        }
+    }
+    
+    func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath], scrollTo: IndexPath) {
+#if DEBUG
+        log("inserted and scroll to")
+        LogManager.shared.log("insertingSections without animation: \(sections), insertingRows: \(rows)")
+        LogManager.shared.log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
+#endif
+        viewModel?.historyVM.isUpdating = true
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        UIView.performWithoutAnimation {
+            tableView.beginUpdates()
+            self.tableView.insertSections(sections, with: .none)
+            self.tableView.insertRows(at: rows, with: .none)
+            tableView.endUpdates()
+            self.viewModel?.historyVM.isUpdating = false
+            self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+            self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
+        }
     }
 
-    private func inserted(sections: IndexSet, rows: [IndexPath], animate: UITableView.RowAnimation = .top, scrollTo: IndexPath?) {
-        if let scrollTo = scrollTo {
-            UIView.performWithoutAnimation {
-                tableView.beginUpdates()
-                tableView.insertSections(sections, with: .none)
-                tableView.insertRows(at: rows, with: .none)
-                tableView.endUpdates()
+    func insertedWithAnimation(sections: IndexSet, rows: [IndexPath]) {
+        if sections.isEmpty && rows.isEmpty { return }
+#if DEBUG
+        log("inserted without scroll to")
+        LogManager.shared.log("insertingSections with animation: \(sections), insertingRows: \(rows)")
+        LogManager.shared.log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
+#endif
+        self.viewModel?.historyVM.isUpdating = true
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        tableView.performBatchUpdates { [weak self] in
+            if !sections.isEmpty {
+                self?.tableView.insertSections(sections, with: .none)
             }
-            tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
-        } else {
-            if sections.isEmpty && rows.isEmpty { return }
-            tableView.performBatchUpdates { [weak self] in
-                // Insert the sections and rows without animation
-                if !sections.isEmpty {
-                    self?.tableView.insertSections(sections, with: .none)
-                }
-                if !rows.isEmpty {
-                    self?.tableView.insertRows(at: rows, with: .none)
-                }
+            if !rows.isEmpty {
+                self?.tableView.insertRows(at: rows, with: .none)
+            }
+        } completion: { completed in
+            if completed {
+                self.viewModel?.historyVM.isUpdating = false
+                self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
             }
         }
     }
     
     func delete(sections: [IndexSet], rows: [IndexPath]) {
+        log("deleted sections")
+        viewModel?.historyVM.isUpdating = true
+        self.viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
         tableView.performBatchUpdates {
             /// Firstly, we have ato delete rows to have right index for rows,
             /// then we are prepared to delete sections
@@ -572,11 +612,16 @@ extension ThreadViewController: HistoryScrollDelegate {
                     tableView.deleteSections(sectionSet, with: .fade)
                 }
             }
+        } completion: { completed in
+            self.viewModel?.historyVM.isUpdating = false
+            self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
         }
     }
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
+        log("update reactions")
         viewModel?.historyVM.isUpdating = true
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
         tableView.performBatchUpdates { [weak self] in
             guard let self = self else { return }
             for indexPath in indexPaths {
@@ -586,30 +631,40 @@ extension ThreadViewController: HistoryScrollDelegate {
             }
         } completion: { [weak self] completed in
             self?.viewModel?.historyVM.isUpdating = false
+            self?.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
         }
     }
     
     public func reactionDeleted(indexPath: IndexPath, reaction: Reaction) {
+        log("reaciton deleted")
         if let tuple = cellFor(indexPath: indexPath) {
+            self.viewModel?.historyVM.isUpdating = true
             tableView.beginUpdates()
             tuple.cell.reactionDeleted(reaction)
             tableView.endUpdates()
+            self.viewModel?.historyVM.isUpdating = false
         }
     }
     
     public func reactionAdded(indexPath: IndexPath, reaction: Reaction) {
+        log("reaction added")
         if let tuple = cellFor(indexPath: indexPath) {
+            self.viewModel?.historyVM.isUpdating = true
             tableView.beginUpdates()
             tuple.cell.reactionAdded(reaction)
             tableView.endUpdates()
+            self.viewModel?.historyVM.isUpdating = false
         }
     }
     
     public func reactionReplaced(indexPath: IndexPath, reaction: Reaction) {
+        log("reaction replaced")
         if let tuple = cellFor(indexPath: indexPath) {
+            self.viewModel?.historyVM.isUpdating = true
             tableView.beginUpdates()
             tuple.cell.reactionReplaced(reaction)
             tableView.endUpdates()
+            self.viewModel?.historyVM.isUpdating = false
         }
     }
     
@@ -617,6 +672,13 @@ extension ThreadViewController: HistoryScrollDelegate {
         guard let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell else { return nil }
         guard let vm = sections.viewModelWith(indexPath) else { return nil }
         return (vm, cell)
+    }
+    
+    private func log(_ message: String) {
+#if DEBUG
+        print("Called: ", message)
+        LogManager.shared.log("Called: \(message)")
+#endif
     }
 }
 
