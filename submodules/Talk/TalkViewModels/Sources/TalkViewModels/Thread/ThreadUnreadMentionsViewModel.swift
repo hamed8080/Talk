@@ -48,8 +48,8 @@ public final class ThreadUnreadMentionsViewModel {
         guard let threadId = thread?.id else { return }
         let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)
         RequestsManager.shared.append(prepend: UNREAD_MENTIONS_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.message.history(req)
+        Task {
+            await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.mentions(req: req))
         }
     }
 

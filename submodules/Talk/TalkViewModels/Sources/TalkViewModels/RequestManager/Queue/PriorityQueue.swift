@@ -33,4 +33,12 @@ public struct PriorityQueue<Element: Comparable> {
     public func firstIndex(where predicate: (Element) -> Bool ) -> Int? {
         elements.firstIndex(where: predicate)
     }
+    
+    public func indices() -> Range<Int> {
+        elements.indices
+    }
+    
+    public func indexOf(_ index: Int) -> Element {
+        return elements[index]
+    }
 }

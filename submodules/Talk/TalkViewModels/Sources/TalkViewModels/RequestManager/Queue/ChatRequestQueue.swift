@@ -19,6 +19,7 @@ public class ChatRequestQueue {
         let deadline: DispatchTime = .now() + throttleInterval
         log("Enqueuing the request: \(type) and deadline to start from now is:\(throttleInterval)")
         let isDuplicateRemoved = removeOldConversaionReq(newReq: type)
+        removeOldMentionsReq(newReq: type)
         requestQueue.enqueue(type)
         processWithDelay(deadline: isDuplicateRemoved ? .now() + 0 : deadline)
         throttleInterval += 3
@@ -50,6 +51,8 @@ public class ChatRequestQueue {
             ChatManager.activeInstance?.contact.get(req)
         case .history(let req):
             ChatManager.activeInstance?.message.history(req)
+        case .mentions(let req):
+            ChatManager.activeInstance?.message.history(req)
         case .reactionCount(let req):
             ChatManager.activeInstance?.reaction.count(req)
         }
@@ -75,7 +78,23 @@ public class ChatRequestQueue {
             return false
         }
     }
+
+    private func removeOldMentionsReq(newReq: RequestEnqueuType) {
+        if case let .mentions = newReq, let indices = oldMentionReqeustIndex() {
+            for index in indices {
+                requestQueue.remove(at: index)
+            }
+        }
+    }
     
+    private func oldMentionReqeustIndex() -> [Int]? {
+        var indices: [Int] = []
+        for index in requestQueue.indices() {
+            if case .mentions = requestQueue.indexOf(index) as? RequestEnqueuType { indices.append(index) }
+        }
+        return indices
+    }
+
     private func log(_ string: String) {
 #if DEBUG
         let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
