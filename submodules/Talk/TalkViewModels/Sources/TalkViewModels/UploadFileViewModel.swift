@@ -70,6 +70,7 @@ public final class UploadFileViewModel: ObservableObject {
                 upload(.image(sendRequest, request))
             }
         } else if let locationRequest = fileMessage.locationRequest {
+            uploadUniqueId = locationRequest.uniqueId
             upload(.location(locationRequest))
         }
     }
