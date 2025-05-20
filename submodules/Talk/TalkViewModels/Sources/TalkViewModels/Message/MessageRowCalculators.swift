@@ -10,8 +10,6 @@ import SwiftUI
 import TalkModels
 import Chat
 import UIKit
-import DSWaveformImage
-import AVFoundation
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -185,11 +183,6 @@ class MessageRowCalculators {
         let color = mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
         newCal.participantColor = color ?? .clear
         newCal.fileURL = await getFileURL(serverURL: message.url)
-        if newCal.rowType.isAudio, let fileURL = newCal.fileURL {
-            let tuple = await generateWaveForm(fileURL: fileURL, message: message)
-            newCal.waveForm = tuple.image
-            newCal.voiceDuration = voiceDuration(tuple.url)
-        }
         return newCal
     }
     
@@ -764,57 +757,6 @@ class MessageRowCalculators {
         lm.glyphRange(forBoundingRect: CGRect(origin: .zero, size: size), in: tc)
         let rect = lm.usedRect(for: tc)
         return rect
-    }
-    
-    private class func generateWaveForm(fileURL: URL, message: HistoryMessageType) async -> (image: UIImage?, url: URL?) {
-        let width: CGFloat = 246
-        let height: CGFloat = 24
-        
-        if let convertedURL = convertedAudioURL(message: message),
-           let image = try? await generateWave(url: convertedURL, width: width, height: height) {
-            return (image, convertedURL)
-        } else if let linkURL = fileURL.createHardLink(for: fileURL, ext: "mp4"),
-            let image = try? await generateWave(url: linkURL, width: width, height: height) {
-            return (image, linkURL)
-        } else if let linkURL = fileURL.createHardLink(for: fileURL, ext: "wav"),
-                  let image = try? await generateWave(url: linkURL, width: width, height: height) {
-            return (image, linkURL)
-        } else {
-            return (nil, nil)
-        }
-    }
-    
-    private class func convertedAudioURL(message: HistoryMessageType?) -> URL? {
-        if let convertedURL = message?.convertedFileURL, FileManager.default.fileExists(atPath: convertedURL.path()) {
-            return convertedURL
-        }
-        return nil
-    }
-    
-    private class func generateWave(url: URL, width: CGFloat, height: CGFloat) async throws -> UIImage {
-        let waveformImageDrawer = WaveformImageDrawer()
-        return try await waveformImageDrawer.waveformImage(
-            fromAudioAt: url,
-            with: .init(
-                size: .init(width: width, height: height),
-                style: .striped(
-                    .init(
-                        color: UIColor.gray,
-                        width: 2,
-                        spacing: 4,
-                        lineCap: .round
-                    )
-                ),
-                shouldAntialias: true
-            ),
-            renderer: LinearWaveformRenderer()
-        )
-    }
-    
-    private class func voiceDuration(_ fileURL: URL?) -> Double? {
-        guard let fileURL = fileURL else { return nil }
-        let asset = AVAsset(url: fileURL)
-        return Double(CMTimeGetSeconds(asset.duration))
     }
 
     class func calculateEstimatedHeight(_ calculatedMessage: MessageRowCalculatedData, _ sizes: MessageRowSizes) -> CGFloat {

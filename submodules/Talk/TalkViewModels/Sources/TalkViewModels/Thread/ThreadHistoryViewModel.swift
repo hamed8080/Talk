@@ -393,6 +393,9 @@ extension ThreadHistoryViewModel {
         // If the last message of the thread deleted and we have seen all the messages we move to top of the thread which is wrong
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
+        await MainActor.run {
+            isUpdating = true
+        }
         
         let wasEmpty = sections.isEmpty
         let topVMBeforeJoin = sections.first?.vms.first
@@ -473,6 +476,10 @@ extension ThreadHistoryViewModel {
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
+        
+        await MainActor.run {
+            isUpdating = true
+        }
         
         let messages = response.result ?? []
         let beforeSectionCount = sections.count

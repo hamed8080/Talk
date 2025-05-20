@@ -9,6 +9,7 @@ import Foundation
 
 @MainActor
 public class LogManager {
+    let isLogOnDiskEnabled = ProcessInfo().environment["ENABLE_TALK_LOG_ON_DISK"] == "1"
     @MainActor public static let shared = LogManager()
     
     private let fileName = "debug_log.txt"
@@ -20,6 +21,7 @@ public class LogManager {
     }
 
     public func log(_ message: String) {
+        if !isLogOnDiskEnabled { return }
         let timestamp = ISO8601DateFormatter().string(from: Date())
         // Use actual newline character (\n), not literal "\\n"
         let fullMessage = "[\(timestamp)] \(message)\n"

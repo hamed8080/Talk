@@ -205,9 +205,12 @@ struct UserInformationSection: View {
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.clear)
         }
-        EmptyView()
+        Rectangle()
             .frame(width: 0, height: 0)
             .listRowSeparator(.hidden)
+            .listRowInsets(.zero)
+            .listRowSeparatorTint(Color.clear)
+            .listRowBackground(Color.clear)
             .onAppear {
                 updateUI(user: AppState.shared.user)
             }

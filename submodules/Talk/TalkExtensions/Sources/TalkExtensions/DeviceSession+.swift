@@ -17,7 +17,7 @@ public extension DeviceSession {
         dict.append(("ManageSessions.os", os))
         dict.append(("ManageSessions.osVersion", osVersion ?? parseOSVersion()))
         dict.append(("ManageSessions.ip", clientIp ?? ip))
-        dict.append(("ManageSessions.lastActivity", "\(lastAccessTime?.date.timeAgoSinceDateCondense(local: Language.preferredLocale) ?? "")"))
+        dict.append(("ManageSessions.lastActivity", "\(lastAccessTime?.date.dayMonthNameYear(local: Language.preferredLocale) ?? "")"))
 //        dict.append(("ManageSessions.location", "\(location?.name ?? "General.unknown")"))
         return dict
     }

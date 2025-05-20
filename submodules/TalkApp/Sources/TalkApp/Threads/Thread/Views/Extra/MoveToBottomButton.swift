@@ -87,8 +87,11 @@ public final class MoveToBottomButton: UIButton {
     }
 
     public func updateUnreadCount() {
-        let thread = viewModel?.threadsViewModel?.threads.first(where: {$0.id == viewModel?.threadId})
+        let isArchive = viewModel?.thread.isArchive == true
+        let threads = isArchive ?AppState.shared.objectsContainer.archivesVM.archives : viewModel?.threadsViewModel?.threads ?? []
+        let thread = threads.first(where: {$0.id == viewModel?.threadId})
         let unreadCount = thread?.unreadCount ?? 0
+        
         lblUnreadCount.setIsHidden(unreadCount == 0)
         self.lblUnreadCount.label.addFlipAnimation(text: thread?.unreadCountString)
     }

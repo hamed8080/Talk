@@ -12,6 +12,8 @@ import TalkModels
 
 struct DetailViewNumberOfParticipants: View {
     var viewModel: ThreadViewModel
+    /// Even we don't use this detailVM variable it is essential to update participants count when a participant is removed / added ...
+    @EnvironmentObject var detailVM: ThreadDetailViewModel
 
     var body: some View {
         let label = "Thread.Toolbar.participants".bundleLocalized()

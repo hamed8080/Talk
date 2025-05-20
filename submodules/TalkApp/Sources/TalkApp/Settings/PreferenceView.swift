@@ -10,7 +10,7 @@ import TalkUI
 import TalkViewModels
 
 struct PreferenceView: View {
-    @State var model = AppSettingsModel.restore()
+    @State var isSyncOn = false
 
     var body: some View {
         List {
@@ -30,7 +30,7 @@ struct PreferenceView: View {
                     .sandboxLabel()
                 Section("Tab.contacts") {
                     VStack(alignment: .leading, spacing: 2) {
-                        Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $model.isSyncOn)
+                        Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $isSyncOn)
                         Text("Contacts.Sync.subtitle")
                             .foregroundColor(.gray)
                             .font(.fCaption3)
@@ -45,7 +45,9 @@ struct PreferenceView: View {
         .environment(\.defaultMinListRowHeight, 8)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .onChange(of: model) { _ in
+        .onChange(of: isSyncOn) { newValue in
+            var model = AppSettingsModel.restore()
+            model.isSyncOn = newValue
             model.save()
         }
         .normalToolbarView(title: "Settings.title", type: PreferenceNavigationValue.self)

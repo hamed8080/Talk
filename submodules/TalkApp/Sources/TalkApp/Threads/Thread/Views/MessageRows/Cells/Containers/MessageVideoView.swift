@@ -30,7 +30,9 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
 
     // Models
     private var playerVC: AVPlayerViewController?
+    private var fullScreenPlayerVC: AVPlayerViewController?
     private var videoPlayerVM: VideoPlayerViewModel?
+    private var fullScreenVideoPlayerVM: VideoPlayerViewModel?
     private weak var viewModel: MessageRowViewModel?
     private var message: HistoryMessageType? { viewModel?.message }
     private static let playIcon: UIImage = UIImage(systemName: "play.fill")!
@@ -219,14 +221,29 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
 
     @objc private func onTap(_ sender: UIGestureRecognizer) {
         if viewModel?.calMessage.fileURL != nil {
-            videoPlayerVM?.toggle()
-            enterFullScreen(animated: true)
+            enterFullScreen()
         } else {
             // Download file
             viewModel?.onTap()
         }
     }
-
+    
+    private func enterFullScreen() {
+        guard let rootVC = viewModel?.threadVM?.delegate as? UIViewController else { return }
+        if fullScreenPlayerVC == nil {
+            fullScreenPlayerVC = AVPlayerViewController()
+        }
+        fullScreenVideoPlayerVM?.toggle()
+        fullScreenPlayerVC?.player = fullScreenVideoPlayerVM?.player
+        fullScreenPlayerVC?.delegate = self
+        fullScreenPlayerVC?.showsPlaybackControls = true
+        fullScreenPlayerVC?.allowsVideoFrameAnalysis = false
+        fullScreenPlayerVC?.modalPresentationStyle = .fullScreen
+        rootVC.present(fullScreenPlayerVC!, animated: true) {
+            self.fullScreenVideoPlayerVM?.player?.play()
+        }
+    }
+    
     @MainActor
     private func setVideo(player: AVPlayer) {
         if playerVC == nil {
@@ -237,8 +254,9 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         playerVC?.allowsVideoFrameAnalysis = false
         playerVC?.entersFullScreenWhenPlaybackBegins = true
         playerVC?.delegate = self
-        addPlayerViewToView()
         
+        addPlayerViewToView()
+        bringSubviewToFront(playOverlayView)
         
         /// Add auto play if is enabled in the setting, default is true with mute audio
         if viewModel?.threadVM?.model.isAutoPlayVideoEnabled == true {
@@ -267,20 +285,14 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     }
 
     func playerViewController(_ playerViewController: AVPlayerViewController, willBeginFullScreenPresentationWithAnimationCoordinator coordinator: any UIViewControllerTransitionCoordinator) {
-        playerVC?.showsPlaybackControls = true
+        fullScreenPlayerVC?.showsPlaybackControls = true
+        playerVC?.player?.pause()
     }
     
-    public func playerViewController(_ playerViewController: AVPlayerViewController, willEndFullScreenPresentationWithAnimationCoordinator coordinator: UIViewControllerTransitionCoordinator) {
-        playerVC?.showsPlaybackControls = false
-    }
-
-    func enterFullScreen(animated: Bool) {
-        playerVC?.player?.isMuted = false
-        playerVC?.perform(NSSelectorFromString("enterFullScreenAnimated:completionHandler:"), with: animated, with: nil)
-    }
-
-    func exitFullScreen(animated: Bool) {
-        playerVC?.perform(NSSelectorFromString("exitFullScreenAnimated:completionHandler:"), with: animated, with: nil)
+    func playerViewController(_ playerViewController: AVPlayerViewController, willEndFullScreenPresentationWithAnimationCoordinator coordinator: any UIViewControllerTransitionCoordinator) {
+        if videoPlayerVM?.isFinished == false {
+            playerVC?.player?.play()
+        }
     }
 
     private func makeViewModel(url: URL, message: HistoryMessageType?) async {
@@ -290,7 +302,11 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
                              ext: metadata?.file?.mimeType?.ext,
                              title: metadata?.name,
                              subtitle: metadata?.file?.originalName ?? "")
-    }
+        self.fullScreenVideoPlayerVM = VideoPlayerViewModel(fileURL: url,
+                                                       ext: metadata?.file?.mimeType?.ext,
+                                                       title: metadata?.name,
+                                                       subtitle: metadata?.file?.originalName ?? "")
+   }
     
     @AppBackgroundActor
     private func metadata(message: HistoryMessageType?) async -> FileMetaData? {

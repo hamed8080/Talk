@@ -181,7 +181,10 @@ extension ThreadsViewModel {
         case .new(let chatResponse):
             let message = chatResponse.result ?? .init()
             let myId = AppState.shared.user?.id ?? -1
-            let isMeJoinedPublic = message.messageType == .participantJoin && message.participant?.id == myId
+            let isPrivate = message.conversation?.type?.isPrivate == true
+            let isMeJoinedPublic = message.messageType == .participantJoin && message.participant?.id == myId && !isPrivate
+            /// This if prevent duplicate joined to a public group by discarding this message,
+            /// it will be added by another event directly
             if !isMeJoinedPublic {
                 await onNewMessage([message], conversationId: message.conversation?.id ?? -1)
             }

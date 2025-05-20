@@ -17,10 +17,14 @@ struct DetailTopButtonsSection: View {
     var body: some View {
         HStack(spacing: 16) {
             Spacer()
+            let isArchive = viewModel.thread?.isArchive == true
             if viewModel.thread?.type != .selfThread {
                 DetailViewButton(accessibilityText: "", icon: viewModel.thread?.mute ?? false ? "bell.slash.fill" : "bell.fill") {
                     viewModel.toggleMute()
                 }
+                .opacity(isArchive ? 0.4 : 1.0)
+                .disabled(isArchive)
+                .allowsHitTesting(false)
 
                 DetailViewButton(accessibilityText: "", icon: "phone.and.waveform.fill") {
 

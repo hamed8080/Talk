@@ -8,7 +8,7 @@
 import Foundation
 import Chat
 
-public actor UpdatingActor {
+fileprivate actor UpdatingActor {
     public private(set) var isUpdating = false
     
     public func setUpdating(value: Bool) {
@@ -20,7 +20,7 @@ public actor UpdatingActor {
 public final class SectionHolder {
     public private(set) var sections: ContiguousArray<MessageSection> = .init()
     public weak var delegate: HistoryScrollDelegate?
-    public var updatingActor = UpdatingActor()
+    private var updatingActor = UpdatingActor()
     
     public nonisolated init() {}
     

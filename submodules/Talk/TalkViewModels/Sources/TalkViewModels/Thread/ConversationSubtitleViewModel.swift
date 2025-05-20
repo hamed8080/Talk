@@ -19,9 +19,9 @@ public final class ConversationSubtitleViewModel {
     public weak var viewModel: ThreadViewModel?
     private var cancellableSet: Set<AnyCancellable> = []
     private let PARTICIPANTS_COUNT_KEY: String = "GET-PARTICIPANTS-COUNT-\(UUID().uuidString)"
-
+    
     public init() {}
-
+    
     public func setup(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
         if isP2P {
@@ -31,7 +31,7 @@ public final class ConversationSubtitleViewModel {
         }
         registerObservers()
     }
-
+    
     private func registerObservers() {
         AppState.shared.$connectionStatus
             .sink { [weak self] newValue in
@@ -50,7 +50,7 @@ public final class ConversationSubtitleViewModel {
             }
             .store(in: &cancellableSet)
     }
-
+    
     private func getParticipantsCountOrLastSeen() -> String? {
         let threadsItem = viewModel?.threadsViewModel?.threads.first(where: {$0.id == thread?.id})
         let count = thread?.participantCount ?? threadsItem?.participantCount ?? 0
@@ -70,14 +70,14 @@ public final class ConversationSubtitleViewModel {
             return nil
         }
     }
-
+    
     private func setUnknownSubtitle() -> String {
         let lastSeen = "Contacts.lastSeen.unknown".bundleLocalized()
         let localized = "Contacts.lastVisited".bundleLocalized()
         let formatted = String(format: localized, lastSeen)
         return formatted
     }
-
+    
     private func getPartnerInfo() {
         guard let threadId = thread?.id else { return }
         p2pPartnerFinderVM = .init()
@@ -87,7 +87,7 @@ public final class ConversationSubtitleViewModel {
             }
         }
     }
-
+    
     private func processResponse(_ partner: Participant) {
         guard let lastSeen = partner.notSeenDuration?.lastSeenString else { return }
         let localized = "Contacts.lastVisited".bundleLocalized()
@@ -95,15 +95,15 @@ public final class ConversationSubtitleViewModel {
         self.partnerLastSeen = formatted
         updateTo(partnerLastSeen)
     }
-
+    
     private var isP2P: Bool {
         thread?.group == false && thread?.type != .selfThread
     }
-
+    
     private func updateTo(_ newValue: String?) {
         viewModel?.delegate?.updateSubtitleTo(newValue)
     }
-
+    
     public func setEvent(smt: SMT?) {
         let hasEvent = smt != nil
         if hasEvent {
@@ -112,7 +112,7 @@ public final class ConversationSubtitleViewModel {
             updateTo(getParticipantsCountOrLastSeen())
         }
     }
-
+    
     private func setParticipantsCountOnOpen() {
         Task {
             // We will wait to delegate inside the ThreadViewModel set by viewController then set the participants count.
@@ -137,5 +137,9 @@ public final class ConversationSubtitleViewModel {
             viewModel?.thread.participantCount = response.result?.first?.participantCount
             updateTo(getParticipantsCountOrLastSeen())
         }
+    }
+    
+    public func updateSubtitle() {
+        setParticipantsCountOnOpen()
     }
 }

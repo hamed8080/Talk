@@ -12,6 +12,7 @@ import SwiftUI
 import TalkModels
 import TalkExtensions
 import OSLog
+import Logger
 
 @MainActor
 public final class ArchiveThreadsViewModel: ObservableObject {
@@ -20,19 +21,25 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     public private(set) var cancelable: Set<AnyCancellable> = []
     private(set) var hasNext: Bool = true
     public var isLoading = false
+    public private(set) var firstSuccessResponse = false
     private var canLoadMore: Bool { hasNext && !isLoading }
     public var archives: ContiguousArray<CalculatedConversation> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     private var objectId = UUID().uuidString
     private let GET_ARCHIVES_KEY: String
-    public var hasShownToastGuide = false
-
+    private var wasDisconnected = false
+    internal let incQueue = IncommingMessagesQueue()
+    
+    // MARK: Computed properties
+    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+    private var myId: Int { AppState.shared.user?.id ?? -1 }
+    
     public init() {
         GET_ARCHIVES_KEY = "GET-ARCHIVES-\(objectId)"
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
             .sink { [weak self] event in
-                Task {
+                Task { [weak self] in
                     await self?.onThreadEvent(event)
                 }
             }
@@ -40,7 +47,17 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
-                self?.onMessageEvent(event)
+                Task { [weak self] in
+                    await self?.onMessageEvent(event)
+                }
+            }
+            .store(in: &cancelable)
+        NotificationCenter.participant.publisher(for: .participant)
+            .compactMap { $0.object as? ParticipantEventTypes }
+            .sink { [weak self] event in
+                Task { [weak self] in
+                    await self?.onParticipantEvent(event)
+                }
             }
             .store(in: &cancelable)
         NotificationCenter.onRequestTimer.publisher(for: .onRequestTimer)
@@ -61,7 +78,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func onThreadEvent(_ event: ThreadEventTypes?) async {
         switch event {
         case .threads(let response):
-            onArchives(response)
+            await onArchives(response)
         case .archive(let response):
             await onArchive(response)
         case .unArchive(let response):
@@ -78,15 +95,37 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             onUpdateThreadInfo(response)
         case .deleted(let response):
             onDeleteThread(response)
+        case .unreadCount(let response):
+            await onUnreadCounts(response)
         default:
             break
         }
     }
 
-    private func onMessageEvent(_ event: MessageEventTypes?) {
+    private func onMessageEvent(_ event: MessageEventTypes?) async {
         switch event {
         case .new(let chatResponse):
             onNewMessage(chatResponse)
+        case .forward(let chatResponse):
+            incQueue.onMessageEvent(chatResponse)
+        case .seen(let response):
+            onSeen(response)
+        case .deleted(let response):
+            await onMessageDeleted(response)
+        case .pin(let response):
+            onPinMessage(response)
+        case .unpin(let response):
+            onUNPinMessage(response)
+        default:
+            break
+        }
+    }
+    
+    @MainActor
+    func onParticipantEvent(_ event: ParticipantEventTypes) async {
+        switch event {
+        case .add(let chatResponse):
+            await onAddPrticipant(chatResponse)
         default:
             break
         }
@@ -112,7 +151,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             ChatManager.activeInstance?.conversation.unarchive(.init(subjectId: threadId))
         }
     }
-
+    
     public func getArchivedThreads() {
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
@@ -123,15 +162,14 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         animateObjectWillChange()
     }
 
-    public func onArchives(_ response: ChatResponse<[Conversation]>) {
-        if !response.cache, let archives = response.result, response.pop(prepend: GET_ARCHIVES_KEY) != nil {
-            let filtered = archives.filter { archive in
-                return !self.archives.contains(where: {$0.id == archive.id})
-            }
-            let myId = AppState.shared.user?.id ?? -1
-            Task {
-                let calThreads = await ThreadCalculators.calculate(filtered, myId, nil, false)
-                self.archives.append(contentsOf: calThreads)
+    @AppBackgroundActor
+    public func onArchives(_ response: ChatResponse<[Conversation]>) async {
+        if !response.cache, let archivesResp = response.result, response.pop(prepend: GET_ARCHIVES_KEY) != nil {
+            let calculatedThreads = await ThreadCalculators.calculate(archivesResp, myId, navVM.selectedId, false)
+            let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads: self.archives)
+            let sorted = await sort(threads: newThreads)
+            await MainActor.run {
+                self.archives = sorted
                 isLoading = false
                 animateObjectWillChange()
             }
@@ -143,7 +181,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
             let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, AppState.shared.objectsContainer.navVM.selectedId)
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
             archives.append(calThreads)
             threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
             await threadsVM.sortInPlace()
@@ -156,13 +194,49 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if response.result != nil, response.error == nil, let index = archives.firstIndex(where: {$0.id == response.result}) {
             var conversation = archives[index]
             conversation.isArchive = false
+            conversation.mute = nil
             archives.remove(at: index)
-            let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, AppState.shared.objectsContainer.navVM.selectedId)
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
             threadsVM.threads.append(calThreads)
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
             animateObjectWillChange()
+        }
+    }
+    
+    @MainActor
+    public func appendThreads(newThreads: [CalculatedConversation], oldThreads: ContiguousArray<CalculatedConversation>)
+    async -> ContiguousArray<CalculatedConversation> {
+        var arr = oldThreads
+        for thread in newThreads {
+            if var oldThread = oldThreads.first(where: { $0.id == thread.id }) {
+                await oldThread.updateValues(thread)
+            } else {
+                arr.append(thread)
+            }
+        }
+        return arr
+    }
+
+    @AppBackgroundActor
+    public func sort(threads: ContiguousArray<CalculatedConversation>) async -> ContiguousArray<CalculatedConversation> {
+        var threads = threads
+        threads.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
+        threads.sort(by: { $0.pin == true && ($1.pin == false || $1.pin == nil) })
+        return threads
+    }
+    
+    public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
+        if status == .connected {
+            // After connecting again
+            // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
+            wasDisconnected = true
+            /// We sleep for 1 second to prevent getting banned by the server after reconnecting.
+            try? await Task.sleep(for: .seconds(1))
+            await refresh()
+        } else if status == .disconnected && !firstSuccessResponse {
+            // To get the cached version of the threads in SQLITE.
+            await getArchivedThreads()
         }
     }
 
@@ -178,16 +252,34 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             animateObjectWillChange()
         }
     }
+    
+    public func refresh() async {
+        archives.removeAll()
+        getArchivedThreads()
+    }
 
     private func onNewMessage(_ response: ChatResponse<Message>) {
         if let message = response.result, let index = archives.firstIndex(where: {$0.id == message.conversation?.id}) {
-            let old = archives[index]
-            let updated = old.updateOnNewMessage(response.result ?? .init(), meId: AppState.shared.user?.id)
+            let reference = archives[index]
+            let old = reference.toStruct()
+            let updated = reference.updateOnNewMessage(response.result ?? .init(), meId: myId)
             archives[index] = updated
+            archives[index].animateObjectWillChange()
+            recalculateAndAnimate(updated)
+            updateActiveConversationOnNewMessage([message], updated.toStruct(), old)
             animateObjectWillChange()
         }
     }
-
+    
+    private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
+        let activeVM = navVM.presentedThreadViewModel?.viewModel
+        if updatedConversation.id == activeVM?.threadId {
+            Task {
+                await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
+            }
+        }
+    }
+    
     private func onLastMessageDeleted(_ response: ChatResponse<Conversation>) {
         if let conversation = response.result, let index = archives.firstIndex(where: {$0.id == conversation.id}) {
             var current = archives[index]
@@ -209,7 +301,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     private func onLeave(_ response: ChatResponse<User>) {
-        if response.result?.id == AppState.shared.user?.id ?? -1 {
+        if response.result?.id == myId {
             archives.removeAll(where: {$0.id == response.subjectId})
             animateObjectWillChange()
         }
@@ -218,7 +310,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func onClosed(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = archives.firstIndex(where: { $0.id == id }) {
             archives[index].closed = true
-            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: id)
+            let activeThread = navVM.viewModel(for: id)
             activeThread?.thread = archives[index].toStruct()
             activeThread?.delegate?.onConversationClosed()
             animateObjectWillChange()
@@ -243,19 +335,19 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
             arrItem.description = thread.description
 
-            let calculated = ThreadCalculators.calculate(arrItem.toStruct(),AppState.shared.user?.id ?? -1)
+            let calculated = ThreadCalculators.calculate(arrItem.toStruct(), myId)
             
             archives[index] = calculated
             archives[index].animateObjectWillChange()
 
             // Update active thread if it is open
-            let activeThread = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
+            let activeThread = navVM.viewModel(for: threadId)
             activeThread?.thread = calculated.toStruct()
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
-            if let detailVM = AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId) {
+            if let detailVM = navVM.detailViewModel(threadId: threadId) {
                 detailVM.updateThreadInfo(calculated.toStruct())
             }
             animateObjectWillChange()
@@ -267,5 +359,176 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives.remove(at: index)
             animateObjectWillChange()
         }
+    }
+    
+    private func recalculateAndAnimate(_ thread: CalculatedConversation) {
+        Task {
+            await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
+            thread.animateObjectWillChange()
+        }
+    }
+    
+    public func onLastMessageChanged(_ thread: Conversation) {
+        if let index = firstIndex(thread.id) {
+            archives[index].lastMessage = thread.lastMessage
+            archives[index].lastMessageVO = thread.lastMessageVO
+            archives[index].animateObjectWillChange()
+            recalculateAndAnimate(archives[index])
+            animateObjectWillChange()
+        }
+    }
+    
+    @MainActor
+    func onUnreadCounts(_ response: ChatResponse<[String : Int]>) async {
+        response.result?.forEach { key, value in
+            if let index = firstIndex(Int(key)) {
+                archives[index].unreadCount = value
+                Task {
+                    await ThreadCalculators.reCalculateUnreadCount(archives[index])
+                    archives[index].animateObjectWillChange()
+                }
+            }
+        }
+        logUnreadCount("SERVER unreadCount: \(response.result)")
+    }
+
+    public func updateThreadInfo(_ thread: Conversation) {
+        if let threadId = thread.id, let index = firstIndex(threadId) {
+            let replacedEmoji = thread.titleRTLString.stringToScalarEmoji()
+            /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
+            /// So to update the UI properly we have to set it to link.
+            var arrItem = archives[index]
+            if let metadata = thread.metaData {
+                arrItem.image = metadata.file?.link
+                arrItem.computedImageURL = ThreadCalculators.calculateImageURL( arrItem.image, metadata)
+            }
+            arrItem.metadata = thread.metadata
+            arrItem.title = replacedEmoji
+            arrItem.closed = thread.closed
+            arrItem.time = thread.time ?? arrItem.time
+            arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
+            arrItem.description = thread.description
+
+            archives[index] = arrItem
+            archives[index].animateObjectWillChange()
+
+            // Update active thread if it is open
+            let activeThread = navVM.viewModel(for: threadId)
+            activeThread?.thread = arrItem.toStruct()
+            activeThread?.delegate?.updateTitleTo(replacedEmoji)
+            activeThread?.delegate?.refetchImageOnUpdateInfo()
+
+            // Update active thread detail view if it is open
+            if let detailVM = navVM.detailViewModel(threadId: threadId) {
+                detailVM.updateThreadInfo(arrItem.toStruct())
+            }
+            animateObjectWillChange()
+        }
+    }
+    
+    /// This method will be called whenver we send seen for an unseen message by ourself.
+    public func onLastSeenMessageUpdated(_ response: ChatResponse<LastSeenMessageResponse>) async {
+        if let index = firstIndex(response.subjectId) {
+            var thread = archives[index]
+            if response.result?.unreadCount == 0, thread.mentioned == true {
+                thread.mentioned = false
+            }
+            if response.result?.lastSeenMessageTime ?? 0 > thread.lastSeenMessageTime ?? 0 {
+                thread.lastSeenMessageTime = response.result?.lastSeenMessageTime
+                thread.lastSeenMessageId = response.result?.lastSeenMessageId
+                thread.lastSeenMessageNanos = response.result?.lastSeenMessageNanos
+                let newCount = response.result?.unreadCount ?? response.contentCount ?? 0
+                if newCount <= archives[index].unreadCount ?? 0 {
+                    thread.unreadCount = newCount
+                    await ThreadCalculators.reCalculateUnreadCount(archives[index])
+                    
+                    /// If the user open up the same thread on two devices at the same time,
+                    /// and on of them is at the bottom of the thread and one is at top,
+                    /// the one at bottom will send seen and respectively when we send seen unread count will be reduced,
+                    /// so on another thread we should catch this new unread count and update the thread.
+                    let activeVM = navVM.viewModel(for: response.subjectId ?? -1)
+                    activeVM?.delegate?.onUnreadCountChanged()
+                }
+            }
+            archives[index] = thread
+            archives[index].animateObjectWillChange()
+            animateObjectWillChange()
+        }
+    }
+   
+    public func onSeen(_ response: ChatResponse<MessageResponse>) {
+        /// Update the status bar in ThreadRow when a receiver seen a message, and in the sender side we have to update the UI.
+        let isMe = myId == response.result?.participantId
+        if !isMe, let index = archives.firstIndex(where: {$0.lastMessageVO?.id == response.result?.messageId}) {
+            archives[index].lastMessageVO?.delivered = true
+            archives[index].lastMessageVO?.seen = true
+            archives[index].partnerLastSeenMessageId = response.result?.messageId
+            recalculateAndAnimate(archives[index])
+        }
+        logUnreadCount("SERVER OnSeen: \(response.result)")
+    }
+    
+    /// This method only reduce the unread count if the deleted message has sent after lastSeenMessageTime.
+    public func onMessageDeleted(_ response: ChatResponse<Message>) async {
+        guard let index = archives.firstIndex(where: { $0.id == response.subjectId }) else { return }
+        var thread = archives[index]
+        if response.result?.time ?? 0 > thread.lastSeenMessageTime ?? 0, thread.unreadCount ?? 0 >= 1 {
+            thread.unreadCount = (thread.unreadCount ?? 0) - 1
+            await ThreadCalculators.reCalculateUnreadCount(archives[index])
+            archives[index] = thread
+            archives[index].animateObjectWillChange()
+            recalculateAndAnimate(thread)
+        }
+    }
+
+    public func onPinMessage(_ response: ChatResponse<PinMessage>) {
+        if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
+            archives[threadIndex].pinMessage = response.result
+            archives[threadIndex].animateObjectWillChange()
+            animateObjectWillChange()
+        }
+    }
+
+    public func onUNPinMessage(_ response: ChatResponse<PinMessage>) {
+        if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
+            archives[threadIndex].pinMessage = nil
+            archives[threadIndex].animateObjectWillChange()
+            animateObjectWillChange()
+        }
+    }
+    
+    public func firstIndex(_ threadId: Int?) -> Array<Conversation>.Index? {
+        archives.firstIndex(where: { $0.id == threadId ?? -1 })
+    }
+    
+    func onAddPrticipant(_ response: ChatResponse<Conversation>) async {
+        if response.result?.participants?.first(where: {$0.id == myId}) != nil, let newConversation = response.result {
+            /// It means an admin added a user to the conversation, and if the added user is in the app at the moment, should see this new conversation in its conversation list.
+            var newConversation = newConversation
+            newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
+            await calculateAppendSortAnimate(newConversation)
+        }
+    }
+    
+    public func calculateAppendSortAnimate(_ thread: Conversation) async {
+        let calThreads = await ThreadCalculators.calculate([thread], myId, navVM.selectedId, false)
+        let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: archives)
+        let sorted = await sort(threads: appendedThreads)
+        archives = sorted
+        animateObjectWillChange()
+    }
+    
+    func log(_ string: String) {
+#if DEBUG
+        let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
+        NotificationCenter.logs.post(name: .logs, object: log)
+        Logger.viewModels.info("\(string, privacy: .sensitive)")
+#endif
+    }
+    
+    private func logUnreadCount(_ string: String) {
+#if DEBUG
+        Logger.viewModels.info("UNREADCOUNT: \(string, privacy: .sensitive)")
+#endif
     }
 }

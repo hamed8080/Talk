@@ -11,7 +11,7 @@ import TalkUI
 import ChatModels
 import TalkModels
 import Combine
-import DSWaveformImage
+import AVFoundation
 
 @MainActor
 final class MessageAudioView: UIView {
@@ -19,12 +19,14 @@ final class MessageAudioView: UIView {
     private let fileSizeLabel = UILabel()
     private let timeLabel = UILabel()
     private let waveView = AudioWaveFormView()
+    private let fileNameLabel = UILabel()
     private let progressButton = CircleProgressButton(progressColor: Color.App.whiteUIColor,
                                                       iconTint: Color.App.textPrimaryUIColor,
                                                       bgColor: Color.App.accentUIColor,
                                                       margin: 2
     )
     private let playbackSpeedButton = UIButton(type: .system)
+    private var fileNameHeightConstraint: NSLayoutConstraint?
     
     
     // Models
@@ -64,6 +66,15 @@ final class MessageAudioView: UIView {
         waveView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(waveView)
         
+        fileNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        fileNameLabel.font = UIFont.fBoldSubheadline
+        fileNameLabel.textAlignment = .left
+        fileNameLabel.textColor = Color.App.textPrimaryUIColor
+        fileNameLabel.numberOfLines = 1
+        fileNameLabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
+        fileNameLabel.isOpaque = true
+        addSubview(fileNameLabel)
+
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
         fileSizeLabel.font = UIFont.fBoldCaption
         fileSizeLabel.textAlignment = .left
@@ -100,6 +111,8 @@ final class MessageAudioView: UIView {
         waveView.onSeek = { [weak self] to in
             self?.audioVM.seek(to)
         }
+        fileNameHeightConstraint = fileNameLabel.heightAnchor.constraint(equalToConstant: 42)
+        fileNameHeightConstraint?.isActive = true
         
         NSLayoutConstraint.activate([
             progressButton.widthAnchor.constraint(equalToConstant: progressButtonSize),
@@ -107,9 +120,13 @@ final class MessageAudioView: UIView {
             progressButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),
             progressButton.topAnchor.constraint(equalTo: topAnchor, constant: margin),
             
+            fileNameLabel.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: margin * 2),
+            fileNameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin * 2),
+            fileNameLabel.topAnchor.constraint(equalTo: progressButton.topAnchor),
+            
             waveView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: margin * 2),
             waveView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin * 2),
-            waveView.topAnchor.constraint(equalTo: progressButton.topAnchor),
+            waveView.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor),
             waveView.heightAnchor.constraint(equalToConstant: 42),
             
             fileSizeLabel.leadingAnchor.constraint(equalTo: waveView.leadingAnchor),
@@ -137,8 +154,12 @@ final class MessageAudioView: UIView {
     
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
+        setAudioDurationAndWaveform()
         updateProgress(viewModel: viewModel)
         fileSizeLabel.text = viewModel.calMessage.computedFileSize
+        fileNameLabel.text = viewModel.calMessage.fileName
+        fileNameLabel.isHidden = viewModel.message.type == .voice || viewModel.message.type == .podSpaceVoice
+        fileNameHeightConstraint?.constant = fileNameLabel.isHidden ? 0 : 42
         waveView.setImage(to: viewModel.calMessage.waveForm)
         timeLabel.text = audioTimerString()
     }
@@ -189,6 +210,7 @@ final class MessageAudioView: UIView {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
         calculateWaveform(viewModel: viewModel)
+        setAudioDurationAndWaveform()
     }
     
     private func calculateWaveform(viewModel: MessageRowViewModel) {
@@ -203,6 +225,7 @@ final class MessageAudioView: UIView {
     public func uploadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
+        setAudioDurationAndWaveform()
     }
     
     private var canShowProgress: Bool {
@@ -250,6 +273,37 @@ final class MessageAudioView: UIView {
     var playingIcon: String {
         if !isSameFile { return "play.fill" }
         return audioVM.isPlaying ? "pause.fill" : "play.fill"
+    }
+    
+    private func setAudioDurationAndWaveform() {
+        guard let fileURL = viewModel?.calMessage.fileURL,
+              let message = viewModel?.message,
+              let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL() else { return }
+        setAudioDuration(url: url)
+        createWaveform(url: url, message: message)
+    }
+    
+    private func setAudioDuration(url: URL) {
+        viewModel?.calMessage.voiceDuration = voiceDuration(url)
+        timeLabel.text = audioTimerString()
+    }
+    
+    private func createWaveform(url: URL, message: HistoryMessageType) {
+        if viewModel?.calMessage.waveForm != nil { return }
+        Task { [weak self] in
+            let waveImage = try? await WaveformGenerator(url: url).generate()
+            await self?.viewModel?.calMessage.waveForm = waveImage
+            
+            /// Update the UI after creating the wave view and calculating the voice duration
+            if let viewModel = await self?.viewModel {
+                self?.waveView.setImage(to: viewModel.calMessage.waveForm)
+            }
+        }
+    }
+    
+    private func voiceDuration(_ fileURL: URL) -> Double {
+        let asset = AVAsset(url: fileURL)
+        return Double(CMTimeGetSeconds(asset.duration))
     }
 }
 

@@ -72,7 +72,7 @@ struct ThreadContentList: View {
                 }
             }
             /// to update isSeleted for bar and background color
-            threadsVM.setSelected(for: thread.id ?? -1, selected: true)
+            threadsVM.setSelected(for: thread.id ?? -1, selected: true, isArchive: thread.isArchive == true)
             AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: thread.toStruct())
         }
     }

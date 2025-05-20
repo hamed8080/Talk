@@ -19,7 +19,8 @@ struct DetailUserNameSection: View {
                     let icon = Image(systemName: "person")
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.App.textPrimary)
-                    AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.copied", messageColor: Color.App.textPrimary)
+                    let key = "Settings.userNameCopied".bundleLocalized()
+                    AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: key, messageColor: Color.App.textPrimary)
                 }
         }
     }

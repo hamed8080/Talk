@@ -22,7 +22,10 @@ public final class HistorySeenViewModel {
     private var thread: Conversation { threadVM?.thread ?? Conversation(id: 0) }
     private var threadId: Int { thread.id ?? 0 }
     private var threadsVM: ThreadsViewModel { threadVM?.threadsViewModel ?? .init() }
+    private var archivesVM: ArchiveThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
     private var lastInQueue: Int = 0
+    private var threads: ContiguousArray<CalculatedConversation> { threadVM?.thread.isArchive == true ? archivesVM.archives : threadsVM.threads }
+    
     public init() {}
 
     public func setup(viewModel: ThreadViewModel) {
@@ -141,27 +144,27 @@ public final class HistorySeenViewModel {
     /// We have to use this as a source of truth for unread count.
     /// That's beacuse the ThreadViewModel.thread instance is different than ThreadsViewModel[index].instance
     private func unreadCount() -> Int {
-        threadsVM.threads.first(where: {$0.id == threadId})?.unreadCount ?? 0
+        return threads.first(where: {$0.id == threadId})?.unreadCount ?? 0
     }
     
     private func setUnreadCount(newUnreadCount: Int) async {
         threadVM?.thread.unreadCount = newUnreadCount
-        if let index = threadsVM.threads.firstIndex(where: {$0.id == threadId}) {
-            threadsVM.threads[index].unreadCount = newUnreadCount
-            await ThreadCalculators.reCalculateUnreadCount(threadsVM.threads[index])
-            threadsVM.threads[index].animateObjectWillChange()
+        if let index = threads.firstIndex(where: {$0.id == threadId}) {
+            threads[index].unreadCount = newUnreadCount
+            await ThreadCalculators.reCalculateUnreadCount(threads[index])
+            threads[index].animateObjectWillChange()
         }
         threadVM?.delegate?.onUnreadCountChanged()
     }
     
     private func lastSeenMessageId() -> Int {
-        threadsVM.threads.first(where: {$0.id == threadId})?.lastSeenMessageId ?? 0
+        return threads.first(where: {$0.id == threadId})?.lastSeenMessageId ?? 0
     }
     
     private func setLastSeenMessageId(messageId: Int) {
         threadVM?.thread.lastSeenMessageId = messageId
-        if let index = threadsVM.firstIndex(threadId) {
-            threadsVM.threads[index].lastSeenMessageId = messageId
+        if let index = threads.firstIndex(where: { $0.id == threadId ?? -1 }) {
+            threads[index].lastSeenMessageId = messageId
         }
     }
 

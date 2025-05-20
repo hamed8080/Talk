@@ -28,10 +28,14 @@ struct ThreadRowActionMenu: View {
             }
         }
 
+        let isArchive = thread.isArchive == true
         if canMuteUnmute {
             ContextMenuButton(title: muteUnmuteTitle, image: "speaker.slash", bundle: Language.preferedBundle) {
                 onMuteUnmuteTapped()
             }
+            .opacity(isArchive ? 0.4 : 1.0)
+            .disabled(isArchive)
+            .allowsHitTesting(false)
         }
 
         if !isDetailView, !thread.closed {
@@ -213,12 +217,10 @@ struct ThreadRowActionMenu: View {
     }
 
     private func showArchivePopupIfNeeded() {
-        if AppState.shared.objectsContainer.archivesVM.hasShownToastGuide { return }
         let leadingView = Image(systemName: "tray.and.arrow.up")
         AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: leadingView,
                                                             message: "ArchivedTab.guide".bundleLocalized(),
                                                             messageColor: Color.App.textPrimary,
                                                             duration: .slow)
-        AppState.shared.objectsContainer.archivesVM.hasShownToastGuide = true
     }
 }

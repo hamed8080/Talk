@@ -66,7 +66,7 @@ final class ThreadViewController: UIViewController {
         })
         if !hasAnyInstanceInStack, let viewModel = viewModel {
             AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.threadId)
-            viewModel.threadsViewModel?.setSelected(for: viewModel.threadId, selected: false)
+            viewModel.threadsViewModel?.setSelected(for: viewModel.threadId, selected: false, isArchive: viewModel.thread.isArchive == true)
         }
     }
 
@@ -484,7 +484,9 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     func moveRow(at: IndexPath, to: IndexPath) {
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
         tableView.moveRow(at: at, to: to)
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
     }
 
     func reloadData(at: IndexPath) {
@@ -588,10 +590,8 @@ extension ThreadViewController: HistoryScrollDelegate {
                 self?.tableView.insertRows(at: rows, with: .none)
             }
         } completion: { completed in
-            if completed {
-                self.viewModel?.historyVM.isUpdating = false
-                self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
-            }
+            self.viewModel?.historyVM.isUpdating = false
+            self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
         }
     }
     

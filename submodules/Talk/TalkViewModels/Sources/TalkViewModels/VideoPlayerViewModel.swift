@@ -21,6 +21,7 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
     var subtitle: String?
     var timer: Timer?
     @Published public var timerString = "00:00"
+    public var isFinished: Bool = false
 
     public init(fileURL: URL, ext: String? = nil, title: String? = nil, subtitle: String? = nil, directLink: Bool = false) {
         self.fileURL = fileURL
@@ -53,6 +54,7 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
     @objc private func finishedPlaying(_ notif: Notification) {
         NotificationCenter.default.post(name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil)
         player?.seek(to: .zero)
+        isFinished = true
     }
 
     override public func observeValue(forKeyPath keyPath: String?,

@@ -42,6 +42,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+    private var myId: Int { AppState.shared.user?.id ?? -1 }
 
     public init() {
         GET_THREADS_KEY = "GET-THREADS-\(objectId)"
@@ -158,7 +159,7 @@ public final class ThreadsViewModel: ObservableObject {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: userDefaultSortedPins)
         }
-        let navSelectedId = AppState.shared.objectsContainer.navVM.selectedId
+        let navSelectedId = navVM.selectedId
         let calculatedThreads = await ThreadCalculators.calculate(response.result ?? [], myId, navSelectedId)
         let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads: threads)
         let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
@@ -468,7 +469,7 @@ public final class ThreadsViewModel: ObservableObject {
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
-            if let detailVM = AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId) {
+            if let detailVM = navVM.detailViewModel(threadId: threadId) {
                 detailVM.updateThreadInfo(arrItem.toStruct())
             }
             animateObjectWillChange()
@@ -514,7 +515,7 @@ public final class ThreadsViewModel: ObservableObject {
                     /// and on of them is at the bottom of the thread and one is at top,
                     /// the one at bottom will send seen and respectively when we send seen unread count will be reduced,
                     /// so on another thread we should catch this new unread count and update the thread.
-                    let activeVM = AppState.shared.objectsContainer.navVM.viewModel(for: response.subjectId ?? -1)
+                    let activeVM = navVM.viewModel(for: response.subjectId ?? -1)
                     activeVM?.delegate?.onUnreadCountChanged()
                 }
             }
@@ -655,7 +656,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     private func recalculateAndAnimate(_ thread: CalculatedConversation) {
         Task {
-            await ThreadCalculators.reCalculate(thread, myId, AppState.shared.objectsContainer.navVM.selectedId)
+            await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
             thread.animateObjectWillChange()
         }
     }
@@ -666,10 +667,6 @@ public final class ThreadsViewModel: ObservableObject {
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
         threads = sorted
         animateObjectWillChange()
-    }
-    
-    private var myId: Int {
-        AppState.shared.user?.id ?? -1
     }
 
     func log(_ string: String) {
@@ -686,8 +683,9 @@ public final class ThreadsViewModel: ObservableObject {
 #endif
     }
     
-    public func setSelected(for conversationId: Int, selected: Bool) {
-        if let thread = threads.first(where: {$0.id == conversationId}) {
+    public func setSelected(for conversationId: Int, selected: Bool, isArchive: Bool) {
+        let threadsList = isArchive ? AppState.shared.objectsContainer.archivesVM.archives : threads
+        if let thread = threadsList.first(where: {$0.id == conversationId}) {
             /// Select / Deselect a thread to remove/add bar and selected background color
             thread.isSelected = selected
             thread.animateObjectWillChange()
