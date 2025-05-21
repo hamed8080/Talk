@@ -27,7 +27,6 @@ public final class ThreadsViewModel: ObservableObject {
     public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     private var cache: Bool = true
     var isInCacheMode = false
-    private var isSilentClear = false
     @MainActor public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
@@ -138,20 +137,11 @@ public final class ThreadsViewModel: ObservableObject {
 
     @MainActor
     public func onThreads(_ response: ChatResponse<[Conversation]>) async {
-        let wasSilentClear = isSilentClear
-        if isSilentClear {
-            threads.removeAll()
-            isSilentClear = false
-            // We have got to wait to update the UI with removed items then append and refresh the UI with new elements, unless we will end up with wrong scroll position after update
-            animateObjectWillChange()
-            try? await Task.sleep(for: .milliseconds(200))
-        }
-        
         let pinThreads = response.result?.filter({$0.pin == true})
         let hasAnyResults = response.result?.count ?? 0 > 0
         
         /// It only sets sorted pins once because if we have 5 pins, they are in the first response. So when the user scrolls down the list will not be destroyed every time.
-        if !response.cache, let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty || wasSilentClear {
+        if !response.cache, let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: serverSortedPinIds)
             userDefaultSortedPins = serverSortedPins
@@ -207,6 +197,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func refresh() async {
+        threads.removeAll()
+        animateObjectWillChange()
         cache = false
         await silentClear()
         await getThreads(withQueue: true)
@@ -331,9 +323,6 @@ public final class ThreadsViewModel: ObservableObject {
 
     @MainActor
     public func silentClear() async {
-        if firstSuccessResponse {
-            isSilentClear = true
-        }
         lazyList.reset()
         animateObjectWillChange()
     }

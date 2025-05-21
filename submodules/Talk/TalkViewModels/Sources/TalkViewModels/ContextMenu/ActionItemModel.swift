@@ -33,6 +33,7 @@ public extension ActionItemModel {
     nonisolated(unsafe) static let saveVideo = ActionItemModel(title: "Messages.ActionMenu.saveImage", image: "square.and.arrow.down")
     nonisolated(unsafe) static let copy = ActionItemModel(title: "Messages.ActionMenu.copy", image: "doc.on.doc")
     nonisolated(unsafe) static let deleteCache = ActionItemModel(title: "Messages.ActionMenu.deleteCache", image: "cylinder.split.1x2", sandbox: true)
+    nonisolated(unsafe) static let reDownload = ActionItemModel(title: "Messages.ActionMenu.reDownload", image: "arrow.trianglehead.counterclockwise.rotate.90")
     nonisolated(unsafe) static let pin = ActionItemModel(title: "Messages.ActionMenu.pinMessage", image: "pin")
     nonisolated(unsafe) static let unpin = ActionItemModel(title: "Messages.ActionMenu.unpinMessage", image: "pin.slash")
     nonisolated(unsafe) static let select = ActionItemModel(title: "General.select", image: "checkmark.circle")

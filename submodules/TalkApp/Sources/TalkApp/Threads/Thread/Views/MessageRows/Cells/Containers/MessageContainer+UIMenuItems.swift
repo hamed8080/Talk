@@ -93,6 +93,12 @@ extension MessageContainerStackView {
             menu.addItem(copyAction)
         }
 
+        let reDownload = ActionMenuItem(model: .reDownload) { [weak self] in
+            self?.onReDownload(model)
+            onMenuClickedDismiss()
+        }
+        menu.addItem(reDownload)
+        
         if EnvironmentValues.isTalkTest, message.isFileType == true {
             let deleteCacheAction = ActionMenuItem(model: .deleteCache) { [weak self] in
                 self?.onDeleteCacheAction(model)
@@ -227,6 +233,29 @@ private extension MessageContainerStackView {
                 let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
                 await newVM.recalculate(mainData: newVM.getMainData())
                 await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
+            }
+        }
+    }
+    
+    func onReDownload(_ model: ActionModel) {
+        guard let message = model.message as? Message, let threadVM = model.threadVM else { return }
+        model.threadVM?.clearCacheFile(message: message)
+        let viewModel = model.viewModel
+        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+            Task.detached {
+                try? await Task.sleep(for: .milliseconds(500))
+                let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
+                await newVM.recalculate(mainData: newVM.getMainData())
+                
+                /// Register to download the file again
+                await threadVM.downloadFileManager.register(message: message)
+                
+                /// Reload the message row with its new viewModel
+                await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
+                
+                /// Download again
+                try? await Task.sleep(for: .microseconds(500))
+                await newVM.onTap()
             }
         }
     }

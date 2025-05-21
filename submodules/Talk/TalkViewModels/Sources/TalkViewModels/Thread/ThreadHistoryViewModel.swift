@@ -438,6 +438,7 @@ extension ThreadHistoryViewModel {
                 vm.register()
             }
             viewModel?.delegate?.startTopAnimation(false)
+            viewModel?.delegate?.startCenterAnimation(false)
             if !isMiddleFetcher {
                 fetchReactions(messages: viewModels.compactMap({$0.message}))
             }

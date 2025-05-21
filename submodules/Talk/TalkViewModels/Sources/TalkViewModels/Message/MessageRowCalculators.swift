@@ -151,7 +151,7 @@ class MessageRowCalculators {
         calculatedMessage.fileName = calculateFileName(message: message, calculatedMessage: calculatedMessage)
         calculatedMessage.addOrRemoveParticipantsAttr = calculateAddOrRemoveParticipantRow(message: message, calculatedMessage: calculatedMessage, appUserId: mainData.appUserId)
         sizes.paddings.textViewPadding = calculateTextViewPadding(message: message)
-        calculatedMessage.localizedReplyFileName = calculateLocalizeReplyFileName(message: message)
+        calculatedMessage.replyFileName = calculateLocalizeReplyFileName(message: message)
         calculatedMessage.groupMessageParticipantName = calculateGroupParticipantName(message: message, calculatedMessage: calculatedMessage, thread: mainData.thread)
         sizes.replyContainerWidth = calculateReplyContainerWidth(message: message, calculatedMessage: calculatedMessage, sizes: sizes)
         sizes.forwardContainerWidth = calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
@@ -389,13 +389,9 @@ class MessageRowCalculators {
     }
     
     class func calculateLocalizeReplyFileName(message: HistoryMessageType) -> String? {
-        if let message = message.replyInfo?.message?.prefix(150).replacingOccurrences(of: "\n", with: " "), !message.isEmpty {
-            return message
-        } else if let fileHint = message.replyFileStringName?.bundleLocalized(), !fileHint.isEmpty {
-            return fileHint
-        } else {
-            return nil
-        }
+        guard let data = message.replyInfo?.metadata?.data(using: .utf8) else { return nil }
+        let fileMetadata = try? JSONDecoder().decode(FileMetaData.self, from: data)
+        return fileMetadata?.file?.originalName
     }
     
     class func calculateIsInTwoWeekPeriod(message: HistoryMessageType) -> Bool {

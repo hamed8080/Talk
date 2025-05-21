@@ -13,6 +13,7 @@ import TalkModels
 struct LoginContentView: View {
     @EnvironmentObject var viewModel: LoginViewModel
     @FocusState var isFocused
+    @State private var downloadingBundle: Bool = true
 
     var body: some View {
         VStack(alignment: .center, spacing: 16) {
@@ -86,6 +87,9 @@ struct LoginContentView: View {
         .animation(.easeInOut, value: isFocused)
         .animation(.easeInOut, value: viewModel.selectedServerType)
         .transition(.move(edge: .trailing))
+        .disabled(downloadingBundle)
+        .allowsHitTesting(!downloadingBundle)
+        .opacity(downloadingBundle ? 0.4 : 1.0)
         .onChange(of: viewModel.state) { newState in
             if newState != .failed {
                 hideKeyboard()
@@ -96,6 +100,18 @@ struct LoginContentView: View {
         }
         .onAppear {
             isFocused = true
+        }.task {
+            /// Prevent app crashes while the bundle is nil and accessing url inside the bundle
+            let bundleManager = BundleManager()
+            while(!bundleManager.isBundleDownloaded()) {
+                try? await Task.sleep(for: .seconds(0.2))
+            }
+            downloadingBundle = false
+        }.overlay(alignment: .center) {
+            if downloadingBundle {
+                ProgressView()
+                    .progressViewStyle(.circular)
+            }
         }
     }
 }

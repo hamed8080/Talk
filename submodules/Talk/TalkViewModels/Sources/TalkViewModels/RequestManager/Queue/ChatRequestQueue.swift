@@ -22,7 +22,7 @@ public class ChatRequestQueue {
         removeOldMentionsReq(newReq: type)
         requestQueue.enqueue(type)
         processWithDelay(deadline: isDuplicateRemoved ? .now() + 0 : deadline)
-        throttleInterval += 3
+        throttleInterval += 1.0
     }
     
     private func processWithDelay(deadline: DispatchTime){
@@ -32,6 +32,9 @@ public class ChatRequestQueue {
                 throttleInterval = 0
             }
             guard let nextRequest = requestQueue.dequeue() else { return }
+            if requestQueue.isEmpty() {
+                throttleInterval = 0
+            }
             processQueue(nextRequest)
         }
     }

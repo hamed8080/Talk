@@ -34,7 +34,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var avatarColor: UIColor = .blue
     public var avatarSplitedCharaters = ""
     public var isInTwoWeekPeriod: Bool = false
-    public var localizedReplyFileName: String? = nil
+    public var replyFileName: String? = nil
     public var attributedString: NSAttributedString?
     public var rangeCodebackground: [Range<String.Index>]?
     public var isFirstMessageOfTheUser: Bool = false
@@ -42,6 +42,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var canShowIconFile: Bool = false
     public var groupMessageParticipantName: String?
     public var canEdit: Bool = false
+    /// Store only once the row is on the screen and save it for later use
     public var waveForm: UIImage?
     public var voiceDuration: Double?
     // Disk file path

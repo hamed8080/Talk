@@ -13,9 +13,9 @@ public class BundleManager {
     private let bundleName = "MyBundle.bundle"
     private let bundleNameZipName = "MyBundle_v\(BundleManager.version).zip"
     private let unpackedFolderName = "UnzippedFiles"
-    // https://github.com/hamed8080/bundle/archive/refs/tags/v1.1.zip
-    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuMS56aXA="
-    private static let version = "1.1"
+    // https://github.com/hamed8080/bundle/archive/refs/tags/v1.2.zip
+    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuMi56aXA="
+    private static let version = "1.2"
 
     public init(){}
 
@@ -140,5 +140,12 @@ public class BundleManager {
     private func setVersion() {
         // Store version number for the next launch
         UserDefaults.standard.setValue(BundleManager.version, forKey: "version")
+    }
+    
+    public func isBundleDownloaded() -> Bool {
+        if let url = bundleFilePath {
+            return FileManager.default.fileExists(atPath: url.path())
+        }
+        return false
     }
 }

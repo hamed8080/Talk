@@ -137,9 +137,13 @@ final class ReplyInfoView: UIView {
         self.viewModel = viewModel
         participantLabel.text = "\(ReplyInfoView.repliedToStaticText)  \(replyInfo?.participant?.name ?? "")"
         participantLabel.setIsHidden(replyInfo?.participant?.name == nil)
-
         replyLabel.text = replyInfo?.message
-        replyLabel.setIsHidden(replyInfo?.message?.isEmpty == true)
+        
+        /// Override reply file name over reply message text, file name has a higher priority
+        if viewModel.calMessage.replyFileName != nil {
+            replyLabel.text = viewModel.calMessage.replyFileName
+        }
+        replyLabel.setIsHidden(replyInfo?.message?.isEmpty == true && viewModel.calMessage.replyFileName == nil)
 
         deletedLabel.setIsHidden(replyInfo?.deleted == nil || replyInfo?.deleted == false)
         setImageView(viewModel: viewModel)
