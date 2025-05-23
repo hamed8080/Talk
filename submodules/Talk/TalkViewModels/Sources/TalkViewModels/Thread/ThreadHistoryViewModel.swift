@@ -411,10 +411,9 @@ extension ThreadHistoryViewModel {
         await viewModel?.scrollVM.disableExcessiveLoading()
         setHasMoreTopNonAsync(response)
         let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, viewModels)
-
-        let moveToMessage = await viewModel?.scrollVM.lastContentOffsetY ?? 0 < 24
+        let closeToTop = await viewModel?.scrollVM.lastContentOffsetY ?? 0 < 24
         var indexPathToScroll: IndexPath?
-        if moveToMessage, let lastTopMessageVM = lastTopMessageVM {
+        if closeToTop, let lastTopMessageVM = lastTopMessageVM {
             indexPathToScroll = sections.indexPath(for: lastTopMessageVM)
         }
         await delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)

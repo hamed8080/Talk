@@ -157,7 +157,7 @@ class MessageRowCalculators {
         sizes.forwardContainerWidth = calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
         //        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
-//        calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.markdownTitle, width: ThreadViewModel.maxAllowedWidth - 16)
+        calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.attributedString, width: ThreadViewModel.maxAllowedWidth - 16)
         
         let originalPaddings = sizes.paddings
         sizes.paddings = calculateSpacingPaddings(message: message, calculatedMessage: calculatedMessage)

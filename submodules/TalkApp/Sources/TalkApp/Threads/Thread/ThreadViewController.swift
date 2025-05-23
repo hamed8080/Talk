@@ -460,11 +460,9 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func reload() {
-        self.viewModel?.historyVM.isUpdating = true
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
         tableView.reloadData()
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
-        self.viewModel?.historyVM.isUpdating = false
+        setUpdating(updating: false)
     }
 
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
@@ -484,9 +482,9 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     func moveRow(at: IndexPath, to: IndexPath) {
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
         tableView.moveRow(at: at, to: to)
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+        setUpdating(updating: false)
     }
 
     func reloadData(at: IndexPath) {
@@ -527,8 +525,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 
     func inserted(at: IndexPath) {
-        self.viewModel?.historyVM.isUpdating = true
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
 #if DEBUG
         log("inserted(at: IndexPath)")
         LogManager.shared.log("inserted at indexPath: \(at)")
@@ -542,8 +539,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
         tableView.insertRows(at: [at], with: .fade)
         tableView.endUpdates()
-        self.viewModel?.historyVM.isUpdating = false
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+        setUpdating(updating: false)
     }
     
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
@@ -560,28 +556,52 @@ extension ThreadViewController: HistoryScrollDelegate {
         LogManager.shared.log("insertingSections without animation: \(sections), insertingRows: \(rows)")
         LogManager.shared.log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
 #endif
-        viewModel?.historyVM.isUpdating = true
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
+        
+        
+        /// We use setContentOffset instead of scrollTo,
+        /// it will move without jumping sections and it needs estimated height to be close and calculated
+        /// in advance, in order to append at top smoothly.
+        
+        // 1. Capture contentOffset and contentSize before insert
+        let previousOffset = tableView.contentOffset
+        let previousContentHeight = tableView.contentSize.height
         UIView.performWithoutAnimation {
             tableView.beginUpdates()
-            self.tableView.insertSections(sections, with: .none)
-            self.tableView.insertRows(at: rows, with: .none)
+             
+            if !sections.isEmpty {
+                self.tableView.insertSections(sections, with: .none)
+            }
+            if !rows.isEmpty {
+                self.tableView.insertRows(at: rows, with: .none)
+            }
             tableView.endUpdates()
-            self.viewModel?.historyVM.isUpdating = false
-            self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
-            self.tableView.scrollToRow(at: scrollTo, at: .top, animated: false)
+            
+            // Ensure layout pass fully completes
+            tableView.layoutIfNeeded() // may not be enough, but try this first
+
+            setUpdating(updating: false)
+  
+            // 2. Calculate height difference after insert
+            let newContentHeight = tableView.contentSize.height
+            let heightDifference = newContentHeight - previousContentHeight
+
+            // 3. Adjust content offset to preserve visual position
+            tableView.setContentOffset(CGPoint(x: previousOffset.x, y: previousOffset.y + heightDifference), animated: false)
         }
     }
 
     func insertedWithAnimation(sections: IndexSet, rows: [IndexPath]) {
-        if sections.isEmpty && rows.isEmpty { return }
+        if sections.isEmpty && rows.isEmpty {
+            setUpdating(updating: false)
+            return
+        }
 #if DEBUG
         log("inserted without scroll to")
         LogManager.shared.log("insertingSections with animation: \(sections), insertingRows: \(rows)")
         LogManager.shared.log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
 #endif
-        self.viewModel?.historyVM.isUpdating = true
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
             if !sections.isEmpty {
                 self?.tableView.insertSections(sections, with: .none)
@@ -589,18 +609,16 @@ extension ThreadViewController: HistoryScrollDelegate {
             if !rows.isEmpty {
                 self?.tableView.insertRows(at: rows, with: .none)
             }
-        } completion: { completed in
-            self.viewModel?.historyVM.isUpdating = false
-            self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+        } completion: { [weak self] completed in
+            self?.setUpdating(updating: false)
         }
     }
     
     func delete(sections: [IndexSet], rows: [IndexPath]) {
         log("deleted sections")
-        viewModel?.historyVM.isUpdating = true
-        self.viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
         tableView.performBatchUpdates {
-            /// Firstly, we have ato delete rows to have right index for rows,
+            /// Firstly, we have to delete rows to have right index for rows,
             /// then we are prepared to delete sections
             if !rows.isEmpty {
                 tableView.deleteRows(at: rows, with: .fade)
@@ -612,48 +630,48 @@ extension ThreadViewController: HistoryScrollDelegate {
                     tableView.deleteSections(sectionSet, with: .fade)
                 }
             }
-        } completion: { completed in
-            self.viewModel?.historyVM.isUpdating = false
-            self.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+        } completion: { [weak self] completed in
+            self?.setUpdating(updating: false)
         }
     }
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
         log("update reactions")
-        viewModel?.historyVM.isUpdating = true
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: true)
+        setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                self?.setUpdating(updating: false)
+                return
+            }
             for indexPath in indexPaths {
                 if let tuple = cellFor(indexPath: indexPath) {
                     tuple.cell.reactionsUpdated(viewModel: tuple.vm)
                 }
             }
         } completion: { [weak self] completed in
-            self?.viewModel?.historyVM.isUpdating = false
-            self?.viewModel?.historyVM.sectionsHolder.setUpdating(value: false)
+            self?.setUpdating(updating: false)
         }
     }
     
     public func reactionDeleted(indexPath: IndexPath, reaction: Reaction) {
         log("reaciton deleted")
         if let tuple = cellFor(indexPath: indexPath) {
-            self.viewModel?.historyVM.isUpdating = true
+            setUpdating(updating: true)
             tableView.beginUpdates()
             tuple.cell.reactionDeleted(reaction)
             tableView.endUpdates()
-            self.viewModel?.historyVM.isUpdating = false
+            setUpdating(updating: false)
         }
     }
     
     public func reactionAdded(indexPath: IndexPath, reaction: Reaction) {
         log("reaction added")
         if let tuple = cellFor(indexPath: indexPath) {
-            self.viewModel?.historyVM.isUpdating = true
+            setUpdating(updating: true)
             tableView.beginUpdates()
             tuple.cell.reactionAdded(reaction)
             tableView.endUpdates()
-            self.viewModel?.historyVM.isUpdating = false
+            setUpdating(updating: false)
         }
     }
     
@@ -789,6 +807,13 @@ extension ThreadViewController {
             return cell
         }
         return nil
+    }
+}
+
+extension ThreadViewController {
+    func setUpdating(updating: Bool) {
+        viewModel?.historyVM.isUpdating = updating
+        viewModel?.historyVM.sectionsHolder.setUpdating(value: updating)
     }
 }
 
