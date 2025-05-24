@@ -162,6 +162,16 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         animateObjectWillChange()
     }
 
+    public func getArchivedThread(threadId: Int) {
+        isLoading = true
+        let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
+        RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.get(req)
+        }
+        animateObjectWillChange()
+    }
+
     @AppBackgroundActor
     public func onArchives(_ response: ChatResponse<[Conversation]>) async {
         if !response.cache, let archivesResp = response.result, response.pop(prepend: GET_ARCHIVES_KEY) != nil {
@@ -188,6 +198,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
             animateObjectWillChange()
+        } else if let conversationId = response.result {
+            /// New conversation has been archived by another device so we have to fetch the conversation
+            getArchivedThread(threadId: conversationId)
         }
     }
 
