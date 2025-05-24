@@ -12,6 +12,7 @@ import ChatModels
 import TalkModels
 import AVKit
 import Chat
+import Combine
 
 @MainActor
 final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDelegate {
@@ -27,6 +28,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
                                                       iconSize: .init(width: 12, height: 12),
                                                       margin: 2
     )
+    private let topGradientView = UIView()
 
     // Models
     private var playerVC: AVPlayerViewController?
@@ -36,6 +38,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     private weak var viewModel: MessageRowViewModel?
     private var message: HistoryMessageType? { viewModel?.message }
     private static let playIcon: UIImage = UIImage(systemName: "play.fill")!
+    private var cancellable = Set<AnyCancellable>()
 
     // Constraints
     private var fileNameLabelTrailingConstarint: NSLayoutConstraint!
@@ -64,17 +67,30 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         backgroundColor = UIColor.black
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
 
+        topGradientView.translatesAutoresizingMaskIntoConstraints = false
+        topGradientView.isUserInteractionEnabled = false
+        
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [UIColor.black.cgColor,
+                                UIColor.black.withAlphaComponent(0.6).cgColor,
+                                UIColor.clear.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        topGradientView.layer.addSublayer(gradientLayer)
+        
+        addSubview(topGradientView)
+        
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
         fileSizeLabel.font = UIFont.fBoldCaption2
         fileSizeLabel.textAlignment = .left
-        fileSizeLabel.textColor = Color.App.textPrimaryUIColor
+        fileSizeLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageVideoView"
         addSubview(fileSizeLabel)
 
         fileNameLabel.translatesAutoresizingMaskIntoConstraints = false
         fileNameLabel.font = UIFont.fBoldCaption2
         fileNameLabel.textAlignment = .left
-        fileNameLabel.textColor = Color.App.textPrimaryUIColor
+        fileNameLabel.textColor = UIColor.white
         fileNameLabel.numberOfLines = 1
         fileNameLabel.lineBreakMode = .byTruncatingMiddle
         fileNameLabel.accessibilityIdentifier = "fileNameLabelMessageVideoView"
@@ -83,7 +99,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         fileTypeLabel.translatesAutoresizingMaskIntoConstraints = false
         fileTypeLabel.font = UIFont.fBoldCaption2
         fileTypeLabel.textAlignment = .left
-        fileTypeLabel.textColor = Color.App.textSecondaryUIColor
+        fileTypeLabel.textColor = UIColor.white.withAlphaComponent(0.9)
         fileTypeLabel.accessibilityIdentifier = "fileTypeLabelMessageVideoView"
         addSubview(fileTypeLabel)
 
@@ -140,6 +156,12 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
             playIcon.heightAnchor.constraint(equalToConstant: playIconSize),
             playIcon.centerXAnchor.constraint(equalTo: centerXAnchor),
             playIcon.centerYAnchor.constraint(equalTo: centerYAnchor),
+            
+            topGradientView.topAnchor.constraint(equalTo: topAnchor),
+            topGradientView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            topGradientView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            /// We move the bottom 32 lower than the fileSizeLabel to make the fileSize label more readable by the gradient.
+            topGradientView.bottomAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor, constant: 32) // adjust as needed
         ])
     }
 
@@ -306,10 +328,28 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
                                                        ext: metadata?.file?.mimeType?.ext,
                                                        title: metadata?.name,
                                                        subtitle: metadata?.file?.originalName ?? "")
+        register()
    }
     
     @AppBackgroundActor
     private func metadata(message: HistoryMessageType?) async -> FileMetaData? {
         message?.fileMetaData
+    }
+    
+    private func register() {
+        /* Show play icon on message video row after finishing
+         automatic playing to show that this row is a video and you can click on it to ply it.
+         */
+        videoPlayerVM?.$isFinished.sink { [weak self] isFinished in
+            if isFinished {
+                self?.playIcon.setIsHidden(false)
+            }
+        }
+        .store(in: &cancellable)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        topGradientView.layer.sublayers?.first?.frame = topGradientView.bounds
     }
 }

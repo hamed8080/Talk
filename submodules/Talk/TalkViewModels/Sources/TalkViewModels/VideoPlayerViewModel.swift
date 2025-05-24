@@ -21,7 +21,7 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
     var subtitle: String?
     var timer: Timer?
     @Published public var timerString = "00:00"
-    public var isFinished: Bool = false
+    @Published public var isFinished: Bool = false
 
     public init(fileURL: URL, ext: String? = nil, title: String? = nil, subtitle: String? = nil, directLink: Bool = false) {
         self.fileURL = fileURL

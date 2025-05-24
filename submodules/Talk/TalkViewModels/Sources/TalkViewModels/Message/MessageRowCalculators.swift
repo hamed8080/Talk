@@ -254,7 +254,7 @@ class MessageRowCalculators {
         let uploadFileType = fileReq?.originalName ?? imageReq?.originalName
         let serverFileType = calculatedMessage.fileMetaData?.file?.originalName
         let split = (serverFileType ?? uploadFileType)?.split(separator: ".")
-        let ext = calculatedMessage.fileMetaData?.file?.extension
+        let ext = calculatedMessage.fileMetaData?.file?.extension ?? fileReq?.fileExtension ?? imageReq?.fileExtension
         let lastSplit = String(split?.last ?? "")
         let extensionName = (ext ?? lastSplit)
         return extensionName.isEmpty ? nil : extensionName.uppercased()
