@@ -38,13 +38,18 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
             if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
                 let id = UUID()
                 let item = placeholderVideoItem(item: provider, id: id)
-                let progress = provider.loadDataRepresentation(for: .movie) { data, error in
-                    Task { [weak self] in
-                        guard let self = self else { return }
-                        if let data = data {
-                            await onVideoItemPrepared(data: data, id: id, error: error, fileExt: nil)
-                        } else if let error = error {
-                            await log("Error load movie: \(error.localizedDescription)")
+                let progress = provider.loadFileRepresentation(for: .movie) { url, openInPlace, error in
+                    if let url = url {
+                        let ext = url.pathExtension
+                        provider.loadDataRepresentation(for: .movie) { data, error in
+                            Task { [weak self] in
+                                guard let self = self else { return }
+                                if let data = data {
+                                    await onVideoItemPrepared(data: data, id: id, error: error, fileExt: ext)
+                                } else if let error = error {
+                                    await log("Error load movie: \(error.localizedDescription)")
+                                }
+                            }
                         }
                     }
                 }

@@ -82,17 +82,6 @@ public final class AttachmentsViewModel: ObservableObject {
         addSelectedFile()
     }
     
-    private func processVideo(data: Data, name: String) async {
-        let item = ImageItem(isVideo: true,
-                             data: data,
-                             width: 0,
-                             height: 0,
-                             originalFilename: name)
-        await MainActor.run {
-            addSelectedPhotos(imageItem: item)
-        }
-    }
-    
     private func resetSendContainerIfIsEmpty() {
         if viewModel?.sendContainerViewModel.isTextEmpty() == true, attachments.count == 0 {
             viewModel?.sendContainerViewModel.clear()

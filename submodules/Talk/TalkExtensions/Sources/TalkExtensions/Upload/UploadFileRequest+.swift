@@ -14,7 +14,7 @@ public extension UploadFileRequest {
     init(videoItem: ImageItem, _ userGroupHash: String? = nil) {        
         self = UploadFileRequest(data: videoItem.data,
                                  fileExtension: "mp4",
-                                 fileName: videoItem.fileName,
+                                 fileName: "\(videoItem.fileName ?? "").\(videoItem.fileExt ?? "")",
                                  mimeType: "video/mp4",
                                  userGroupHash: userGroupHash)
     }
