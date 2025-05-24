@@ -135,6 +135,7 @@ public final class ThreadPinMessageView: UIStackView {
         } else if superview == nil {
             alpha = 0.0
             stack?.addArrangedSubview(self)
+            (stack as? TopThreadToolbar)?.sort()
             UIView.animate(withDuration: 0.2) {
                 self.alpha = 1.0
             }

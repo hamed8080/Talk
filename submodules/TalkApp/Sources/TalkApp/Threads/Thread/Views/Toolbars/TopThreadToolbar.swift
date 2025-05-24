@@ -70,6 +70,7 @@ public final class TopThreadToolbar: UIStackView {
 
     private func configurePinMessageView() {
         pinMessageView?.accessibilityIdentifier = "pinMessageViewTopThreadToolbar"
+        pinMessageView?.tag = 1
         if let pinMessageView = pinMessageView {
             pinMessageView.stack = self
         }
@@ -77,8 +78,10 @@ public final class TopThreadToolbar: UIStackView {
 
     private func configurePlayerView() {
         navigationPlayerView?.accessibilityIdentifier = "navigationPlayerViewTopThreadToolbar"
+        navigationPlayerView?.tag = 2
         if let navigationPlayerView = navigationPlayerView {
-            navigationPlayerView.stack = self            
+            navigationPlayerView.stack = self
+            navigationPlayerView.register()
         }
     }
 
@@ -100,5 +103,20 @@ public final class TopThreadToolbar: UIStackView {
 
     public func updatePinMessage() {
         pinMessageView?.set()
+    }
+    
+    public func sort() {
+        let sortedSubviews = arrangedSubviews.sorted { $0.tag < $1.tag }
+
+        // Remove all arranged subviews
+        for view in arrangedSubviews {
+            removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+
+        // Re-add in desired order
+        for view in sortedSubviews {
+            addArrangedSubview(view)
+        }
     }
 }

@@ -29,7 +29,6 @@ class ThreadNavigationPlayer: UIView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
-        register()
     }
 
     required init(coder: NSCoder) {
@@ -177,6 +176,7 @@ class ThreadNavigationPlayer: UIView {
         } else if superview == nil {
             alpha = 0.0
             stack?.addArrangedSubview(self)
+            (stack as? TopThreadToolbar)?.sort()
             UIView.animate(withDuration: 0.2) {
                 self.alpha = 1.0
             }
