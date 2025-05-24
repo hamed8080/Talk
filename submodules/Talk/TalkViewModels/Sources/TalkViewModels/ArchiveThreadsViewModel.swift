@@ -180,6 +180,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
+            conversation.mute = true
             let myId = AppState.shared.user?.id ?? -1
             let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
             archives.append(calThreads)
