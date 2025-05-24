@@ -125,7 +125,9 @@ class MessageRowCalculators {
         let isFirstMessageOfTheUser = isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: mainData.thread?.type?.isChannelType == true)
         calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
         calculatedMessage.isLastMessageOfTheUser = isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
-        calculatedMessage.isEnglish = message.message?.naturalTextAlignment == .leading                
+        if let prefix = message.message?.prefix(5) {
+            calculatedMessage.isEnglish = String(prefix).naturalTextAlignment == .leading
+        }
         if let attributedString = calculateAttributedString(text: message.message ?? "") {
             calculatedMessage.attributedString = attributedString
         }

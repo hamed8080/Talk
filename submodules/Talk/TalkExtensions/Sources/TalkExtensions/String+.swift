@@ -79,7 +79,9 @@ public extension String {
     var ext: String? { UTType(mimeType: self)?.preferredFilenameExtension }
 
     var dominantLanguage: String? {
-        return NLLanguageRecognizer.dominantLanguage(for: self)?.rawValue
+        let recognizer = NLLanguageRecognizer()
+        recognizer.languageConstraints = [.arabic, .english, .persian]
+        return recognizer.dominantLanguage?.rawValue
     }
 
     var naturalTextAlignment: TextAlignment {

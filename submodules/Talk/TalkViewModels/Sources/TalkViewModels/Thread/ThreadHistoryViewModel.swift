@@ -390,20 +390,21 @@ extension ThreadHistoryViewModel {
     }
 
     private func onMoreTop(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
-        // If the last message of the thread deleted and we have seen all the messages we move to top of the thread which is wrong
+        let messages = response.result ?? []
+        let sortedMessages = messages.sortedByTime()
+        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
         await MainActor.run {
             isUpdating = true
         }
-        
+
+        /// We have to store section count and last top message before appending them to the threads array 
         let wasEmpty = sections.isEmpty
         let topVMBeforeJoin = sections.first?.vms.first
-        let messages = response.result ?? []
         let lastTopMessageVM = sections.first?.vms.first
         let beforeSectionCount = sections.count
-        let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
         let shouldUpdateOldTopSection = StitchAvatarCalculator.forTop(sections, viewModels)
         
         await appendSort(viewModels)
@@ -474,6 +475,10 @@ extension ThreadHistoryViewModel {
     }
 
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
+        let messages = response.result ?? []
+        let sortedMessages = messages.sortedByTime()
+        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
         
@@ -481,13 +486,12 @@ extension ThreadHistoryViewModel {
             isUpdating = true
         }
         
-        let messages = response.result ?? []
+        /// We have to store section count  before appending them to the threads array 
         let beforeSectionCount = sections.count
-        let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
         let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, viewModels)
         
         await appendSort(viewModels)
+
         /// 4- Disable excessive loading on the top part.
         await viewModel?.scrollVM.disableExcessiveLoading()
         await setHasMoreBottom(response)
