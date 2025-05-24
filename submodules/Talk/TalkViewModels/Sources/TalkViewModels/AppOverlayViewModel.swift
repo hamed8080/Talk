@@ -45,6 +45,7 @@ public class AppOverlayViewModel: ObservableObject {
     public var showCloseButton: Bool = false
     public var offsetVM = GalleyOffsetViewModel()
     public var canDismiss: Bool = true
+    public var toastTimer: Timer?
 
     public var transition: AnyTransition {
         switch type {
@@ -86,6 +87,7 @@ public class AppOverlayViewModel: ObservableObject {
     private func onError(_ newError: ChatError?) {
         Task { [weak self] in
             await MainActor.run { [weak self] in
+                self?.cancelToastTimer()
                 if let error = newError {
                     self?.type = .error(error: error)
                     self?.isPresented = true
@@ -100,6 +102,7 @@ public class AppOverlayViewModel: ObservableObject {
     public var galleryMessage: Message? = nil {
         didSet {
             guard let galleryMessage else { return }
+            cancelToastTimer()
             showCloseButton = true
             type = .gallery(message: galleryMessage)
             isPresented = true
@@ -109,6 +112,7 @@ public class AppOverlayViewModel: ObservableObject {
     public var galleryImageView: UIImage? {
         didSet {
             guard let galleryImageView else { return }
+            cancelToastTimer()
             showCloseButton = true
             type = .galleryImageView(uiimage: galleryImageView)
             isPresented = true
@@ -117,6 +121,7 @@ public class AppOverlayViewModel: ObservableObject {
 
     public var dialogView: AnyView? {
         didSet {
+            cancelToastTimer()
             if dialogView != nil {
                 showCloseButton = false
                 type = .dialog
@@ -152,8 +157,11 @@ public class AppOverlayViewModel: ObservableObject {
         type = .toast(leadingView: AnyView(leadingView), message: message, messageColor: messageColor)
         isToast = true
         isPresented = true
+        showCloseButton = false
         animateObjectWillChange()
-        Timer.scheduledTimer(withTimeInterval: TimeInterval(duration.duration), repeats: false) { [weak self] _ in
+        cancelToastTimer()
+        toastTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(duration.duration), repeats: false) { [weak self] timer in
+            if !timer.isValid { return }
             Task { @MainActor [weak self] in
                 self?.isToast = false
                 self?.type = .none
@@ -168,5 +176,10 @@ public class AppOverlayViewModel: ObservableObject {
         type = .none
         galleryMessage = nil
         galleryImageView = nil
+    }
+    
+    private func cancelToastTimer() {
+        toastTimer?.invalidate()
+        toastTimer = nil
     }
 }
