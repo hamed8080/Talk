@@ -94,7 +94,7 @@ struct MusicRowView: View {
                         .foregroundColor(Color.App.textSecondary)
                         .font(.fCaption2)
                     Spacer()
-                    Text(message.fileMetaData?.file?.size?.toSizeString(locale: Language.preferredLocale, bundle: Language.preferedBundle) ?? "")
+                    Text(message.fileMetaData?.file?.size?.toSizeStringShort(locale: Language.preferredLocale) ?? "")
                         .foregroundColor(Color.App.textSecondary)
                         .font(.fCaption3)
                 }

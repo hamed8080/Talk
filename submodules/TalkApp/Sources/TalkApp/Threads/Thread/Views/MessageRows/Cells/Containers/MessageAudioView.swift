@@ -132,10 +132,11 @@ final class MessageAudioView: UIView {
             fileSizeLabel.leadingAnchor.constraint(equalTo: waveView.leadingAnchor),
             fileSizeLabel.topAnchor.constraint(equalTo: waveView.bottomAnchor, constant: margin),
             fileSizeLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            fileSizeLabel.widthAnchor.constraint(equalToConstant: 76),
             
             timeLabel.leadingAnchor.constraint(equalTo: fileSizeLabel.trailingAnchor, constant: margin),
             timeLabel.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor),
-            timeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin),
+            timeLabel.trailingAnchor.constraint(equalTo: fileNameLabel.trailingAnchor, constant: 0),
             timeLabel.bottomAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor),
             
             playbackSpeedButton.widthAnchor.constraint(equalToConstant: 52),

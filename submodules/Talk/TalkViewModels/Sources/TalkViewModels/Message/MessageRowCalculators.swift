@@ -242,7 +242,7 @@ class MessageRowCalculators {
         let size = fileReq?.data.count ?? imageReq?.data.count ?? 0
         let uploadFileSize: Int64 = Int64(size)
         let realServerFileSize = calculatedMessage.fileMetaData?.file?.size
-        let fileSize = (realServerFileSize ?? uploadFileSize).toSizeString(locale: Language.preferredLocale, bundle: Language.preferedBundle)?.replacingOccurrences(of: "٫", with: ".")
+        let fileSize = (realServerFileSize ?? uploadFileSize).toSizeStringShort(locale: Language.preferredLocale)?.replacingOccurrences(of: "٫", with: ".")
         return fileSize
     }
     
