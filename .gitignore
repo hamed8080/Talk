@@ -4,3 +4,4 @@ xcuserdata/
 *.xccheckout
 build
 submodules/SDK/
+.build/
