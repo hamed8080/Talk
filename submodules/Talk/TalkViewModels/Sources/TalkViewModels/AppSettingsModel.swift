@@ -23,6 +23,9 @@ public struct AppSettingsModel: Codable, Hashable, Sendable {
     public var isSyncOn: Bool = false
     public var isAutoPlayVideoEnabled = true
     public var isDarkModeEnabled: Bool? = nil
+    
+    /// Default value is true
+    public var isSaveScrollPosition: Bool? = true
     public var notificationSettings: NotificationSettingModel = .init()
     public var automaticDownloadSettings: AutomaticDownloadSettingModel = .init()
     

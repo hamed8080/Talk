@@ -22,7 +22,8 @@ struct PreferenceView: View {
                 .listRowSeparator(.hidden)
             ManageSessionsSection()
                 .listRowInsets(.zero)
-                .listRowSeparator(.hidden)            
+                .listRowSeparator(.hidden)
+            SaveScrollPositionSection()
             if EnvironmentValues.isTalkTest {
                 StickyHeaderSection(header: "", height: 10)
                     .listRowInsets(.zero)

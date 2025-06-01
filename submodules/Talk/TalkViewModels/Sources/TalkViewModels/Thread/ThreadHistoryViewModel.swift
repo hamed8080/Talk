@@ -141,6 +141,10 @@ extension ThreadHistoryViewModel {
                 self.hasSentHistoryRequest = true
             }
         }
+        if let message = await viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId) {
+            await tryScrollPositionScenario()
+            return
+        }
         tryFirstScenario()
         await trySecondScenario()
         await trySeventhScenario()
@@ -374,6 +378,16 @@ extension ThreadHistoryViewModel {
             }
         }
         firstMessageOfTheDayVM?.startOfDate(time: time, highlight: true)
+    }
+    
+    // MARK: Scenario 12
+    /// Move to a time if save scroll position was on.
+    private func tryScrollPositionScenario() async {
+        guard let message = await viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId)
+        else { return }
+        if let time = message.time, let messageId = message.id {
+            await moveToTime(time, messageId)
+        }
     }
 
     // MARK: On Cache History Response

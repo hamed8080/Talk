@@ -11,6 +11,7 @@ import SwiftUI
 import TalkViewModels
 import TalkModels
 import OSLog
+import Chat
 
 @MainActor
 class UIHistoryTableView: UITableView {
@@ -208,6 +209,15 @@ extension UIHistoryTableView {
         log("deceleration ended has been called")
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
+        }
+
+        Task(priority: .background) { [weak self] in
+            guard let self = self,
+                  let indexPath = indexPathsForVisibleRows?.first,
+                  let threadId = viewModel?.threadId,
+                  let message = viewModel?.historyVM.sectionsHolder.sections[indexPath.section].vms[indexPath.row].message as? Message
+            else { return }
+            await viewModel?.threadsViewModel?.saveScrollPositionVM.saveScrollPosition(threadId: threadId, message: message)
         }
     }
 
