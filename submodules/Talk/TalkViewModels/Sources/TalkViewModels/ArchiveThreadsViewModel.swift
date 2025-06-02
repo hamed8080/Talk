@@ -67,6 +67,13 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
+        AppState.shared.$connectionStatus
+            .sink { [weak self] event in
+                Task { [weak self] in
+                    await self?.onConnectionStatusChanged(event)
+                }
+            }
+            .store(in: &cancelable)
     }
 
     public func loadMore() {
@@ -240,7 +247,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         return threads
     }
     
-    public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
+    private func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
         if status == .connected {
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
