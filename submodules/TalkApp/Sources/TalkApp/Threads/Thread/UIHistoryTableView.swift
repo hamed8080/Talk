@@ -168,6 +168,7 @@ extension UIHistoryTableView {
         guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
         let vm = sections[indexPath.section].vms[indexPath.row]
         if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
+        if vm.message.id == LocalId.unreadMessageBanner.rawValue { return nil }
         if !vm.message.reactionableType { return nil }
         if isLeading && !vm.calMessage.isMe { return nil }
         if !isLeading && vm.calMessage.isMe { return nil }
