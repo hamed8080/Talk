@@ -92,12 +92,14 @@ extension MessageContainerStackView {
             }
             menu.addItem(copyAction)
         }
-
-        let reDownload = ActionMenuItem(model: .reDownload) { [weak self] in
-            self?.onReDownload(model)
-            onMenuClickedDismiss()
+        
+        if viewModel.message.isFileType, viewModel.fileState.state == .completed {
+            let reDownload = ActionMenuItem(model: .reDownload) { [weak self] in
+                self?.onReDownload(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(reDownload)
         }
-        menu.addItem(reDownload)
         
         if EnvironmentValues.isTalkTest, message.isFileType == true {
             let deleteCacheAction = ActionMenuItem(model: .deleteCache) { [weak self] in
