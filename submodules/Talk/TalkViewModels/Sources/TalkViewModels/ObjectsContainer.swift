@@ -59,8 +59,6 @@ public final class ObjectsContainer: ObservableObject {
         tagsVM.clear()
         tagsVM.getTagList()
         navVM.clear()
-        await threadsVM.getThreads()
-        await contactsVM.getContacts()
         logVM.clearLogs()
         appOverlayVM.clear()
         await conversationBuilderVM.clear()

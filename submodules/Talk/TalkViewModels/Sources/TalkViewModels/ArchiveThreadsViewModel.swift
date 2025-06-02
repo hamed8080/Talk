@@ -160,6 +160,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     public func getArchivedThreads() {
+        if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
         RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
@@ -170,6 +171,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
 
     public func getArchivedThread(threadId: Int) {
+        if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
         RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)

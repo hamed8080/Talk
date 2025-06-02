@@ -51,6 +51,8 @@ struct LanguageView: View {
         Language.setLanguageTo(bundle: bundle, language: language)
         Task {
             await container.reset()
+            await container.threadsVM.getThreads()
+            await container.contactsVM.getContacts()
             NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
         }
     }

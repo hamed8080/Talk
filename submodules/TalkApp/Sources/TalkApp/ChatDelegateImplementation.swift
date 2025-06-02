@@ -191,6 +191,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
     
     @MainActor
     public func logout() async {
+        AppState.shared.user = nil
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.user.logOut()
         }

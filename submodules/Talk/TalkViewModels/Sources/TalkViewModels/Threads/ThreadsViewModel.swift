@@ -113,6 +113,8 @@ public final class ThreadsViewModel: ObservableObject {
 
     @MainActor
     public func getThreads(withQueue: Bool = false) async {
+        /// Check if user didn't logged out
+        if !TokenManager.shared.isLoggedIn { return }
         if !firstSuccessResponse {
             shimmerViewModel.show()
         }
