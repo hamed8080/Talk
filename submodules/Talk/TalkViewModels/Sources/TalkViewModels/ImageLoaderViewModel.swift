@@ -45,6 +45,10 @@ public final class ImageLoaderViewModel: ObservableObject {
     public init(config: ImageLoaderConfig) {
         IMAGE_LOADER_KEY = "IMAGE-LOADER-\(objectId)"
         self.config = config
+        register()
+    }
+
+    public func register() {
         NotificationCenter.download.publisher(for: .download)
             .compactMap { $0.object as? DownloadEventTypes }
             .sink { [weak self] event in

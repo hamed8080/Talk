@@ -131,6 +131,7 @@ public final class ObjectsContainer: ObservableObject {
         if userProfileImageVM == nil {
             userProfileImageVM = .init(config: config)
         } else {
+            userProfileImageVM.register()
             userProfileImageVM.updateCondig(config: config)
         }
 

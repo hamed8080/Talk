@@ -20,6 +20,7 @@ struct SettingsView: View {
         List {
             Group {
                 UserProfileView()
+                    .environmentObject(container.userConfigsVM)
                     .listRowBackground(Color.App.bgPrimary)
             }
             .listRowSeparator(.hidden)
@@ -413,7 +414,8 @@ struct ManualConnectionManagementSection: View {
 
 struct UserProfileView: View {
     @EnvironmentObject var container: ObjectsContainer
-    var userConfig: UserConfig? { container.userConfigsVM.currentUserConfig }
+    @EnvironmentObject var userConfigsVM: UserConfigManagerVM
+    var userConfig: UserConfig? { userConfigsVM.currentUserConfig }
     var user: User? { userConfig?.user }
     @EnvironmentObject var viewModel: SettingViewModel
     @EnvironmentObject var imageLoader: ImageLoaderViewModel
@@ -422,7 +424,7 @@ struct UserProfileView: View {
         HStack(spacing: 0) {
             Image(uiImage: imageLoader.image)
                 .resizable()
-                .id("\(userConfig?.user.image ?? "")\(userConfig?.user.id ?? 0)")
+                .id("\(user?.image ?? "")\(user?.id ?? 0)")
                 .scaledToFill()
                 .frame(width: 64, height: 64)
                 .background(Color(uiColor: String.getMaterialColorByCharCode(str: AppState.shared.user?.name ?? "")))
