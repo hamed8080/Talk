@@ -44,8 +44,13 @@ public struct AudioPlayerView: View {
         .disabled(audioPlayerVM.isClosed)
         .onTapGesture {
             Task {
-                if let message = audioPlayerVM.message, let time = message.time, let id = message.id {
+                guard let message = audioPlayerVM.message, let time = message.time, let id = message.id else { return }
+                if threadVM != nil {
                     await threadVM?.historyVM.moveToTime(time, id)
+                } else {
+                    /// Open thread and move to the message directly if we are outside of the thread and player is still plying 
+                    let threadId = message.conversation?.id ?? -1
+                    AppState.shared.openThreadAndMoveToMessage(conversationId: threadId, messageId: id, messageTime: time)
                 }
             }
         }
