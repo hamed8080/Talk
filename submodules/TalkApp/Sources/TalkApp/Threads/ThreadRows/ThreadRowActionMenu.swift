@@ -35,7 +35,7 @@ struct ThreadRowActionMenu: View {
             }
             .opacity(isArchive ? 0.4 : 1.0)
             .disabled(isArchive)
-            .allowsHitTesting(false)
+            .allowsHitTesting(!isArchive)
         }
 
         if !isDetailView, !thread.closed {
