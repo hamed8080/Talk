@@ -213,13 +213,13 @@ extension ThreadViewController: ThreadViewDelegate {
             cell.setInSelectionMode(value)
         }
         
-        // Assure that the previous item is in select mode or not
-        if let cell = prevouisVisibleIndexPath() {
+        // Assure that the previous resuable rows items are in select mode or not
+        for cell in tableView.prevouisVisibleIndexPath() {
             cell.setInSelectionMode(value)
         }
 
-        // Assure that the next item is in select mode or not
-        if let cell = nextVisibleIndexPath() {
+        // Assure that the next resuable rows items are in select mode or not
+        for cell in tableView.nextVisibleIndexPath() {
             cell.setInSelectionMode(value)
         }
 
@@ -291,7 +291,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func edited(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             tableView.performBatchUpdates {
                 cell.edited()
             }
@@ -299,25 +299,25 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func pinChanged(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.pinChanged()
         }
     }
 
     func sent(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.sent()
         }
     }
 
     func delivered(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.delivered()
         }
     }
 
     func seen(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.seen()
         }
     }
@@ -339,7 +339,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.setHighlight()
         }
     }
@@ -781,35 +781,6 @@ extension ThreadViewController {
 }
 
 // MARK: Table view cell helpers
-extension ThreadViewController {
-    private func baseCell(_ indexPath: IndexPath) -> MessageBaseCell? {
-        if let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell {
-            return cell
-        }
-        return nil
-    }
-
-    private func isVisible(_ indexPath: IndexPath) -> Bool {
-        tableView.indexPathsForVisibleRows?.contains(where: {$0 == indexPath}) == true
-    }
-
-    private func prevouisVisibleIndexPath() -> MessageBaseCell? {
-        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = sections.previousIndexPath(firstVisible) {
-            let cell = tableView.cellForRow(at: previousIndexPath) as? MessageBaseCell
-            return cell
-        }
-        return nil
-    }
-
-    private func nextVisibleIndexPath() -> MessageBaseCell? {
-        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = sections.nextIndexPath(lastVisible) {
-            let cell = tableView.cellForRow(at: nextIndexPath) as? MessageBaseCell
-            return cell
-        }
-        return nil
-    }
-}
-
 extension ThreadViewController {
     func setUpdating(updating: Bool) {
         viewModel?.historyVM.isUpdating = updating

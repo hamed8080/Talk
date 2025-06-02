@@ -221,3 +221,40 @@ extension UIHistoryTableView {
         }
     }
 }
+
+extension UIHistoryTableView {
+    public func baseCell(_ indexPath: IndexPath) -> MessageBaseCell? {
+        if let cell = cellForRow(at: indexPath) as? MessageBaseCell {
+            return cell
+        }
+        return nil
+    }
+    
+    public func isVisible(_ indexPath: IndexPath) -> Bool {
+        indexPathsForVisibleRows?.contains(where: {$0 == indexPath}) == true
+    }
+    
+    public func prevouisVisibleIndexPath() -> [MessageBaseCell] {
+        guard let firstVisibleIndexPath = indexPathsForVisibleRows?.first else { return [] }
+        var cells: [MessageBaseCell] = []
+        let indexPaths = sections.indexPathsBefore(indexPath: firstVisibleIndexPath, n: 5)
+        for i in indexPaths {
+            if let cell = cellForRow(at: i) as? MessageBaseCell {
+                cells.append(cell)
+            }
+        }
+        return cells
+    }
+    
+    public func nextVisibleIndexPath() -> [MessageBaseCell] {
+        guard let lastVisibleIndexPath = indexPathsForVisibleRows?.last else { return [] }
+        var cells: [MessageBaseCell] = []
+        let indexPaths = sections.indexPathsAfter(indexPath: lastVisibleIndexPath, n: 5)
+        for i in indexPaths {
+            if let cell = cellForRow(at: i) as? MessageBaseCell {
+                cells.append(cell)
+            }
+        }
+        return cells
+    }
+}
