@@ -83,12 +83,21 @@ class ThreadNavigationPlayer: UIView {
             heightAnchor.constraint(equalToConstant: 40),
             playButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             playButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -2),
+            playButton.widthAnchor.constraint(equalToConstant: 32),
+            
             titleLabel.leadingAnchor.constraint(equalTo: playButton.trailingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: timerLabel.leadingAnchor, constant: -4),
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            
             closeButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             closeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: 32),
+            
             timerLabel.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -4),
             timerLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            /// This prevents it from getting so small and the title wobbles a lot.
+            timerLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 36),
+            
             progress.leadingAnchor.constraint(equalTo: leadingAnchor),
             progress.trailingAnchor.constraint(equalTo: trailingAnchor),
             progress.widthAnchor.constraint(equalTo: widthAnchor),
