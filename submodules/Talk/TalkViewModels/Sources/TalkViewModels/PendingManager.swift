@@ -35,6 +35,19 @@ public class PendingManager {
         pendings.removeValue(forKey: uniqueId)
     }
     
+    public func removeForwards(uniqueId: String) {
+        /// Remove forwards
+        var pendingsToRemove: [String] = []
+        for pendingKey in pendings.keys {
+            if pendingKey.contains(uniqueId) {
+                pendingsToRemove.append(pendingKey)
+            }
+        }
+        for remove in pendingsToRemove {
+            pendings.removeValue(forKey: remove)
+        }
+    }
+   
     private func onConnectionStatusChanged(_ status: ConnectionStatus) {
         if status == .connected {
             resendPendings()
