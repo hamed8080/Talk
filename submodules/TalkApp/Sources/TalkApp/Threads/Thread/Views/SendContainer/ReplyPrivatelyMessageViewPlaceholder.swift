@@ -88,7 +88,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         nameLabel.text = replyMessage?.participant?.name
         nameLabel.setIsHidden(replyMessage?.participant?.name == nil)
         Task {
-            let message = replyMessage?.message ?? replyMessage?.fileMetaData?.name ?? ""
+            let message = replyMessage?.fileMetaData?.name ?? replyMessage?.message ?? ""
             await MainActor.run {
                 messageLabel.text = message
             }

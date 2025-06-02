@@ -119,7 +119,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         }
         
         Task {
-            let message = replyMessage?.message ?? replyMessage?.fileMetaData?.name ?? ""
+            let message = replyMessage?.fileMetaData?.name ?? replyMessage?.message ?? ""
             await MainActor.run {
                 messageLabel.text = message
             }
