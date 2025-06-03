@@ -94,29 +94,13 @@ public class GalleyOffsetViewModel: ObservableObject {
     }
     
     public func dismiss() {
-        if #available(iOS 17.0, *) {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                dragOffset.height += heightOfScreen - dragOffset.height
-                containerYOffset += dragOffset.height
-            } completion: {
-                DispatchQueue.main.async { [weak self] in
-                    self?.appOverlayVM?.isPresented = false
-                    self?.appOverlayVM?.clear()
-                    self?.resetZoom()
-                    self?.resetOffset()
-                }
-            }
-        } else {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                dragOffset.height += heightOfScreen - dragOffset.height
-                containerYOffset = dragOffset.height
-                DispatchQueue.main.async { [weak self] in
-                    self?.appOverlayVM?.isPresented = false
-                    self?.appOverlayVM?.clear()
-                    self?.resetZoom()
-                    self?.resetOffset()
-                }
-            }
+        dragOffset.height += heightOfScreen - dragOffset.height
+        containerYOffset += dragOffset.height
+        DispatchQueue.main.async { [weak self] in
+            self?.appOverlayVM?.isPresented = false
+            self?.appOverlayVM?.clear()
+            self?.resetZoom()
+            self?.resetOffset()
         }
     }
 }
