@@ -82,21 +82,25 @@ public final class PickerButtonsView: UIStackView {
     }
 
     @objc private func onBtnGalleryTapped(_ sender: UIGestureRecognizer) {
+        hideKeyboard()
         presentImagePicker()
         closePickerButtons()
     }
 
     @objc private func onBtnFileTapped(_ sender: UIGestureRecognizer) {
+        hideKeyboard()
         presentFilePicker()
         closePickerButtons()
     }
 
     @objc private func onBtnLocationTapped(_ sender: UIGestureRecognizer) {
+        hideKeyboard()
         presentMapPicker()
         closePickerButtons()
     }
 
     @objc private func onBtnContactTapped(_ sender: UIGestureRecognizer) {
+        hideKeyboard()
         closePickerButtons()
     }
 
@@ -122,6 +126,11 @@ public final class PickerButtonsView: UIStackView {
                 self.removeFromSuperViewWithAnimation()
             }
         }
+    }
+    
+    /// Hide keyboard when opening the map or other tools.
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 
