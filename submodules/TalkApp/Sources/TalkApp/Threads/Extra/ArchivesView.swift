@@ -43,9 +43,6 @@ struct ArchivesView: View {
         .animation(.easeInOut, value: viewModel.isLoading)
         .listStyle(.plain)
         .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)       
-        .onAppear {
-            viewModel.getArchivedThreads()
-        }
     }
 }
 

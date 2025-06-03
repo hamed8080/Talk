@@ -192,8 +192,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads: self.archives)
             let sorted = await sort(threads: newThreads)
             await MainActor.run {
+                setHasNextOnResponse(response)
                 self.archives = sorted
                 isLoading = false
+                firstSuccessResponse = true
                 animateObjectWillChange()
             }
         }
@@ -268,7 +270,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
 
     private func setHasNextOnResponse(_ response: ChatResponse<[Conversation]>) {
-        if !response.cache, response.result?.count ?? 0 > 0 {
+        if !response.cache {
             hasNext = response.hasNext
         }
     }
@@ -282,6 +284,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     public func refresh() async {
         archives.removeAll()
+        offset = 0
         getArchivedThreads(withQueue: true)
     }
 
