@@ -155,6 +155,8 @@ public extension MessageRowViewModel {
     private func openMap() {
         if let url = message.neshanURL(basePath: AppState.shared.spec.server.neshan), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
+        } else if let mapLink = message.fileMetaData?.mapLink, let url = URL(string: mapLink), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
         }
     }
 
