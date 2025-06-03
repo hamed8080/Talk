@@ -117,7 +117,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
             btnClose.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             btnClose.widthAnchor.constraint(equalToConstant: 42),
             btnClose.heightAnchor.constraint(equalToConstant: 42),
-            btnClose.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
+            btnClose.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             btnSubmit.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             btnSubmit.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             heightSubmitConstraint,
@@ -220,7 +220,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
         .store(in: &cancellableSet)
         
         locationManager.$userLocation.sink { [weak self] userLocation in
-            if self?.showOSMMap == true, let location = userLocation?.location {
+            if self?.showOSMMap == true, let location = userLocation?.location, self?.canUpdate == true {
                 /// A delay to load osm for the first time
                 Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
                     Task { @MainActor [weak self] in
