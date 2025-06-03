@@ -64,7 +64,7 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onNewMessage(_ messages: [Message], conversationId: Int) async {
+    public func onNewMessage(_ messages: [Message], conversationId: Int) async -> Bool {
         if let index = firstIndex(conversationId) {
             let reference = threads[index]
             let old = reference.toStruct()
@@ -77,9 +77,12 @@ public final class ThreadsViewModel: ObservableObject {
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+            return true
         } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
             await calculateAppendSortAnimate(conversation)
+            return false
         }
+        return false
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {

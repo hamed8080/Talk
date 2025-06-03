@@ -672,6 +672,19 @@ extension ThreadHistoryViewModel {
         await setSeenForAllOlderMessages(newMessage: messages.last ?? .init(), myId: await appUserId ?? -1)
         await showEmptyThread(show: false)
     }
+    
+    public func onForwardMessageForActiveThread(_ messages: [Message]) async {
+        guard let viewModel = await viewModel else { return }
+        for message in messages {
+            let bottomVMBeforeJoin = sections.last?.vms.last
+            let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
+            let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
+            await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
+            await sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
+            await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
+        }
+        await showEmptyThread(show: false)
+    }
 
     /*
      We use this method in new messages due to the fact that, if we are uploading multiple files/pictures...
