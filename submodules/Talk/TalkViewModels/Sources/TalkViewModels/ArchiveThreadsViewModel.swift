@@ -159,13 +159,17 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    public func getArchivedThreads() {
+    public func getArchivedThreads(withQueue: Bool = false) {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
         RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
+            if withQueue {
+                await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getArchives(req: req))
+            } else {
+                ChatManager.activeInstance?.conversation.get(req)
+            }
         }
         animateObjectWillChange()
     }
@@ -278,7 +282,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     public func refresh() async {
         archives.removeAll()
-        getArchivedThreads()
+        getArchivedThreads(withQueue: true)
     }
 
     private func onNewMessage(_ response: ChatResponse<Message>) {

@@ -20,6 +20,7 @@ public class ChatRequestQueue {
         log("Enqueuing the request: \(type) and deadline to start from now is:\(throttleInterval)")
         let isDuplicateRemoved = removeOldConversaionReq(newReq: type)
         removeOldMentionsReq(newReq: type)
+        removeOldArchivesReq(newReq: type)
         requestQueue.enqueue(type)
         processWithDelay(deadline: isDuplicateRemoved ? .now() + 0 : deadline)
         throttleInterval += 1.0
@@ -49,6 +50,8 @@ public class ChatRequestQueue {
     private func sendRequest(_ request: RequestEnqueuType) {
         switch request {
         case .getConversations(let req):
+            ChatManager.activeInstance?.conversation.get(req)
+        case .getArchives(let req):
             ChatManager.activeInstance?.conversation.get(req)
         case .getContacts(let req):
             ChatManager.activeInstance?.contact.get(req)
@@ -94,6 +97,22 @@ public class ChatRequestQueue {
         var indices: [Int] = []
         for index in requestQueue.indices() {
             if case .mentions = requestQueue.indexOf(index) as? RequestEnqueuType { indices.append(index) }
+        }
+        return indices
+    }
+    
+    private func removeOldArchivesReq(newReq: RequestEnqueuType) {
+        if case let .getArchives = newReq, let indices = oldArchivesReqeustIndex() {
+            for index in indices {
+                requestQueue.remove(at: index)
+            }
+        }
+    }
+    
+    private func oldArchivesReqeustIndex() -> [Int]? {
+        var indices: [Int] = []
+        for index in requestQueue.indices() {
+            if case .getArchives = requestQueue.indexOf(index) as? RequestEnqueuType { indices.append(index) }
         }
         return indices
     }
