@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import OSLog
 import Chat
+import Logger
 
 public class RequestsManager: @unchecked Sendable {
     public static let shared = RequestsManager()
@@ -139,9 +139,7 @@ public class RequestsManager: @unchecked Sendable {
     
     // MARK: Logs
     private func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "RequestsManager", message: string)
     }
 }
 

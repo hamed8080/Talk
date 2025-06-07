@@ -8,7 +8,7 @@
 import AVFoundation
 import Chat
 import Foundation
-import OSLog
+import Logger
 import TalkModels
 
 @MainActor
@@ -124,9 +124,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
                 }
             }
         } catch {
-#if DEBUG
-            Logger.viewModels.info("error to get recording permission")
-#endif
+            Logger.log(title: "ThreadViewModel", message: "Error to get recording permission: \(error.localizedDescription)")
         }
     }
 

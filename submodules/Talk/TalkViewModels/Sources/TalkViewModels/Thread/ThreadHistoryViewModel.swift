@@ -7,7 +7,7 @@
 
 import Foundation
 import Chat
-import OSLog
+import Logger
 import TalkModels
 import Combine
 import UIKit
@@ -222,6 +222,7 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 5
     private func tryFifthScenario(status: ConnectionStatus) async {
         /// 1- Get the bottom part of the list of what is inside the memory.
+        await waitingToFinishUpdating()
         if let lastMessageInListTime = sections.last?.vms.last?.message.time {
             await showBottomLoading(true)
             let req = await makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
@@ -1119,7 +1120,7 @@ extension ThreadHistoryViewModel {
 #if DEBUG
         Task.detached {
             let date = Date().millisecondsSince1970
-            Logger.viewModels.debug("Start of sending history request: \(date) milliseconds")
+            Logger.log(title: "ThreadHistoryViewModel", message: " Start of sending history request: \(date) milliseconds")
         }
 #endif
     }
@@ -1127,7 +1128,7 @@ extension ThreadHistoryViewModel {
     private func log(_ string: String) {
 #if DEBUG
         Task.detached {
-            Logger.viewModels.info("\(string, privacy: .sensitive)")
+            Logger.log(title: "ThreadHistoryViewModel", message: string)
         }
 #endif
     }
@@ -1135,7 +1136,7 @@ extension ThreadHistoryViewModel {
     private func logScroll(_ string: String) {
 #if DEBUG
         Task.detached {
-            Logger.viewModels.info("SCROLL: \(string)")
+            Logger.log(title: "ThreadHistoryViewModel", message: "SCROLL: \(string)")
         }
 #endif
     }

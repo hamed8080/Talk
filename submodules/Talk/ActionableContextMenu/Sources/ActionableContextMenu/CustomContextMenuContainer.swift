@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftUI
-import OSLog
 
 struct CustomContextMenuContainer: ViewModifier {
     let viewModel: ContextMenuModel = .init()
@@ -23,7 +22,6 @@ struct CustomContextMenuContainer: ViewModifier {
 
 struct MutableContextMenuOverlayView: View {
     @EnvironmentObject var viewModel: ContextMenuModel
-    private let logger = Logger(subsystem: "ActionableContextMenu", category: "CustomContextMenuContainer")
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -58,11 +56,6 @@ struct MutableContextMenuOverlayView: View {
                 let reader  = reader
                 viewModel.containerSize = reader.size
                 viewModel.safeAreaInsets = reader.safeAreaInsets
-#if DEBUG
-                logger.info("container size width: \(viewModel.containerSize.width) height: \(viewModel.containerSize.height)")
-                logger.info("container safeAreaInsets Top:\(viewModel.safeAreaInsets.top)")
-                logger.info("container safeAreaInsets Bottom:\(viewModel.safeAreaInsets.bottom)")
-#endif
             }
         }
     }

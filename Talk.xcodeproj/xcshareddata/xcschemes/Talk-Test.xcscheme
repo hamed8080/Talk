@@ -93,11 +93,6 @@
             value = "1"
             isEnabled = "YES">
          </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "ENABLE_TALK_LOG_ON_DISK"
-            value = "1"
-            isEnabled = "NO">
-         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction

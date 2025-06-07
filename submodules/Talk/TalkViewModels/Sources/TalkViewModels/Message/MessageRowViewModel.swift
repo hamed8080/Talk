@@ -8,7 +8,7 @@
 import Chat
 import SwiftUI
 import TalkModels
-import OSLog
+import Logger
 
 public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Sendable {
     public static func == (lhs: MessageRowViewModel, rhs: MessageRowViewModel) -> Bool {
@@ -89,7 +89,8 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
 
     deinit {
 #if DEBUG
-        Logger.viewModels.info("Deinit get called for message: \(self.message.message ?? "") and message isFileTye:\(self.message.isFileType) and id is: \(self.message.id ?? 0)")
+        let string = "Deinit get called for message: \(self.message.message ?? "") and message isFileTye:\(self.message.isFileType) and id is: \(self.message.id ?? 0)"
+        Logger.log( title: "MessageRowViewModel", message: string, persist: false)
 #endif
     }
 }

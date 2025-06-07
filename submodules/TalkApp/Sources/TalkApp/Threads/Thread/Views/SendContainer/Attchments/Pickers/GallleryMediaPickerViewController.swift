@@ -9,7 +9,7 @@ import Foundation
 import PhotosUI
 import TalkViewModels
 import TalkModels
-import OSLog
+import Logger
 
 /// Image or Video picker handler.
 @MainActor
@@ -161,10 +161,7 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
     }
     
     private func log(_ message: String) {
-        #if DEBUG
-        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
-        logger.debug("\(message)")
-        #endif
+        Logger.log(title: "GallleryMediaPickerViewController", message: message)
     }
 }
 

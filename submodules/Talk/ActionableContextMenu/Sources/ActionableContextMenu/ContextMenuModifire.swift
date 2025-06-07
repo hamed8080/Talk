@@ -7,11 +7,9 @@
 
 import Foundation
 import SwiftUI
-import OSLog
 
 @available(*, deprecated, message: "Use new version NewCustomContextMenuViewModifier")
 struct ContextMenuModifire<V: View>: ViewModifier {
-    private let logger = Logger(subsystem: "ActionableContextMenu", category: "ContextMenuModifire")
     @EnvironmentObject var viewModel: ContextMenuModel
     @State var scale: CGFloat = 1.0
     let addedX: CGFloat
@@ -112,7 +110,6 @@ struct ContextMenuModifire<V: View>: ViewModifier {
         let height = value.translation.height
         if !viewModel.isPresented, width > -2 && width < 2 {
             viewModel.globalPosition = value.location
-            log("global touched value location x: \(value.location.x) y: \(value.location.y)")
         }
     }
     
@@ -125,7 +122,6 @@ struct ContextMenuModifire<V: View>: ViewModifier {
         if viewModel.isPresented && viewModel.localPosition?.x ?? 0 > 0 { return }
         if isPastTheMargin(first: beforeX, newValue: value.location.x) || isPastTheMargin(first: beforeY, newValue: value.location.y) {
             viewModel.localPosition = value.location
-            log("local touched value location x: \(value.location.x) y:\(value.location.y)")
         }
     }
     
@@ -185,15 +181,8 @@ struct ContextMenuModifire<V: View>: ViewModifier {
                     viewModel.itemWidth = itemWidth
                 }
                 self.globalFrame = globalFrame
-                log("globalFrame width: \(globalFrame.width) height: \(globalFrame.height)  originX: \(globalFrame.origin.x) originY: \(globalFrame.origin.y)")
             }
         }
-    }
-    
-    private func log(_ string: String) {
-#if DEBUG
-        logger.info("\(string)")
-#endif
     }
 }
 

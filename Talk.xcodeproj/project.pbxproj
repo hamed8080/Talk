@@ -21,6 +21,8 @@
 		AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC7408932D777A81009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408922D777A81009217C8 /* TalkApp */; };
 		AC7408952D777A86009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408942D777A86009217C8 /* TalkApp */; };
+		ACF538602DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
+		ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -65,6 +67,7 @@
 		ACE1EFB12D7861F5003DEEDB /* fa-IR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "fa-IR"; path = "fa-IR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		ACE1EFB22D7861F7003DEEDB /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB32D7861F9003DEEDB /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
+		ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +126,7 @@
 				AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */,
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
 				0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */,
+				ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */,
 				0570CC962AAEE9B2001832E9 /* Info-Test.plist */,
 				0570CC952AAEE9B2001832E9 /* Info.plist */,
 				0506DE1E2AD42AF00009701E /* Talk.docc */,
@@ -268,6 +272,7 @@
 				0506DE1F2AD42AF00009701E /* Talk.docc in Sources */,
 				0570CC932AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0570CC452AAEE98F001832E9 /* SceneDelegate.swift in Sources */,
+				ACF538602DF42AC300D6C9A3 /* Logger+.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,6 +283,7 @@
 				0506DE202AD42AF00009701E /* Talk.docc in Sources */,
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0570CC462AAEE98F001832E9 /* SceneDelegate.swift in Sources */,
+				ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -527,12 +527,10 @@ extension ThreadViewController: HistoryScrollDelegate {
 
     func inserted(at: IndexPath) {
         setUpdating(updating: true)
-#if DEBUG
-        log("inserted(at: IndexPath)")
-        LogManager.shared.log("inserted at indexPath: \(at)")
-        LogManager.shared.log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
-#endif
+        log("inserted at indexPath: \(at)")
+        log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
         tableView.beginUpdates()
+        
         // Insert a new section if we have a message in a new day.
         let beforeNumberOfSections = tableView.numberOfSections
         if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
@@ -552,11 +550,9 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath], scrollTo: IndexPath) {
-#if DEBUG
         log("inserted and scroll to")
-        LogManager.shared.log("insertingSections without animation: \(sections), insertingRows: \(rows)")
-        LogManager.shared.log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
-#endif
+        log("insertingSections without animation: \(sections), insertingRows: \(rows)")
+        log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
         setUpdating(updating: true)
         
         
@@ -597,11 +593,9 @@ extension ThreadViewController: HistoryScrollDelegate {
             setUpdating(updating: false)
             return
         }
-#if DEBUG
         log("inserted without scroll to")
-        LogManager.shared.log("insertingSections with animation: \(sections), insertingRows: \(rows)")
-        LogManager.shared.log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
-#endif
+        log("insertingSections with animation: \(sections), insertingRows: \(rows)")
+        log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
         setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
             if !sections.isEmpty {
@@ -695,8 +689,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     private func log(_ message: String) {
 #if DEBUG
-        print("Called: ", message)
-        LogManager.shared.log("Called: \(message)")
+        Logger.log(title: "ThreadViewController", message: "\(message)")
 #endif
     }
 }

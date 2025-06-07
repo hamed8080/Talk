@@ -9,7 +9,6 @@ import Foundation
 import Combine
 import Chat
 import Logger
-import OSLog
 
 @MainActor
 public class IncommingMessagesQueue {
@@ -66,8 +65,6 @@ public class IncommingMessagesQueue {
     }
     
     func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "IncommingMessagesQueue", message: string)
     }
 }

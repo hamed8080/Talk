@@ -1,5 +1,5 @@
 //
-//  RequestEnqueuType.swift
+//  RequestEnqueueType.swift
 //  TalkViewModels
 //
 //  Created by Hamed Hosseini on 5/27/21.
@@ -7,7 +7,7 @@
 
 import Chat
 
-public enum RequestEnqueuType: Comparable {
+public enum RequestEnqueueType: Comparable {
     case getConversations(req: ThreadsRequest)
     case getArchives(req: ThreadsRequest)
     case getContacts(req: ContactsRequest)
@@ -38,11 +38,11 @@ public enum RequestEnqueuType: Comparable {
         }
     }
     
-    public static func < (lhs: RequestEnqueuType, rhs: RequestEnqueuType) -> Bool {
+    public static func < (lhs: RequestEnqueueType, rhs: RequestEnqueueType) -> Bool {
         return lhs.priority < rhs.priority
     }
     
-    public static func == (lhs: RequestEnqueuType, rhs: RequestEnqueuType) -> Bool {
+    public static func == (lhs: RequestEnqueueType, rhs: RequestEnqueueType) -> Bool {
         return lhs.uniqueId < rhs.uniqueId
     }
 }

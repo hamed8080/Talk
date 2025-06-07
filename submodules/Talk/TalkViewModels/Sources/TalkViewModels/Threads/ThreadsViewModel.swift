@@ -11,7 +11,6 @@ import Foundation
 import SwiftUI
 import TalkModels
 import TalkExtensions
-import OSLog
 import Logger
 
 @MainActor
@@ -433,7 +432,7 @@ public final class ThreadsViewModel: ObservableObject {
             }
         }
         lazyList.setLoading(false)
-        logUnreadCount("SERVER unreadCount: \(response.result)")
+        log("SERVER unreadCount: \(response.result)")
     }
 
     public func updateThreadInfo(_ thread: Conversation) {
@@ -607,7 +606,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].partnerLastSeenMessageId = response.result?.messageId
             recalculateAndAnimate(threads[index])
         }
-        logUnreadCount("SERVER OnSeen: \(response.result)")
+        log("SERVER OnSeen: \(response.result)")
     }
 
     /// This method only reduce the unread count if the deleted message has sent after lastSeenMessageTime.
@@ -664,17 +663,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func log(_ string: String) {
-#if DEBUG
-        let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
-        NotificationCenter.logs.post(name: .logs, object: log)
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
-    }
-    
-    private func logUnreadCount(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("UNREADCOUNT: \(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "ThreadsViewModel", message: string)
     }
     
     public func setSelected(for conversationId: Int, selected: Bool, isArchive: Bool) {

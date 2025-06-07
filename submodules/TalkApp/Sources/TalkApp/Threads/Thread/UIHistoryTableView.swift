@@ -10,7 +10,7 @@ import UIKit
 import SwiftUI
 import TalkViewModels
 import TalkModels
-import OSLog
+import Logger
 
 @MainActor
 class UIHistoryTableView: UITableView {
@@ -56,9 +56,8 @@ class UIHistoryTableView: UITableView {
     
     private func log(_ string: String) {
 #if DEBUG
-        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
         Task.detached {
-            logger.info("\(string, privacy: .sensitive)")
+            Logger.log(title: "UIHistoryTableView", message: string)
         }
 #endif
     }

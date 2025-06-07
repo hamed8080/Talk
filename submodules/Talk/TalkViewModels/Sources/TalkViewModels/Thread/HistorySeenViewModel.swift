@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 import Logger
-import OSLog
 import Chat
 import TalkModels
 import UIKit
@@ -183,20 +182,15 @@ public final class HistorySeenViewModel {
         } else {
             log("On message \(appeardText) with \(detailedText)")
         }
-        Logger.viewModels.info("\(detailedText)")
 #endif
     }
 
     @AppBackgroundActor
     private func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "HistorySeenViewModel", message: string)
     }
     
     private func logSeen(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("SEEN: \(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "HistorySeenViewModel", message: string)
     }
 }

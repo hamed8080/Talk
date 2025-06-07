@@ -9,7 +9,7 @@ import UIKit
 import Combine
 import Foundation
 import AVKit
-import OSLog
+import Logger
 import TalkModels
 
 @MainActor
@@ -106,9 +106,7 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
     }
 
     private func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "VideoPlayerViewModel", message: string)
     }
     
 #if DEBUG

@@ -11,7 +11,6 @@ import Foundation
 import SwiftUI
 import TalkModels
 import TalkExtensions
-import OSLog
 
 @MainActor
 public final class ThreadsSearchViewModel: ObservableObject {

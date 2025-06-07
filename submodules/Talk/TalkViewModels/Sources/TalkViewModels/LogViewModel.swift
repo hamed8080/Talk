@@ -23,16 +23,26 @@ public final class LogViewModel: ObservableObject {
     public private(set) var cancellableSet: Set<AnyCancellable> = []
 
     public init() {
-        #if DEBUG
-            NotificationCenter.logs.publisher(for: .logs)
-                .compactMap { $0.object as? Log }
-                .sink { [weak self] log in
-                    Task { @MainActor [weak self] in
-                        self?.logs.insert(log, at: 0)
-                    }
-                }
-                .store(in: &cancellableSet)
-        #endif
+        Logger.allLogs { [weak self] logs in
+            self?.logs = logs
+            self?.sort()
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            /// Get new logs from last log in the list
+            Task { [weak self] in
+                await self?.onTimer()
+            }
+        }
+    }
+    
+    private func onTimer() {
+        let lastLogTime = logs.first?.time ?? .now.advanced(by: -5)
+        Logger.allLogs(fromTime: lastLogTime) { [weak self] newLogs in
+            guard let self = self else { return }
+            logs.append(contentsOf: newLogs)
+            sort()
+        }
     }
 
     public var filtered: [Log] {
@@ -84,14 +94,30 @@ public final class LogViewModel: ObservableObject {
     }
 
     public func deleteLogs() {
-        logs.forEach { _ in
+        DispatchQueue.global(qos: .background).async {
             Logger.clear(prefix: "CHAT_SDK")
-            Logger.clear(prefix: "ASYNC_SDK")
-            clearLogs()
         }
+        
+        DispatchQueue.global(qos: .background).async {
+            Logger.clear(prefix: "ASYNC_SDK")
+        }
+        
+        DispatchQueue.global(qos: .background).async {
+            Logger.clear(prefix: "TALK_VIEW_MODELS")
+        }
+        
+        DispatchQueue.global(qos: .background).async {
+            Logger.clear(prefix: "TALK_APP")
+        }
+        
+        clearLogs()
     }
 
     public func clearLogs() {
         logs.removeAll()
+    }
+    
+    private func sort() {
+        logs.sort(by: { ($0.time ?? .now) > ($1.time ?? .now) })
     }
 }

@@ -5,10 +5,10 @@
 //  Created by hamed on 10/13/24.
 //
 
-import Foundation
 import Chat
 import Combine
-import OSLog
+import Foundation
+import Logger
 
 @HistoryActor
 final class FirstMessageOfTheDayViewModel {
@@ -87,7 +87,7 @@ final class FirstMessageOfTheDayViewModel {
     private func onHistory(_ response: ResponseType) async {
         if !response.cache, response.subjectId == threadId {
 
-            if let _ = response.pop(prepend: FIRST_MESSAGE_KEY) {
+            if response.pop(prepend: FIRST_MESSAGE_KEY) != nil {
                 await onFirstMessage(response)
             }
         }
@@ -100,8 +100,8 @@ final class FirstMessageOfTheDayViewModel {
     private func log(req: GetHistoryRequest) {
 #if DEBUG
         Task.detached {
-            let date = Date().millisecondsSince1970
-            Logger.viewModels.debug("Start of sending history request: \(date) milliseconds")
+            Logger.log(title: "FirstMessageOfTheDayViewModel",
+                              message: "Start of sending history request: \(Date().millisecondsSince1970) milliseconds")
         }
 #endif
     }

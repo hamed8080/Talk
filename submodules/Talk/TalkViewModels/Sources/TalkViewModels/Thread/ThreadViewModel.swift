@@ -9,7 +9,7 @@ import Chat
 import Combine
 import Foundation
 import TalkModels
-import OSLog
+import Logger
 
 @MainActor
 public final class ThreadViewModel {
@@ -293,9 +293,7 @@ public final class ThreadViewModel {
 
     // MARK: Logs
     private func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "ThreadViewModel", message: string)
     }
 
     // MARK: Observers

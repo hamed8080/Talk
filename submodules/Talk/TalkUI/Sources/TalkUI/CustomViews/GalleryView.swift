@@ -7,7 +7,6 @@
 
 import TalkViewModels
 import SwiftUI
-import OSLog
 
 public struct GalleryPageView: View {
     @EnvironmentObject var viewModel: GalleryViewModel

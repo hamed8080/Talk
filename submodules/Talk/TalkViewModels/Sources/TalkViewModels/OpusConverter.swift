@@ -3,7 +3,7 @@ import Foundation
 import ffmpegkit
 import Chat
 import TalkExtensions
-import OSLog
+import Logger
 
 class OpusConverter {
     private init(path: URL) {}
@@ -85,7 +85,7 @@ class OpusConverter {
     private static func log(_ string: String) {
 #if DEBUG
         Task.detached {
-            Logger.viewModels.info("\(string, privacy: .sensitive)")
+            Logger.log( title: "OpusConverter", message: string)
         }
 #endif
     }

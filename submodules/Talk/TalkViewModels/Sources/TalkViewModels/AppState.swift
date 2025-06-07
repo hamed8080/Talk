@@ -26,7 +26,7 @@ public struct AppStateNavigationModel: Sendable {
 @MainActor
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
-    public var spec: Spec = Spec.empty()
+    public var spec: Spec = Spec.empty
     public var user: User?
     @Published public var error: ChatError?
     @Published public var isLoading: Bool = false

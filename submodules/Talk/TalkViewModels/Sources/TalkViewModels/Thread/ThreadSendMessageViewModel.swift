@@ -10,7 +10,6 @@ import Foundation
 import UIKit
 import TalkExtensions
 import TalkModels
-import OSLog
 
 @MainActor
 public final class ThreadSendMessageViewModel {

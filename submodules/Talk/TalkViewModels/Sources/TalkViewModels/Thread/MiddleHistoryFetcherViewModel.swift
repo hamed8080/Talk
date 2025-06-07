@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import OSLog
+import Logger
 import Chat
 import Combine
 
@@ -144,12 +144,12 @@ final class MiddleHistoryFetcherViewModel {
     func isContaninsKeys(_ response: ResponseType) -> Bool {
         fromTimeUniqueId == response.uniqueId || response.uniqueId == toTimeUniqueId
     }
-
+    
     private func log(req: GetHistoryRequest) {
 #if DEBUG
         Task.detached {
             let date = Date().millisecondsSince1970
-            Logger.viewModels.debug("Start of sending history request: \(date) milliseconds")
+            Logger.log( title: "MiddleHistoryFetcherViewModel", message: "Start of sending history request: \(date) milliseconds")
         }
 #endif
     }
