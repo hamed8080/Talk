@@ -128,7 +128,9 @@ class MessageRowCalculators {
         if let prefix = message.message?.prefix(5) {
             calculatedMessage.isEnglish = String(prefix).naturalTextAlignment == .leading
         }
-        if let attributedString = calculateAttributedString(text: message.message ?? "") {
+        
+        let mapUploadText = (message as? UploadFileMessage)?.locationRequest?.textMessage
+        if let attributedString = calculateAttributedString(text: message.message ?? mapUploadText ?? "") {
             calculatedMessage.attributedString = attributedString
         }
         calculatedMessage.rangeCodebackground = tripleGraveAccentRanges(text: calculatedMessage.attributedString?.string ?? "")
@@ -146,6 +148,9 @@ class MessageRowCalculators {
         rowType.isForward = message.forwardInfo != nil
         rowType.isUnSent = message.isUnsentMessage
         rowType.hasText = (!rowType.isPublicLink) && !rowType.isSingleEmoji && calculateText(message: message) != nil
+        if mapUploadText != nil {
+            rowType.hasText = true
+        }
         rowType.cellType = getCellType(message: message, isMe: calculatedMessage.isMe)
         
         calculatedMessage.computedFileSize = calculateFileSize(message: message, calculatedMessage: calculatedMessage)
