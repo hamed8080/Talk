@@ -194,7 +194,7 @@ extension ThreadHistoryViewModel {
     /// by advance 1, in retriving it next time, the checking system will examaine it with exact time not advance time!
     /// Therefore the cache will always the request from the server.
     private func trySecondScenario() async {
-        if await isLastMessageEqualToLastSeen() {
+        if await isLastMessageEqualToLastSeen(), thread.id != LocalId.emptyThread.rawValue {
             hasNextBottom = false
             let req = await makeRequest(offset: 0)
             log("trySecondScenario")

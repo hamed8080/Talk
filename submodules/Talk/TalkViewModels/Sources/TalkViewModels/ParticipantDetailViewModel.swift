@@ -40,7 +40,12 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     private var objectId = UUID().uuidString
     private let P2P_PARTNER_CONTACT_KEY: String
     private let PARTICIPANT_EDIT_CONTACT_KEY: String
-
+    
+    public var userName: String? {
+        let userName = participant.username ?? partnerContact?.user?.username
+        return userName.validateString
+    }
+    
     public var canShowEditButton: Bool {
         participant.contactId != nil
     }
