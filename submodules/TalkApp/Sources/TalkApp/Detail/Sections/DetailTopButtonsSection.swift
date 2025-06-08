@@ -24,7 +24,7 @@ struct DetailTopButtonsSection: View {
                 }
                 .opacity(isArchive ? 0.4 : 1.0)
                 .disabled(isArchive)
-                .allowsHitTesting(false)
+                .allowsHitTesting(!isArchive)
 
                 DetailViewButton(accessibilityText: "", icon: "phone.and.waveform.fill") {
 
