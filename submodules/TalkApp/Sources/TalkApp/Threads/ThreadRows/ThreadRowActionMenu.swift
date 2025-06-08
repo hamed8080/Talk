@@ -74,8 +74,6 @@ struct ThreadRowActionMenu: View {
             .sandboxLabel()
         }
 
-        Divider()
-
         if isDetailView, thread.group == true {
             ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red, bundle: Language.preferedBundle) {
                 onLeaveConversationTapped()

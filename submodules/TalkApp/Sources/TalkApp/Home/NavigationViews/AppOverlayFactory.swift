@@ -30,9 +30,14 @@ struct AppOverlayFactory: View {
             .ignoresSafeArea(.all)
         case .dialog:
             if let dialog = viewModel.dialogView {
-                dialog
-                    .background(.ultraThickMaterial)
-                    .ignoresSafeArea(.all)
+                if viewModel.clearBckground {
+                    dialog
+                        .ignoresSafeArea(.all)
+                } else {
+                    dialog
+                        .background(.ultraThickMaterial)
+                        .ignoresSafeArea(.all)
+                }
             }
         case .toast(let leadingView, let message, let messageColor):
             ToastView(message: message, messageColor: messageColor) {

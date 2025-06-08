@@ -46,6 +46,7 @@ public class AppOverlayViewModel: ObservableObject {
     public var offsetVM = GalleyOffsetViewModel()
     public var canDismiss: Bool = true
     public var toastTimer: Timer?
+    public var clearBckground: Bool = false
 
     public var transition: AnyTransition {
         switch type {
@@ -123,10 +124,13 @@ public class AppOverlayViewModel: ObservableObject {
         didSet {
             cancelToastTimer()
             if dialogView != nil {
+                isToast = false
+                cancelToastTimer()
                 showCloseButton = false
                 type = .dialog
                 isPresented = true
             } else {
+                clearBckground = false
                 showCloseButton = false
                 type = .none
                 isPresented = false
@@ -137,6 +141,8 @@ public class AppOverlayViewModel: ObservableObject {
     
     public func dialogView(canDismiss: Bool, view: AnyView?) {
         if view != nil {
+            isToast = false
+            cancelToastTimer()
             dialogView = view
             self.canDismiss = canDismiss
             showCloseButton = false

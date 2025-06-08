@@ -51,15 +51,31 @@ struct ThreadRow: View {
         .onTapGesture {
             onTap?()
         }
-        .newCustomContextMenu {
+        .onLongPressGesture(minimumDuration: 0.5) {
+            withAnimation {
+                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                AppState.shared.objectsContainer.appOverlayVM.clearBckground = true
+                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(contextenuView)
+            }
+        }
+    }
+    
+    private var contextenuView: some View {
+        VStack(spacing: 8) {
             ThreadRow(onTap: nil)
                 .padding(4)
                 .environmentObject(thread)
                 .background(ThreadListRowBackground().environmentObject(thread))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
-        } menus: {
+                .frame(height: 52)
             ThreadRowContextMenu(thread: thread, viewModel: AppState.shared.objectsContainer.threadsVM)
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+                    }
+                )
         }
+        .padding()
     }
 }
 
