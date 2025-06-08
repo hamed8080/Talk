@@ -124,10 +124,22 @@ public class RequestsManager: @unchecked Sendable {
     }
 
     public func clear() {
+        sendCancelForAllRequests()
         queue.sync {
             log("remove all requests")
             requests.removeAll()
             sourceTimers.removeAll()
+        }
+    }
+    
+    /// If we send a request for example moreTop and then the internet gets disconnected,
+    /// all requests inside the RequestManager will be deleted by the ChatDelegateImplementation on connected.
+    /// Therefore, the timer to cancel out this request will never be triggered, and the loading will stay there.
+    func sendCancelForAllRequests() {
+        for req in requests {
+            DispatchQueue.main.async {
+                NotificationCenter.onRequestTimer.post(name: .onRequestTimer, object: req.key)
+            }
         }
     }
 
