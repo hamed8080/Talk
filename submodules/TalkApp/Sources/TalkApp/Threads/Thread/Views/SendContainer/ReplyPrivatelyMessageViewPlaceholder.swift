@@ -61,6 +61,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         addArrangedSubview(vStack)
 
         let closeButton = CloseButtonView()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityIdentifier = "closeButtonPrivatelyMessagePlaceholderView"
         closeButton.action = { [weak self] in
             self?.close()
@@ -70,6 +71,8 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         NSLayoutConstraint.activate([
             imageReply.widthAnchor.constraint(equalToConstant: 28),
             imageReply.heightAnchor.constraint(equalToConstant: 28),
+            closeButton.widthAnchor.constraint(equalToConstant: 42),
+            closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
     }
 

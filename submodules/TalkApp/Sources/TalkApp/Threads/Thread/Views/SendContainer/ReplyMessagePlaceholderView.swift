@@ -72,6 +72,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         staticImageReply.accessibilityIdentifier = "staticReplyImageReplyMessagePlaceholderView"
         
         let closeButton = CloseButtonView()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityIdentifier = "closeButtonReplyMessagePlaceholderView"
         closeButton.action = { [weak self] in
             self?.close()
@@ -85,9 +86,10 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         NSLayoutConstraint.activate([
             staticImageReply.widthAnchor.constraint(equalToConstant: 28),
             staticImageReply.heightAnchor.constraint(equalToConstant: 28),
-            
             replyImage.widthAnchor.constraint(equalToConstant: 28),
             replyImage.heightAnchor.constraint(equalToConstant: 28),
+            closeButton.widthAnchor.constraint(equalToConstant: 42),
+            closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
     }
     

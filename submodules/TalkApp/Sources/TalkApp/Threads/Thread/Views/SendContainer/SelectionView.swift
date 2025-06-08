@@ -75,6 +75,7 @@ public final class SelectionView: UIStackView {
         addArrangedSubview(btnDelete)
 
         let closeButton = CloseButtonView()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityIdentifier = "closeButtonSelectionView"
         closeButton.action = { [weak self] in
             self?.onClose()
@@ -86,6 +87,8 @@ public final class SelectionView: UIStackView {
             btnForward.heightAnchor.constraint(equalToConstant: 42),
             btnDelete.widthAnchor.constraint(equalToConstant: 42),
             btnDelete.heightAnchor.constraint(equalToConstant: 42),
+            closeButton.widthAnchor.constraint(equalToConstant: 42),
+            closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
     }
 
