@@ -57,6 +57,9 @@ public final class ThreadViewModel {
     public var isDeletingLastMessage = false
 
     public weak var delegate: ThreadViewDelegate?
+    
+    /// Save P2P contact unless destroy the thread
+    public var contact: Contact?
 
     // MARK: Computed Properties
     public var id: Int { threadId }
@@ -82,6 +85,7 @@ public final class ThreadViewModel {
     }
 
     private func setup() {
+        contact = AppState.shared.appStateNavigationModel.userToCreateThread?.toContact
         seenVM.setup(viewModel: self)
         unreadMentionsViewModel.setup(viewModel: self)
         mentionListPickerViewModel.setup(viewModel: self)
