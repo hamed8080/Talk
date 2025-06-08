@@ -98,11 +98,7 @@ final class FirstMessageOfTheDayViewModel {
     }
 
     private func log(req: GetHistoryRequest) {
-#if DEBUG
-        Task.detached {
-            Logger.log(title: "FirstMessageOfTheDayViewModel",
-                              message: "Start of sending history request: \(Date().millisecondsSince1970) milliseconds")
-        }
-#endif
+        Logger.log(title: "FirstMessageOfTheDayViewModel",
+                   message: "Start of sending history request: \(Date().millisecondsSince1970) milliseconds")
     }
 }

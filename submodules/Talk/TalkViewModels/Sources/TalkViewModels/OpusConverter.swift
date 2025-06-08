@@ -83,11 +83,7 @@ class OpusConverter {
     }
     
     private static func log(_ string: String) {
-#if DEBUG
-        Task.detached {
-            Logger.log( title: "OpusConverter", message: string)
-        }
-#endif
+        Logger.log( title: "OpusConverter", message: string)
     }
 }
 #endif

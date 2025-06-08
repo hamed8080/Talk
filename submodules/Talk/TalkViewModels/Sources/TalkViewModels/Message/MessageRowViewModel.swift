@@ -88,10 +88,8 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     }
 
     deinit {
-#if DEBUG
         let string = "Deinit get called for message: \(self.message.message ?? "") and message isFileTye:\(self.message.isFileType) and id is: \(self.message.id ?? 0)"
         Logger.log( title: "MessageRowViewModel", message: string, persist: false)
-#endif
     }
 }
 

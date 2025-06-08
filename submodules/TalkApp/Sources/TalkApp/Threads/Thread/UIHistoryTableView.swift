@@ -55,11 +55,7 @@ class UIHistoryTableView: UITableView {
     }
     
     private func log(_ string: String) {
-#if DEBUG
-        Task.detached {
-            Logger.log(title: "UIHistoryTableView", message: string)
-        }
-#endif
+        Logger.log(title: "UIHistoryTableView", message: string)
     }
 }
 

@@ -1117,28 +1117,16 @@ extension ThreadHistoryViewModel {
 // MARK: Logging
 extension ThreadHistoryViewModel {
     private func logHistoryRequest(req: GetHistoryRequest) {
-#if DEBUG
-        Task.detached {
-            let date = Date().millisecondsSince1970
-            Logger.log(title: "ThreadHistoryViewModel", message: " Start of sending history request: \(date) milliseconds")
-        }
-#endif
+        let date = Date().millisecondsSince1970
+        Logger.log(title: "ThreadHistoryViewModel", message: " Start of sending history request: \(date) milliseconds")
     }
 
     private func log(_ string: String) {
-#if DEBUG
-        Task.detached {
-            Logger.log(title: "ThreadHistoryViewModel", message: string)
-        }
-#endif
+        Logger.log(title: "ThreadHistoryViewModel", message: string)
     }
     
     private func logScroll(_ string: String) {
-#if DEBUG
-        Task.detached {
-            Logger.log(title: "ThreadHistoryViewModel", message: "SCROLL: \(string)")
-        }
-#endif
+        Logger.log(title: "ThreadHistoryViewModel", message: "SCROLL: \(string)")
     }
 }
 

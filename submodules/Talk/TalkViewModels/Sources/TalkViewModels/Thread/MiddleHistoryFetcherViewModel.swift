@@ -146,11 +146,7 @@ final class MiddleHistoryFetcherViewModel {
     }
     
     private func log(req: GetHistoryRequest) {
-#if DEBUG
-        Task.detached {
-            let date = Date().millisecondsSince1970
-            Logger.log( title: "MiddleHistoryFetcherViewModel", message: "Start of sending history request: \(date) milliseconds")
-        }
-#endif
+        let date = Date().millisecondsSince1970
+        Logger.log( title: "MiddleHistoryFetcherViewModel", message: "Start of sending history request: \(date) milliseconds")
     }
 }

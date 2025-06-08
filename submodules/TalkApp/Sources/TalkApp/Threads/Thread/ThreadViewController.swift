@@ -688,9 +688,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     private func log(_ message: String) {
-#if DEBUG
         Logger.log(title: "ThreadViewController", message: "\(message)")
-#endif
     }
 }
 
