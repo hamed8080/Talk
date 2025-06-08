@@ -48,16 +48,15 @@ public class IncommingMessagesQueue {
         let messages = messages.compactMap({$0.result})
         log("Processing \(messages.count) messages for thread \(subjectId)")
         let sorted = messages.sorted(by: { $0.id ?? 0 < $1.id ?? 0} )
-        let result = await viewModel?.onNewMessage(sorted, conversationId: subjectId) ?? false
-
-        /// NOTE: When you forward a message to a thread that is old.
-        /// Calling onNewMessage in above line won't insert the message,
-        /// because the thread is not exits in ThreadsViewModel list,
-        /// so it will ignore the message and just go for fetching the thread.
+        
+        /// Update the lastMessage of the thread inside the thread list, and then sort the list to bring the
+        /// thread to the top.
+        /// If the thread is not inside the list it will try to fetch it from the server.
+        await viewModel?.onNewForwardMessage(conversationId: subjectId, forwardMessage: sorted.last ?? .init())
         
         /// If result is false it means it ignored inserting the message,
         /// so we have to precess insertion by manullay.
-        if !result, let activeThreadVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel {
+        if let activeThreadVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel {
             if subjectId == activeThreadVM.threadId {
                 await activeThreadVM.historyVM.onForwardMessageForActiveThread(sorted)
             }

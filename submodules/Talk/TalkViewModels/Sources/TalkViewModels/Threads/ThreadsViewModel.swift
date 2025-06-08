@@ -92,6 +92,23 @@ public final class ThreadsViewModel: ObservableObject {
             }
         }
     }
+    
+    public func onNewForwardMessage(conversationId: Int, forwardMessage: Message) async {
+        if let index = firstIndex(conversationId) {
+            let reference = threads[index]
+            let old = reference.toStruct()
+            let updated = reference.updateOnNewMessage(forwardMessage, meId: myId)
+            threads[index] = updated
+            threads[index].animateObjectWillChange()
+            if updated.pin == false {
+                await sortInPlace()
+            }
+            recalculateAndAnimate(updated)
+            animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+        } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
+            await calculateAppendSortAnimate(conversation)
+        }
+    }
 
     func onChangedType(_ response: ChatResponse<Conversation>) {
         if let index = firstIndex(response.result?.id)  {

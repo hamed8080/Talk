@@ -393,15 +393,17 @@ extension ThreadHistoryViewModel {
     private func onMoreTop(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        var viewModels = await makeCalculateViewModelsFor(sortedMessages)
         
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
         await MainActor.run {
             isUpdating = true
         }
-
-        /// We have to store section count and last top message before appending them to the threads array 
+        
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
+        
+        /// We have to store section count and last top message before appending them to the threads array
         let wasEmpty = sections.isEmpty
         let topVMBeforeJoin = sections.first?.vms.first
         let lastTopMessageVM = sections.first?.vms.first
@@ -478,7 +480,7 @@ extension ThreadHistoryViewModel {
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        var viewModels = await makeCalculateViewModelsFor(sortedMessages)
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
@@ -487,7 +489,9 @@ extension ThreadHistoryViewModel {
             isUpdating = true
         }
         
-        /// We have to store section count  before appending them to the threads array 
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
+        
+        /// We have to store section count  before appending them to the threads array
         let beforeSectionCount = sections.count
         let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, viewModels)
         
@@ -675,14 +679,31 @@ extension ThreadHistoryViewModel {
     }
     
     public func onForwardMessageForActiveThread(_ messages: [Message]) async {
+        await waitingToFinishUpdating()
+        await MainActor.run {
+            isUpdating = true
+        }
+        let messages = removeDuplicateForwards(messages)
         guard let viewModel = await viewModel else { return }
-        for message in messages {
-            let bottomVMBeforeJoin = sections.last?.vms.last
-            let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
-            let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
-            await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
-            await sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
-            await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
+        
+        let bottomVMBeforeJoin = sections.last?.vms.last
+        let beforeSectionCount = sections.count
+        
+        let sortedMessages = messages.sortedByTime()
+        var viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        await appendSort(viewModels)
+        
+        let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
+        await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+        if let lastSortedMessage = sortedMessages.last {
+            await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(lastSortedMessage)
+        }
+       
+        if let firstSortedMessage = sortedMessages.first {
+            await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, firstSortedMessage)
+        }
+        await MainActor.run {
+            isUpdating = false
         }
         await showEmptyThread(show: false)
     }
@@ -905,9 +926,41 @@ extension ThreadHistoryViewModel {
         }
         return vm
     }
+    
+    /// Remove viewModels if the message with uniqueId is already exist in the list
+    /// This prevent duplication on sending forwards for example after reconnect.
+    private func removeDuplicateMessagesBeforeAppend(_ viewModels: [MessageRowViewModel]) -> [MessageRowViewModel] {
+        var viewModels = viewModels
+        viewModels.removeAll { item in
+            let removed = sections.indicesByMessageUniqueId(item.message.uniqueId ?? "") != nil
+            if removed {
+                log("Removed duplidate row with uniqueId: \(item.message.uniqueId ?? "")")
+            }
+            return removed
+        }
+        return viewModels
+    }
+    
+    /// Forward messages are unpredictable, and there is a change after reconnection
+    /// forward messages sent to the server and server
+    /// answer with forward messages while we are requesting the bottom part on reconnect.
+    /// Therefor, the forward queue still is trying to accumulate messages but the message is already in
+    /// the list.
+    private func removeDuplicateForwards(_ messages: [Message]) -> [Message] {
+        var messages = messages
+        messages.removeAll { item in
+            let removed = sections.indicesByMessageUniqueId(item.uniqueId ?? "") != nil
+            if removed {
+                log("Removed duplidate row in forward with uniqueId: \(item.uniqueId ?? "")")
+            }
+            return removed
+        }
+        return messages
+    }
 
     public func injectMessagesAndSort(_ requests: [HistoryMessageType]) async {
-        let viewModels = await makeCalculateViewModelsFor(requests)
+        var viewModels = await makeCalculateViewModelsFor(requests)
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         await appendSort(viewModels)
         for vm in viewModels {
             await vm.register()
