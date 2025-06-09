@@ -14,8 +14,10 @@ import TalkModels
 public final class ConversationSubtitleViewModel {
     private var subtitle: String = ""
     private var partnerLastSeen = ""
+    public var lastSeenPartnerTime: Int?
     private var thread: Conversation? { viewModel?.thread }
     private var p2pPartnerFinderVM: FindPartnerParticipantViewModel?
+    private var notSeenDurationViewModel: GetNotSeenDurationViewModel?
     public weak var viewModel: ThreadViewModel?
     private var cancellableSet: Set<AnyCancellable> = []
     private let PARTICIPANTS_COUNT_KEY: String = "GET-PARTICIPANTS-COUNT-\(UUID().uuidString)"
@@ -26,6 +28,8 @@ public final class ConversationSubtitleViewModel {
         self.viewModel = viewModel
         if isP2P {
             getPartnerInfo()
+        } else if viewModel.threadId == LocalId.emptyThread.rawValue {
+            getLastSeenByUserId()
         } else {
             setParticipantsCountOnOpen()
         }
@@ -82,18 +86,34 @@ public final class ConversationSubtitleViewModel {
         guard let threadId = thread?.id else { return }
         p2pPartnerFinderVM = .init()
         p2pPartnerFinderVM?.findPartnerBy(threadId: threadId) { [weak self] partner in
-            if let partner = partner {
+            if let partner = partner?.notSeenDuration {
                 self?.processResponse(partner)
             }
         }
     }
     
-    private func processResponse(_ partner: Participant) {
-        guard let lastSeen = partner.notSeenDuration?.lastSeenString else { return }
+    private func processResponse(_ notSeenDuration: Int) {
+        let lastSeen = notSeenDuration.lastSeenString
         let localized = "Contacts.lastVisited".bundleLocalized()
         let formatted = String(format: localized, lastSeen)
         self.partnerLastSeen = formatted
         updateTo(partnerLastSeen)
+    }
+    
+    private func getLastSeenByUserId() {
+        guard let userId = AppState.shared.appStateNavigationModel.userToCreateThread?.id else { return }
+        notSeenDurationViewModel = .init(userId: userId)
+        Task {
+            let notSeenDuration = await notSeenDurationViewModel?.get()
+            if let lastSeenByUserId = notSeenDuration?.time, let threadId = viewModel?.threadId {
+                lastSeenPartnerTime = lastSeenByUserId
+                processResponse(lastSeenByUserId)
+            }
+        }
+    }
+    
+    public func getPartnerLastSeen() -> Int? {
+        lastSeenPartnerTime
     }
     
     private var isP2P: Bool {

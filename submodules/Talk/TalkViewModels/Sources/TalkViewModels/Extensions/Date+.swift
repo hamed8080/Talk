@@ -47,7 +47,9 @@ public extension Int {
     }
 
     var lastSeenString : String {
-        if self < 5 * 60_000 {
+        if self == 0 {
+            return "Contacts.lastSeen.unknown".bundleLocalized()
+        } else if self < 5 * 60_000 {
             return "Contacts.lastSeen.lately".bundleLocalized()
         } else if self < 86_400_000, isInToday() {
             let key = "Contacts.lastSeen.todayAt".bundleLocalized()
