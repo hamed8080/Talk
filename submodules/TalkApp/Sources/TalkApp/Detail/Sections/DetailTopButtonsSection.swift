@@ -47,10 +47,14 @@ struct DetailTopButtonsSection: View {
             //                }
             //            }
 
+            let isSimulated = viewModel.threadVM?.threadId == LocalId.emptyThread.rawValue
             if viewModel.threadVM?.threadId != nil {
                 DetailViewButton(accessibilityText: "", icon: "magnifyingglass") {
                     NotificationCenter.forceSearch.post(name: .forceSearch, object: "DetailView")
                 }
+                .opacity( isSimulated ? 0.5 : 1.0)
+                .disabled(isSimulated)
+                .allowsHitTesting(!isSimulated)
             }
 
             //            Menu {
