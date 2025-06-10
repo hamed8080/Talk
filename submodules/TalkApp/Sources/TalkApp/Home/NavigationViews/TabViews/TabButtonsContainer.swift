@@ -19,7 +19,7 @@ struct TabButtonsContainer: View {
         } else {
             hSatckContainer
                 .frame(height: 36)
-                .padding(EdgeInsets(top: 16, leading: 0, bottom: 4, trailing: 0))
+                .padding(EdgeInsets(top: 16, leading: 0, bottom: isMacOS ? 16 : 4, trailing: 0))
                 .background(MixMaterialBackground().ignoresSafeArea())
         }
     }
@@ -30,7 +30,7 @@ struct TabButtonsContainer: View {
                 hSatckContainer
             }
             .frame(height: 36)
-            .padding(EdgeInsets(top: 16, leading: 0, bottom: 4, trailing: 0))
+            .padding(EdgeInsets(top: 16, leading: 0, bottom: isMacOS ? 16 : 4, trailing: 0))
             .background(MixMaterialBackground().ignoresSafeArea())
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -62,6 +62,10 @@ struct TabButtonsContainer: View {
                 }
             }
         }
+    }
+    
+    private var isMacOS: Bool {
+        UIDevice.current.userInterfaceIdiom == .mac
     }
 }
 
