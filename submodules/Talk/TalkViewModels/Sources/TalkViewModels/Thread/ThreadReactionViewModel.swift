@@ -189,7 +189,7 @@ public final class ThreadReactionViewModel {
         // Update UI of each message
         let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
         if !indexPaths.isEmpty {
-           threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
+            threadVM?.delegate?.performBatchUpdateForReactions(indexPaths, wasAtBottom: wasAtBottom)
         }
     }
 

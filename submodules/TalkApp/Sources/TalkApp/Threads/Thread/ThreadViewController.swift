@@ -543,13 +543,13 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
         if let scrollTo = scrollTo {
-            insertedWithoutAnimation(sections: sections, rows: rows, scrollTo: scrollTo)
+            insertedWithoutAnimation(sections: sections, rows: rows)
         } else {
             insertedWithAnimation(sections: sections, rows: rows)
         }
     }
     
-    func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath], scrollTo: IndexPath) {
+    func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath]) {
         log("inserted and scroll to")
         log("insertingSections without animation: \(sections), insertingRows: \(rows)")
         log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
@@ -630,7 +630,15 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     
-    func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) {
+    func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) async {
+        return await withCheckedContinuation { continuation in
+            performBatchUpdateForReactions(indexPaths) {
+                continuation.resume(with: .success(()))
+            }
+        }
+    }
+    
+    private func performBatchUpdateForReactions(_ indexPaths: [IndexPath], completed: @escaping () -> Void) {
         log("update reactions")
         setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
@@ -644,6 +652,11 @@ extension ThreadViewController: HistoryScrollDelegate {
                 }
             }
         } completion: { [weak self] completed in
+//            DispatchQueue.main.async { [weak self] in
+//                if wasAtBottom, let self = self, let indexPath = self.tableView.indexPathsForVisibleRows?.last {
+//                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+//                }
+//            }
             self?.setUpdating(updating: false)
         }
     }
