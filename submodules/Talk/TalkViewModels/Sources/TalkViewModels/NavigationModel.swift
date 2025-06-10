@@ -152,6 +152,9 @@ public extension NavigationModel {
         if threadId == presentedThreadViewModel?.threadId {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
+        if let detailNavValue = pathsTracking.last as? ConversationDetailNavigationValue, threadId == detailNavValue.threadId {
+            popLastPathTracking()
+        }
         if threadId == threadStack.last?.viewModel.threadId {
             popLastPathTracking()
         }
