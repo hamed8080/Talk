@@ -191,6 +191,11 @@ public final class ThreadReactionViewModel {
         if !indexPaths.isEmpty {
            threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
         }
+        
+        /// We need to set it false manually if there is no message,
+        /// so tableView won't realase it.
+        try? await Task.sleep(for: .microseconds(300))
+        await threadVM?.historyVM.isUpdating = false
     }
 
     internal func clearReactionsOnReconnect() async {

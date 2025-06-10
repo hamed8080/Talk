@@ -448,6 +448,13 @@ extension ThreadHistoryViewModel {
         }
         
         await prepareAvatars(viewModels)
+        
+        /// We need to set it false manually if there is no message,
+        /// so tableView won't realase it.
+        try? await Task.sleep(for: .microseconds(300))
+        await MainActor.run {
+            isUpdating = false
+        }
     }
     
     private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) async {
@@ -518,6 +525,13 @@ extension ThreadHistoryViewModel {
             await fetchReactions(messages: viewModels.compactMap({$0.message}))
         }
         await prepareAvatars(viewModels)
+        
+        /// We need to set it false manually if there is no message,
+        /// so tableView won't realase it.
+        try? await Task.sleep(for: .microseconds(300))
+        await MainActor.run {
+            isUpdating = false
+        }
     }
 
     public func loadMoreTop(message: HistoryMessageType) async {

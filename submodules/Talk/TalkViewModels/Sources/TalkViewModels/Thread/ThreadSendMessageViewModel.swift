@@ -199,10 +199,9 @@ public final class ThreadSendMessageViewModel {
         }
     }
 
-    public func openDestinationConversationToForward(_ destinationConversation: Conversation?, _ contact: Contact?) {
+    public func openDestinationConversationToForward(_ destinationConversation: Conversation?, _ contact: Contact?, _ messages: [Message]) {
         /// Close edit mode in ui
         sendVM.clear()
-        let messages = selectVM.getSelectedMessages().compactMap{$0.message as? Message}
         
         /// Check if we are forwarding to the same thread
         if destinationConversation?.id == threadId || (contact?.userId != nil && contact?.userId == thread.partner) {
