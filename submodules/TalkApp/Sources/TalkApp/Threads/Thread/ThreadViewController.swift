@@ -90,6 +90,7 @@ final class ThreadViewController: UIViewController {
 extension ThreadViewController {
     func configureViews() {
         emptyThreadView.attachToParent(parent: view)
+        emptyThreadView.isHidden = true
         dimView.viewModel = viewModel
         configureTableView()
         configureOverlayActionButtons()
@@ -174,6 +175,11 @@ extension ThreadViewController {
     }
 
     private func showEmptyThread(show: Bool) {
+        /// We only need to set to false for the first time, after that it will be removed
+        /// or add to view.
+        if show {
+            emptyThreadView.isHidden = false
+        }
         emptyThreadView.show(show, parent: view)
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
