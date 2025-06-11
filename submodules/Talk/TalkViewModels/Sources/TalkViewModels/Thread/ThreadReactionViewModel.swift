@@ -189,7 +189,8 @@ public final class ThreadReactionViewModel {
         // Update UI of each message
         let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
         if !indexPaths.isEmpty {
-            threadVM?.delegate?.performBatchUpdateForReactions(indexPaths, wasAtBottom: wasAtBottom)
+            await threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
+            await threadVM?.scrollVM.scrollToBottom()
         }
         
         /// We need to set it false manually if there is no message,

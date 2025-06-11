@@ -1449,6 +1449,7 @@ extension ThreadHistoryViewModel {
     }
     
     public func indexPath(vm: MessageRowViewModel) -> IndexPath? {
-        sections.indexPath(for: vm)
+        if sections.isEmpty { return nil }
+        return sections.indexPath(for: vm)
     }
 }

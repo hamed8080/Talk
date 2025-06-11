@@ -644,7 +644,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     
-    private func performBatchUpdateForReactions(_ indexPaths: [IndexPath], completed: @escaping () -> Void) {
+    private func performBatchUpdateForReactions(_ indexPaths: [IndexPath], completion: @escaping () -> Void) {
         log("update reactions")
         setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
@@ -658,12 +658,10 @@ extension ThreadViewController: HistoryScrollDelegate {
                 }
             }
         } completion: { [weak self] completed in
-//            DispatchQueue.main.async { [weak self] in
-//                if wasAtBottom, let self = self, let indexPath = self.tableView.indexPathsForVisibleRows?.last {
-//                    self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
-//                }
-//            }
-            self?.setUpdating(updating: false)
+            if completed {
+                self?.setUpdating(updating: false)
+                completion()
+            }
         }
     }
     
