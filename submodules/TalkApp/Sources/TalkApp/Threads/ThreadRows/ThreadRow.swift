@@ -41,11 +41,12 @@ struct ThreadRow: View {
             if thread.group == true && (thread.admin == false || thread.admin == nil) {
                 EmptyView()
             } else {
-                Button(role: .destructive) {
+                Button {
                     AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
                 } label: {
                     Label("General.delete", systemImage: "trash")
                 }
+                .tint(.red)
             }
         }
         .onTapGesture {

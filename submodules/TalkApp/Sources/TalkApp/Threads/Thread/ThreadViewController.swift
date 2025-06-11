@@ -90,6 +90,7 @@ final class ThreadViewController: UIViewController {
 extension ThreadViewController {
     func configureViews() {
         emptyThreadView.attachToParent(parent: view)
+        emptyThreadView.isHidden = true
         dimView.viewModel = viewModel
         configureTableView()
         configureOverlayActionButtons()
@@ -174,6 +175,11 @@ extension ThreadViewController {
     }
 
     private func showEmptyThread(show: Bool) {
+        /// We only need to set to false for the first time, after that it will be removed
+        /// or add to view.
+        if show {
+            emptyThreadView.isHidden = false
+        }
         emptyThreadView.show(show, parent: view)
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
@@ -427,15 +433,15 @@ extension ThreadViewController: BottomToolbarDelegate {
 // MARK: Sheets Delegate
 extension ThreadViewController {
     func openForwardPicker() {
+        let selectVM = viewModel?.selectedMessagesViewModel
+        let messages = selectVM?.getSelectedMessages().compactMap{$0.message as? Message} ?? []
+        
         let view = SelectConversationOrContactList { [weak self] (conversation, contact) in
-            self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact)
+            self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
         }
             .environmentObject(AppState.shared.objectsContainer.threadsVM)
             .contextMenuContainer()
-//            .environmentObject(AppState.shared.objectsContainer.contactsVM)
-            .onDisappear {
-                //closeSheet()
-            }
+        
         let hostVC = UIHostingController(rootView: view)
         hostVC.modalPresentationStyle = .formSheet
         present(hostVC, animated: true)

@@ -26,6 +26,7 @@ struct ConversationPlusContextMenu: View {
         .padding(.horizontal, 8)
         .sheet(isPresented: $showCreateConversationSheet, onDismiss: onDismissBuilder) {
             StartThreadContactPickerView()
+                .environmentObject(builderVM)
         }
     }
 

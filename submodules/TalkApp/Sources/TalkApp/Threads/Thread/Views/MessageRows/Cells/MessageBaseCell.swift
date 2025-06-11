@@ -93,7 +93,11 @@ public class MessageBaseCell: UITableViewCell {
         if !viewModel.calMessage.state.isInSelectMode {
             radio.removeFromSuperview()
         } else if viewModel.calMessage.state.isInSelectMode, radio.superview == nil {
+            radio.isHidden = true
             container.addSubview(radio)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.radio.isHidden = false
+            }
             radio.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
             radio.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -10).isActive = true
         }

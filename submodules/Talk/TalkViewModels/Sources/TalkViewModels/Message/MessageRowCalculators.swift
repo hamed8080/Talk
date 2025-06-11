@@ -121,6 +121,9 @@ class MessageRowCalculators {
         
         let isEditableOrNil = (message.editable == true || message.editable == nil)
         calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && thread?.admin == true && thread?.type?.isChannelType == true)
+        if message.forwardInfo != nil {
+            calculatedMessage.canEdit = false
+        }
         rowType.isMap = calculatedMessage.fileMetaData?.mapLink != nil || calculatedMessage.fileMetaData?.latitude != nil || (message as? UploadFileMessage)?.locationRequest != nil
         let isFirstMessageOfTheUser = isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: mainData.thread?.type?.isChannelType == true)
         calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
