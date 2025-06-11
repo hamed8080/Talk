@@ -372,7 +372,7 @@ extension AppState {
 
 extension AppState {
     public func openURL(url: URL) {
-        appStateNavigationModel.openURL = url
+        NotificationCenter.default.post(name: NSNotification.Name("openURL"), object: url)
         animateObjectWillChange()
     }
 }

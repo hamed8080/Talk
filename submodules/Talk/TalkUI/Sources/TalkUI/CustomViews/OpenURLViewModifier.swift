@@ -15,8 +15,8 @@ public struct OpenURLViewModifier: ViewModifier {
     
     public func body(content: Content) -> some View {
         content
-            .onChange(of: appstate.appStateNavigationModel.openURL) { url in
-                if let url = url  {
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("openURL"))) { notif in
+                if let url = notif.object as? URL {
                     let vc = SFSafariViewController(url: url)
                     vc.preferredControlTintColor = UIColor(named: "accent")
                     UIApplication.shared.firstKeyWindow?.rootViewController?.present(vc, animated: true)
