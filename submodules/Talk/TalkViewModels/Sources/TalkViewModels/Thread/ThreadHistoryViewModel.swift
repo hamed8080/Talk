@@ -21,6 +21,7 @@ public final class ThreadHistoryViewModel {
     private var sections: ContiguousArray<MessageSection> = .init()
     @MainActor public var sectionsHolder = SectionHolder()
     @MainActor private var deleteQueue = DeleteMessagesQueue()
+    private var isProcessingScenario = false
 
     private var threshold: CGFloat = 800
     private var topLoading = false
@@ -157,6 +158,8 @@ extension ThreadHistoryViewModel {
         /// 1- Get the top part to time messages
         if hasUnreadMessage(), let toTime = thread.lastSeenMessageTime {
             Task {
+                await waitToCompleteScenario()
+                isProcessingScenario = true
                 await moreTop(prepend: keys.MORE_TOP_FIRST_SCENARIO_KEY, toTime.advanced(by: 1))
                 await showTopLoading(false) // We do not need to show two loadings at the same time.
             }
@@ -195,6 +198,8 @@ extension ThreadHistoryViewModel {
     /// Therefore the cache will always the request from the server.
     private func trySecondScenario() async {
         if await isLastMessageEqualToLastSeen(), thread.id != LocalId.emptyThread.rawValue {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             hasNextBottom = false
             let req = await makeRequest(offset: 0)
             log("trySecondScenario")
@@ -224,6 +229,8 @@ extension ThreadHistoryViewModel {
         /// 1- Get the bottom part of the list of what is inside the memory.
         await waitingToFinishUpdating()
         if let lastMessageInListTime = sections.last?.vms.last?.message.time {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             await showBottomLoading(true)
             let req = await makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
             await doRequestQueue(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
@@ -249,12 +256,15 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 6
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
+        await waitToCompleteScenario()
+        isProcessingScenario = true
         /// 1- Move to a message locally if it exists.
         if moveToBottom, !sections.isLastSeenMessageExist(thread: thread) {
             await removeAllSections()
         } else if let uniqueId = canMoveToMessageLocally(messageId) {
             await showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             await moveToMessageLocally(uniqueId, messageId, highlight, true)
+            isProcessingScenario = false
             return
         } else {
             log("The message id to move to is not exist in the list")
@@ -273,6 +283,7 @@ extension ThreadHistoryViewModel {
         middleFetcher?.completion = { [weak self] response in
             Task { [weak self] in
                 await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
+                self?.isProcessingScenario = false
             }
         }
         middleFetcher?.start(time: time, messageId: messageId, highlight: highlight)
@@ -313,14 +324,12 @@ extension ThreadHistoryViewModel {
     /// When lastMessgeSeenId is bigger than thread.lastMessageVO.id as a result of server chat bug or when the conversation is empty.
     private func trySeventhScenario() async {
         if thread.lastMessageVO?.id ?? 0 < thread.lastSeenMessageId ?? 0 {
-            await requestBottomPartByCountAndOffset()
+            await waitToCompleteScenario()
+            isProcessingScenario = true
+            let req = await makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
+            log("Get bottom part by last message deleted detection")
+            doRequest(req, keys.FETCH_BY_OFFSET_KEY)
         }
-    }
-
-    private func requestBottomPartByCountAndOffset() async {
-        let req = await makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
-        log("Get bottom part by last message deleted detection")
-        doRequest(req, keys.FETCH_BY_OFFSET_KEY)
     }
 
     private func onFetchByOffset(_ response: HistoryResponse) async {
@@ -361,6 +370,8 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) async {
         if time > thread.lastMessageVO?.time ?? 0 { return }
+        await waitToCompleteScenario()
+        isProcessingScenario = true
         await removeAllSections()
         /// Getting the first message of the day will take time, specially if the message is an archive message.
         /// So we have to show the center loading imediately.
@@ -371,6 +382,7 @@ extension ThreadHistoryViewModel {
         firstMessageOfTheDayVM?.completion = { [weak self] message in
             guard let message = message else { return }
             Task { [weak self] in
+                self?.isProcessingScenario = false
                 await self?.moveToTime(message.time ?? 0, message.id ?? -1)
             }
         }
@@ -535,13 +547,17 @@ extension ThreadHistoryViewModel {
     }
 
     public func loadMoreTop(message: HistoryMessageType) async {
-        if let time = message.time {
+        if let time = message.time, await canLoadMoreTop() {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             await moreTop(prepend: keys.MORE_TOP_KEY, time)
         }
     }
 
     public func loadMoreBottom(message: HistoryMessageType) async {
-        if let time = message.time {
+        if let time = message.time, await canLoadMoreBottom() {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             // We add 1 milliseceond to prevent duplication and fetch the message itself.
             await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
         }
@@ -632,31 +648,41 @@ extension ThreadHistoryViewModel {
 
             if response.pop(prepend: keys.MORE_BOTTOM_FIRST_SCENARIO_KEY) != nil {
                 await onMoreBottomFirstScenario(response)
+                isProcessingScenario = false
             }
 
             /// For the second scenario.
             if response.pop(prepend: keys.MORE_TOP_SECOND_SCENARIO_KEY) != nil {
                 await onMoreTopSecondScenario(response)
+                isProcessingScenario = false
             }
 
             /// For the scenario three and four.
             if response.pop(prepend: keys.MORE_TOP_KEY) != nil {
                 await onMoreTop(response)
+                
+                /// We will show the move to the top,
+                /// if the delay at the end of the move to the top caused the show button to disappear.
+                await delegate?.showMoveToButtom(show: true)
+                isProcessingScenario = false
             }
 
             /// For the scenario three and four.
             if response.pop(prepend: keys.MORE_BOTTOM_KEY) != nil {
                 await onMoreBottom(response)
+                isProcessingScenario = false
             }
 
             /// For the fifth scenario.
             if response.pop(prepend: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY) != nil {
                 await onMoreBottomFifthScenario(response)
+                isProcessingScenario = false
             }
 
             /// For the seventh scenario.
             if response.pop(prepend: keys.FETCH_BY_OFFSET_KEY) != nil {
                 await onFetchByOffset(response)
+                isProcessingScenario = false
             }
 
             /// If respone is not empty therefore the thread is not empty and we should not show it
@@ -671,6 +697,7 @@ extension ThreadHistoryViewModel {
 
     // It will be only called by ThreadsViewModel
     public func onNewMessage(_ messages: [Message], _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
+        await waitToCompleteScenario()
         thread = updatedConversation
         let wasAtBottom = await isLastMessageInsideTheSections(oldConversation)
         if let viewModel = await viewModel, wasAtBottom {
@@ -1346,6 +1373,7 @@ extension ThreadHistoryViewModel {
             bottomLoading = false
             await showTopLoading(false)
             await showBottomLoading(false)
+            isProcessingScenario = false
         }
     }
 }
@@ -1393,6 +1421,15 @@ extension ThreadHistoryViewModel {
 
     func waitingToFinishUpdating() async {
         while await isUpdating{}
+    }
+    
+    func waitToCompleteScenario() async {
+        while isProcessingScenario {
+            try? await Task.sleep(for: .milliseconds(100))
+#if DEBUG
+            print("isProcessing a sceranio and waitng to complete the previous scenario")
+#endif
+        }
     }
 }
 
