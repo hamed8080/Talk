@@ -100,18 +100,12 @@ extension ContiguousArray where Element == MessageSection {
 
     public func indexPath(for viewModel: MessageRowViewModel) -> IndexPath? {
         if isEmpty {
-#if DEBUG
-            fatalError("indexPath(for:) called on an empty data structure.")
-#endif
             return nil
         }
         guard
             let sectionIndex = firstIndex(where: { $0.vms.contains(where: { $0.id == viewModel.id }) }),
             let messageIndex = self[sectionIndex].vms.firstIndex(where: { $0.id == viewModel.id })
         else {
-#if DEBUG
-            fatalError("Logic error: ViewModel with id \(viewModel.id) not found in data structure.")
-#endif
             return nil
         }
         return .init(row: messageIndex, section: sectionIndex)

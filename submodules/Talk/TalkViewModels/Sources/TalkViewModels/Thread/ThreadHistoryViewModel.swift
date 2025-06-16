@@ -572,7 +572,7 @@ extension ThreadHistoryViewModel {
     }
 
     public func loadMoreBottom(message: HistoryMessageType) async {
-        if let time = message.time {
+        if let time = message.time, await canLoadMoreBottom() {
             // We add 1 milliseceond to prevent duplication and fetch the message itself.
             await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
         }

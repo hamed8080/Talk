@@ -27,6 +27,9 @@ public final class LogViewModel: ObservableObject {
             self?.logs = logs
             self?.sort()
         }
+        if ProcessInfo().environment["DELETE_LOG_ON_LAUNCH"] == "1" {
+            deleteLogs()
+        }
         
         Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             /// Get new logs from last log in the list
