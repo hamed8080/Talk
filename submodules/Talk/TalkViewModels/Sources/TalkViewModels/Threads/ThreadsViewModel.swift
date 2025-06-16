@@ -469,8 +469,11 @@ public final class ThreadsViewModel: ObservableObject {
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
             arrItem.description = thread.description
 
-            threads[index] = arrItem
-            threads[index].animateObjectWillChange()
+            /// Check if the index still exist to prevent a crash.
+            if threads.indices.contains(index) {
+                threads[index] = arrItem
+                threads[index].animateObjectWillChange()
+            }
 
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
