@@ -203,13 +203,17 @@ public final class ChatDelegateImplementation: ChatDelegate {
         RequestsManager.shared.clear()
         AppState.shared.objectsContainer.chatRequestQueue.cancellAll()
     }
+    
+    private static var isLogOnDisk: Bool = {
+        (Bundle.main.object(forInfoDictionaryKey: "LOG_ON_DISK") as? NSNumber)?.boolValue == true
+    }()
 
     nonisolated public func onLog(log: Log) {
         /// Some logs will not stores inside the SDKs
         /// so to see them inside the LogViewModel we have to use this to save them on CDLog table
         /// and then refetch them in 5 seconds period.
         Task { @MainActor in
-            Logger.log(title: log.prefix ?? "", message: log.message ?? "")
+            Logger.log(title: log.prefix ?? "", message: log.message ?? "", persist: ChatDelegateImplementation.isLogOnDisk)
         }
     }
 

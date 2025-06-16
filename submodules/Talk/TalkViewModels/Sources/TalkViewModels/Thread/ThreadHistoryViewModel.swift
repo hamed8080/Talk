@@ -158,8 +158,6 @@ extension ThreadHistoryViewModel {
         /// 1- Get the top part to time messages
         if hasUnreadMessage(), let toTime = thread.lastSeenMessageTime {
             Task {
-                await waitToCompleteScenario()
-                isProcessingScenario = true
                 await moreTop(prepend: keys.MORE_TOP_FIRST_SCENARIO_KEY, toTime.advanced(by: 1))
                 await showTopLoading(false) // We do not need to show two loadings at the same time.
             }
@@ -397,6 +395,8 @@ extension ThreadHistoryViewModel {
     private func moreTop(prepend: String, _ toTime: UInt?) async {
         if await !canLoadMoreTop() { return }
         await showTopLoading(true)
+        await waitToCompleteScenario()
+        isProcessingScenario = true
         let req = await makeRequest(toTime: toTime, offset: nil)
         log("SendMoreTopRequest")
         doRequest(req, prepend)
@@ -547,9 +547,7 @@ extension ThreadHistoryViewModel {
     }
 
     public func loadMoreTop(message: HistoryMessageType) async {
-        if let time = message.time, await canLoadMoreTop() {
-            await waitToCompleteScenario()
-            isProcessingScenario = true
+        if let time = message.time {
             await moreTop(prepend: keys.MORE_TOP_KEY, time)
         }
     }
