@@ -8,6 +8,7 @@
 import Foundation
 import ChatModels
 
+@MainActor
 public class StitchAvatarCalculator {
     public static func forTop(_ sections: ContiguousArray<MessageSection>, _ sortedVMS: [MessageRowViewModel]) -> MessageRowViewModel? {
         let sorted = sortedVMS.sorted(by: {$0.message.id ?? 0 < $1.message.id ?? 0 })

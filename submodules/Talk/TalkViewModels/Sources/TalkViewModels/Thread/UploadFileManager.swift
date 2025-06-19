@@ -77,7 +77,6 @@ public final class UploadFileManager {
         await changeStateTo(state: state, metaData: vm.fileMetaData, viewModelUniqueId: viewModelUniqueId)
     }
 
-    @HistoryActor
     private func changeStateTo(state: MessageFileState, metaData: FileMetaData?, viewModelUniqueId: String) async {
         if let (vm, indexPath) = await viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId) {
             vm.message.metadata = metaData?.jsonString

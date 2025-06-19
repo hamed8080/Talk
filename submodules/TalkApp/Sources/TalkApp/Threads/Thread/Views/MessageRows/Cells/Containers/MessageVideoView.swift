@@ -266,7 +266,6 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         }
     }
     
-    @MainActor
     private func setVideo(player: AVPlayer) {
         if playerVC == nil {
             playerVC = AVPlayerViewController()

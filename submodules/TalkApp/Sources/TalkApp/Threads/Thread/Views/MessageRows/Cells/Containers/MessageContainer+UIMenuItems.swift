@@ -232,7 +232,7 @@ private extension MessageContainerStackView {
         if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
-                let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
+                let newVM = await MessageRowViewModel(message: message, viewModel: threadVM)
                 await newVM.recalculate(mainData: newVM.getMainData())
                 await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
             }
@@ -246,7 +246,7 @@ private extension MessageContainerStackView {
         if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
-                let newVM = MessageRowViewModel(message: message, viewModel: threadVM)
+                let newVM = await MessageRowViewModel(message: message, viewModel: threadVM)
                 await newVM.recalculate(mainData: newVM.getMainData())
                 
                 /// Register to download the file again

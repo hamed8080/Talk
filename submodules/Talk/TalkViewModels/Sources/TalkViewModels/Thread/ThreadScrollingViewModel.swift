@@ -20,11 +20,11 @@ public actor DeceleratingBackgroundActor {}
 public final class ThreadScrollingViewModel {
     var task: Task<(), Never>?
     private var isProgramaticallyScroll: Bool = false
-    @HistoryActor public var scrollingUP = false
+    public var scrollingUP = false
     public weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1)}
     public var isAtBottomOfTheList: Bool = false
-    @HistoryActor public var lastContentOffsetY: CGFloat = 0
+    public var lastContentOffsetY: CGFloat = 0
     @DeceleratingActor public var isEndedDecelerating: Bool = true
     init() {}
 
@@ -56,7 +56,6 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    @HistoryActor
     public func scrollToLastMessageOnlyIfIsAtBottom() async {
         let message = await lastMessageOrLastUploadingMessage()
         if await isAtBottomOfTheList, let uniqueId = message?.uniqueId {
@@ -96,7 +95,6 @@ public final class ThreadScrollingViewModel {
         return isProgramaticallyScroll
     }
     
-    @HistoryActor
     public func getIsProgramaticallyScrollingHistoryActor() async -> Bool {
         let isProgramaticallyScroll = await isProgramaticallyScroll
         return isProgramaticallyScroll

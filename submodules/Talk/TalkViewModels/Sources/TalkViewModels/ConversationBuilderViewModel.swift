@@ -77,11 +77,10 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
             .store(in: &canceableSet)
     }
     
-    @MainActor
-    public func show(type: StrictThreadTypeCreation) async {
+    public func show(type: StrictThreadTypeCreation) {
         searchContactString = ""
         if contacts.isEmpty {
-            await getContacts()
+            getContacts()
         }
         show = true
         createConversationType = type
@@ -134,8 +133,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         }
     }
     
-    @MainActor
-    public func onCreateGroup(_ response: ChatResponse<Conversation>) async {
+    public func onCreateGroup(_ response: ChatResponse<Conversation>) {
         if response.pop(prepend: CREATE_THREAD_CONVERSATION_BUILDER_KEY) != nil {
             
             if let conversation = response.result {
@@ -147,14 +145,13 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
                 if let image = image {
                     uploadConversationImage(conversation: conversation, image: image)
                 }
-                await navigateToTheConversation(conversation)
+                navigateToTheConversation(conversation)
             }
         }
     }
     
-    @MainActor
-    private func navigateToTheConversation(_ conversation: Conversation) async {
-        await clear()
+    private func navigateToTheConversation(_ conversation: Conversation) {
+        clear()
         if #available(iOS 17, *) {
             AppState.shared.showThread(conversation, created: true)
         } else {
@@ -190,9 +187,8 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         }
     }
     
-    @MainActor
-    public override func clear() async {
-        await super.clear()
+    public override func clear() {
+        super.clear()
         dimissAnResetDismiss()
         resetImageUploading()
         createdConversation = nil

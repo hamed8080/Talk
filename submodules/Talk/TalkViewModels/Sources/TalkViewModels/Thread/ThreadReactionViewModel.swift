@@ -108,7 +108,6 @@ public final class ThreadReactionViewModel {
         }
     }
 
-    @MainActor
     func onReactionEvent(_ event: ReactionEventTypes) async {
         switch event {
         case .add(let chatResponse):

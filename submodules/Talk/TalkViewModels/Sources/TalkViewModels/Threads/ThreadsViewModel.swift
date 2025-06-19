@@ -26,7 +26,7 @@ public final class ThreadsViewModel: ObservableObject {
     public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     private var cache: Bool = true
     var isInCacheMode = false
-    @MainActor public private(set) var lazyList = LazyListViewModel()
+    public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
     internal let incQueue = IncommingMessagesQueue()
@@ -53,7 +53,6 @@ public final class ThreadsViewModel: ObservableObject {
         incQueue.viewModel = self
     }
 
-    @MainActor
     func onCreate(_ response: ChatResponse<Conversation>) async {
         lazyList.setLoading(false)
         if let thread = response.result {
@@ -130,7 +129,6 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func getThreads(withQueue: Bool = false) async {
         /// Check if user didn't logged out
         if !TokenManager.shared.isLoggedIn { return }
@@ -149,14 +147,12 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func loadMore(id: Int?) async {
         if !lazyList.canLoadMore(id: id) { return }
         lazyList.prepareForLoadMore()
         await getThreads()
     }
 
-    @MainActor
     public func onThreads(_ response: ChatResponse<[Conversation]>) async {
         let pinThreads = response.result?.filter({$0.pin == true})
         let hasAnyResults = response.result?.count ?? 0 > 0
@@ -227,7 +223,6 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     /// Create a thread and send a message without adding a contact.
-    @MainActor
     public func fastMessage(_ invitee: Invitee, _ message: String) async {
         let messageREQ = CreateThreadMessage(text: message, messageType: .text)
         let req = CreateThreadWithMessage(invitees: [invitee], title: "", type: StrictThreadTypeCreation.p2p.threadType, message: messageREQ)
@@ -263,7 +258,6 @@ public final class ThreadsViewModel: ObservableObject {
         sheetType = .addParticipant
     }
 
-    @MainActor
     public func addParticipantsToThread(_ contacts: ContiguousArray<Contact>) async {
         guard let threadId = selectedThraed?.id else { return }
         let contactIds = contacts.compactMap(\.id)
@@ -285,7 +279,6 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.setLoading(false)
     }
 
-    @MainActor
     private func insertIntoParticipantViewModel(_ response: ChatResponse<Conversation>) async {
         if let threadVM = navVM.viewModel(for: response.result?.id ?? -1) {
             let addedParticipants = response.result?.participants ?? []
@@ -299,7 +292,6 @@ public final class ThreadsViewModel: ObservableObject {
         sheetType = .tagManagement
     }
     
-    @MainActor
     public func appendThreads(newThreads: [CalculatedConversation], oldThreads: ContiguousArray<CalculatedConversation>)
     async -> ContiguousArray<CalculatedConversation> {
         var arr = oldThreads
@@ -333,8 +325,7 @@ public final class ThreadsViewModel: ObservableObject {
         threads = sorted
     }
 
-    @MainActor
-    public func clear() async {
+    public func clear() {
         isInCacheMode = false
         lazyList.reset()
         threads = []
@@ -342,7 +333,6 @@ public final class ThreadsViewModel: ObservableObject {
         animateObjectWillChange()
     }
 
-    @MainActor
     public func silentClear() async {
         lazyList.reset()
         animateObjectWillChange()
@@ -557,7 +547,6 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func clearAvatarsOnSelectAnotherThread() async {
         var keysToRemove: [String] = []
         let allThreadImages = threads.compactMap({$0.computedImageURL})

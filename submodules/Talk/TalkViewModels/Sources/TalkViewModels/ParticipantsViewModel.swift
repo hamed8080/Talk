@@ -23,7 +23,7 @@ public final class ParticipantsViewModel: ObservableObject {
     private var cancelable: Set<AnyCancellable> = []
     private var timerRequestQueue: Timer?
     private var lastRequestTime = Date()
-    @MainActor public private(set) var lazyList = LazyListViewModel()
+    public private(set) var lazyList = LazyListViewModel()
     private var objectId = UUID().uuidString
     private let LOAD_KEY: String
     private let SEARCH_KEY: String
@@ -120,7 +120,7 @@ public final class ParticipantsViewModel: ObservableObject {
         }
     }
 
-    public func getParticipants() async {
+    public func getParticipants() {
         if lastRequestTime + 0.5 > .now {
             timerRequestQueue?.invalidate()
             timerRequestQueue = nil
@@ -179,8 +179,7 @@ public final class ParticipantsViewModel: ObservableObject {
         await getParticipants()
     }
 
-    @MainActor
-    public func onParticipants(_ response: ChatResponse<[Participant]>) async {
+    public func onParticipants(_ response: ChatResponse<[Participant]>) {
         // FIXME: This bug should be fixed in the caching system as described in the text below.
         /// If we remove this line due to a bug in the Cache, we will get an incorrect participants list.
         /// For example, after a user leaves a thread, if the user updates their getHistory, the left participant will be shown in the list, which is incorrect.
@@ -192,8 +191,7 @@ public final class ParticipantsViewModel: ObservableObject {
         lazyList.setLoading(false)
     }
 
-    @MainActor
-    public func onSearchedParticipants(_ response: ChatResponse<[Participant]>) async {
+    public func onSearchedParticipants(_ response: ChatResponse<[Participant]>) {
         if !response.cache, response.pop(prepend: SEARCH_KEY) != nil, let participants = response.result {
             searchedParticipants.removeAll()
             searchedParticipants.append(contentsOf: participants)
@@ -201,12 +199,12 @@ public final class ParticipantsViewModel: ObservableObject {
         lazyList.setLoading(false)
     }
 
-    public func refresh() async {
-        await clear()
-        await getParticipants()
+    public func refresh() {
+        clear()
+        getParticipants()
     }
 
-    public func clear() async {
+    public func clear() {
         lazyList.reset()
         participants = []
     }

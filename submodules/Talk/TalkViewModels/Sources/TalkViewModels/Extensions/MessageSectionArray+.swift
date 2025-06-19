@@ -11,6 +11,7 @@ import TalkModels
 
 public typealias MyIndicies = (message: HistoryMessageType, indexPath: IndexPath)
 
+@MainActor
 extension ContiguousArray where Element == MessageSection {
     internal func sectionIndexByUniqueId(_ message: HistoryMessageType) -> SectionIndex? {
         sectionIndexByUniqueId(message.uniqueId ?? "")

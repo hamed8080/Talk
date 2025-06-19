@@ -13,22 +13,17 @@ import Combine
 import UIKit
 import CoreGraphics
 
-@HistoryActor
+@MainActor
 public final class ThreadHistoryViewModel {
     // MARK: Stored Properties
-    @MainActor internal weak var viewModel: ThreadViewModel?
-    @MainActor public weak var delegate: HistoryScrollDelegate?
+    internal weak var viewModel: ThreadViewModel?
+    public weak var delegate: HistoryScrollDelegate?
     private var sections: ContiguousArray<MessageSection> = .init()
-    @MainActor public var sectionsHolder = SectionHolder()
-    @MainActor private var deleteQueue = DeleteMessagesQueue()
+    public var sectionsHolder = SectionHolder()
+    private var deleteQueue = DeleteMessagesQueue()
     
-    @MainActor
     private var topRequester: GetHistoryReuqester?
-    
-    @MainActor
     private var bottomRequester: GetHistoryReuqester?
-    
-    @MainActor
     private var offsetRequester: GetHistoryReuqester?
 
     private var threshold: CGFloat = 800
@@ -39,20 +34,19 @@ public final class ThreadHistoryViewModel {
     private var hasNextBottom = true
     private let count: Int = 25
     private var isFetchedServerFirstResponse: Bool = false
-    @MainActor
+    
     private var cancelable: Set<AnyCancellable> = []
     private var hasSentHistoryRequest = false
-    @MainActor internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
+    internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
     private var tasks: [Task<Void, Error>] = []
     @VisibleActor
     private var visibleTracker = VisibleMessagesTracker()
-    @MainActor private var highlightVM = ThreadHighlightViewModel()
+    private var highlightVM = ThreadHighlightViewModel()
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
     private var middleFetcher: MiddleHistoryFetcherViewModel?
     private var firstMessageOfTheDayVM: FirstMessageOfTheDayViewModel?
-
-    @MainActor
+    
     public var isUpdating = false
     private var lastScrollTime: Date = .distantPast
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
@@ -66,7 +60,6 @@ public final class ThreadHistoryViewModel {
     // MARK: Initializer
     nonisolated public init() {}
 }
-
 
 extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
     func onStableVisibleMessages(_ messages: [HistoryMessageType]) async {
@@ -92,15 +85,15 @@ extension ThreadHistoryViewModel {
 
 // MARK: Setup/Start
 extension ThreadHistoryViewModel {
-    public func setup(thread: Conversation, readOnly: Bool) async {
+    public func setup(thread: Conversation, readOnly: Bool) {
         self.thread = thread
         threadId = thread.id ?? -1
         middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: readOnly)
-        await setupVisible()
-        await setupMain()
-        await MainActor.run {
-            deleteQueue.viewModel = self
+        Task {
+            await setupVisible()
         }
+        setupMain()
+        deleteQueue.viewModel = self
     }
     
     @VisibleActor
@@ -108,7 +101,6 @@ extension ThreadHistoryViewModel {
         visibleTracker.delegate = self
     }
     
-    @MainActor
     private func setupMain() {
         highlightVM.setup(self)
         setupNotificationObservers()
@@ -142,13 +134,11 @@ extension ThreadHistoryViewModel {
             return 
         }
         if sections.count > 0 || hasAnythingToLoadOnOpen { return }
-        Task.detached {
+        Task { @MainActor [weak self] in
             /// We won't set this variable to prevent duplicate call on connection status for the first time.
             /// If we don't sleep we will get a crash.
             try? await Task.sleep(for: .microseconds(500))
-            Task { @HistoryActor in
-                self.hasSentHistoryRequest = true
-            }
+            self?.hasSentHistoryRequest = true
         }
         tryFirstScenario()
         await trySecondScenario()
@@ -205,7 +195,6 @@ extension ThreadHistoryViewModel {
     /// With middle fetcher we can not store the last message with top request even we fetch it with
     /// by advance 1, in retriving it next time, the checking system will examaine it with exact time not advance time!
     /// Therefore the cache will always the request from the server.
-    @MainActor
     private func trySecondScenario() async {
         if await isLastMessageEqualToLastSeen(), await thread.id != LocalId.emptyThread.rawValue {
             await setHasMoreBottom(false)
@@ -230,7 +219,6 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 3 or 4 more top/bottom.
 
     // MARK: Scenario 5
-    @MainActor
     private func tryFifthScenario(status: ConnectionStatus) async {
         /// 1- Get the bottom part of the list of what is inside the memory.
         await waitingToFinishUpdating()
@@ -336,8 +324,7 @@ extension ThreadHistoryViewModel {
             await requestBottomPartByCountAndOffset()
         }
     }
-
-    @MainActor
+    
     private func requestBottomPartByCountAndOffset() async {
         let req = await makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
         await log("Get bottom part by last message deleted detection")
@@ -405,8 +392,7 @@ extension ThreadHistoryViewModel {
         }
         firstMessageOfTheDayVM?.startOfDate(time: time, highlight: true)
     }
-
-    @MainActor
+    
     private func moreTop(prepend: String, _ toTime: UInt?) async {
         if await !canLoadMoreTop() { return }
         await showTopLoading(true)
@@ -507,8 +493,7 @@ extension ThreadHistoryViewModel {
         bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
         await delegate?.reloadData(at: indexPath)
     }
-
-    @MainActor
+    
     private func moreBottom(prepend: String, _ fromTime: UInt?) async {
         if await !canLoadMoreBottom() { return }
         await showBottomLoading(true)
@@ -993,11 +978,10 @@ extension ThreadHistoryViewModel {
         guard let uniqueId = uniqueId, let indices = sections.indicesByMessageUniqueId(uniqueId) else { return }
         sections[indices.section].vms.remove(at: indices.row)
     }
-
-    @MainActor
-    public func deleteMessages(_ messages: [HistoryMessageType], forAll: Bool = false) async {
+    
+    public func deleteMessages(_ messages: [HistoryMessageType], forAll: Bool = false) {
         let messagedIds = messages.compactMap(\.id)
-        let threadId = await threadId
+        let threadId = threadId
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.message.delete(.init(threadId: await threadId, messageIds: messagedIds, deleteForAll: forAll))
         }
@@ -1054,8 +1038,7 @@ extension ThreadHistoryViewModel {
             await setIsAtBottom(newValue: false)
         }
     }
-
-    @MainActor
+    
     private func setIsAtBottom(newValue: Bool) {
         if viewModel?.scrollVM.isAtBottomOfTheList != newValue, viewModel?.isDeletingLastMessage == false {
             viewModel?.scrollVM.isAtBottomOfTheList = newValue
@@ -1112,7 +1095,6 @@ extension ThreadHistoryViewModel {
 }
 
 // MARK: Observers On MainActor
-@MainActor
 extension ThreadHistoryViewModel {
     private func setupNotificationObservers() {
         observe(AppState.shared.$connectionStatus) { [weak self] status in
@@ -1151,10 +1133,6 @@ extension ThreadHistoryViewModel {
             .store(in: &cancelable)
     }
 
-    internal func cancel() {
-        cancelAllObservers()
-    }
-
     internal func cancelAllObservers() {
         cancelable.forEach { cancelable in
             cancelable.cancel()
@@ -1180,7 +1158,7 @@ extension ThreadHistoryViewModel {
 
 // MARK: Reactions
 extension ThreadHistoryViewModel {
-    @MainActor
+    
     private func fetchReactions(messages: [HistoryMessageType]) {
         if viewModel?.searchedMessagesViewModel.isInSearchMode == false {
             Task {
@@ -1343,12 +1321,11 @@ extension ThreadHistoryViewModel {
 }
 
 public extension ThreadHistoryViewModel {
-    @MainActor
-    func getSections() async -> ContiguousArray<MessageSection> {
-        return await sections
+    
+    func getSections() -> ContiguousArray<MessageSection> {
+        return sections
     }
     
-    @MainActor
     func getMainData() -> MainRequirements {
         return MainRequirements(appUserId: AppState.shared.user?.id,
                                 thread: viewModel?.thread,

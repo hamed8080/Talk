@@ -60,17 +60,13 @@ public final class ThreadUploadMessagesViewModel {
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.message.cancel(uniqueId: uniqueId ?? "")
         }
-        Task { @HistoryActor [weak self] in
-            await self?.viewModel?.historyVM.removeByUniqueId(uniqueId)
-        }
+        viewModel?.historyVM.removeByUniqueId(uniqueId)
     }
 
     private func onUploadEvent(_ event: UploadEventTypes) {
         switch event {
         case .canceled(uniqueId: let uniqueId):
-            Task { @HistoryActor [weak self] in
-                await self?.viewModel?.historyVM.removeByUniqueId(uniqueId)
-            }
+            viewModel?.historyVM.removeByUniqueId(uniqueId)
         default:
             break
         }

@@ -166,7 +166,7 @@ public final class EditMessagePlaceholderView: UIStackView {
             let time = sendVM.getEditMessage()?.time,
             let id = sendVM.getEditMessage()?.id
         else { return }
-        Task { @HistoryActor [weak self] in
+        Task { [weak self] in
             await self?.viewModel?.historyVM.moveToTime(time, id)
         }
     }

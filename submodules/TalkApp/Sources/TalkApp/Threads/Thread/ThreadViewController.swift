@@ -72,9 +72,7 @@ final class ThreadViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        Task { @HistoryActor in
-            await viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
-        }
+        viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
         contextMenuContainer = ContextMenuContainerView(delegate: self)
         tableView.contentInset.top = topThreadToolbar.frame.height
     }

@@ -32,7 +32,6 @@ struct CalculatedDataResult {
     var message: HistoryMessageType
 }
 
-//@HistoryActor
 class MessageRowCalculators {
     
     
@@ -54,7 +53,7 @@ class MessageRowCalculators {
         }
         
         
-        let viewModels = createViewModels(msgsCal, viewModel)
+        let viewModels = await createViewModels(msgsCal, viewModel)
         return viewModels
     }
     
@@ -74,7 +73,8 @@ class MessageRowCalculators {
         }
         return msgsCal
     }
-    
+   
+    @MainActor
     private class func createViewModels(_ msgsCal: [CalculatedDataResult], _ viewModel: ThreadViewModel) -> [MessageRowViewModel] {
         var viewModels: [MessageRowViewModel] = []
         for msgCal in msgsCal {
@@ -82,7 +82,7 @@ class MessageRowCalculators {
             vm.calMessage = msgCal.calData
             if vm.calMessage.fileURL != nil {
                 let fileState = completionFileState(vm.fileState, msgCal.message.iconName)
-                vm.setFileStateNonIsloated(fileState)
+                vm.setFileState(fileState, fileURL: nil)
             }
             viewModels.append(vm)
         }
@@ -187,10 +187,9 @@ class MessageRowCalculators {
         return calculatedMessage
     }
     
-    @HistoryActor
     class func calculateColorAndFileURL(mainData: MainRequirements, message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) async -> MessageRowCalculatedData {
         var newCal = calculatedMessage
-        let color = mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
+        let color = await mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
         newCal.participantColor = color ?? .clear
         newCal.fileURL = await getFileURL(serverURL: message.url)
         return newCal

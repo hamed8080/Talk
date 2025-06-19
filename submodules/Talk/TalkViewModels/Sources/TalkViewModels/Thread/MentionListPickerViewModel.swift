@@ -18,7 +18,7 @@ public final class MentionListPickerViewModel {
     public private(set) var mentionList: ContiguousArray<Participant> = .init()
     private var cancelable: Set<AnyCancellable> = []
     private var searchText: String? = nil
-    @MainActor public var lazyList = LazyListViewModel()
+    public var lazyList = LazyListViewModel()
     private var objectId = UUID().uuidString
     private let MENTION_PARTICIPANTS_KEY: String
     public private(set) var avatarVMS: [Int: ImageLoaderViewModel] = [:]
@@ -53,8 +53,7 @@ public final class MentionListPickerViewModel {
             .store(in: &cancelable)
     }
 
-    @MainActor
-    public func searchForParticipantInMentioning(_ text: String) async {
+    public func searchForParticipantInMentioning(_ text: String) {
         if thread?.group == false || thread?.group == nil { return }
         /// remove the hidden RTL character for forcing the UITextView to write from right to left.
         let text = text.replacingOccurrences(of: "\u{200f}", with: "")
@@ -62,11 +61,11 @@ public final class MentionListPickerViewModel {
             // Fetch some data to show if the user typed an @.
             searchText = nil
             lazyList.reset()
-            await getParticipants()
+            getParticipants()
         } else if text.matches(char: "@")?.last != nil, text.split(separator: " ").last?.first == "@", text.last != " " {
             searchText = text.split(separator: " ").last?.replacingOccurrences(of: "@", with: "")
             lazyList.reset()
-            await getParticipants()
+            getParticipants()
         } else {
             let mentionListWasFill = mentionList.count > 0
             mentionList = []
@@ -80,8 +79,7 @@ public final class MentionListPickerViewModel {
         }
     }
 
-    @MainActor
-    func onParticipants(_ response: ChatResponse<[Participant]>) async {
+    func onParticipants(_ response: ChatResponse<[Participant]>) {
         /// We have to check threadId when forwarding messages to prevent the previous thread catch the result.
         if !response.cache, response.subjectId == viewModel?.threadId, response.pop(prepend: MENTION_PARTICIPANTS_KEY) != nil, let participants = response.result {
             if lazyList.offset == 0 {
@@ -126,8 +124,7 @@ public final class MentionListPickerViewModel {
         }
     }
 
-    @MainActor
-    private func getParticipants() async {
+    private func getParticipants() {
         lazyList.setLoading(true)
         viewModel?.delegate?.onMentionListUpdated()
         let count = lazyList.count
@@ -139,10 +136,10 @@ public final class MentionListPickerViewModel {
         }
     }
 
-    public func loadMore() async {
-        if await !lazyList.canLoadMore() { return }
+    public func loadMore() {
+        if !lazyList.canLoadMore() { return }
         lazyList.prepareForLoadMore()
-        await getParticipants()
+        getParticipants()
     }
 
     public func cancelAllObservers() {
