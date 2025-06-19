@@ -319,15 +319,10 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
 
     private func makeViewModel(url: URL, message: HistoryMessageType?) async {
         let metadata = await metadata(message: message)
-        if url.absoluteString == videoPlayerVM?.fileURL.absoluteString ?? "" { return }
-        self.videoPlayerVM = VideoPlayerViewModel(fileURL: url,
-                             ext: metadata?.file?.mimeType?.ext,
-                             title: metadata?.name,
-                             subtitle: metadata?.file?.originalName ?? "")
-        self.fullScreenVideoPlayerVM = VideoPlayerViewModel(fileURL: url,
-                                                       ext: metadata?.file?.mimeType?.ext,
-                                                       title: metadata?.name,
-                                                       subtitle: metadata?.file?.originalName ?? "")
+        if videoPlayerVM?.isSameURL(url) == true { return }
+        let ext = metadata?.file?.mimeType?.ext
+        self.videoPlayerVM = VideoPlayerViewModel(fileURL: url, ext: ext)
+        self.fullScreenVideoPlayerVM = VideoPlayerViewModel(fileURL: url, ext: ext)
         register()
    }
     

@@ -171,9 +171,7 @@ struct FullScreenPlayer: View {
     init(fileURL: URL, message: Message?, showFullScreen: Bool = false) {
         self.fileURL = fileURL
         self._playerVM = StateObject(wrappedValue: VideoPlayerViewModel(fileURL: fileURL,
-                                             ext: message?.fileMetaData?.file?.mimeType?.ext,
-                                             title: message?.fileMetaData?.name,
-                                             subtitle: message?.fileMetaData?.file?.originalName ?? ""))
+                                             ext: message?.fileMetaData?.file?.mimeType?.ext))
         self.showFullScreen = showFullScreen
     }
 
