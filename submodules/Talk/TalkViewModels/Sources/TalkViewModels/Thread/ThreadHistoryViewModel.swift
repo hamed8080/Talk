@@ -269,7 +269,7 @@ extension ThreadHistoryViewModel {
             await removeAllSections()
         } else if let uniqueId = canMoveToMessageLocally(messageId) {
             await showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
-            await moveToMessageLocally(uniqueId, messageId, highlight, true)
+            await moveToMessageLocally(uniqueId, messageId, moveToBottom, highlight, true)
             return
         } else {
             log("The message id to move to is not exist in the list")
@@ -321,8 +321,12 @@ extension ThreadHistoryViewModel {
 
     /// Search for a message with an id in the messages array, and if it can find the message, it will redirect to that message locally, and there is no request sent to the server.
     /// - Returns: Indicate that it moved loclally or not.
-    private func moveToMessageLocally(_ uniqueId: String, _ messageId: Int, _ highlight: Bool, _ animate: Bool = false) async {
-        await highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .top, animate: animate)
+    private func moveToMessageLocally(_ uniqueId: String, _ messageId: Int, _ moveToBottom: Bool, _ highlight: Bool, _ animate: Bool = false) async {
+        await highlightVM.showHighlighted(uniqueId,
+                                          messageId,
+                                          highlight: highlight,
+                                          position: moveToBottom ? .bottom : .top,
+                                          animate: animate)
     }
 
     // MARK: Scenario 7

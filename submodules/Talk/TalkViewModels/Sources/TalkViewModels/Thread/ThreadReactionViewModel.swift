@@ -190,7 +190,7 @@ public final class ThreadReactionViewModel {
         let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
         if !indexPaths.isEmpty {
             await threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
-            await threadVM?.scrollVM.scrollToBottom()
+            await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }
         
         /// We need to set it false manually if there is no message,
