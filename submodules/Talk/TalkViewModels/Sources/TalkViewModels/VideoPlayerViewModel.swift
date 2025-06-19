@@ -15,31 +15,16 @@ import TalkModels
 @MainActor
 public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLoaderDelegate {
     @Published public var player: AVPlayer?
-    public let fileURL: URL
-    let ext: String?
-    var title: String?
-    var subtitle: String?
-    var timer: Timer?
+    private var timer: Timer?
+    private var fileURL: URL
     @Published public var timerString = "00:00"
     @Published public var isFinished: Bool = false
 
-    public init(fileURL: URL, ext: String? = nil, title: String? = nil, subtitle: String? = nil, directLink: Bool = false) {
+    public init(fileURL: URL, ext: String? = nil) {
         self.fileURL = fileURL
-        self.ext = ext
-        self.title = title
-        self.subtitle = subtitle
         super.init()
         do {
-            var url: URL
-            if !directLink {
-                let hardLinkURL = fileURL.appendingPathExtension(ext ?? "mp4")
-                if !FileManager.default.fileExists(atPath: hardLinkURL.path()) {
-                    try FileManager.default.linkItem(at: fileURL, to: hardLinkURL)
-                }
-                url = hardLinkURL
-            } else {
-                url = fileURL
-            }
+            let url = try hardLink(fileURL, ext)
             let asset = AVURLAsset(url: url)
             asset.resourceLoader.setDelegate(self, queue: DispatchQueue.main)
             let item = AVPlayerItem(asset: asset)
@@ -107,6 +92,19 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
 
     private func log(_ string: String) {
         Logger.log( title: "VideoPlayerViewModel", message: string)
+    }
+    
+    private func hardLink(_ fileURL: URL, _ ext: String?) throws -> URL {
+        let hardLinkURL = fileURL.appendingPathExtension(ext ?? "mp4")
+        let fm = FileManager.default
+        if !fm.fileExists(atPath: hardLinkURL.path()) {
+            try fm.linkItem(at: fileURL, to: hardLinkURL)
+        }
+        return hardLinkURL
+    }
+    
+    public func isSameURL(_ fileURL: URL) -> Bool {
+        self.fileURL.absoluteString == fileURL.absoluteString ?? ""
     }
     
 #if DEBUG
