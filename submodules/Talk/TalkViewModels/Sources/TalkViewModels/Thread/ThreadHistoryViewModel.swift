@@ -350,7 +350,10 @@ extension ThreadHistoryViewModel {
             await onMoreTop(vms)
             await delegate?.showMoveToButtom(show: false)
             await showCenterLoading(false)
-            await delegate?.scrollTo(uniqueId: vms.first?.message.uniqueId ?? "", position: .bottom, animate: true)
+            let uniqueId = await sections.last?.vms.last?.message.uniqueId ?? ""
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: true)
+            }
         } catch {
             await showCenterLoading(false)
         }
