@@ -136,14 +136,16 @@ public final class ThreadReactionViewModel {
         await clearReactionsOnReconnect()
     }
 
-    internal func fetchReactions(messages: [Message], withQueue: Bool) async {
+    internal func fetchReactions(messages: [Message], withQueue: Bool) {
         guard threadVM?.searchedMessagesViewModel.isInSearchMode == false else { return}
         let messageIds = messages
             .filter({$0.id ?? -1 > 0})
             .filter({$0.reactionableType})
             .compactMap({$0.id})
         inQueueToGetReactions.append(contentsOf: messageIds)
-        await getReactionSummary(messageIds, conversationId: threadId, withQueue: withQueue)
+        Task {
+            await getReactionSummary(messageIds, conversationId: threadId, withQueue: withQueue)
+        }
     }
     
     @ChatGlobalActor
@@ -171,14 +173,14 @@ public final class ThreadReactionViewModel {
         
         for copy in reactions {
             inQueueToGetReactions.removeAll(where: {$0 == copy.messageId})
-            if let vm = historyVM.sectionsHolder.sections.messageViewModel(for: copy.messageId ?? -1) {
+            if let vm = historyVM.sections.messageViewModel(for: copy.messageId ?? -1) {
                 await vm.setReaction(reactions: copy)
             }
         }
 
         /// All things inisde the qeueu are old data and there will be a chance the reaction row has been removed.
         for id in inQueueToGetReactions {
-            if let vm = historyVM.sectionsHolder.sections.messageViewModel(for: id) {
+            if let vm = historyVM.sections.messageViewModel(for: id) {
                 await vm.clearReactions()
             }
         }
@@ -186,7 +188,7 @@ public final class ThreadReactionViewModel {
         let wasAtBottom = threadVM?.scrollVM.isAtBottomOfTheList == true
 
         // Update UI of each message
-        let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
+        let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
         if !indexPaths.isEmpty {
             await threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
             await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
@@ -267,7 +269,7 @@ public final class ThreadReactionViewModel {
     
     private func vmAndIndex(for messageId: Int?) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
         guard let messageId = messageId else { return nil }
-        return threadVM?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: messageId)
+        return threadVM?.historyVM.sections.viewModelAndIndexPath(for: messageId)
     }
 
     internal func fetchVisibleReactionsOnReconnect() async {

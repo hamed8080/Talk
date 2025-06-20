@@ -37,9 +37,9 @@ public final class ThreadUploadMessagesViewModel {
         if requests.isEmpty { return }
         Task { [weak self] in
             guard let self = self, let historyVM = viewModel?.historyVM else { return }
-            let beforeSectionCount = historyVM.sectionsHolder.sections.count
+            let beforeSectionCount = historyVM.sections.count
             await historyVM.injectMessagesAndSort(requests)
-            let tuple = historyVM.sectionsHolder.sections.indexPathsForUpload(requests: requests, beforeSectionCount: beforeSectionCount)
+            let tuple = historyVM.sections.indexPathsForUpload(requests: requests, beforeSectionCount: beforeSectionCount)
             if let sectionSet = tuple.sectionIndex {
                 viewModel?.delegate?.inserted(sectionSet, tuple.indices, .left, nil)
             } else {
@@ -47,8 +47,8 @@ public final class ThreadUploadMessagesViewModel {
             }
             // Sleep for better animation when we insert something at the end of the list in upload for multiple items.
             try? await Task.sleep(for: .seconds(0.2))
-            let sectionCount = historyVM.sectionsHolder.sections.count
-            let rowCount = historyVM.sectionsHolder.sections.last?.vms.count ?? 0
+            let sectionCount = historyVM.sections.count
+            let rowCount = historyVM.sections.last?.vms.count ?? 0
             let indexPath = IndexPath(row: rowCount - 1, section: sectionCount - 1)
             await viewModel?.scrollVM.scrollToLastUploadedMessageWith(indexPath)
             /// Hide empty thread dialog if it was showing
@@ -73,13 +73,13 @@ public final class ThreadUploadMessagesViewModel {
     }
 
     public func hasAnyUploadMessage() -> Bool {
-        let hasUploadMessages = viewModel?.historyVM.sectionsHolder.sections.last?.vms
+        let hasUploadMessages = viewModel?.historyVM.sections.last?.vms
             .filter{$0.message is UploadProtocol}.count ?? 0 > 0
         return hasUploadMessages
     }
 
     public func lastUploadingViewModel() -> MessageRowViewModel? {
-        return viewModel?.historyVM.sectionsHolder.sections.last?.vms.last(where: {$0.message is UploadProtocol})
+        return viewModel?.historyVM.sections.last?.vms.last(where: {$0.message is UploadProtocol})
     }
 
     internal func cancelAllObservers() {

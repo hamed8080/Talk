@@ -547,7 +547,7 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func clearAvatarsOnSelectAnotherThread() async {
+    public func clearAvatarsOnSelectAnotherThread() {
         var keysToRemove: [String] = []
         let allThreadImages = threads.compactMap({$0.computedImageURL})
         avatarsVM.forEach { (key: String, value: ImageLoaderViewModel) in

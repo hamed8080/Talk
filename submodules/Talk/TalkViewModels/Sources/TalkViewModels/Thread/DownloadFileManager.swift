@@ -240,7 +240,7 @@ public final class DownloadFileManager {
 
     @AppBackgroundActor
     private func changeStateTo(state: MessageFileState, messageId: Int) async {
-        guard let result = await viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(for: messageId) else {
+        guard let result = await viewModel?.historyVM.sections.viewModelAndIndexPath(for: messageId) else {
             await log("Index path could not be found for message id:\(messageId)")
             return
         }

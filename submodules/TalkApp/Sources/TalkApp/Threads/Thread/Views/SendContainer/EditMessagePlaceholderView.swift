@@ -150,7 +150,7 @@ public final class EditMessagePlaceholderView: UIStackView {
     }
     
     private func setImage(_ uniqueId: String) {
-        guard let fileURL = viewModel?.historyVM.sectionsHolder.sections.messageViewModel(for: uniqueId)?.calMessage.fileURL else { return }
+        guard let fileURL = viewModel?.historyVM.sections.messageViewModel(for: uniqueId)?.calMessage.fileURL else { return }
         Task.detached {
             if let scaledImage = fileURL.imageScale(width: 36)?.image {
                 await MainActor.run {

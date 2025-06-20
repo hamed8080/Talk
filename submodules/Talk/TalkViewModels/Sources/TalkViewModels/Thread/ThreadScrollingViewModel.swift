@@ -49,7 +49,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) async {
+    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) {
         if isAtBottomOfTheList || message.isMe(currentUserId: AppState.shared.user?.id), let uniqueId = message.uniqueId {
             disableExcessiveLoading()
             scrollTo(uniqueId, animate: true)
@@ -86,7 +86,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func setIsProgramaticallyScrolling(_ newValue: Bool) async {
+    public func setIsProgramaticallyScrolling(_ newValue: Bool) {
         self.isProgramaticallyScroll = newValue
     }
     

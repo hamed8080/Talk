@@ -16,7 +16,7 @@ import Logger
 class UIHistoryTableView: UITableView {
     private weak var viewModel: ThreadViewModel?
     private let revealAnimation = RevealAnimation()
-    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
+    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel

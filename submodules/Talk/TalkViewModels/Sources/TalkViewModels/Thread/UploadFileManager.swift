@@ -49,8 +49,8 @@ public final class UploadFileManager {
 
     public func cancel(viewModelUniqueId: String) async {
         guard let vm = viewModel(for: viewModelUniqueId) else { return }
-        if let indexPath = viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
-            await viewModel?.historyVM.sectionsHolder.deleteIndices([indexPath])
+        if let indexPath = viewModel?.historyVM.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId)?.indexPath {
+            await viewModel?.historyVM.deleteIndices([indexPath])
         }
         vm.action(.cancel)
         unRegister(viewModelUniqueId: viewModelUniqueId)
@@ -78,7 +78,7 @@ public final class UploadFileManager {
     }
 
     private func changeStateTo(state: MessageFileState, metaData: FileMetaData?, viewModelUniqueId: String) async {
-        if let (vm, indexPath) = await viewModel?.historyVM.sectionsHolder.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId) {
+        if let (vm, indexPath) = await viewModel?.historyVM.sections.viewModelAndIndexPath(viewModelUniqueId: viewModelUniqueId) {
             vm.message.metadata = metaData?.jsonString
             let fileURL = await vm.message.fileURL
             await MainActor.run {

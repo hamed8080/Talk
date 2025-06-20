@@ -32,7 +32,7 @@ final class ThreadViewController: UIViewController {
     private lazy var dimView = DimView()
     public var contextMenuContainer: ContextMenuContainerView!
     private var isViewControllerVisible: Bool = true
-    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
+    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +40,6 @@ final class ThreadViewController: UIViewController {
         registerKeyboard()
         viewModel?.delegate = self
         viewModel?.historyVM.delegate = self
-        viewModel?.historyVM.sectionsHolder.delegate = self
         startCenterAnimation(true)
     }
 
@@ -448,10 +447,8 @@ extension ThreadViewController {
     func openMoveToDatePicker() {
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
             DatePickerWrapper(hideControls: false) { [weak self] date in
-                Task {
-                    await self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
-                    AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
-                }
+                self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
+                AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
             }
             .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
         )
@@ -532,7 +529,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     func inserted(at: IndexPath) {
         setUpdating(updating: true)
         log("inserted at indexPath: \(at)")
-        log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
+        log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
         tableView.beginUpdates()
         
         // Insert a new section if we have a message in a new day.
@@ -556,7 +553,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath]) {
         log("inserted and scroll to")
         log("insertingSections without animation: \(sections), insertingRows: \(rows)")
-        log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
+        log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
         setUpdating(updating: true)
         
         
@@ -599,7 +596,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
         log("inserted without scroll to")
         log("insertingSections with animation: \(sections), insertingRows: \(rows)")
-        log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
+        log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
         setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
             if !sections.isEmpty {
@@ -766,7 +763,7 @@ extension ThreadViewController {
         }
         
         /// Prevent overlaping with the text container if the thread is empty.
-        if viewModel?.historyVM.sectionsHolder.sections.isEmpty == true {
+        if viewModel?.historyVM.sections.isEmpty == true {
             view.bringSubviewToFront(sendContainer)
         }
     }
@@ -791,7 +788,6 @@ extension ThreadViewController {
 extension ThreadViewController {
     func setUpdating(updating: Bool) {
         viewModel?.historyVM.isUpdating = updating
-        viewModel?.historyVM.sectionsHolder.setUpdating(value: updating)
     }
 }
 

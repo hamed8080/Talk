@@ -170,7 +170,7 @@ private extension MessageContainerStackView {
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
         if let uniqueId = model.message.uniqueId,
-           let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+           let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
             model.threadVM?.delegate?.setTableRowSelected(indexPath)
         }
         cell?.select()
@@ -229,12 +229,12 @@ private extension MessageContainerStackView {
     func onDeleteCacheAction(_ model: ActionModel) {
         guard let message = model.message as? Message, let threadVM = model.threadVM else { return }
         model.threadVM?.clearCacheFile(message: message)
-        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
                 let newVM = await MessageRowViewModel(message: message, viewModel: threadVM)
                 await newVM.recalculate(mainData: newVM.getMainData())
-                await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
+                await threadVM.historyVM.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
             }
         }
     }
@@ -243,7 +243,7 @@ private extension MessageContainerStackView {
         guard let message = model.message as? Message, let threadVM = model.threadVM else { return }
         model.threadVM?.clearCacheFile(message: message)
         let viewModel = model.viewModel
-        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+        if let uniqueId = message.uniqueId, let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
             Task.detached {
                 try? await Task.sleep(for: .milliseconds(500))
                 let newVM = await MessageRowViewModel(message: message, viewModel: threadVM)
@@ -253,7 +253,7 @@ private extension MessageContainerStackView {
                 await threadVM.downloadFileManager.register(message: message)
                 
                 /// Reload the message row with its new viewModel
-                await threadVM.historyVM.sectionsHolder.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
+                await threadVM.historyVM.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
                 
                 /// Download again
                 try? await Task.sleep(for: .microseconds(500))
@@ -295,7 +295,7 @@ private extension MessageContainerStackView {
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
         if let uniqueId = model.message.uniqueId,
-           let indexPath = model.threadVM?.historyVM.sectionsHolder.sections.indicesByMessageUniqueId(uniqueId) {
+           let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
             model.threadVM?.delegate?.setTableRowSelected(indexPath)
         }
         cell?.select()
