@@ -332,12 +332,12 @@ extension ThreadHistoryViewModel {
             Task {
                 let vms = try await offsetRequester.get(req)
                 await onMoreTop(vms)
-            }
-            delegate?.showMoveToButtom(show: false)
-            showCenterLoading(false)
-            let uniqueId = sections.last?.vms.last?.message.uniqueId ?? ""
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-                self?.delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: true)
+                delegate?.showMoveToButtom(show: false)
+                showCenterLoading(false)
+                let uniqueId = sections.last?.vms.last?.message.uniqueId ?? ""
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    self?.delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: true)
+                }
             }
         } catch {
             showCenterLoading(false)
