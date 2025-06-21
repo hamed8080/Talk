@@ -16,7 +16,7 @@ public final class MentionTableView: UITableView {
     private let cellIdentifier = String(describing: MentionCell.self)
     private var heightConstraint: NSLayoutConstraint!
     private var mentionList: ContiguousArray<Participant> { viewModel?.mentionList ?? .init() }
-    private let cellHeight: CGFloat = 48
+    private let cellHeight: CGFloat = 64
     private var viewModel: MentionListPickerViewModel? { threadVM?.mentionListPickerViewModel }
 
     public init(viewModel: ThreadViewModel?) {
@@ -36,7 +36,7 @@ public final class MentionTableView: UITableView {
         dataSource = self
         backgroundColor = .clear
         separatorStyle = .none
-        rowHeight = 48
+        rowHeight = cellHeight
 
         let blurEffect = UIBlurEffect(style: .systemThinMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
@@ -78,7 +78,7 @@ public final class MentionTableView: UITableView {
             }
         }
         let maxHeight = cellHeight * 4
-        heightConstraint.constant = min(maxHeight, CGFloat(mentionList.count) * 48)
+        heightConstraint.constant = min(maxHeight, CGFloat(mentionList.count) * cellHeight)
         reloadData()
     }
 }

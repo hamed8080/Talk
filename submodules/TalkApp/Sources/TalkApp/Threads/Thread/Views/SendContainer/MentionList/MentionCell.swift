@@ -14,6 +14,7 @@ import ChatModels
 
 final class MentionCell: UITableViewCell {
     private let lblName = UILabel()
+    private let lblUserName = UILabel()
     private let imageParticipant = MentionParticipantImageView()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -41,12 +42,27 @@ final class MentionCell: UITableViewCell {
         lblName.numberOfLines = 1
         lblName.accessibilityIdentifier = "lblNameMentionCell"
 
+        lblUserName.font = .fCaption2
+        lblUserName.textColor = Color.App.accentUIColor
+        lblUserName.numberOfLines = 1
+        lblUserName.accessibilityIdentifier = "lblUserNameMentionCell"
+
         imageParticipant.translatesAutoresizingMaskIntoConstraints = false
         imageParticipant.accessibilityIdentifier = "imageParticipantMentionCell"
 
+        let vStack = UIStackView()
+        vStack.axis = .vertical
+        vStack.spacing = 2
+        vStack.alignment = .leading
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.isLayoutMarginsRelativeArrangement = true
+        vStack.layoutMargins = .init(all: 4)
+        vStack.accessibilityIdentifier = "vStackMentionCell"
+        vStack.addArrangedSubview(lblName)
+        vStack.addArrangedSubview(lblUserName)
+        
         hStack.addArrangedSubview(imageParticipant)
-        hStack.addArrangedSubview(lblName)
-
+        hStack.addArrangedSubview(vStack)
         contentView.addSubview(hStack)
 
         NSLayoutConstraint.activate([
@@ -61,7 +77,8 @@ final class MentionCell: UITableViewCell {
 
     public func setValues(_ viewModel: ThreadViewModel, _ participant: Participant) {
         lblName.text = participant.contactName ?? participant.name ?? "\(participant.firstName ?? "") \(participant.lastName ?? "")"
+        lblUserName.text = participant.username ?? ""
         let vm = viewModel.mentionListPickerViewModel.avatarVMS[participant.id ?? 0]
-        imageParticipant.setValues(vm: vm)
+        imageParticipant.setValues(vm: vm, participant: participant)
     }
 }
