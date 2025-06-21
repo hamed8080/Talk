@@ -76,7 +76,7 @@ struct SelectConversationTab: View {
     var body: some View {
         List {
             ForEach(conversations) { conversation in
-                ThreadRow() {
+                ThreadRow(enableSwipeAction: false) {
                     onSelect(conversation.toStruct(), nil)
                     dismiss()
                 }

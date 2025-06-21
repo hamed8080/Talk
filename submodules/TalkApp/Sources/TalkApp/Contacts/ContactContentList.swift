@@ -182,6 +182,7 @@ struct ContactRowContainer: View {
     @Binding var contact: Contact
     @EnvironmentObject var viewModel: ContactsViewModel
     let isSearchRow: Bool
+    var enableSwipeAction = true
     var separatorColor: Color {
         if !isSearchRow {
            return viewModel.contacts.last == contact ? Color.clear : Color.App.dividerPrimary
@@ -196,7 +197,9 @@ struct ContactRowContainer: View {
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(separatorColor)
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                if !viewModel.isInSelectionMode {
+                if !enableSwipeAction {
+                    EmptyView()
+                } else if !viewModel.isInSelectionMode {
                     Button {
                         viewModel.editContact = contact
                         viewModel.showAddOrEditContactSheet.toggle()

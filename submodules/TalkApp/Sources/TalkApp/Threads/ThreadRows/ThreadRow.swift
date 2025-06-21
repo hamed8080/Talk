@@ -15,6 +15,7 @@ import TalkExtensions
 
 struct ThreadRow: View {
     var isSearchRow: Bool = false
+    var enableSwipeAction = true
     @EnvironmentObject var thread: CalculatedConversation
     let onTap: (() -> Void)?
     
@@ -38,7 +39,9 @@ struct ThreadRow: View {
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
         .animation(.easeInOut, value: thread)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            if thread.group == true && (thread.admin == false || thread.admin == nil) {
+            if !enableSwipeAction {
+                EmptyView()
+            } else if thread.group == true && (thread.admin == false || thread.admin == nil) {
                 EmptyView()
             } else {
                 Button {

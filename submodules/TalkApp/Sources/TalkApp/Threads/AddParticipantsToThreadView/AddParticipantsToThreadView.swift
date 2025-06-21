@@ -42,7 +42,7 @@ struct AddParticipantsToThreadView: View {
     @ViewBuilder private var searchedContacts: some View {
         if !contactsVM.searchedContacts.isEmpty {
             ForEach(contactsVM.searchedContacts) { contact in
-                ContactRowContainer(contact: .constant(contact), isSearchRow: true)
+                ContactRowContainer(contact: .constant(contact), isSearchRow: true, enableSwipeAction: false)
             }
         }
     }
@@ -50,7 +50,7 @@ struct AddParticipantsToThreadView: View {
     @ViewBuilder private var normalContacts: some View {
         if contactsVM.searchedContacts.isEmpty {
             ForEach(contactsVM.contacts) { contact in
-                ContactRowContainer(contact: .constant(contact), isSearchRow: false)
+                ContactRowContainer(contact: .constant(contact), isSearchRow: false, enableSwipeAction: false)
                     .onAppear {
                         Task {
                             if contactsVM.contacts.last == contact {
