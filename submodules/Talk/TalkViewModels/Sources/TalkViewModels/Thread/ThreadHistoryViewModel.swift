@@ -46,7 +46,6 @@ public final class ThreadHistoryViewModel {
     private var middleFetcher: MiddleHistoryFetcherViewModel?
     private var firstMessageOfTheDayVM: FirstMessageOfTheDayViewModel?
     
-    public var isUpdating = false
     private var lastScrollTime: Date = .distantPast
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
 
@@ -219,7 +218,6 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 5
     private func tryFifthScenario(status: ConnectionStatus) {
         /// 1- Get the bottom part of the list of what is inside the memory.
-        waitingToFinishUpdating()
         if let lastMessageInListTime = sections.last?.vms.last?.message.time {
             showBottomLoading(true)
             bottomRequester = GetHistoryReuqester(key: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
@@ -414,8 +412,6 @@ extension ThreadHistoryViewModel {
 
     private func onMoreTop(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false, moveToLastMessage: Bool = false) async {
         await waitingToFinishDecelerating()
-        await waitingToFinishUpdating()
-        isUpdating = true
         
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         
@@ -464,11 +460,6 @@ extension ThreadHistoryViewModel {
         }
         
         await prepareAvatars(viewModels)
-        
-        /// We need to set it false manually if there is no message,
-        /// so tableView won't realase it.
-        try? await Task.sleep(for: .microseconds(300))
-        isUpdating = false
     }
     
     private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) {
@@ -507,10 +498,6 @@ extension ThreadHistoryViewModel {
 
     private func onMoreBottomNew(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
         await waitingToFinishDecelerating()
-        await waitingToFinishUpdating()
-        
-        isUpdating = true
-        
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         
         /// We have to store section count  before appending them to the threads array
@@ -540,11 +527,6 @@ extension ThreadHistoryViewModel {
             fetchReactions(messages: viewModels.compactMap({$0.message}))
         }
         await prepareAvatars(viewModels)
-        
-        /// We need to set it false manually if there is no message,
-        /// so tableView won't realase it.
-        try? await Task.sleep(for: .microseconds(300))
-        isUpdating = false
     }
 
     public func loadMoreTop(message: HistoryMessageType) {
@@ -645,8 +627,6 @@ extension ThreadHistoryViewModel {
     }
     
     public func onForwardMessageForActiveThread(_ messages: [Message]) async {
-        await waitingToFinishUpdating()
-        isUpdating = true
         let messages = removeDuplicateForwards(messages)
         guard let viewModel = viewModel else { return }
         
@@ -666,7 +646,6 @@ extension ThreadHistoryViewModel {
         if let firstSortedMessage = sortedMessages.first {
             reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, firstSortedMessage)
         }
-        isUpdating = false
         showEmptyThread(show: false)
     }
 
@@ -789,35 +768,16 @@ extension ThreadHistoryViewModel {
         delegate?.sent(indexPath)
     }
     
-    /// Delete a message with an Id is needed for when the message has persisted before.
-    /// Delete a message with a uniqueId is needed for when the message is sent to a request.
+    /// Delete a message with an Id is needed, once the message has persisted before.
     internal func onDeleteMessage(_ messages: [Message], conversationId: Int) async {
         guard threadId == conversationId else { return }
         // We have to update the lastMessageVO to keep moveToBottom hide if the lastMessaegId deleted
         thread.lastMessageVO = viewModel?.thread.lastMessageVO
-        var indicies: [IndexPath] = []
-        for message in messages {
-            if let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
-                indicies.append(indexPath)
-            }
-        }
-        /// Do not remove these lines, they are here for a reason.
-        /// We first have to find all indicies to simulate the mSections indexPaths,
-        /// then removing them from sections not ``mSections`` by ``again`` gettig the indexPath,
-        /// We have to get indexPaths twice due to the fact that if not, it will crash the app becasue of wrong indexPath.
-        /// When we delete from top to bottom the index path is going to be greater than total items, so it will crash.
-        for message in messages {
-            if let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
-                sections[indexPath.section].vms.remove(at: indexPath.row)
-                if sections[indexPath.section].vms.count == 0 {
-                    sections.remove(at: indexPath.section)
-                }
-            }
-        }
+        let indicies = findDeletedIndicies(messages)
+        deleteIndices(indicies)
         if sections.isEmpty {
             showEmptyThread(show: true)
         }
-        deleteIndices(indicies)
         for message in messages {
             await setDeletedIfWasReply(messageId: message.id ?? -1)
         }
@@ -972,7 +932,10 @@ extension ThreadHistoryViewModel {
         let mainData = getMainData()
         await vm.recalculate(mainData: mainData)
         sections[indexPath.section].vms.append(vm)
-        append(section: indexPath.section, vm: vm)
+        if let lastIndex = sections[indexPath.section].vms.indices.last {
+            let indexPath = IndexPath(row: lastIndex, section: indexPath.section)
+            delegate?.inserted(at: indexPath)
+        }
         try? await Task.sleep(for: .seconds(0.5))
         delegate?.scrollTo(index: indexPath, position: .middle, animate: true)
     }
@@ -1324,10 +1287,6 @@ extension ThreadHistoryViewModel {
             }
         }
     }
-
-    func waitingToFinishUpdating() {
-        while isUpdating{}
-    }
 }
 
 extension ThreadHistoryViewModel {
@@ -1397,6 +1356,16 @@ extension ThreadHistoryViewModel {
         if sections.isEmpty { return nil }
         return sections.indexPath(for: vm)
     }
+    
+    private func findDeletedIndicies(_ messages: [Message]) -> [IndexPath] {
+        var indicies: [IndexPath] = []
+        for message in messages {
+            if let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
+                indicies.append(indexPath)
+            }
+        }
+        return indicies
+    }
 }
 
 /// SectionHolder
@@ -1426,13 +1395,6 @@ extension ThreadHistoryViewModel {
         
         let sectionsSet = sectionsToDelete.sorted().map{ IndexSet($0..<$0+1) }
         delegate?.delete(sections: sectionsSet, rows: rowsToDelete)
-    }
-    
-    public func append(section: Int, vm: MessageRowViewModel) {
-        if let lastIndex = sections[section].vms.indices.last {
-            let indexPath = IndexPath(row: lastIndex, section: section)
-            delegate?.inserted(at: indexPath)
-        }
     }
     
     public func reload(at: IndexPath, vm: MessageRowViewModel) {

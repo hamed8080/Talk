@@ -205,21 +205,14 @@ public extension MessageRowViewModel {
 // MARK: Reaction
 public extension MessageRowViewModel {
 
-    func clearReactions() async {
-        await MainActor.run { [weak self] in
-            guard let self = self else { return }
-            isInvalid = false
-            reactionsModel = .init()
-        }
+    func clearReactions() {
+        isInvalid = false
+        reactionsModel = .init()
     }
 
-    func setReaction(reactions: ReactionCountList) async {
-        let reactionsModel = MessageRowCalculators.calulateReactions(reactions)
-        await MainActor.run { [weak self] in
-            guard let self = self else { return }
-            isInvalid = false
-            self.reactionsModel = reactionsModel
-        }
+    func setReaction(reactions: ReactionCountList) {
+        isInvalid = false
+        self.reactionsModel = MessageRowCalculators.calulateReactions(reactions)
     }
     
     func reactionDeleted(_ reaction: Reaction) {

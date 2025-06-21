@@ -56,11 +56,11 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToLastMessageOnlyIfIsAtBottom() async {
-        let message = await lastMessageOrLastUploadingMessage()
-        if await isAtBottomOfTheList, let uniqueId = message?.uniqueId {
-            await disableExcessiveLoading()
-            await scrollTo(uniqueId, animate: true)
+    public func scrollToLastMessageOnlyIfIsAtBottom() {
+        let message = lastMessageOrLastUploadingMessage()
+        if isAtBottomOfTheList, let uniqueId = message?.uniqueId {
+            disableExcessiveLoading()
+            scrollTo(uniqueId, animate: true)
         }
     }
 
@@ -73,7 +73,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToLastUploadedMessageWith(_ indexPath: IndexPath) async {
+    public func scrollToLastUploadedMessageWith(_ indexPath: IndexPath) {
         disableExcessiveLoading()
         viewModel?.delegate?.scrollTo(index: indexPath, position: .top, animate: true)
     }

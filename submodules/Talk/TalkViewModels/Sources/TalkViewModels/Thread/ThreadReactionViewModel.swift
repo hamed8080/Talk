@@ -111,11 +111,11 @@ public final class ThreadReactionViewModel {
     func onReactionEvent(_ event: ReactionEventTypes) async {
         switch event {
         case .add(let chatResponse):
-            await onAddedReaction(chatResponse)
+            onAddedReaction(chatResponse)
         case .replace(let chatResponse):
-            await onReplaceReaction(chatResponse)
+            onReplaceReaction(chatResponse)
         case .delete(let chatResponse):
-            await onDeleteReaction(chatResponse)
+            onDeleteReaction(chatResponse)
         case .allowedReactions(let chatResponse):
             onAllowedReactions(chatResponse)
         case .count(let chatResponse):
@@ -125,9 +125,9 @@ public final class ThreadReactionViewModel {
         }
     }
 
-    func scrollToLastMessageIfLastMessageReacionChanged(_ response: ChatResponse<ReactionMessageResponse>) async {
+    func scrollToLastMessageIfLastMessageReacionChanged(_ response: ChatResponse<ReactionMessageResponse>) {
         if response.subjectId == threadId, response.result?.messageId == thread?.lastMessageVO?.id {
-            await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+            threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }
     }
 
@@ -165,43 +165,31 @@ public final class ThreadReactionViewModel {
             let historyVM = threadVM?.historyVM, reactions.count > 0
         else { return }
         
-        /// Block updating anything in history view model
-        /// We only wait if there is any new reaction if reaction.count == 0 we won't wait
-        /// due to it will block loading more top/bottom
-        await threadVM?.historyVM.waitingToFinishUpdating()
-        await threadVM?.historyVM.isUpdating = true
-        
         for copy in reactions {
             inQueueToGetReactions.removeAll(where: {$0 == copy.messageId})
             if let vm = historyVM.sections.messageViewModel(for: copy.messageId ?? -1) {
-                await vm.setReaction(reactions: copy)
+                vm.setReaction(reactions: copy)
             }
         }
 
         /// All things inisde the qeueu are old data and there will be a chance the reaction row has been removed.
         for id in inQueueToGetReactions {
             if let vm = historyVM.sections.messageViewModel(for: id) {
-                await vm.clearReactions()
+                vm.clearReactions()
             }
         }
         inQueueToGetReactions.removeAll()
-        let wasAtBottom = threadVM?.scrollVM.isAtBottomOfTheList == true
 
         // Update UI of each message
         let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
         if !indexPaths.isEmpty {
             await threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
-            await threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+            threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }
-        
-        /// We need to set it false manually if there is no message,
-        /// so tableView won't realase it.
-        try? await Task.sleep(for: .microseconds(300))
-        await threadVM?.historyVM.isUpdating = false
     }
 
     internal func clearReactionsOnReconnect() async {
-        await threadVM?.historyVM.getSections().forEach { section in
+        threadVM?.historyVM.getSections().forEach { section in
             section.vms.forEach { vm in
                 vm.invalid()
             }
@@ -209,7 +197,7 @@ public final class ThreadReactionViewModel {
         await fetchVisibleReactionsOnReconnect()
     }
     
-    private func onDeleteReaction(_ response: ChatResponse<ReactionMessageResponse>) async {
+    private func onDeleteReaction(_ response: ChatResponse<ReactionMessageResponse>) {
         guard
             let reaction = response.result?.reaction,
             let messageId = response.result?.messageId
@@ -224,10 +212,10 @@ public final class ThreadReactionViewModel {
         threadVM?.delegate?.reactionDeleted(indexPath: tuple.indexPath, reaction: reaction)
         
         /// Scroll to bottom if last message deleted
-        await scrollToLastMessageIfLastMessageReacionChanged(response)
+        scrollToLastMessageIfLastMessageReacionChanged(response)
     }
     
-    private func onAddedReaction(_ response: ChatResponse<ReactionMessageResponse>) async {
+    private func onAddedReaction(_ response: ChatResponse<ReactionMessageResponse>) {
         guard
             let reaction = response.result?.reaction,
             let messageId = response.result?.messageId
@@ -242,10 +230,10 @@ public final class ThreadReactionViewModel {
         threadVM?.delegate?.reactionAdded(indexPath: tuple.indexPath, reaction: reaction)
         
         /// Scroll to bottom if last message deleted
-        await scrollToLastMessageIfLastMessageReacionChanged(response)
+        scrollToLastMessageIfLastMessageReacionChanged(response)
     }
     
-    private func onReplaceReaction(_ response: ChatResponse<ReactionMessageResponse>) async {
+    private func onReplaceReaction(_ response: ChatResponse<ReactionMessageResponse>) {
         guard
             let reaction = response.result?.reaction,
             let messageId = response.result?.messageId,
@@ -262,10 +250,8 @@ public final class ThreadReactionViewModel {
         threadVM?.delegate?.reactionReplaced(indexPath: tuple.indexPath, reaction: reaction)
         
         /// Scroll to bottom if last message deleted
-        await scrollToLastMessageIfLastMessageReacionChanged(response)
+        scrollToLastMessageIfLastMessageReacionChanged(response)
     }
-    
-    
     
     private func vmAndIndex(for messageId: Int?) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
         guard let messageId = messageId else { return nil }
@@ -274,7 +260,7 @@ public final class ThreadReactionViewModel {
 
     internal func fetchVisibleReactionsOnReconnect() async {
         let visibleMessages = await (threadVM?.historyVM.getInvalidVisibleMessages() ?? []).compactMap({$0 as? Message})
-        await fetchReactions(messages: visibleMessages, withQueue: true)
+        fetchReactions(messages: visibleMessages, withQueue: true)
     }
     
 #if DEBUG
