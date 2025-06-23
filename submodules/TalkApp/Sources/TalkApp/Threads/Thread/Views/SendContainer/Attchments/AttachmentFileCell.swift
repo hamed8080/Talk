@@ -34,8 +34,11 @@ public final class AttachmentFileCell: UITableViewCell {
     }
     
     private func configureView() {
+        let semantic: UISemanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         contentView.backgroundColor = .clear
         backgroundColor = .clear
+        semanticContentAttribute = semantic
+        contentView.semanticContentAttribute = semantic
         
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
@@ -44,29 +47,34 @@ public final class AttachmentFileCell: UITableViewCell {
         hStack.layoutMargins = .init(horizontal: 16, vertical: 4)
         hStack.isLayoutMarginsRelativeArrangement = true
         hStack.accessibilityIdentifier = "hStackAttachmentFileCell"
+        hStack.semanticContentAttribute = semantic
 
         lblTitle.font = UIFont.fBoldBody
         lblTitle.textColor = Color.App.textPrimaryUIColor
         lblTitle.accessibilityIdentifier = "lblTitleAttachmentFileCell"
+        lblTitle.semanticContentAttribute = semantic
 
         lblSubtitle.font = UIFont.fCaption3
         lblSubtitle.textColor = Color.App.textSecondaryUIColor
         lblSubtitle.accessibilityIdentifier = "lblSubtitleAttachmentFileCell"
-        
+        lblSubtitle.semanticContentAttribute = semantic
+
         btnRemove.translatesAutoresizingMaskIntoConstraints = false
         let image = UIImage(systemName: "xmark")
         btnRemove.setImage(image, for: .normal)
         btnRemove.tintColor = Color.App.textSecondaryUIColor
         btnRemove.accessibilityIdentifier = "btnRemoveAttachmentFileCell"
         btnRemove.addTarget(self, action: #selector(removeTapped), for: .touchUpInside)
-        
+        btnRemove.semanticContentAttribute = semantic
+
         btnEditImage.translatesAutoresizingMaskIntoConstraints = false
         let editImage = UIImage(systemName: "pencil.line")
         btnEditImage.setImage(editImage, for: .normal)
         btnEditImage.tintColor = Color.App.textSecondaryUIColor
         btnEditImage.accessibilityIdentifier = "btnEidtImageAttachmentFileCell"
         btnEditImage.addTarget(self, action: #selector(editImageTapped), for: .touchUpInside)
-        
+        btnEditImage.semanticContentAttribute = semantic
+
         imgIcloudDonwloading.translatesAutoresizingMaskIntoConstraints = false
         imgIcloudDonwloading.layer.cornerRadius = 6
         imgIcloudDonwloading.layer.masksToBounds = true
@@ -74,18 +82,21 @@ public final class AttachmentFileCell: UITableViewCell {
         imgIcloudDonwloading.tintColor = Color.App.accentUIColor
         imgIcloudDonwloading.set(image: UIImage(systemName: "icloud") ?? .init(), inset: .init(all: 2))
         imgIcloudDonwloading.isHidden = true
-        
+        imgIcloudDonwloading.semanticContentAttribute = semantic
+
         imgIcon.translatesAutoresizingMaskIntoConstraints = false
         imgIcon.layer.cornerRadius = 6
         imgIcon.layer.masksToBounds = true
         imgIcon.accessibilityIdentifier = "imgIconAttachmentFileCell"
         imgIcon.backgroundColor = Color.App.bgInputUIColor
-        
+        imgIcon.semanticContentAttribute = semantic
+
         let vStack = UIStackView()
         vStack.axis = .vertical
         vStack.spacing = 2
         vStack.accessibilityIdentifier = "vStackAttachmentFileCell"
-        
+        vStack.semanticContentAttribute = semantic
+
         vStack.addArrangedSubview(lblTitle)
         vStack.addArrangedSubview(lblSubtitle)
         
@@ -98,16 +109,16 @@ public final class AttachmentFileCell: UITableViewCell {
         contentView.addSubview(hStack)
         
         NSLayoutConstraint.activate([
+            hStack.topAnchor.constraint(equalTo: contentView.topAnchor),
             hStack.heightAnchor.constraint(equalToConstant: 48),
+            hStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            hStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             imgIcon.widthAnchor.constraint(equalToConstant: 32),
             imgIcon.heightAnchor.constraint(equalToConstant: 32),
-            imgIcon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            imgIcloudDonwloading.trailingAnchor.constraint(equalTo: btnRemove.leadingAnchor, constant: -8),
             imgIcloudDonwloading.widthAnchor.constraint(equalToConstant: 28),
             imgIcloudDonwloading.heightAnchor.constraint(equalToConstant: 28),
             btnEditImage.widthAnchor.constraint(equalToConstant: 28),
             btnEditImage.heightAnchor.constraint(equalToConstant: 28),
-            btnRemove.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             btnRemove.widthAnchor.constraint(equalToConstant: 28),
             btnRemove.heightAnchor.constraint(equalToConstant: 28),
         ])

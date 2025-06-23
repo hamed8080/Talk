@@ -99,6 +99,7 @@ struct StartThreadContactPickerView: View {
         }
         .environmentObject(viewModel)
         .environment(\.defaultMinListRowHeight, 24)
+        .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
         .animation(.easeInOut, value: viewModel.contacts)
         .animation(.easeInOut, value: viewModel.searchedContacts)
         .animation(.easeInOut, value: viewModel.lazyList.isLoading)
