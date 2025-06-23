@@ -6,12 +6,10 @@
 //
 
 import SwiftUI
-
 public struct LongTextView: View {
     @State private var expanded: Bool = false
-    @State private var truncated: Bool = false
-    @Namespace var id
     private var text: String
+    private let max = 50
 
     public init(_ text: String) {
         self.text = text
@@ -19,51 +17,18 @@ public struct LongTextView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if expanded {
-                Text(self.text)
-                    .font(.fBody)
-                    .matchedGeometryEffect(id: 1, in: id, anchor: .top, isSource: false)
-                    .multilineTextAlignment(text.naturalTextAlignment)
-                    .lineLimit(nil)
-                    .contentShape(Rectangle())
-            } else {
-                Text(self.text)
-                    .font(.fBody)
-                    .lineLimit(3)
-                    .multilineTextAlignment(text.naturalTextAlignment)
-                    .matchedGeometryEffect(id: 1, in: id, anchor: .bottom, isSource: true)
-                    .contentShape(Rectangle())
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear.onAppear {
-                                self.determineTruncation(geometry.size)
-                            }
-                        }
-                    )
-            }
-            if self.truncated {
+            Text(expanded ? self.text : String(self.text.prefix(max)))
+                .font(.fBody)
+                .lineLimit(expanded ? nil : 1)
+                .multilineTextAlignment(text.naturalTextAlignment)
+                .contentShape(Rectangle())
+            
+            if text.count > 50 {
                 self.toggleButton
             }
         }
         .contentShape(Rectangle())
         .padding(.bottom, 24)
-    }
-
-    private func determineTruncation(_ size: CGSize) {
-        Task {
-            let total = self.text.boundingRect(
-                with: CGSize(
-                    width: size.width,
-                    height: .greatestFiniteMagnitude
-                ),
-                options: .usesLineFragmentOrigin,
-                attributes: [.font: UIFont.systemFont(ofSize: 16)],
-                context: nil
-            )
-            if total.height > size.height {
-                self.truncated = true
-            }
-        }
     }
 
     var toggleButton: some View {
