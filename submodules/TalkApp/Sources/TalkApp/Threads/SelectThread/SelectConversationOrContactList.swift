@@ -18,6 +18,7 @@ struct SelectConversationOrContactList: View {
     @Environment(\.dismiss) var dismiss
     @State var selectedTabId: Int = 0
     @State private var tabs: [TalkUI.Tab] = []
+    @Environment(\.colorScheme) private var colorScheme
 
     init(onSelect: @escaping (Conversation?, Contact?) -> Void) {
         self.onSelect = onSelect
@@ -27,12 +28,14 @@ struct SelectConversationOrContactList: View {
         CustomTabView(selectedTabIndex: $selectedTabId, tabs: tabs)
             .frame(minWidth: 300, maxWidth: .infinity)/// We have to use a fixed minimum width for a bug tabs goes to the end.
             .environmentObject(viewModel)
+            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
             .background(Color.App.bgPrimary)
-            .environment(\.colorScheme, AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light)
+            .environment(\.colorScheme, isDarkModeEnable ? .dark : .light)
             .listStyle(.plain)
             .safeAreaInset(edge: .top, spacing: 0) {
                 SearchInSelectConversationOrContact()
-                    .environment(\.colorScheme, AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light)
+                    .environment(\.colorScheme, isDarkModeEnable ? .dark : .light)
+                    .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                     .environmentObject(viewModel)
             }
             .onAppear {
@@ -41,6 +44,10 @@ struct SelectConversationOrContactList: View {
             .onDisappear {
                 viewModel.cancelObservers()
             }
+    }
+    
+    private var isDarkModeEnable: Bool {
+        AppSettingsModel.restore().isDarkModeEnabled ?? false || colorScheme == .dark
     }
 
     private func makeTabs() {

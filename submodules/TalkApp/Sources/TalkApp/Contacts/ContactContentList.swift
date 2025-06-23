@@ -43,6 +43,7 @@ struct ContactContentList: View {
         .sheet(isPresented: $viewModel.showAddOrEditContactSheet, onDismiss: onAddOrEditDisappeared) {
             if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
                 AddOrEditContactView()
+                    .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                     .environmentObject(viewModel)
                     .onDisappear {
                         onAddOrEditDisappeared()
@@ -56,6 +57,7 @@ struct ContactContentList: View {
         }
         .sheet(isPresented: $showBuilder, onDismiss: onDismissBuilder){
             ConversationBuilder()
+                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                 .environmentObject(builderVM)
                 .onAppear {
                     Task {
