@@ -10,97 +10,100 @@ import SwiftUI
 
 @MainActor
 public class GalleyOffsetViewModel: ObservableObject {
-    @Published public var endScale: CGFloat = 1.0
-    @Published public var isDragging = false
-    @Published public var dragOffset: CGSize = .zero
-    @Published public var containerYOffset: CGFloat = .zero
-    @Published public var previousDragOffset: CGSize = .zero
-    public weak var appOverlayVM: AppOverlayViewModel?
-    @Published public var heightOfScreen: CGFloat = .zero
+    @Published public var offset: CGSize = .zero
+    @Published public var baseScale: CGFloat = 1.0
+    @Published public var currentScale: CGFloat = 1.0
+    @Published public var previousOffset: CGSize = .zero
+    @Published public var isUIHidden = false
+    private let maxScale: CGFloat = 4.0
+    private let minScale: CGFloat = 1.0
     
-    public func onDragChanged(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
-        isDragging = true
-        if endScale > 1 {
-            scrollInZoomMode(value, forcedLeftToRight: forcedLeftToRight)
+    public init() {}
+    
+    public func dismiss() {
+        DispatchQueue.main.async { [weak self] in
+            AppState.shared.objectsContainer.appOverlayVM.isPresented = false
+            AppState.shared.objectsContainer.appOverlayVM.clear()
+            self?.resetZoom()
         }
     }
     
-    public func onDragEnded(_ value: DragGesture.Value) {
-        isDragging = false
-        previousDragOffset = dragOffset
-        
-        if value.translation.height < 100, endScale <= 1 {
-            resetOffset()
-        } else if value.translation.height > 100, endScale == 1 {
-            dragOffset.height = value.translation.height
+    public var totalScale: CGFloat {
+        (baseScale * currentScale).clamped(to: minScale...maxScale)
+    }
+    
+    public func onMagnifyChanged(scale: CGFloat) {
+        currentScale = scale
+    }
+
+    public func onMagnifyEnded(scale: CGFloat) {
+        baseScale = (baseScale * scale).clamped(to: minScale...maxScale)
+        currentScale = 1.0
+    }
+
+    public func onDragChanged(translation: CGSize) {
+        guard baseScale > 1.0 else { return }
+        isUIHidden = true
+        offset = CGSize(width: previousOffset.width + translation.width,
+                        height: previousOffset.height + translation.height)
+    }
+
+    public func onDragEnded(translation: CGSize) {
+        guard baseScale > 1.0 else { return }
+        isUIHidden = true
+        previousOffset = offset
+    }
+    
+    public func onVerticalDismissChanged(translation: CGSize) {
+        if abs(translation.width) < 10 && abs(translation.height) > abs(translation.width) {
+            // Optional: Add visual feedback like offsetting the image down
+            self.offset = CGSize(width: 0, height: translation.height)
+        }
+    }
+
+    public func onVerticalDismissEnded(translation: CGSize, velocity: CGSize) {
+        if abs(velocity.height) > 30,
+           abs(translation.width) < 40,
+           abs(translation.height) > abs(translation.width),
+           translation.height > 80 {
             dismiss()
-        }
-    }
-    
-    public func onContainerDragChanged(_ value: DragGesture.Value) {
-        if value.translation.height > 0, endScale == 1 {
-            containerYOffset = value.translation.height
-        }
-    }
-    
-    public func onContainerDragEnded(_ endValue: DragGesture.Value) {
-        if endValue.translation.height > 100, endScale == 1 {
-            containerYOffset = endValue.translation.height
-            dismiss()
-        } else if endScale == 1 {
-            resetOffset()
-        }
-    }
-    
-    public func onDoubleTapped() {
-        withAnimation(.easeOut) {
-            if endScale == 1 {
-                doubleZoom()
-            } else {
-                resetZoom()
-                resetOffset()
-            }
-        }
-    }
-    
-    public func onMagnificationEnded(_ value: GestureStateGesture<MagnificationGesture, CGFloat>.Value) {
-        if isDragging { return }
-        endScale = value
-    }
-    
-    private func scrollInZoomMode(_ value: DragGesture.Value, forcedLeftToRight: Bool) {
-        var width: CGFloat = 0
-        if !forcedLeftToRight {
-            width = -value.translation.width + previousDragOffset.width
         } else {
-            width = value.translation.width + previousDragOffset.width
+            resetOffset()
         }
-        let height = value.translation.height + previousDragOffset.height
-        dragOffset = .init(width: width, height: height)
     }
-    
-    private func doubleZoom() {
-        endScale = 2
+
+    public func toggleZoom(at location: CGPoint, in size: CGSize) {
+        if baseScale == 1 {
+            baseScale = 2
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            offset = CGSize(width: (center.x - location.x), height: (center.y - location.y))
+            previousOffset = offset
+            isUIHidden = true
+        } else {
+            resetZoom()
+        }
     }
-    
-    private func resetZoom() {
-        endScale = 1
+
+    public func resetZoom() {
+        baseScale = 1.0
+        currentScale = 1.0
+        offset = .zero
+        previousOffset = .zero
     }
     
     private func resetOffset() {
-        containerYOffset = .zero
-        dragOffset = .zero
-        previousDragOffset = .zero
-    }
-    
-    public func dismiss() {
-        dragOffset.height += heightOfScreen - dragOffset.height
-        containerYOffset += dragOffset.height
-        DispatchQueue.main.async { [weak self] in
-            self?.appOverlayVM?.isPresented = false
-            self?.appOverlayVM?.clear()
-            self?.resetZoom()
-            self?.resetOffset()
+        withAnimation {
+            self.offset = .zero
         }
+    }
+
+    public func toggleUI() {
+        isUIHidden.toggle()
+    }
+}
+
+extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
     }
 }

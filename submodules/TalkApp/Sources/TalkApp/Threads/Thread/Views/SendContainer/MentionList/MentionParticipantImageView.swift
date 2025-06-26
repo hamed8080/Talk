@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import TalkViewModels
 import SwiftUI
+import Chat
 
 public final class MentionParticipantImageView: UIView {
     public var imageLoaderVM: ImageLoaderViewModel?
@@ -35,10 +36,11 @@ public final class MentionParticipantImageView: UIView {
         participantLabel.translatesAutoresizingMaskIntoConstraints = false
         participantLabel.textAlignment = .center
         participantLabel.accessibilityIdentifier = "participantLabelMentionParticipantImageView"
+        participantLabel.font = UIFont.fCaption3
         backgroundColor = Color.App.bgIconUIColor
 
-        addSubview(participantLabel)
         addSubview(imageIconView)
+        addSubview(participantLabel)
 
         NSLayoutConstraint.activate([
             imageIconView.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -52,15 +54,20 @@ public final class MentionParticipantImageView: UIView {
         ])
     }
 
-    public func setValues(vm: ImageLoaderViewModel?) {
+    public func setValues(vm: ImageLoaderViewModel?, participant: Participant) {
         self.imageLoaderVM = vm
-        participantLabel.text = String(imageLoaderVM?.config.userName?.first ?? " ")
-        setImage()
-    }
+        let isImageReady = imageLoaderVM?.isImageReady == true
+        let userNameString = vm?.config.userName ?? ""
 
-    private func setImage() {
         imageIconView.image = imageLoaderVM?.image
-        participantLabel.setIsHidden(imageLoaderVM?.isImageReady == true)
+        participantLabel.text = String(userNameString)
+        participantLabel.setIsHidden(isImageReady)
+        
+        if !isImageReady {
+            let color = String.getMaterialColorByCharCode(str: userNameString)
+            imageIconView.backgroundColor = color
+            imageIconView.image = nil
+        }
     }
 
     public override func layoutSubviews() {

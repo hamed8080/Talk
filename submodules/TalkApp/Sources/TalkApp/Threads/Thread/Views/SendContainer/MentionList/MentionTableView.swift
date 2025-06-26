@@ -12,14 +12,15 @@ import TalkExtensions
 import ChatModels
 
 public final class MentionTableView: UITableView {
-    private weak var viewModel: ThreadViewModel?
+    private weak var threadVM: ThreadViewModel?
     private let cellIdentifier = String(describing: MentionCell.self)
     private var heightConstraint: NSLayoutConstraint!
-    private var mentionList: ContiguousArray<Participant> { viewModel?.mentionListPickerViewModel.mentionList ?? .init() }
-    private let cellHeight: CGFloat = 48
+    private var mentionList: ContiguousArray<Participant> { viewModel?.mentionList ?? .init() }
+    private let cellHeight: CGFloat = 64
+    private var viewModel: MentionListPickerViewModel? { threadVM?.mentionListPickerViewModel }
 
     public init(viewModel: ThreadViewModel?) {
-        self.viewModel = viewModel
+        self.threadVM = viewModel
         super.init(frame: .zero, style: .plain)
         configureView()
     }
@@ -35,7 +36,7 @@ public final class MentionTableView: UITableView {
         dataSource = self
         backgroundColor = .clear
         separatorStyle = .none
-        rowHeight = 48
+        rowHeight = cellHeight
 
         let blurEffect = UIBlurEffect(style: .systemThinMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
@@ -54,7 +55,7 @@ public final class MentionTableView: UITableView {
             effectView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
 
-        viewModel?.mentionListPickerViewModel.onImageParticipant = { [weak self] participant in
+        viewModel?.onImageParticipant = { [weak self] participant in
             guard let self = self else { return }
             if let index = mentionList.firstIndex(where: {$0.id == participant.id}) {
                 reloadRows(at: [IndexPath(row: index, section: 0)], with: .fade)
@@ -77,17 +78,17 @@ public final class MentionTableView: UITableView {
             }
         }
         let maxHeight = cellHeight * 4
-        heightConstraint.constant = min(maxHeight, CGFloat(mentionList.count) * 48)
+        heightConstraint.constant = min(maxHeight, CGFloat(mentionList.count) * cellHeight)
         reloadData()
     }
 }
 
 extension MentionTableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let viewModel = viewModel else { return }
-        let participant = viewModel.mentionListPickerViewModel.mentionList[indexPath.row]
-        viewModel.sendContainerViewModel.addMention(participant)
-        viewModel.delegate?.onMentionListUpdated()
+        guard let viewModel = viewModel, let threadVM = threadVM else { return }
+        let participant = viewModel.mentionList[indexPath.row]
+        threadVM.sendContainerViewModel.addMention(participant)
+        threadVM.delegate?.onMentionListUpdated()
     }
 
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -98,15 +99,26 @@ extension MentionTableView: UITableViewDelegate {
 extension MentionTableView: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier) as? MentionCell
-        guard let viewModel = viewModel, let cell = cell else { return UITableViewCell() }
-        let participant = viewModel.mentionListPickerViewModel.mentionList[indexPath.row]
-        cell.setValues(viewModel, participant)
+        guard let viewModel = viewModel,
+              let threadVM = threadVM,
+              let cell = cell
+        else { return UITableViewCell() }
+        let participant = viewModel.mentionList[indexPath.row]
+        cell.setValues(threadVM, participant)
         return cell
     }
 
     public func numberOfSections(in tableView: UITableView) -> Int { 1 }
 
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel?.mentionListPickerViewModel.mentionList.count ?? 0
+        return viewModel?.mentionList.count ?? 0
+    }
+    
+    public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == viewModel?.mentionList.indices.last {
+            Task {
+                await viewModel?.loadMore()
+            }
+        }
     }
 }

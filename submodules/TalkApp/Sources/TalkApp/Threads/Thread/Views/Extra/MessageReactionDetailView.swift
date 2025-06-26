@@ -26,6 +26,7 @@ struct MessageReactionDetailView: View {
         TabContainerView(
             selectedId: row.selectedEmojiTabId,
             tabs: tabs,
+            direction: Language.isRTL ? .rightToLeft : .leftToRight,
             config: .init(alignment: .top, scrollable: true)
         ) { selectedTab in
             tabVM.setActiveTab(tabId: selectedTab)

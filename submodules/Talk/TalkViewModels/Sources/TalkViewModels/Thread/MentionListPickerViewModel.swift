@@ -98,7 +98,7 @@ public final class MentionListPickerViewModel {
         }
     }
 
-    public func onParticipantsEvent(_ event: ParticipantEventTypes) async {
+    private func onParticipantsEvent(_ event: ParticipantEventTypes) async {
         switch event {
         case .participants(let response):
             await onParticipants(response)

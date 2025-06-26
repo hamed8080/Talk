@@ -22,12 +22,7 @@ struct AppOverlayFactory: View {
                 .environmentObject(GalleryViewModel(message: message))
                 .id(message.id)
         case .galleryImageView(let image):
-            ZStack {
-                GalleryImageView(uiimage: image, forceLeftToRight: false)
-            }
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-            .fullScreenBackgroundView()
-            .ignoresSafeArea(.all)
+            ConversationImageView(image: image)
         case .dialog:
             if let dialog = viewModel.dialogView {
                 if viewModel.clearBckground {

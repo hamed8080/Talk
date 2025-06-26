@@ -46,6 +46,7 @@ struct TabContainerView: View {
     let isIpad: Bool = UIDevice.current.userInterfaceIdiom == .pad
     var maxWidth: CGFloat { sizeClass == .compact || !isIpad ? .infinity : iPadMaxAllowedWidth }
     @State var selectedId: String
+    let direction: LayoutDirection
     let tabs: [TabItem]
     let config: TabContainerConfig
     let onSelectedTab: ((String)->())?
@@ -53,10 +54,12 @@ struct TabContainerView: View {
     init(iPadMaxAllowedWidth: CGFloat = .infinity,
          selectedId: String,
          tabs: [TabItem] = [],
+         direction: LayoutDirection = .leftToRight,
          config: TabContainerConfig,
          onSelectedTab: ((String) -> ())? = nil) {
         self.onSelectedTab = onSelectedTab
         self.iPadMaxAllowedWidth = iPadMaxAllowedWidth
+        self.direction = direction
         self.tabs = tabs
         self.config = config
         self._selectedId = State(wrappedValue: selectedId)
@@ -73,7 +76,7 @@ struct TabContainerView: View {
             }
             .safeAreaInset(edge: config.alignment == .bottom ? .bottom : .top, spacing: 0) {
                 TabButtonsContainer(selectedId: $selectedId, tabs: tabs, scrollable: config.scrollable)
-                    .environment(\.layoutDirection, .leftToRight)
+                    .environment(\.layoutDirection, direction)
             }
         }
         .frame(minWidth: 0, maxWidth: maxWidth)

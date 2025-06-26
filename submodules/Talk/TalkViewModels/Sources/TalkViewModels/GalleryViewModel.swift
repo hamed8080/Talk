@@ -64,6 +64,21 @@ public class GalleryImageItemViewModel: ObservableObject, @preconcurrency Identi
             NotificationCenter.galleryDownload.post(name: .galleryDownload, object: (request, data))
         }
     }
+    
+    public func getImage() async -> UIImage? {
+        if state == .completed {
+            return await prepareImage(url: fileURL)
+        }
+        return nil
+    }
+    
+    @AppBackgroundActor
+    private func prepareImage(url: URL?) async -> UIImage? {
+        if let url = url, let image = UIImage(contentsOfFile: url.path()) {
+            return image
+        }
+        return nil
+    }
 }
 
 @MainActor
@@ -158,6 +173,35 @@ public final class GalleryViewModel: ObservableObject {
             getPictureMessages(fromTime: item.message.time)
         } else if pictures.last?.message.id == item.id {
             getPictureMessages(toTime: item.message.time)
+        }
+    }
+    
+    public var selectedVM: GalleryImageItemViewModel? {
+        pictures.first(where: {$0.id == selectedTabId})
+    }
+    
+    public func saveAction(iconColor: Color, messageColor: Color) {
+        Task {
+            if let fileURL = selectedVM?.fileURL,
+               let data = try? Data(contentsOf: fileURL),
+               let image = UIImage(data: data) {
+                UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                let icon = Image(systemName: "externaldrive.badge.checkmark")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(iconColor)
+                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: messageColor)
+            }
+        }
+    }
+    
+    public func goToHistory() {
+        let message = selectedVM?.message
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if let time = message?.time, let id = message?.id {
+                Task {
+                    await AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.historyVM.moveToTime(time, id)
+                }
+            }
         }
     }
     

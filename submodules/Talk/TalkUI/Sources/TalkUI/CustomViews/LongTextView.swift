@@ -6,64 +6,33 @@
 //
 
 import SwiftUI
-
 public struct LongTextView: View {
     @State private var expanded: Bool = false
-    @State private var truncated: Bool = false
-    @Namespace var id
     private var text: String
+    private let max = 50
 
     public init(_ text: String) {
         self.text = text
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if expanded {
-                Text(self.text)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(expanded ? self.text : String(self.text.prefix(max)))
                     .font(.fBody)
-                    .matchedGeometryEffect(id: 1, in: id, anchor: .top, isSource: false)
+                    .lineLimit(expanded ? nil : 1)
                     .multilineTextAlignment(text.naturalTextAlignment)
-                    .lineLimit(nil)
+                    .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 420 : 320)
                     .contentShape(Rectangle())
-            } else {
-                Text(self.text)
-                    .font(.fBody)
-                    .lineLimit(3)
-                    .multilineTextAlignment(text.naturalTextAlignment)
-                    .matchedGeometryEffect(id: 1, in: id, anchor: .bottom, isSource: true)
-                    .contentShape(Rectangle())
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear.onAppear {
-                                self.determineTruncation(geometry.size)
-                            }
-                        }
-                    )
+                
+                if text.count > 50 {
+                    self.toggleButton
+                }
             }
-            if self.truncated {
-                self.toggleButton
-            }
+            .padding(.bottom, 24)
+            .contentShape(Rectangle())
         }
-        .contentShape(Rectangle())
-        .padding(.bottom, 24)
-    }
-
-    private func determineTruncation(_ size: CGSize) {
-        Task {
-            let total = self.text.boundingRect(
-                with: CGSize(
-                    width: size.width,
-                    height: .greatestFiniteMagnitude
-                ),
-                options: .usesLineFragmentOrigin,
-                attributes: [.font: UIFont.systemFont(ofSize: 16)],
-                context: nil
-            )
-            if total.height > size.height {
-                self.truncated = true
-            }
-        }
+        .frame(minHeight: 0, maxHeight: expanded ? 246 : 64 + 32)
     }
 
     var toggleButton: some View {
@@ -76,6 +45,8 @@ public struct LongTextView: View {
                 .font(.fCaption)
         }
         .buttonStyle(.borderless)
+        .frame(minHeight: 32)
+        .contentShape(Rectangle())
     }
 }
 

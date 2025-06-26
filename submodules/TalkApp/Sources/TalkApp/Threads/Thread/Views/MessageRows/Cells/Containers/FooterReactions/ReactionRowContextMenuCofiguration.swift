@@ -73,5 +73,6 @@ fileprivate struct RowCountWithTabViewContxtMenu: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .environmentObject(tabVM)
+        .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
     }
 }

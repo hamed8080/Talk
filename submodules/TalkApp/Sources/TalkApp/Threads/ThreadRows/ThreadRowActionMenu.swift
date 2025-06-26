@@ -38,7 +38,7 @@ struct ThreadRowActionMenu: View {
             .allowsHitTesting(!isArchive)
         }
 
-        if !isDetailView, !thread.closed {
+        if !isDetailView, !thread.closed, thread.type != .selfThread {
             ContextMenuButton(title: archiveTitle, image: archiveImage, bundle: Language.preferedBundle) {
                 onArchiveUnArchiveTapped()
             }
