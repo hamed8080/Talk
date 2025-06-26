@@ -16,19 +16,23 @@ public struct LongTextView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(expanded ? self.text : String(self.text.prefix(max)))
-                .font(.fBody)
-                .lineLimit(expanded ? nil : 1)
-                .multilineTextAlignment(text.naturalTextAlignment)
-                .contentShape(Rectangle())
-            
-            if text.count > 50 {
-                self.toggleButton
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(expanded ? self.text : String(self.text.prefix(max)))
+                    .font(.fBody)
+                    .lineLimit(expanded ? nil : 1)
+                    .multilineTextAlignment(text.naturalTextAlignment)
+                    .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 420 : 320)
+                    .contentShape(Rectangle())
+                
+                if text.count > 50 {
+                    self.toggleButton
+                }
             }
+            .padding(.bottom, 24)
+            .contentShape(Rectangle())
         }
-        .contentShape(Rectangle())
-        .padding(.bottom, 24)
+        .frame(minHeight: 0, maxHeight: expanded ? 246 : 64 + 32)
     }
 
     var toggleButton: some View {
@@ -41,6 +45,8 @@ public struct LongTextView: View {
                 .font(.fCaption)
         }
         .buttonStyle(.borderless)
+        .frame(minHeight: 32)
+        .contentShape(Rectangle())
     }
 }
 

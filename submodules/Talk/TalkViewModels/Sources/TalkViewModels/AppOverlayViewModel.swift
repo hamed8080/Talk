@@ -42,8 +42,6 @@ public class AppOverlayViewModel: ObservableObject {
     private var cancelableSet: Set<AnyCancellable> = .init()
     public var isToast: Bool = false
     public var isError: Bool { AppState.shared.error != nil }
-    public var showCloseButton: Bool = false
-    public var offsetVM = GalleyOffsetViewModel()
     public var canDismiss: Bool = true
     public var toastTimer: Timer?
     public var clearBckground: Bool = false
@@ -82,7 +80,6 @@ public class AppOverlayViewModel: ObservableObject {
             self?.onError(newValue)
         }
         .store(in: &cancelableSet)
-        offsetVM.appOverlayVM = self
     }
 
     private func onError(_ newError: ChatError?) {
@@ -104,7 +101,6 @@ public class AppOverlayViewModel: ObservableObject {
         didSet {
             guard let galleryMessage else { return }
             cancelToastTimer()
-            showCloseButton = true
             type = .gallery(message: galleryMessage)
             isPresented = true
         }
@@ -114,7 +110,6 @@ public class AppOverlayViewModel: ObservableObject {
         didSet {
             guard let galleryImageView else { return }
             cancelToastTimer()
-            showCloseButton = true
             type = .galleryImageView(uiimage: galleryImageView)
             isPresented = true
         }
@@ -126,12 +121,10 @@ public class AppOverlayViewModel: ObservableObject {
             if dialogView != nil {
                 isToast = false
                 cancelToastTimer()
-                showCloseButton = false
                 type = .dialog
                 isPresented = true
             } else {
                 clearBckground = false
-                showCloseButton = false
                 type = .none
                 isPresented = false
                 animateObjectWillChange()
@@ -145,14 +138,12 @@ public class AppOverlayViewModel: ObservableObject {
             cancelToastTimer()
             dialogView = view
             self.canDismiss = canDismiss
-            showCloseButton = false
             type = .dialog
             isPresented = true
             animateObjectWillChange()
         } else {
             dialogView = nil
             self.canDismiss = true
-            showCloseButton = false
             type = .none
             isPresented = false
             animateObjectWillChange()
@@ -163,7 +154,6 @@ public class AppOverlayViewModel: ObservableObject {
         type = .toast(leadingView: AnyView(leadingView), message: message, messageColor: messageColor)
         isToast = true
         isPresented = true
-        showCloseButton = false
         animateObjectWillChange()
         cancelToastTimer()
         toastTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(duration.duration), repeats: false) { [weak self] timer in
