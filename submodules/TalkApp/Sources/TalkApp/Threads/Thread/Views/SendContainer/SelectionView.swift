@@ -16,7 +16,8 @@ public final class SelectionView: UIStackView {
     private let btnDelete = UIImageButton(imagePadding: .init(all: 10))
     private let lblCount = UILabel()
     private let lblStatic = UILabel()
-
+    let btnForward = UIImageButton(imagePadding: .init(all: 10))
+    
     // Models
     private weak var viewModel: ThreadViewModel?
 
@@ -36,7 +37,6 @@ public final class SelectionView: UIStackView {
         layoutMargins = .init(horizontal: 8, vertical: 4)
         isLayoutMarginsRelativeArrangement = true
 
-        let btnForward = UIImageButton(imagePadding: .init(all: 10))
         let image = UIImage(systemName: "arrow.turn.up.right")
         btnForward.imageView.image = image
         btnForward.imageView.image = image
@@ -75,6 +75,7 @@ public final class SelectionView: UIStackView {
         addArrangedSubview(btnDelete)
 
         let closeButton = CloseButtonView()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityIdentifier = "closeButtonSelectionView"
         closeButton.action = { [weak self] in
             self?.onClose()
@@ -86,6 +87,8 @@ public final class SelectionView: UIStackView {
             btnForward.heightAnchor.constraint(equalToConstant: 42),
             btnDelete.widthAnchor.constraint(equalToConstant: 42),
             btnDelete.heightAnchor.constraint(equalToConstant: 42),
+            closeButton.widthAnchor.constraint(equalToConstant: 42),
+            closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
     }
 
@@ -118,6 +121,10 @@ public final class SelectionView: UIStackView {
         guard let viewModel = viewModel else { return }
         let count = viewModel.selectedMessagesViewModel.getSelectedMessages().count
         lblCount.addFlipAnimation(text: count.localNumber(locale: Language.preferredLocale) ?? "")
+        btnForward.isUserInteractionEnabled = count > 0
+        btnForward.alpha = count > 0 ? 1.0 : 0.5
+        btnDelete.isUserInteractionEnabled = count > 0
+        btnDelete.alpha = count > 0 ? 1.0 : 0.5
     }
 
     private func onClose() {

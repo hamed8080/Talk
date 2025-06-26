@@ -76,7 +76,6 @@ struct SplitView: View {
                 AppOverlayFactory()
             }
             .environmentObject(appOverlayVM)
-            .environmentObject(appOverlayVM.offsetVM)
         }
         .overlay {
             BanOverlayView()

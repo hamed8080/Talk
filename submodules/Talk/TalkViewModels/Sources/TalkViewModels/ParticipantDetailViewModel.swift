@@ -25,7 +25,8 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     private(set) var cancelable: Set<AnyCancellable> = []
     public var participant: Participant
     public var title: String { participant.name ?? "" }
-    public var notSeenString: String? { participant.notSeenDuration?.localFormattedTime }
+    /// We use ThreadViewModel.ConversationSubtitle.partnerLastSeen to reduce number of requests.
+    public var notSeenString: String? { (viewModel?.conversationSubtitle.lastSeenPartnerTime ?? participant.notSeenDuration)?.lastSeenString }
     public var cellPhoneNumber: String? { participant.cellphoneNumber }
     public var isBlock: Bool { participant.blocked == true }
     public var bio: String? { participant.chatProfileVO?.bio }
@@ -40,7 +41,15 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     private var objectId = UUID().uuidString
     private let P2P_PARTNER_CONTACT_KEY: String
     private let PARTICIPANT_EDIT_CONTACT_KEY: String
-
+    
+    /// Computed Properties
+    private var viewModel: ThreadViewModel? { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel }
+    
+    public var userName: String? {
+        let userName = participant.username ?? partnerContact?.user?.username
+        return userName.validateString
+    }
+    
     public var canShowEditButton: Bool {
         participant.contactId != nil
     }
@@ -61,7 +70,7 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
             }
             .store(in: &cancelable)
     }
-
+    
     private func onContactEvent(_ event: ContactEventTypes) {
         switch event {
         case .blocked(let chatResponse):

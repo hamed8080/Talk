@@ -8,47 +8,49 @@
 import Foundation
 import Chat
 import Logger
-import OSLog
 
 @MainActor
 public class ChatRequestQueue {
-    private var requestQueue = PriorityQueue<RequestEnqueuType>()
+    private var requestQueue = PriorityQueue<RequestEnqueueType>()
     private var throttleInterval: TimeInterval = 0.01
+    private let resetThrottleValue: TimeInterval = 0.5
     
-    public func enqueue(_ type: RequestEnqueuType) {
-        let deadline: DispatchTime = .now() + throttleInterval
-        log("Enqueuing the request: \(type) and deadline to start from now is:\(throttleInterval)")
-        let isDuplicateRemoved = removeOldConversaionReq(newReq: type)
-        removeOldMentionsReq(newReq: type)
+    public func enqueue(_ type: RequestEnqueueType) {
+        log("Enqueuing request: \(type) with throttleInterval: \(throttleInterval)")
+        removeOldRequests(for: type)
         requestQueue.enqueue(type)
-        processWithDelay(deadline: isDuplicateRemoved ? .now() + 0 : deadline)
+        let delay: DispatchTime = .now() + throttleInterval
+        processWithDelay(deadline: delay)
         throttleInterval += 1.0
     }
     
     private func processWithDelay(deadline: DispatchTime){
         DispatchQueue.main.asyncAfter(deadline: deadline) { [weak self] in
-            guard let self = self else { return }
-            if requestQueue.isEmpty() {
-                throttleInterval = 0
+            guard let self = self, let nextRequest = requestQueue.dequeue() else {
+                self?.throttleInterval = self?.resetThrottleValue ?? 0.5
+                return
             }
-            guard let nextRequest = requestQueue.dequeue() else { return }
-            if requestQueue.isEmpty() {
-                throttleInterval = 0
-            }
+            
             processQueue(nextRequest)
+            
+            if requestQueue.isEmpty() {
+                throttleInterval = resetThrottleValue
+            }
         }
     }
     
-    private func processQueue(_ request: RequestEnqueuType) {
+    private func processQueue(_ request: RequestEnqueueType) {
         Task {
             await sendRequest(request)
         }
     }
     
     @ChatGlobalActor
-    private func sendRequest(_ request: RequestEnqueuType) {
+    private func sendRequest(_ request: RequestEnqueueType) {
         switch request {
         case .getConversations(let req):
+            ChatManager.activeInstance?.conversation.get(req)
+        case .getArchives(let req):
             ChatManager.activeInstance?.conversation.get(req)
         case .getContacts(let req):
             ChatManager.activeInstance?.contact.get(req)
@@ -62,47 +64,41 @@ public class ChatRequestQueue {
     }
     
     public func cancellAll() {
-        throttleInterval = 0
+        throttleInterval = resetThrottleValue
         requestQueue.removeAll()
+        log("Removed all reuqest by cancell all")
     }
     
-    /// Prevent duplication of GET threads requests by only sending the new one; the old one should be canceled.
-    private func removeOldConversaionReq(newReq: RequestEnqueuType) -> Bool {
-        if case let .getConversations = newReq, let index = oldConversationReqeustIndex() {
-            requestQueue.remove(at: index)
-            return true
+    private func removeOldRequests(for newReq: RequestEnqueueType) {
+        let match: (RequestEnqueueType) -> Bool = { item in
+            switch (newReq, item) {
+            case (.getConversations, .getConversations),
+                (.getArchives, .getArchives),
+                (.getContacts, .getContacts),
+                (.history, .history),
+                (.mentions, .mentions),
+                (.reactionCount, .reactionCount):
+                return true
+            default:
+                return false
+            }
         }
-        return false
-    }
-    
-    private func oldConversationReqeustIndex() -> Int? {
-        requestQueue.firstIndex {
-            if case .getConversations = $0 as? RequestEnqueuType { return true }
-            return false
+        
+        let indicesToRemove = requestQueue.indices().filter {
+            let item = requestQueue.indexOf($0)
+            return match(item)
         }
-    }
-
-    private func removeOldMentionsReq(newReq: RequestEnqueuType) {
-        if case let .mentions = newReq, let indices = oldMentionReqeustIndex() {
-            for index in indices {
-                requestQueue.remove(at: index)
+        
+        if !indicesToRemove.isEmpty {
+            indicesToRemove.reversed().forEach {
+                let element = requestQueue.indexOf($0)
+                log("Removed duplicate request with uniqueId: \(element.uniqueId)")
+                requestQueue.remove(at: $0)
             }
         }
     }
     
-    private func oldMentionReqeustIndex() -> [Int]? {
-        var indices: [Int] = []
-        for index in requestQueue.indices() {
-            if case .mentions = requestQueue.indexOf(index) as? RequestEnqueuType { indices.append(index) }
-        }
-        return indices
-    }
-
     private func log(_ string: String) {
-#if DEBUG
-        let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
-        NotificationCenter.logs.post(name: .logs, object: log)
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "ChatRequestQueue", message: string)
     }
 }

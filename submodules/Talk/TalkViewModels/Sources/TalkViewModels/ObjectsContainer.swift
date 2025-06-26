@@ -59,8 +59,6 @@ public final class ObjectsContainer: ObservableObject {
         tagsVM.clear()
         tagsVM.getTagList()
         navVM.clear()
-        await threadsVM.getThreads()
-        await contactsVM.getContacts()
         logVM.clearLogs()
         appOverlayVM.clear()
         await conversationBuilderVM.clear()
@@ -133,6 +131,7 @@ public final class ObjectsContainer: ObservableObject {
         if userProfileImageVM == nil {
             userProfileImageVM = .init(config: config)
         } else {
+            userProfileImageVM.register()
             userProfileImageVM.updateCondig(config: config)
         }
 

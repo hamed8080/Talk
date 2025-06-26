@@ -90,6 +90,7 @@ final class ThreadViewController: UIViewController {
 extension ThreadViewController {
     func configureViews() {
         emptyThreadView.attachToParent(parent: view)
+        emptyThreadView.isHidden = true
         dimView.viewModel = viewModel
         configureTableView()
         configureOverlayActionButtons()
@@ -174,11 +175,17 @@ extension ThreadViewController {
     }
 
     private func showEmptyThread(show: Bool) {
+        /// We only need to set to false for the first time, after that it will be removed
+        /// or add to view.
+        if show {
+            emptyThreadView.isHidden = false
+        }
         emptyThreadView.show(show, parent: view)
         if show {
             self.unreadMentionsButton.showWithAniamtion(false)
             self.moveToBottom.show(false)
             view.bringSubviewToFront(vStackOverlayButtons)
+            view.bringSubviewToFront(sendContainer)
         }
     }
 }
@@ -213,13 +220,13 @@ extension ThreadViewController: ThreadViewDelegate {
             cell.setInSelectionMode(value)
         }
         
-        // Assure that the previous item is in select mode or not
-        if let cell = prevouisVisibleIndexPath() {
+        // Assure that the previous resuable rows items are in select mode or not
+        for cell in tableView.prevouisVisibleIndexPath() {
             cell.setInSelectionMode(value)
         }
 
-        // Assure that the next item is in select mode or not
-        if let cell = nextVisibleIndexPath() {
+        // Assure that the next resuable rows items are in select mode or not
+        for cell in tableView.nextVisibleIndexPath() {
             cell.setInSelectionMode(value)
         }
 
@@ -291,7 +298,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func edited(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             tableView.performBatchUpdates {
                 cell.edited()
             }
@@ -299,25 +306,25 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func pinChanged(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.pinChanged()
         }
     }
 
     func sent(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.sent()
         }
     }
 
     func delivered(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.delivered()
         }
     }
 
     func seen(_ indexPath: IndexPath) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.seen()
         }
     }
@@ -339,7 +346,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool) {
-        if let cell = baseCell(indexPath) {
+        if let cell = tableView.baseCell(indexPath) {
             cell.setHighlight()
         }
     }
@@ -426,15 +433,15 @@ extension ThreadViewController: BottomToolbarDelegate {
 // MARK: Sheets Delegate
 extension ThreadViewController {
     func openForwardPicker() {
+        let selectVM = viewModel?.selectedMessagesViewModel
+        let messages = selectVM?.getSelectedMessages().compactMap{$0.message as? Message} ?? []
+        
         let view = SelectConversationOrContactList { [weak self] (conversation, contact) in
-            self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact)
+            self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
         }
             .environmentObject(AppState.shared.objectsContainer.threadsVM)
             .contextMenuContainer()
-//            .environmentObject(AppState.shared.objectsContainer.contactsVM)
-            .onDisappear {
-                //closeSheet()
-            }
+        
         let hostVC = UIHostingController(rootView: view)
         hostVC.modalPresentationStyle = .formSheet
         present(hostVC, animated: true)
@@ -526,12 +533,10 @@ extension ThreadViewController: HistoryScrollDelegate {
 
     func inserted(at: IndexPath) {
         setUpdating(updating: true)
-#if DEBUG
-        log("inserted(at: IndexPath)")
-        LogManager.shared.log("inserted at indexPath: \(at)")
-        LogManager.shared.log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
-#endif
+        log("inserted at indexPath: \(at)")
+        log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
         tableView.beginUpdates()
+        
         // Insert a new section if we have a message in a new day.
         let beforeNumberOfSections = tableView.numberOfSections
         if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
@@ -551,11 +556,9 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath], scrollTo: IndexPath) {
-#if DEBUG
         log("inserted and scroll to")
-        LogManager.shared.log("insertingSections without animation: \(sections), insertingRows: \(rows)")
-        LogManager.shared.log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
-#endif
+        log("insertingSections without animation: \(sections), insertingRows: \(rows)")
+        log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
         setUpdating(updating: true)
         
         
@@ -596,11 +599,9 @@ extension ThreadViewController: HistoryScrollDelegate {
             setUpdating(updating: false)
             return
         }
-#if DEBUG
         log("inserted without scroll to")
-        LogManager.shared.log("insertingSections with animation: \(sections), insertingRows: \(rows)")
-        LogManager.shared.log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
-#endif
+        log("insertingSections with animation: \(sections), insertingRows: \(rows)")
+        log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sectionsHolder.sections.count)")
         setUpdating(updating: true)
         tableView.performBatchUpdates { [weak self] in
             if !sections.isEmpty {
@@ -693,10 +694,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     private func log(_ message: String) {
-#if DEBUG
-        print("Called: ", message)
-        LogManager.shared.log("Called: \(message)")
-#endif
+        Logger.log(title: "ThreadViewController", message: "\(message)")
     }
 }
 
@@ -781,35 +779,6 @@ extension ThreadViewController {
 }
 
 // MARK: Table view cell helpers
-extension ThreadViewController {
-    private func baseCell(_ indexPath: IndexPath) -> MessageBaseCell? {
-        if let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell {
-            return cell
-        }
-        return nil
-    }
-
-    private func isVisible(_ indexPath: IndexPath) -> Bool {
-        tableView.indexPathsForVisibleRows?.contains(where: {$0 == indexPath}) == true
-    }
-
-    private func prevouisVisibleIndexPath() -> MessageBaseCell? {
-        if let firstVisible = tableView.indexPathsForVisibleRows?.first, let previousIndexPath = sections.previousIndexPath(firstVisible) {
-            let cell = tableView.cellForRow(at: previousIndexPath) as? MessageBaseCell
-            return cell
-        }
-        return nil
-    }
-
-    private func nextVisibleIndexPath() -> MessageBaseCell? {
-        if let lastVisible = tableView.indexPathsForVisibleRows?.last, let nextIndexPath = sections.nextIndexPath(lastVisible) {
-            let cell = tableView.cellForRow(at: nextIndexPath) as? MessageBaseCell
-            return cell
-        }
-        return nil
-    }
-}
-
 extension ThreadViewController {
     func setUpdating(updating: Bool) {
         viewModel?.historyVM.isUpdating = updating

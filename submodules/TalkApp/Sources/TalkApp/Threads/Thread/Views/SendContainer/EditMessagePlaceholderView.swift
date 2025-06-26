@@ -79,6 +79,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         messageImageView.setIsHidden(true)
         
         let closeButton = CloseButtonView()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityIdentifier = "closeButtonEditMessagePlaceholderView"
         closeButton.action = { [weak self] in
             self?.close()
@@ -94,6 +95,8 @@ public final class EditMessagePlaceholderView: UIStackView {
             messageImageView.heightAnchor.constraint(equalToConstant: 36),
             staticEditImageView.widthAnchor.constraint(equalToConstant: 36),
             staticEditImageView.heightAnchor.constraint(equalToConstant: 36),
+            closeButton.widthAnchor.constraint(equalToConstant: 42),
+            closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
     }
     

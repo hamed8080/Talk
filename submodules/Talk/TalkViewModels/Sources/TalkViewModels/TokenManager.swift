@@ -8,7 +8,6 @@
 import Chat
 import Foundation
 import TalkModels
-import OSLog
 import Logger
 import TalkExtensions
 
@@ -38,7 +37,7 @@ public final class TokenManager: ObservableObject {
             let urlReq = try pkceURLRequest(refreshToken: refreshToken, codeVerifier: codeVerifier)
             let resp = try await session.data(for: urlReq)
             let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: resp)
-            post(log: log)
+            self.log(log)
             var ssoToken = try await decodeSSOToken(data: resp.0)
             ssoToken.codeVerifier = codeVerifier
             await onNewRefreshToken(ssoToken)
@@ -103,7 +102,7 @@ public final class TokenManager: ObservableObject {
                 throw AppErrors.revokedToken
             }
             let log = Logger.makeLog(prefix: "TALK_APP_REFRESH_TOKEN:", request: urlReq, response: tuple)
-            post(log: log)
+            self.log(log)
             var ssoToken = try await decodeSSOToken(data: tuple.0)
             ssoToken.keyId = keyId
             await onNewRefreshToken(ssoToken)
@@ -112,29 +111,26 @@ public final class TokenManager: ObservableObject {
             throw error
         }
     }
-    
+   
     private func onNewRefreshToken(_ ssoToken: SSOTokenResponse) async {
-        await MainActor.run {
-            saveSSOToken(ssoToken: ssoToken)
-            Task { @ChatGlobalActor in
-                await ChatManager.activeInstance?.setToken(newToken: ssoToken.accessToken ?? "", reCreateObject: false)
-            }
-            if AppState.shared.connectionStatus != .connected {
-                AppState.shared.connectionStatus = .connected
-                let log = Log(prefix: "TALK_APP", time: .now, message: "App State was not connected and set token just happend without set observeable", level: .error, type: .sent, userInfo: nil)
-                post(log: log)
-            } else {
-                let log = Log(prefix: "TALK_APP", time: .now, message: "App State was connected and set token just happend without set observeable", level: .error, type: .sent, userInfo: nil)
-                post(log: log)
-            }
+        saveSSOToken(ssoToken: ssoToken)
+        await setToken(ssoToken)
+        if AppState.shared.connectionStatus != .connected {
+            AppState.shared.connectionStatus = .connected
+            log("App State was not connected and set token just happend without set observeable")
+        } else {
+            log("App State was connected and set token just happend without set observeable")
         }
+    }
+   
+    @ChatGlobalActor
+    private func setToken(_ ssoToken: SSOTokenResponse) async {
+        await ChatManager.activeInstance?.setToken(newToken: ssoToken.accessToken ?? "", reCreateObject: false)
     }
     
     private func onRefreshTokenError(error: Error) {
         isInFetchingRefreshToken
-        let log = Log(prefix: "TALK_APP", time: .now, message: error.localizedDescription, level: .error, type: .sent, userInfo: nil)
-        post(log: log)
-        self.log("error on getNewTokenWithRefreshToken:\(error.localizedDescription)")
+        log("Error on getNewTokenWithRefreshToken:\(error.localizedDescription)")
         isInFetchingRefreshToken = false
     }
     
@@ -243,15 +239,7 @@ public final class TokenManager: ObservableObject {
     }
 #endif
     
-    private func post(log: Log) {
-#if DEBUG
-        NotificationCenter.logs.post(name: .logs, object: log)
-#endif
-    }
-    
     private func log(_ message: String) {
-#if DEBUG
-        Logger.viewModels.info("\(message)")
-#endif
+        Logger.log(title: "ArchiveThreadsViewModel", message: message)
     }
 }

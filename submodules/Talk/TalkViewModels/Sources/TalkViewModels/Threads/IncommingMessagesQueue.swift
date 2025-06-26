@@ -9,7 +9,6 @@ import Foundation
 import Combine
 import Chat
 import Logger
-import OSLog
 
 @MainActor
 public class IncommingMessagesQueue {
@@ -49,12 +48,22 @@ public class IncommingMessagesQueue {
         let messages = messages.compactMap({$0.result})
         log("Processing \(messages.count) messages for thread \(subjectId)")
         let sorted = messages.sorted(by: { $0.id ?? 0 < $1.id ?? 0} )
-        await viewModel?.onNewMessage(sorted, conversationId: subjectId)
+        
+        /// Update the lastMessage of the thread inside the thread list, and then sort the list to bring the
+        /// thread to the top.
+        /// If the thread is not inside the list it will try to fetch it from the server.
+        await viewModel?.onNewForwardMessage(conversationId: subjectId, forwardMessage: sorted.last ?? .init())
+        
+        /// If result is false it means it ignored inserting the message,
+        /// so we have to precess insertion by manullay.
+        if let activeThreadVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel {
+            if subjectId == activeThreadVM.threadId {
+                await activeThreadVM.historyVM.onForwardMessageForActiveThread(sorted)
+            }
+        }
     }
     
     func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "IncommingMessagesQueue", message: string)
     }
 }

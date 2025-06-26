@@ -9,7 +9,6 @@ import Foundation
 import Combine
 import Chat
 import Logger
-import OSLog
 
 @MainActor
 public class DeleteMessagesQueue {
@@ -52,8 +51,6 @@ public class DeleteMessagesQueue {
     }
     
     func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "DeleteMessagesQueue", message: string)
     }
 }

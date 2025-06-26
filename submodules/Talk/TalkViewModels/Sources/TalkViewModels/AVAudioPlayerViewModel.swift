@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import AVFoundation
-import OSLog
+import Logger
 import SwiftUI
 import Chat
 
@@ -36,9 +36,7 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
             duration = player?.duration ?? 0
         } catch let error as NSError {
             failed = true
-#if DEBUG
-            Logger.viewModels.info("\(error.description)")
-#endif
+            Logger.log( title: "AVAudioPlayerViewModel", message: error.description)
             close()
             throw error
         }

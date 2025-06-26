@@ -8,7 +8,7 @@
 import Chat
 import SwiftUI
 import TalkModels
-import OSLog
+import Logger
 
 public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Sendable {
     public static func == (lhs: MessageRowViewModel, rhs: MessageRowViewModel) -> Bool {
@@ -88,9 +88,8 @@ public final class MessageRowViewModel: Identifiable, Hashable, @unchecked Senda
     }
 
     deinit {
-#if DEBUG
-        Logger.viewModels.info("Deinit get called for message: \(self.message.message ?? "") and message isFileTye:\(self.message.isFileType) and id is: \(self.message.id ?? 0)")
-#endif
+        let string = "Deinit get called for message: \(self.message.message ?? "") and message isFileTye:\(self.message.isFileType) and id is: \(self.message.id ?? 0)"
+        Logger.log( title: "MessageRowViewModel", message: string, persist: false)
     }
 }
 
@@ -154,6 +153,8 @@ public extension MessageRowViewModel {
     @MainActor
     private func openMap() {
         if let url = message.neshanURL(basePath: AppState.shared.spec.server.neshan), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else if let mapLink = message.fileMetaData?.mapLink, let url = URL(string: mapLink), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         }
     }

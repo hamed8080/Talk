@@ -65,6 +65,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
         imageForward.accessibilityIdentifier = "imageForwardForwardMessagePlaceholderView"
 
         let closeButton = CloseButtonView()
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.accessibilityIdentifier = "closeButtonForwardMessagePlaceholderView"
         closeButton.action = { [weak self] in
             self?.close()
@@ -80,6 +81,8 @@ public final class ForwardMessagePlaceholderView: UIStackView {
         NSLayoutConstraint.activate([
             imageForward.widthAnchor.constraint(equalToConstant: 28),
             imageForward.heightAnchor.constraint(equalToConstant: 28),
+            closeButton.widthAnchor.constraint(equalToConstant: 42),
+            closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
     }
 

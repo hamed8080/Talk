@@ -7,10 +7,8 @@
 
 import Foundation
 import SwiftUI
-import OSLog
 
 public final class ContextMenuModel: ObservableObject {
-    private let logger = Logger(subsystem: "ActionableContextMenu", category: "ContextMenuModel")
 
     @Published public var isPresented: Bool = false {
         didSet {
@@ -61,9 +59,7 @@ public final class ContextMenuModel: ObservableObject {
             stackY = (y - itemHalf) - stackPadding - stackHeight + (stackHeight / 2) - stackPadding
         }
         let minY = (stackHeight / 2) + 12
-#if DEBUG
-        logger.info("stackY: \(stackHeight)")
-#endif
+
         return max(minY, stackY)
     }
 
@@ -71,10 +67,7 @@ public final class ContextMenuModel: ObservableObject {
         let originalX: CGFloat = (itemWidth / 2) + ((globalPosition?.x ?? 0) - (localPosition?.x ?? 0))
         let minX = (itemWidth / 2) + addedX
         let x = max(minX, originalX)
-        logger.info("the item width: \(self.itemWidth)")
-#if DEBUG
-        logger.info("calculated x: \(x)")
-#endif
+
         return x
     }
 
@@ -85,9 +78,7 @@ public final class ContextMenuModel: ObservableObject {
         let topfTheItem = touchedPositionY - locaTouchedY
         let m: CGFloat = topfTheItem + (itemSize.height / 2)
         let centerY = abs(m - topSafeArea)
-#if DEBUG
-        logger.info("calculated y: \(centerY)")
-#endif
+
         return centerY
     }
 

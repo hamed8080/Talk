@@ -11,7 +11,6 @@ import Foundation
 import SwiftUI
 import TalkModels
 import TalkExtensions
-import OSLog
 import Logger
 
 @MainActor
@@ -65,7 +64,7 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onNewMessage(_ messages: [Message], conversationId: Int) async {
+    public func onNewMessage(_ messages: [Message], conversationId: Int) async -> Bool {
         if let index = firstIndex(conversationId) {
             let reference = threads[index]
             let old = reference.toStruct()
@@ -78,9 +77,12 @@ public final class ThreadsViewModel: ObservableObject {
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+            return true
         } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
             await calculateAppendSortAnimate(conversation)
+            return false
         }
+        return false
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
@@ -89,6 +91,23 @@ public final class ThreadsViewModel: ObservableObject {
             Task {
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
+        }
+    }
+    
+    public func onNewForwardMessage(conversationId: Int, forwardMessage: Message) async {
+        if let index = firstIndex(conversationId) {
+            let reference = threads[index]
+            let old = reference.toStruct()
+            let updated = reference.updateOnNewMessage(forwardMessage, meId: myId)
+            threads[index] = updated
+            threads[index].animateObjectWillChange()
+            if updated.pin == false {
+                await sortInPlace()
+            }
+            recalculateAndAnimate(updated)
+            animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+        } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
+            await calculateAppendSortAnimate(conversation)
         }
     }
 
@@ -114,6 +133,8 @@ public final class ThreadsViewModel: ObservableObject {
 
     @MainActor
     public func getThreads(withQueue: Bool = false) async {
+        /// Check if user didn't logged out
+        if !TokenManager.shared.isLoggedIn { return }
         if !firstSuccessResponse {
             shimmerViewModel.show()
         }
@@ -429,7 +450,7 @@ public final class ThreadsViewModel: ObservableObject {
             }
         }
         lazyList.setLoading(false)
-        logUnreadCount("SERVER unreadCount: \(response.result)")
+        log("SERVER unreadCount: \(response.result)")
     }
 
     public func updateThreadInfo(_ thread: Conversation) {
@@ -449,8 +470,11 @@ public final class ThreadsViewModel: ObservableObject {
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
             arrItem.description = thread.description
 
-            threads[index] = arrItem
-            threads[index].animateObjectWillChange()
+            /// Check if the index still exist to prevent a crash.
+            if threads.indices.contains(index) {
+                threads[index] = arrItem
+                threads[index].animateObjectWillChange()
+            }
 
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
@@ -603,7 +627,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].partnerLastSeenMessageId = response.result?.messageId
             recalculateAndAnimate(threads[index])
         }
-        logUnreadCount("SERVER OnSeen: \(response.result)")
+        log("SERVER OnSeen: \(response.result)")
     }
 
     /// This method only reduce the unread count if the deleted message has sent after lastSeenMessageTime.
@@ -660,17 +684,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func log(_ string: String) {
-#if DEBUG
-        let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
-        NotificationCenter.logs.post(name: .logs, object: log)
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
-    }
-    
-    private func logUnreadCount(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("UNREADCOUNT: \(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "ThreadsViewModel", message: string)
     }
     
     public func setSelected(for conversationId: Int, selected: Bool, isArchive: Bool) {

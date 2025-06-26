@@ -89,8 +89,12 @@ struct LogView: View {
 
     @ViewBuilder var trailingToolbars: some View {
         HStack {
-            trashButton
-            saveButton
+            Menu {
+                trashButton
+                saveButton
+            } label: {
+                Label("Actions", systemImage: "square.and.arrow.up.fill")
+            }
             Menu {
                 Button {
                     viewModel.type = nil
@@ -135,7 +139,6 @@ struct LogView: View {
     private var trashButton: some View {
         Button {
             viewModel.deleteLogs()
-            LogManager.shared.clearLogs()
         } label: {
             Label {
                 Text("General.delete".bundleLocalized())

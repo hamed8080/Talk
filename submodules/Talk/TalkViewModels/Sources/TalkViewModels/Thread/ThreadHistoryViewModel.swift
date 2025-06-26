@@ -7,7 +7,7 @@
 
 import Foundation
 import Chat
-import OSLog
+import Logger
 import TalkModels
 import Combine
 import UIKit
@@ -21,6 +21,7 @@ public final class ThreadHistoryViewModel {
     private var sections: ContiguousArray<MessageSection> = .init()
     @MainActor public var sectionsHolder = SectionHolder()
     @MainActor private var deleteQueue = DeleteMessagesQueue()
+    private var isProcessingScenario = false
 
     private var threshold: CGFloat = 800
     private var topLoading = false
@@ -198,7 +199,9 @@ extension ThreadHistoryViewModel {
     /// by advance 1, in retriving it next time, the checking system will examaine it with exact time not advance time!
     /// Therefore the cache will always the request from the server.
     private func trySecondScenario() async {
-        if await isLastMessageEqualToLastSeen() {
+        if await isLastMessageEqualToLastSeen(), thread.id != LocalId.emptyThread.rawValue {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             hasNextBottom = false
             let req = await makeRequest(offset: 0)
             log("trySecondScenario")
@@ -226,7 +229,10 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 5
     private func tryFifthScenario(status: ConnectionStatus) async {
         /// 1- Get the bottom part of the list of what is inside the memory.
+        await waitingToFinishUpdating()
         if let lastMessageInListTime = sections.last?.vms.last?.message.time {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             await showBottomLoading(true)
             let req = await makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
             await doRequestQueue(req, keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
@@ -252,12 +258,15 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 6
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
+        await waitToCompleteScenario()
+        isProcessingScenario = true
         /// 1- Move to a message locally if it exists.
         if moveToBottom, !sections.isLastSeenMessageExist(thread: thread) {
             await removeAllSections()
         } else if let uniqueId = canMoveToMessageLocally(messageId) {
             await showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             await moveToMessageLocally(uniqueId, messageId, highlight, true)
+            isProcessingScenario = false
             return
         } else {
             log("The message id to move to is not exist in the list")
@@ -276,6 +285,7 @@ extension ThreadHistoryViewModel {
         middleFetcher?.completion = { [weak self] response in
             Task { [weak self] in
                 await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
+                self?.isProcessingScenario = false
             }
         }
         middleFetcher?.start(time: time, messageId: messageId, highlight: highlight)
@@ -316,14 +326,12 @@ extension ThreadHistoryViewModel {
     /// When lastMessgeSeenId is bigger than thread.lastMessageVO.id as a result of server chat bug or when the conversation is empty.
     private func trySeventhScenario() async {
         if thread.lastMessageVO?.id ?? 0 < thread.lastSeenMessageId ?? 0 {
-            await requestBottomPartByCountAndOffset()
+            await waitToCompleteScenario()
+            isProcessingScenario = true
+            let req = await makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
+            log("Get bottom part by last message deleted detection")
+            doRequest(req, keys.FETCH_BY_OFFSET_KEY)
         }
-    }
-
-    private func requestBottomPartByCountAndOffset() async {
-        let req = await makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
-        log("Get bottom part by last message deleted detection")
-        doRequest(req, keys.FETCH_BY_OFFSET_KEY)
     }
 
     private func onFetchByOffset(_ response: HistoryResponse) async {
@@ -364,6 +372,8 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) async {
         if time > thread.lastMessageVO?.time ?? 0 { return }
+        await waitToCompleteScenario()
+        isProcessingScenario = true
         await removeAllSections()
         /// Getting the first message of the day will take time, specially if the message is an archive message.
         /// So we have to show the center loading imediately.
@@ -374,6 +384,7 @@ extension ThreadHistoryViewModel {
         firstMessageOfTheDayVM?.completion = { [weak self] message in
             guard let message = message else { return }
             Task { [weak self] in
+                self?.isProcessingScenario = false
                 await self?.moveToTime(message.time ?? 0, message.id ?? -1)
             }
         }
@@ -398,6 +409,8 @@ extension ThreadHistoryViewModel {
     private func moreTop(prepend: String, _ toTime: UInt?) async {
         if await !canLoadMoreTop() { return }
         await showTopLoading(true)
+        await waitToCompleteScenario()
+        isProcessingScenario = true
         let req = await makeRequest(toTime: toTime, offset: nil)
         log("SendMoreTopRequest")
         doRequest(req, prepend)
@@ -406,15 +419,17 @@ extension ThreadHistoryViewModel {
     private func onMoreTop(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        var viewModels = await makeCalculateViewModelsFor(sortedMessages)
         
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
         await MainActor.run {
             isUpdating = true
         }
-
-        /// We have to store section count and last top message before appending them to the threads array 
+        
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
+        
+        /// We have to store section count and last top message before appending them to the threads array
         let wasEmpty = sections.isEmpty
         let topVMBeforeJoin = sections.first?.vms.first
         let lastTopMessageVM = sections.first?.vms.first
@@ -459,6 +474,13 @@ extension ThreadHistoryViewModel {
         }
         
         await prepareAvatars(viewModels)
+        
+        /// We need to set it false manually if there is no message,
+        /// so tableView won't realase it.
+        try? await Task.sleep(for: .microseconds(300))
+        await MainActor.run {
+            isUpdating = false
+        }
     }
     
     private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) async {
@@ -491,7 +513,7 @@ extension ThreadHistoryViewModel {
     private func onMoreBottom(_ response: HistoryResponse, isMiddleFetcher: Bool = false) async {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
-        let viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        var viewModels = await makeCalculateViewModelsFor(sortedMessages)
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
@@ -500,7 +522,9 @@ extension ThreadHistoryViewModel {
             isUpdating = true
         }
         
-        /// We have to store section count  before appending them to the threads array 
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
+        
+        /// We have to store section count  before appending them to the threads array
         let beforeSectionCount = sections.count
         let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, viewModels)
         
@@ -527,6 +551,13 @@ extension ThreadHistoryViewModel {
             await fetchReactions(messages: viewModels.compactMap({$0.message}))
         }
         await prepareAvatars(viewModels)
+        
+        /// We need to set it false manually if there is no message,
+        /// so tableView won't realase it.
+        try? await Task.sleep(for: .microseconds(300))
+        await MainActor.run {
+            isUpdating = false
+        }
     }
 
     public func loadMoreTop(message: HistoryMessageType) async {
@@ -536,7 +567,9 @@ extension ThreadHistoryViewModel {
     }
 
     public func loadMoreBottom(message: HistoryMessageType) async {
-        if let time = message.time {
+        if let time = message.time, await canLoadMoreBottom() {
+            await waitToCompleteScenario()
+            isProcessingScenario = true
             // We add 1 milliseceond to prevent duplication and fetch the message itself.
             await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
         }
@@ -627,31 +660,41 @@ extension ThreadHistoryViewModel {
 
             if response.pop(prepend: keys.MORE_BOTTOM_FIRST_SCENARIO_KEY) != nil {
                 await onMoreBottomFirstScenario(response)
+                isProcessingScenario = false
             }
 
             /// For the second scenario.
             if response.pop(prepend: keys.MORE_TOP_SECOND_SCENARIO_KEY) != nil {
                 await onMoreTopSecondScenario(response)
+                isProcessingScenario = false
             }
 
             /// For the scenario three and four.
             if response.pop(prepend: keys.MORE_TOP_KEY) != nil {
                 await onMoreTop(response)
+                
+                /// We will show the move to the top,
+                /// if the delay at the end of the move to the top caused the show button to disappear.
+                await delegate?.showMoveToButtom(show: true)
+                isProcessingScenario = false
             }
 
             /// For the scenario three and four.
             if response.pop(prepend: keys.MORE_BOTTOM_KEY) != nil {
                 await onMoreBottom(response)
+                isProcessingScenario = false
             }
 
             /// For the fifth scenario.
             if response.pop(prepend: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY) != nil {
                 await onMoreBottomFifthScenario(response)
+                isProcessingScenario = false
             }
 
             /// For the seventh scenario.
             if response.pop(prepend: keys.FETCH_BY_OFFSET_KEY) != nil {
                 await onFetchByOffset(response)
+                isProcessingScenario = false
             }
 
             /// If respone is not empty therefore the thread is not empty and we should not show it
@@ -666,6 +709,7 @@ extension ThreadHistoryViewModel {
 
     // It will be only called by ThreadsViewModel
     public func onNewMessage(_ messages: [Message], _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
+        await waitToCompleteScenario()
         thread = updatedConversation
         let wasAtBottom = await isLastMessageInsideTheSections(oldConversation)
         if let viewModel = await viewModel, wasAtBottom {
@@ -684,6 +728,36 @@ extension ThreadHistoryViewModel {
         }
         await viewModel?.updateUnreadCount(updatedConversation.unreadCount)
         await setSeenForAllOlderMessages(newMessage: messages.last ?? .init(), myId: await appUserId ?? -1)
+        await showEmptyThread(show: false)
+    }
+    
+    public func onForwardMessageForActiveThread(_ messages: [Message]) async {
+        await waitingToFinishUpdating()
+        await MainActor.run {
+            isUpdating = true
+        }
+        let messages = removeDuplicateForwards(messages)
+        guard let viewModel = await viewModel else { return }
+        
+        let bottomVMBeforeJoin = sections.last?.vms.last
+        let beforeSectionCount = sections.count
+        
+        let sortedMessages = messages.sortedByTime()
+        var viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        await appendSort(viewModels)
+        
+        let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
+        await delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+        if let lastSortedMessage = sortedMessages.last {
+            await viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(lastSortedMessage)
+        }
+       
+        if let firstSortedMessage = sortedMessages.first {
+            await reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, firstSortedMessage)
+        }
+        await MainActor.run {
+            isUpdating = false
+        }
         await showEmptyThread(show: false)
     }
 
@@ -905,9 +979,41 @@ extension ThreadHistoryViewModel {
         }
         return vm
     }
+    
+    /// Remove viewModels if the message with uniqueId is already exist in the list
+    /// This prevent duplication on sending forwards for example after reconnect.
+    private func removeDuplicateMessagesBeforeAppend(_ viewModels: [MessageRowViewModel]) -> [MessageRowViewModel] {
+        var viewModels = viewModels
+        viewModels.removeAll { item in
+            let removed = sections.indicesByMessageUniqueId(item.message.uniqueId ?? "") != nil
+            if removed {
+                log("Removed duplidate row with uniqueId: \(item.message.uniqueId ?? "")")
+            }
+            return removed
+        }
+        return viewModels
+    }
+    
+    /// Forward messages are unpredictable, and there is a change after reconnection
+    /// forward messages sent to the server and server
+    /// answer with forward messages while we are requesting the bottom part on reconnect.
+    /// Therefor, the forward queue still is trying to accumulate messages but the message is already in
+    /// the list.
+    private func removeDuplicateForwards(_ messages: [Message]) -> [Message] {
+        var messages = messages
+        messages.removeAll { item in
+            let removed = sections.indicesByMessageUniqueId(item.uniqueId ?? "") != nil
+            if removed {
+                log("Removed duplidate row in forward with uniqueId: \(item.uniqueId ?? "")")
+            }
+            return removed
+        }
+        return messages
+    }
 
     public func injectMessagesAndSort(_ requests: [HistoryMessageType]) async {
-        let viewModels = await makeCalculateViewModelsFor(requests)
+        var viewModels = await makeCalculateViewModelsFor(requests)
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         await appendSort(viewModels)
         for vm in viewModels {
             await vm.register()
@@ -1117,28 +1223,16 @@ extension ThreadHistoryViewModel {
 // MARK: Logging
 extension ThreadHistoryViewModel {
     private func logHistoryRequest(req: GetHistoryRequest) {
-#if DEBUG
-        Task.detached {
-            let date = Date().millisecondsSince1970
-            Logger.viewModels.debug("Start of sending history request: \(date) milliseconds")
-        }
-#endif
+        let date = Date().millisecondsSince1970
+        Logger.log(title: "ThreadHistoryViewModel", message: " Start of sending history request: \(date) milliseconds")
     }
 
     private func log(_ string: String) {
-#if DEBUG
-        Task.detached {
-            Logger.viewModels.info("\(string, privacy: .sensitive)")
-        }
-#endif
+        Logger.log(title: "ThreadHistoryViewModel", message: string)
     }
     
     private func logScroll(_ string: String) {
-#if DEBUG
-        Task.detached {
-            Logger.viewModels.info("SCROLL: \(string)")
-        }
-#endif
+        Logger.log(title: "ThreadHistoryViewModel", message: "SCROLL: \(string)")
     }
 }
 
@@ -1291,6 +1385,7 @@ extension ThreadHistoryViewModel {
             bottomLoading = false
             await showTopLoading(false)
             await showBottomLoading(false)
+            isProcessingScenario = false
         }
     }
 }
@@ -1338,6 +1433,15 @@ extension ThreadHistoryViewModel {
 
     func waitingToFinishUpdating() async {
         while await isUpdating{}
+    }
+    
+    func waitToCompleteScenario() async {
+        while isProcessingScenario {
+            try? await Task.sleep(for: .milliseconds(100))
+#if DEBUG
+            print("isProcessing a sceranio and waitng to complete the previous scenario")
+#endif
+        }
     }
 }
 

@@ -60,7 +60,6 @@ struct ConversationBuilder: View {
                                     }
                                 }
                         }
-                        .onDelete(perform: viewModel.delete)
                         .padding()
                         .listRowInsets(.zero)
                     }
@@ -207,7 +206,6 @@ struct EditCreatedConversationDetail: View {
                         .listRowBackground(Color.App.bgPrimary)
                         .listRowSeparatorTint(Color.App.dividerPrimary)
                 }
-                .onDelete(perform: viewModel.delete)
                 .padding()
             } header: {
                 StickyHeaderSection(header: "Thread.Tabs.members")

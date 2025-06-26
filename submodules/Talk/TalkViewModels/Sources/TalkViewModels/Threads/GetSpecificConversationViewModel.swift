@@ -8,7 +8,6 @@
 import Combine
 import Foundation
 import Chat
-import OSLog
 import Logger
 
 @MainActor
@@ -66,10 +65,6 @@ public final class GetSpecificConversationViewModel {
     }
     
     func log(_ string: String) {
-#if DEBUG
-        let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
-        NotificationCenter.logs.post(name: .logs, object: log)
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "GetSpecificConversationViewModel", message: string)
     }
 }

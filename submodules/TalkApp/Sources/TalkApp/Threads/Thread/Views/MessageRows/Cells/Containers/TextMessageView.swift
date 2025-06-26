@@ -37,17 +37,22 @@ final class TextMessageView: UITextView {
     }
 
     // Inside a UITextView subclass:
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        if forceEnableSelection { return true }
-        guard let pos = closestPosition(to: point) else { return false }
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        if forceEnableSelection {
+            return super.hitTest(point, with: event)
+        }
+        if !bounds.contains(point) { return nil }
 
+
+        guard let pos = closestPosition(to: point) else { return nil }
         let rightLayout = tokenizer.rangeEnclosingPosition(pos, with: .character, inDirection: .layout(.right))
         let leftLayout = tokenizer.rangeEnclosingPosition(pos, with: .character, inDirection: .layout(.left))
-        guard let range = rightLayout ?? leftLayout else { return false }
+        guard let range = rightLayout ?? leftLayout else { return nil }
 
         let startIndex = offset(from: beginningOfDocument, to: range.start)
+        let isLink = attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
 
-        return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
+        return isLink ? self : nil // nil lets the touch pass through to views behind
     }
     
     public func setDirectionForRange(range: Range<String.Index>) {

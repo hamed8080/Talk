@@ -64,6 +64,9 @@ struct ThreadContentList: View {
     }
     
     private func onTap(_ thread: CalculatedConversation) {
+        /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
+        if thread.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
+        
         if !twoRowTappedAtSameTime {
             twoRowTappedAtSameTime = true
             Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in

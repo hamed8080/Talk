@@ -10,6 +10,7 @@ import UIKit
 import BackgroundTasks
 import TalkApp
 import Combine
+import Logger
 
 @MainActor
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDelegate {
@@ -145,9 +146,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     }
 
     private func handleTaskRefreshToken(_ task: BGAppRefreshTask) {
-        let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in handleTaskRefreshToken method", level: .error, type: .sent, userInfo: nil)        
         Task { @MainActor in
-            self.log(log)
+            log("Start a new Task in handleTaskRefreshToken method")
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
                 await scheduleAppRefreshToken() /// Reschedule again when user receive a token.
@@ -159,9 +159,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         }
     }
 
-    private func log(_ log: Log) {
+    private func log(_ string: String) {
 #if DEBUG
-        NotificationCenter.logs.post(name: .logs, object: log)
+        Logger.logger.log(title: "SceneDelegate", message: string, persist: true, type: .internalLog)
 #endif
     }
 }

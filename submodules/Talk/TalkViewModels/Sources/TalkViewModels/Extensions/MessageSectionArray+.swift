@@ -100,18 +100,12 @@ extension ContiguousArray where Element == MessageSection {
 
     public func indexPath(for viewModel: MessageRowViewModel) -> IndexPath? {
         if isEmpty {
-#if DEBUG
-            fatalError("indexPath(for:) called on an empty data structure.")
-#endif
             return nil
         }
         guard
             let sectionIndex = firstIndex(where: { $0.vms.contains(where: { $0.id == viewModel.id }) }),
             let messageIndex = self[sectionIndex].vms.firstIndex(where: { $0.id == viewModel.id })
         else {
-#if DEBUG
-            fatalError("Logic error: ViewModel with id \(viewModel.id) not found in data structure.")
-#endif
             return nil
         }
         return .init(row: messageIndex, section: sectionIndex)
@@ -254,7 +248,7 @@ extension ContiguousArray where Element == MessageSection {
     public func nextIndexPath(_ currentIndexPath: IndexPath) -> IndexPath? {
         if isEmpty { return nil }
         // Check for end of the list
-        if currentIndexPath.section == count - 1 {
+        if currentIndexPath.section > count - 1 {
             return nil
         }
 
@@ -282,5 +276,29 @@ extension ContiguousArray where Element == MessageSection {
         else { return nil }
         let isSame = self[prevIndexPath.section].vms[prevIndexPath.row].message.participant?.id == message.participant?.id
         return isSame ? prevIndexPath : nil
+    }
+    
+    public func indexPathsAfter(indexPath: IndexPath, n: Int) -> [IndexPath] {
+        var cells: [IndexPath] = []
+        var indexPath = indexPath
+        for i in 0..<n {
+            if let nextIndexPath = nextIndexPath(indexPath) {
+                cells.append(nextIndexPath)
+                indexPath = nextIndexPath
+            }
+        }
+        return cells
+    }
+    
+    public func indexPathsBefore(indexPath: IndexPath, n: Int) -> [IndexPath] {
+        var cells: [IndexPath] = []
+        var indexPath = indexPath
+        for i in 0..<n {
+            if let nextIndexPath = previousIndexPath(indexPath) {
+                cells.append(nextIndexPath)
+                indexPath = nextIndexPath
+            }
+        }
+        return cells
     }
 }

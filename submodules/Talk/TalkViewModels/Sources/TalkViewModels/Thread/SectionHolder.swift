@@ -7,6 +7,7 @@
 
 import Foundation
 import Chat
+import Logger
 
 fileprivate actor UpdatingActor {
     public private(set) var isUpdating = false
@@ -98,8 +99,6 @@ public final class SectionHolder {
     }
     
     private func log(_ message: String) {
-#if DEBUG
-        LogManager.shared.log("SectionHolder: \(message)")
-#endif
+        Logger.log(title: "SectionHolder", message: "\(message)")
     }
 }

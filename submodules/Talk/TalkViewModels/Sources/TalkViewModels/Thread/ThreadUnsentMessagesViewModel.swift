@@ -9,7 +9,7 @@ import Foundation
 import Chat
 import TalkModels
 import Combine
-import OSLog
+import Logger
 
 @MainActor
 public final class ThreadUnsentMessagesViewModel {
@@ -154,8 +154,6 @@ public final class ThreadUnsentMessagesViewModel {
     }
 
     func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "ThreadUnsentMessagesViewModel", message: string)
     }
 }

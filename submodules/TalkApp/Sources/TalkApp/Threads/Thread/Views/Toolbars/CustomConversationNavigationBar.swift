@@ -11,12 +11,16 @@ import UIKit
 import TalkUI
 import SwiftUI
 import Combine
+import Chat
 
 public class CustomConversationNavigationBar: UIView {
     private weak var viewModel: ThreadViewModel?
     private let backButton = UIImageButton(imagePadding: .init(all: 6))
     private let fullScreenButton = UIImageButton(imagePadding: .init(all: 6))
     private let titlebutton = UIButton(type: .system)
+    #if DEBUG
+    private let revokeButton = UIButton(type: .system)
+    #endif
     private let subtitleLabel = UILabel()
     private var threadImageButton = UIImageButton(imagePadding: .init(all: 0))
     private var threadTitleSupplementary = UILabel()
@@ -143,10 +147,33 @@ public class CustomConversationNavigationBar: UIView {
             subtitleLabel.topAnchor.constraint(equalTo: titlebutton.bottomAnchor, constant: -4),
             subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 4),
         ])
+        
+#if DEBUG
+        revokeButton.translatesAutoresizingMaskIntoConstraints = false
+        revokeButton.setTitle("revoke", for: .normal)
+        revokeButton.titleLabel?.font = UIFont.fBoldBody
+        revokeButton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
+        revokeButton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
+        revokeButton.addTarget(self, action: #selector(revokeButtonTapped), for: .touchUpInside)
+        addSubview(revokeButton)
+        NSLayoutConstraint.activate([
+            revokeButton.trailingAnchor.constraint(equalTo: threadImageButton.leadingAnchor, constant: 4),
+            revokeButton.widthAnchor.constraint(equalToConstant: 64),
+            revokeButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            revokeButton.topAnchor.constraint(equalTo: topAnchor),
+        ])
+#endif
     }
 
     @objc private func navigateToDetailView() {
         guard let viewModel = viewModel else { return }
+        
+        /// Reattch the participant info if we are inside a simulated thread.
+        /// Note: After leaving the thread info with a participant where we didn't have any chat,
+        /// the userToCreateThread will be deleted by back button, so we have to reattach this.
+        if viewModel.threadId == LocalId.emptyThread.rawValue {
+            AppState.shared.appStateNavigationModel.userToCreateThread = viewModel.participant
+        }
         AppState.shared.objectsContainer.navVM.appendThreadDetail(threadViewModel: viewModel)
     }
 
@@ -278,5 +305,11 @@ public class CustomConversationNavigationBar: UIView {
 
     private func hideImageUserNameSplitedLable(isHidden: Bool) {
         threadTitleSupplementary.setIsHidden(isHidden)
+    }
+
+    @objc private func revokeButtonTapped() {
+        Task { @ChatGlobalActor in
+            await ChatManager.activeInstance?.setToken(newToken: "revoked_token", reCreateObject: false)
+        }
     }
 }

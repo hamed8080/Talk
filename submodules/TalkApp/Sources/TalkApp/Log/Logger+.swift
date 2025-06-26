@@ -1,6 +1,6 @@
 //
-//  Logger.swift
-//  TalkViewModels
+//  Logger+.swift
+//  TalkApp
 //
 //  Created by Hamed Hosseini on 6/7/25.
 //
@@ -9,11 +9,11 @@ import Logger
 import Spec
 import Foundation
 
-public extension Logger {
+extension Logger {
     fileprivate static let config: LoggerConfig = {
         let config = LoggerConfig(
             spec: Spec.empty,
-            prefix: "TALK_VIEW_MODELS",
+            prefix: "TALK_APP",
             isDebuggingLogEnabled: true)
         return config
     }()
@@ -36,7 +36,7 @@ public extension Logger {
         isDebugBuild || (Bundle.main.bundleIdentifier?.contains("talk-test") ?? false)
     }()
     
-    internal static func log(title: String = "", message: String = "", persist: Bool = true, userInfo: [String: String]? = nil) {
+    static func log(title: String = "", message: String = "", persist: Bool = true, userInfo: [String: String]? = nil) {
         guard isDebuggingEnabled else { return }
         var persist = persist
         if !logOnDisk {

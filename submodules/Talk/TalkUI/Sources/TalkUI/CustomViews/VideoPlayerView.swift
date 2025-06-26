@@ -9,7 +9,6 @@ import Foundation
 import AVKit
 import SwiftUI
 import TalkViewModels
-import OSLog
 
 //public struct VideoPlayerView: View {
 //

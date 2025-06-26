@@ -11,7 +11,6 @@ import Foundation
 import SwiftUI
 import TalkModels
 import TalkExtensions
-import OSLog
 import Logger
 
 @MainActor
@@ -64,6 +63,13 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 if let key = newValue.object as? String {
                     self?.onCancelTimer(key: key)
+                }
+            }
+            .store(in: &cancelable)
+        AppState.shared.$connectionStatus
+            .sink { [weak self] event in
+                Task { [weak self] in
+                    await self?.onConnectionStatusChanged(event)
                 }
             }
             .store(in: &cancelable)
@@ -152,17 +158,23 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    public func getArchivedThreads() {
+    public func getArchivedThreads(withQueue: Bool = false) {
+        if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
         RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
+            if withQueue {
+                await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getArchives(req: req))
+            } else {
+                ChatManager.activeInstance?.conversation.get(req)
+            }
         }
         animateObjectWillChange()
     }
 
     public func getArchivedThread(threadId: Int) {
+        if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
         RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
@@ -179,8 +191,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads: self.archives)
             let sorted = await sort(threads: newThreads)
             await MainActor.run {
+                setHasNextOnResponse(response)
                 self.archives = sorted
                 isLoading = false
+                firstSuccessResponse = true
                 animateObjectWillChange()
             }
         }
@@ -240,7 +254,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         return threads
     }
     
-    public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
+    private func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
         if status == .connected {
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
@@ -255,7 +269,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
 
     private func setHasNextOnResponse(_ response: ChatResponse<[Conversation]>) {
-        if !response.cache, response.result?.count ?? 0 > 0 {
+        if !response.cache {
             hasNext = response.hasNext
         }
     }
@@ -269,7 +283,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     public func refresh() async {
         archives.removeAll()
-        getArchivedThreads()
+        offset = 0
+        getArchivedThreads(withQueue: true)
     }
 
     private func onNewMessage(_ response: ChatResponse<Message>) {
@@ -403,7 +418,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
         }
-        logUnreadCount("SERVER unreadCount: \(response.result)")
+        log("SERVER unreadCount: \(response.result)")
     }
 
     public func updateThreadInfo(_ thread: Conversation) {
@@ -479,7 +494,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives[index].partnerLastSeenMessageId = response.result?.messageId
             recalculateAndAnimate(archives[index])
         }
-        logUnreadCount("SERVER OnSeen: \(response.result)")
+        log("SERVER OnSeen: \(response.result)")
     }
     
     /// This method only reduce the unread count if the deleted message has sent after lastSeenMessageTime.
@@ -533,16 +548,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     func log(_ string: String) {
-#if DEBUG
-        let log = Log(prefix: "TALK_APP", time: .now, message: string, level: .warning, type: .internalLog, userInfo: nil)
-        NotificationCenter.logs.post(name: .logs, object: log)
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
-    }
-    
-    private func logUnreadCount(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("UNREADCOUNT: \(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "ArchiveThreadsViewModel", message: string)
     }
 }

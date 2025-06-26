@@ -163,6 +163,13 @@ public final class ThreadReactionViewModel {
             let reactions = response.result,
             let historyVM = threadVM?.historyVM, reactions.count > 0
         else { return }
+        
+        /// Block updating anything in history view model
+        /// We only wait if there is any new reaction if reaction.count == 0 we won't wait
+        /// due to it will block loading more top/bottom
+        await threadVM?.historyVM.waitingToFinishUpdating()
+        await threadVM?.historyVM.isUpdating = true
+        
         for copy in reactions {
             inQueueToGetReactions.removeAll(where: {$0 == copy.messageId})
             if let vm = historyVM.sectionsHolder.sections.messageViewModel(for: copy.messageId ?? -1) {
@@ -184,6 +191,11 @@ public final class ThreadReactionViewModel {
         if !indexPaths.isEmpty {
            threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
         }
+        
+        /// We need to set it false manually if there is no message,
+        /// so tableView won't realase it.
+        try? await Task.sleep(for: .microseconds(300))
+        await threadVM?.historyVM.isUpdating = false
     }
 
     internal func clearReactionsOnReconnect() async {

@@ -43,7 +43,24 @@ class CameraCapturer: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         if let asset = info[UIImagePickerController.InfoKey.phAsset] as? PHAsset {
             assetResource = PHAssetResource.assetResources(for: asset)
         }
-        onImagePicked(uiImage, videoURL, assetResource)
+        if let image = uiImage, picker.cameraDevice == .front {
+            onImagePicked(image.horizontallyFlipped(), videoURL, assetResource)
+        } else {
+            onImagePicked(uiImage, videoURL, assetResource)
+        }
         picker.dismiss(animated: true)
+    }
+}
+
+fileprivate extension UIImage {
+    func horizontallyFlipped() -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, scale)
+        let context = UIGraphicsGetCurrentContext()!
+        context.translateBy(x: size.width, y: 0)
+        context.scaleBy(x: -1.0, y: 1.0)
+        draw(in: CGRect(origin: .zero, size: size))
+        let flippedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return flippedImage
     }
 }

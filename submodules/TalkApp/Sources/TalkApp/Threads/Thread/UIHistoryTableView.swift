@@ -10,8 +10,8 @@ import UIKit
 import SwiftUI
 import TalkViewModels
 import TalkModels
-import OSLog
 import Chat
+import Logger
 
 @MainActor
 class UIHistoryTableView: UITableView {
@@ -56,12 +56,7 @@ class UIHistoryTableView: UITableView {
     }
     
     private func log(_ string: String) {
-#if DEBUG
-        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
-        Task.detached {
-            logger.info("\(string, privacy: .sensitive)")
-        }
-#endif
+        Logger.log(title: "UIHistoryTableView", message: string)
     }
 }
 
@@ -169,6 +164,7 @@ extension UIHistoryTableView {
         guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
         let vm = sections[indexPath.section].vms[indexPath.row]
         if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
+        if vm.message.id == LocalId.unreadMessageBanner.rawValue { return nil }
         if !vm.message.reactionableType { return nil }
         if isLeading && !vm.calMessage.isMe { return nil }
         if !isLeading && vm.calMessage.isMe { return nil }
@@ -228,5 +224,42 @@ extension UIHistoryTableView {
                 await self?.viewModel?.scrollVM.isEndedDecelerating = true
             }
         }
+    }
+}
+
+extension UIHistoryTableView {
+    public func baseCell(_ indexPath: IndexPath) -> MessageBaseCell? {
+        if let cell = cellForRow(at: indexPath) as? MessageBaseCell {
+            return cell
+        }
+        return nil
+    }
+    
+    public func isVisible(_ indexPath: IndexPath) -> Bool {
+        indexPathsForVisibleRows?.contains(where: {$0 == indexPath}) == true
+    }
+    
+    public func prevouisVisibleIndexPath() -> [MessageBaseCell] {
+        guard let firstVisibleIndexPath = indexPathsForVisibleRows?.first else { return [] }
+        var cells: [MessageBaseCell] = []
+        let indexPaths = sections.indexPathsBefore(indexPath: firstVisibleIndexPath, n: 5)
+        for i in indexPaths {
+            if let cell = cellForRow(at: i) as? MessageBaseCell {
+                cells.append(cell)
+            }
+        }
+        return cells
+    }
+    
+    public func nextVisibleIndexPath() -> [MessageBaseCell] {
+        guard let lastVisibleIndexPath = indexPathsForVisibleRows?.last else { return [] }
+        var cells: [MessageBaseCell] = []
+        let indexPaths = sections.indexPathsAfter(indexPath: lastVisibleIndexPath, n: 5)
+        for i in indexPaths {
+            if let cell = cellForRow(at: i) as? MessageBaseCell {
+                cells.append(cell)
+            }
+        }
+        return cells
     }
 }

@@ -9,7 +9,7 @@ import Chat
 import Combine
 import Foundation
 import TalkModels
-import OSLog
+import Logger
 
 @MainActor
 public final class ThreadViewModel {
@@ -57,6 +57,9 @@ public final class ThreadViewModel {
     public var isDeletingLastMessage = false
 
     public weak var delegate: ThreadViewDelegate?
+    
+    /// Save P2P participant unless destroy the thread
+    public var participant: Participant?
 
     // MARK: Computed Properties
     public var id: Int { threadId }
@@ -82,6 +85,7 @@ public final class ThreadViewModel {
     }
 
     private func setup() {
+        participant = AppState.shared.appStateNavigationModel.userToCreateThread
         seenVM.setup(viewModel: self)
         unreadMentionsViewModel.setup(viewModel: self)
         mentionListPickerViewModel.setup(viewModel: self)
@@ -293,9 +297,7 @@ public final class ThreadViewModel {
 
     // MARK: Logs
     private func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("\(string, privacy: .sensitive)")
-#endif
+        Logger.log(title: "ThreadViewModel", message: string)
     }
 
     // MARK: Observers

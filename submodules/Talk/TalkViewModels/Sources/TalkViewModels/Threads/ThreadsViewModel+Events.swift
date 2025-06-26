@@ -193,6 +193,9 @@ extension ThreadsViewModel {
             }
         case .forward(let chatResponse):
             incQueue.onMessageEvent(chatResponse)
+            if let uniqueId = chatResponse.uniqueId {
+                AppState.shared.objectsContainer.pendingManager.removeForwards(uniqueId: uniqueId)
+            }
         case .cleared(let chatResponse):
             onClear(chatResponse)
         case .seen(let response):

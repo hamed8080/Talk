@@ -43,6 +43,7 @@ struct ContactContentList: View {
         .sheet(isPresented: $viewModel.showAddOrEditContactSheet, onDismiss: onAddOrEditDisappeared) {
             if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
                 AddOrEditContactView()
+                    .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                     .environmentObject(viewModel)
                     .onDisappear {
                         onAddOrEditDisappeared()
@@ -56,6 +57,7 @@ struct ContactContentList: View {
         }
         .sheet(isPresented: $showBuilder, onDismiss: onDismissBuilder){
             ConversationBuilder()
+                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                 .environmentObject(builderVM)
                 .onAppear {
                     Task {
@@ -182,6 +184,7 @@ struct ContactRowContainer: View {
     @Binding var contact: Contact
     @EnvironmentObject var viewModel: ContactsViewModel
     let isSearchRow: Bool
+    var enableSwipeAction = true
     var separatorColor: Color {
         if !isSearchRow {
            return viewModel.contacts.last == contact ? Color.clear : Color.App.dividerPrimary
@@ -196,7 +199,9 @@ struct ContactRowContainer: View {
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(separatorColor)
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                if !viewModel.isInSelectionMode {
+                if !enableSwipeAction {
+                    EmptyView()
+                } else if !viewModel.isInSelectionMode {
                     Button {
                         viewModel.editContact = contact
                         viewModel.showAddOrEditContactSheet.toggle()

@@ -12,7 +12,7 @@ struct DetailUserNameSection: View {
     @EnvironmentObject var viewModel: ParticipantDetailViewModel
 
     var body: some View {
-        if let participantName = viewModel.participant.username.validateString {
+        if let participantName = viewModel.userName {
             SectionRowContainer(key: "Settings.userName", value: participantName)
                 .onTapGesture {
                     UIPasteboard.general.string = participantName

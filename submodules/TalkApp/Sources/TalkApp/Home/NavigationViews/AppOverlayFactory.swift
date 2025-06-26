@@ -22,17 +22,17 @@ struct AppOverlayFactory: View {
                 .environmentObject(GalleryViewModel(message: message))
                 .id(message.id)
         case .galleryImageView(let image):
-            ZStack {
-                GalleryImageView(uiimage: image, forceLeftToRight: false)
-            }
-            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-            .fullScreenBackgroundView()
-            .ignoresSafeArea(.all)
+            ConversationImageView(image: image)
         case .dialog:
             if let dialog = viewModel.dialogView {
-                dialog
-                    .background(.ultraThickMaterial)
-                    .ignoresSafeArea(.all)
+                if viewModel.clearBckground {
+                    dialog
+                        .ignoresSafeArea(.all)
+                } else {
+                    dialog
+                        .background(.ultraThickMaterial)
+                        .ignoresSafeArea(.all)
+                }
             }
         case .toast(let leadingView, let message, let messageColor):
             ToastView(message: message, messageColor: messageColor) {

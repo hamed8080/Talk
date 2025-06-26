@@ -8,7 +8,6 @@
 import Chat
 import Foundation
 import Logger
-import OSLog
 import SwiftUI
 
 @_exported import TalkModels
@@ -20,7 +19,6 @@ import SwiftUI
 @MainActor
 public final class ChatDelegateImplementation: ChatDelegate {
     private var retryCount = 0
-    let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "Talk-App")
     @MainActor
     public private(set) static var sharedInstance = ChatDelegateImplementation()
     
@@ -68,7 +66,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
         if let language = Language.languages.first(where: { $0.identifier == "ZmFfSVI=".fromBase64() }) {
             Language.setLanguageTo(bundle: bundle, language: language)
         }
-        setup(spec: spec ?? .empty(), bundle: bundle, recreateChatObject: recreateChatObject)
+        setup(spec: spec ?? .empty, bundle: bundle, recreateChatObject: recreateChatObject)
         NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }
     
@@ -165,6 +163,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
         if error.code == 21 {
             let log = Log(prefix: "TALK_APP", time: .now, message: "Start a new Task in onError with error 21", level: .error, type: .sent, userInfo: nil)
             onLog(log: log)
+            clearQueueRequestsOnUnAuthorizedError()
             tryRefreshToken()
         } else {
             if response.isPresentable {
@@ -191,6 +190,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
     
     @MainActor
     public func logout() async {
+        AppState.shared.user = nil
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.user.logOut()
         }
@@ -198,19 +198,26 @@ public final class ChatDelegateImplementation: ChatDelegate {
         UserConfigManagerVM.instance.logout(delegate:  self)
         await AppState.shared.objectsContainer.reset()
     }
+    
+    private func clearQueueRequestsOnUnAuthorizedError() {
+        RequestsManager.shared.clear()
+        AppState.shared.objectsContainer.chatRequestQueue.cancellAll()
+    }
+    
+    private static var isLogOnDisk: Bool = {
+        (Bundle.main.object(forInfoDictionaryKey: "LOG_ON_DISK") as? NSNumber)?.boolValue == true
+    }()
 
     nonisolated public func onLog(log: Log) {
-#if DEBUG
+        /// Some logs will not stores inside the SDKs
+        /// so to see them inside the LogViewModel we have to use this to save them on CDLog table
+        /// and then refetch them in 5 seconds period.
         Task { @MainActor in
-            NotificationCenter.logs.post(name: .logs, object: log)
-            logger.debug("\(log.message ?? "")")
+            Logger.log(title: log.prefix ?? "", message: log.message ?? "", persist: ChatDelegateImplementation.isLogOnDisk)
         }
-#endif
     }
 
     private func log(_ string: String) {
-#if DEBUG
-        logger.info("\(string)")
-#endif
+        Logger.log(title: "ChatDelegateImplementation.onLog", message: string)
     }
 }

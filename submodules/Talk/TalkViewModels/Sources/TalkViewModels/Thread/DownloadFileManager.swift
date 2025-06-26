@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 import Logger
-import OSLog
 import Chat
 import TalkModels
 import UIKit
@@ -283,8 +282,6 @@ public final class DownloadFileManager {
     }
 
     private func log(_ string: String) {
-#if DEBUG
-        Logger.viewModels.info("DownloadFileManager:\n\(string, privacy: .sensitive)")
-#endif
+        Logger.log( title: "DownloadFileManager", message: string)
     }
 }
