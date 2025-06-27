@@ -40,6 +40,7 @@ public struct HomeContentView: View {
                 .environmentObject(container.conversationBuilderVM)
                 .environmentObject(container.userProfileImageVM)
                 .environmentObject(container.banVM)
+                .environmentObject(container.sizeClassObserver)
         }
         .modifier(ColorSchemeModifier())
         .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
@@ -94,19 +95,9 @@ struct SplitView: View {
 
 struct SplitViewContent: View {
     let container: ObjectsContainer
-    @Environment(\.colorScheme) var colorScheme
-    @Environment(\.localStatusBarStyle) var statusBarStyle
-
     var body: some View {
-        ContainerSplitView(sidebarView: sidebarViews, container: container)
-            .onAppear {
-                if let appMode = AppSettingsModel.restore().isDarkModeEnabled {
-                    self.statusBarStyle.currentStyle = appMode == true ? .lightContent : .darkContent
-                } else {
-                    self.statusBarStyle.currentStyle = colorScheme == .dark ? .lightContent : .darkContent
+        AdaptiveStackContentView(sidebarView: sidebarViews, container: container)
                 }
-            }
-    }
 
     var sidebarViews: some View {
         TabContainerView(

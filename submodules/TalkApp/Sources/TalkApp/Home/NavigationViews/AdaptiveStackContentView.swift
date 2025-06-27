@@ -1,5 +1,5 @@
 //
-//  ContainerSplitView.swift
+//  AdaptiveStackContentView.swift
 //  Talk
 //
 //  Created by hamed on 9/14/23.
@@ -8,64 +8,66 @@
 import SwiftUI
 import TalkViewModels
 
-struct ContainerSplitView<SidebarView: View>: View {
-    let sidebarView: SidebarView
-    @Environment(\.horizontalSizeClass) var sizeClass
-    let container: ObjectsContainer
-
-    var body: some View {
-        if sizeClass == .regular, UIDevice.current.userInterfaceIdiom == .pad {
-            iPadStackContentView(sidebarView: sidebarView, container: container)
-                .environmentObject(container.navVM)
-        } else {
-            iPhoneStackContentView(sidebarView: sidebarView, container: container)
-                .environmentObject(container.navVM)
-        }
-    }
-}
-
-struct iPadStackContentView<Content: View>: View {
+struct AdaptiveStackContentView<Content: View>: View {
     let sidebarView: Content
     @EnvironmentObject var navVM: NavigationModel
     let container: ObjectsContainer
-    @Environment(\.horizontalSizeClass) var sizeClass
     @State var showSideBar: Bool = true
     let ipadSidebarWidth: CGFloat = 400
-    let isIpad: Bool = UIDevice.current.userInterfaceIdiom == .pad
-    var maxWidth: CGFloat { sizeClass == .compact || !isIpad ? .infinity : ipadSidebarWidth }
+    var maxWidth: CGFloat { sizeClassObserver.horizontalSizeClass == .compact || !isIpad ? .infinity : ipadSidebarWidth }
     var maxComputed: CGFloat { min(maxWidth, ipadSidebarWidth) }
-
+    var isIpad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.localStatusBarStyle) var statusBarStyle
+    @EnvironmentObject var sizeClassObserver: SizeClassObserver
+    
+    var useSplitLayout: Bool {
+        isIpad && sizeClassObserver.horizontalSizeClass == .regular
+    }
+    
     var body: some View {
-        HStack(spacing: 0) {
-            sidebarView
-                .toolbar(.hidden)
-                .frame(width: showSideBar ? maxComputed : 0)
-
-            NavigationStack(path: $navVM.paths) {
-                NothingHasBeenSelectedView(contactsVM: container.contactsVM)
-                    .navigationDestination(for: NavigationType.self) { value in
-                        NavigationTypeView(type: value, container: container)
-                    }
-            }
-            .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.2), value: showSideBar)
-            .onReceive(NotificationCenter.closeSideBar.publisher(for: .closeSideBar)) { newVlaue in
-                showSideBar.toggle()
-            }
-            .onReceive(navVM.$paths) { newValue in
-                if UIDevice.current.userInterfaceIdiom == .pad, newValue.count == 0 {
-                    showSideBar = true
+        Group {
+            if useSplitLayout {
+                HStack(spacing: 0) {
+                    sidebarView
+                        .toolbar(.hidden)
+                        .frame(width: showSideBar ? maxComputed : 0)
+                    ipadNavigationStack
                 }
+            } else {
+                iphoneNavigationStack
+            }
+        }
+        .onReceive(NotificationCenter.closeSideBar.publisher(for: .closeSideBar)) { _ in
+            showSideBar.toggle()
+        }
+        .onReceive(navVM.$paths) { newValue in
+            if useSplitLayout && newValue.isEmpty {
+                showSideBar = true
+            }
+        }
+        .onAppear {
+            if let appMode = AppSettingsModel.restore().isDarkModeEnabled {
+                self.statusBarStyle.currentStyle = appMode == true ? .lightContent : .darkContent
+            } else {
+                self.statusBarStyle.currentStyle = colorScheme == .dark ? .lightContent : .darkContent
             }
         }
     }
-}
-
-struct iPhoneStackContentView<Content: View>: View {
-    let sidebarView: Content
-    @EnvironmentObject var navVM: NavigationModel
-    let container: ObjectsContainer
-
-    var body: some View {
+    
+    @ViewBuilder
+    private var ipadNavigationStack: some View {
+        NavigationStack(path: $navVM.paths) {
+            NothingHasBeenSelectedView(contactsVM: container.contactsVM)
+                .navigationDestination(for: NavigationType.self) { value in
+                    NavigationTypeView(type: value, container: container)
+                }
+        }
+        .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.7, blendDuration: 0.2), value: showSideBar)
+    }
+    
+    @ViewBuilder
+    private var iphoneNavigationStack: some View {
         NavigationStack(path: $navVM.paths) {
             sidebarView
                 .toolbar(.hidden)
@@ -79,7 +81,7 @@ struct iPhoneStackContentView<Content: View>: View {
 struct NavigationTypeView: View {
     let type: NavigationType
     let container: ObjectsContainer
-
+    
     var body: some View {
         switch type {
         case .threadViewModel(let viewModel):
@@ -109,7 +111,7 @@ struct NavigationTypeView: View {
                 .environmentObject(container.archivesVM)
         case .messageParticipantsSeen(let model):
             MessageParticipantsSeen(message: model.message)
-//                .environmentObject(model.threadVM)
+            //                .environmentObject(model.threadVM)
         case .language(_):
             LanguageView(container: container)
         case .editProfile(_):
@@ -129,15 +131,15 @@ struct NavigationTypeView: View {
 }
 
 struct ContainerSplitView_Previews: PreviewProvider {
-
+    
     struct Preview: View {
         @State var container = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
-
+        
         var body: some View {
-            ContainerSplitView(sidebarView: Image("gear"), container: container)
+            AdaptiveStackContentView(sidebarView: Image("gear"), container: container)
         }
     }
-
+    
     static var previews: some View {
         Preview()
     }

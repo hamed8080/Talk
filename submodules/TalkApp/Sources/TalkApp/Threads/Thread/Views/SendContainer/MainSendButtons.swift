@@ -166,7 +166,7 @@ public final class MainSendButtons: UIStackView {
     
     private func registerModeChange() {
         viewModel.modePublisher.sink { [weak self] newMode in
-            guard let self = self else { return }
+            guard let self = self, AppState.shared.lifeCycleState == .active else { return }
             showMicButton(viewModel.showAudio(mode: newMode))
             showCameraButton(viewModel.showCamera(mode: newMode))
             showSendButton(viewModel.showSendButton(mode: newMode))
