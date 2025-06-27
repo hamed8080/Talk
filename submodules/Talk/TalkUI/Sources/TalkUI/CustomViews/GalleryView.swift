@@ -53,6 +53,7 @@ public struct GalleryPageView: View {
         GalleryToolbarButton(imageName: "eye") {
             offsetVM.dismiss()
             viewModel.goToHistory()
+            AppState.shared.objectsContainer.appOverlayVM.galleryMessage?.goToHistoryTapped?()
         }
     }
     

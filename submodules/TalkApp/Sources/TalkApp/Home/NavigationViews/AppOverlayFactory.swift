@@ -17,10 +17,10 @@ struct AppOverlayFactory: View {
 
     var body: some View {
         switch viewModel.type {
-        case .gallery(let message):
+        case .gallery(let galleryMessage):
             GalleryPageView()
-                .environmentObject(GalleryViewModel(message: message))
-                .id(message.id)
+                .environmentObject(GalleryViewModel(message: galleryMessage.message))
+                .id(galleryMessage.message.id)
         case .galleryImageView(let image):
             ConversationImageView(image: image)
         case .dialog:

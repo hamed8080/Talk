@@ -161,7 +161,8 @@ public extension MessageRowViewModel {
 
     @MainActor
     private func openImageViewer() {
-        AppState.shared.objectsContainer.appOverlayVM.galleryMessage = message as? Message
+        guard let message = message as? Message else { return }
+        AppState.shared.objectsContainer.appOverlayVM.galleryMessage = .init(message: message)
     }
 
     func cancelUpload() {

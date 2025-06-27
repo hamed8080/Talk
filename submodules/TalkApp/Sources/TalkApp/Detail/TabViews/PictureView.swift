@@ -141,7 +141,10 @@ struct PictureRowView: View {
 
     private func onTapped() {
         if !contextVM.isPresented {
-            AppState.shared.objectsContainer.appOverlayVM.galleryMessage = message
+            AppState.shared.objectsContainer.appOverlayVM.galleryMessage = .init(message: message, goToHistoryTapped: {
+                /// Dismiss Detail View if it is showing
+                viewModel.dismiss = true
+            })
         }
     }
 
