@@ -159,3 +159,15 @@ public struct ManageSessionsNavigationValue: NavigaitonValueProtocol {
     public var navType: NavigationType { .manageSessions(self) }
     public init() {}
 }
+
+public struct DoubleTapSettingNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "Settings.DoubleTap.title"
+    public var navType: NavigationType { .doubleTapSetting(self) }
+    public init() {}
+}
+
+public struct DoubleTapEmojiPickerNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "Settings.DoubleTapEmojiPicker.title"
+    public var navType: NavigationType { .doubleTapEmojiPicker(self) }
+    public init() {}
+}
