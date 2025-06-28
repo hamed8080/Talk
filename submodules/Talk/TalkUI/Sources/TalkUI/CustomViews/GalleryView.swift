@@ -39,8 +39,10 @@ public struct GalleryPageView: View {
             GeometryReader { reader in
                 HStack {
                     Spacer()
-                    goToHistoryButton
-                    downloadButton
+                    if EnvironmentValues.isTalkTest {
+                        goToHistoryButton
+                        downloadButton
+                    }
                     dismissButton
                 }
                 .padding(EdgeInsets(top: 48 + reader.safeAreaInsets.top, leading: 8, bottom: 0, trailing: 8))
