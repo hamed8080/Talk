@@ -13,9 +13,9 @@ public class BundleManager {
     private let bundleName = "MyBundle.bundle"
     private let bundleNameZipName = "MyBundle_v\(BundleManager.version).zip"
     private let unpackedFolderName = "UnzippedFiles"
-    // https://github.com/hamed8080/bundle/archive/refs/tags/v1.2.zip
-    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuMi56aXA="
-    private static let version = "1.2"
+    // https://github.com/hamed8080/bundle/archive/refs/tags/v1.4.zip
+    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuNC56aXA="
+    private static let version = "1.4"
 
     public init(){}
 
