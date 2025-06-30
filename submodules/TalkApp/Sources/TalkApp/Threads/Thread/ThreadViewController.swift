@@ -150,6 +150,7 @@ extension ThreadViewController {
         if tableView.contentInset.bottom != height {
             tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
             Task {
+                if AppState.shared.lifeCycleState != .active { return }
                 await viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
             }
             UIView.animate(withDuration: duration, delay: 0, options: options) { [weak self] in

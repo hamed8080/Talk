@@ -1131,7 +1131,10 @@ extension ThreadHistoryViewModel {
         }
         
         observe(NotificationCenter.windowMode.publisher(for: .windowMode)) { [weak self] _ in
-            await self?.updateAllRows()
+            /// Prevent calling calling it by swiping to another app from bottom on iPadOS
+            if AppState.shared.lifeCycleState == .active {
+                await self?.updateAllRows()
+            }
         }
         
         observe(NotificationCenter.upload.publisher(for: .upload)) { [weak self] notification in

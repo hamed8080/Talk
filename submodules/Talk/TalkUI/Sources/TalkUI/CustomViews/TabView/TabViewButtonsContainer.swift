@@ -13,27 +13,36 @@ public struct TabViewButtonsContainer: View {
     @Namespace var id
     @State private var width: CGFloat = 0
     @Environment(\.horizontalSizeClass) var sizeClass
+    private let firstTabOnAppear: String?
 
     public init(selectedTabIndex: Binding<Int>, tabs: [Tab]) {
         self._selectedTabIndex = selectedTabIndex
+        self.firstTabOnAppear = tabs.first?.id
         self.tabs = tabs
     }
 
     public var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                HStack(spacing: 28) {
-                    ForEach(tabs) { tab in
-                        tabButton(for: tab)
+        ScrollViewReader { reader in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    HStack(spacing: 28) {
+                        ForEach(tabs) { tab in
+                            tabButton(for: tab)
+                        }
                     }
+                    .animation(.spring(), value: selectedTabIndex)
+                    .padding([.leading, .trailing])
+                    Spacer()
                 }
-                .animation(.spring(), value: selectedTabIndex)
-                .padding([.leading, .trailing])
-                Spacer()
+                .frame(width: sizeClass == .regular ? width : nil)
             }
-            .frame(width: sizeClass == .regular ? width : nil)
+            .background(frameReader)
+            .onChange(of: firstTabOnAppear) { newValue in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    reader.scrollTo(newValue, anchor: .leading)
+                }
+            }
         }
-        .background(frameReader)
     }
 
     private var frameReader: some View {
@@ -65,6 +74,7 @@ public struct TabViewButtonsContainer: View {
             .contentShape(Rectangle())
             .fixedSize(horizontal: true, vertical: true)
         }
+        .id(tab.id)
         .buttonStyle(.plain)
         .frame(height: 48)
         .contentShape(Rectangle())

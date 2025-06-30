@@ -27,7 +27,7 @@ public enum ToastDuration {
 }
 
 public enum AppOverlayTypes {
-    case gallery(message: Message)
+    case gallery(GalleryMessage)
     case galleryImageView(uiimage: UIImage)
     case error(error: ChatError?)
     case toast(leadingView: AnyView?, message: String, messageColor: Color)
@@ -48,7 +48,7 @@ public class AppOverlayViewModel: ObservableObject {
 
     public var transition: AnyTransition {
         switch type {
-        case .gallery(message: _):
+        case .gallery(let _):
             return .opacity
         case .galleryImageView(uiimage: _):
             return .asymmetric(insertion: .scale.animation(.interpolatingSpring(mass: 1.0, stiffness: 0.1, damping: 0.9, initialVelocity: 0.5).speed(30)), removal: .opacity)
@@ -97,11 +97,11 @@ public class AppOverlayViewModel: ObservableObject {
         }
     }
 
-    public var galleryMessage: Message? = nil {
+    public var galleryMessage: GalleryMessage? = nil {
         didSet {
             guard let galleryMessage else { return }
             cancelToastTimer()
-            type = .gallery(message: galleryMessage)
+            type = .gallery(galleryMessage)
             isPresented = true
         }
     }
@@ -177,5 +177,15 @@ public class AppOverlayViewModel: ObservableObject {
     private func cancelToastTimer() {
         toastTimer?.invalidate()
         toastTimer = nil
+    }
+}
+
+public struct GalleryMessage {
+    public let message: Message
+    public let goToHistoryTapped: (() -> Void)?
+    
+    public init(message: Message, goToHistoryTapped: (() -> Void)? = nil) {
+        self.message = message
+        self.goToHistoryTapped = goToHistoryTapped
     }
 }
