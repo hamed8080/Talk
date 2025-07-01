@@ -110,8 +110,7 @@ public class ParticipantsCountManager {
         return 0
     }
 
-    @MainActor
-    func onThreadEvent(_ event: ThreadEventTypes?) async {
+    func onThreadEvent(_ event: ThreadEventTypes?) {
         switch event {
         case .joined(let response):
             updateCountOnJoin(response)
@@ -122,8 +121,7 @@ public class ParticipantsCountManager {
         }
     }
 
-    @MainActor
-    func onParticipantEvent(_ event: ParticipantEventTypes) async {
+    func onParticipantEvent(_ event: ParticipantEventTypes) {
         switch event {
         case .add(let chatResponse):
             updateCountOnAdd(chatResponse)

@@ -216,6 +216,7 @@ public final class MessageContainerStackView: UIStackView {
     }
 }
 
+@MainActor
 public struct ActionModel {
     let viewModel: MessageRowViewModel
     var threadVM: ThreadViewModel? { viewModel.threadVM }

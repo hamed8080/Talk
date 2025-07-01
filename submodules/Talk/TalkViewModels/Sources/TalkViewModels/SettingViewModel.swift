@@ -54,8 +54,7 @@ public final class SettingViewModel: ObservableObject {
         ChatManager.activeInstance?.config
     }
 
-    @MainActor
-    public func showLoading(_ show: Bool) async {
+    public func showLoading(_ show: Bool) {
         isLoading = show
     }
 }

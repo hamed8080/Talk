@@ -79,7 +79,6 @@ public class DraftManager {
     }
 }
 
-@MainActor
 public extension DraftManager {
     static let shared = DraftManager()
 }

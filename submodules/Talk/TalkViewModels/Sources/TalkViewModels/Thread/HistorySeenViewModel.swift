@@ -68,7 +68,6 @@ public final class HistorySeenViewModel {
         return messageId ?? 0 > lastSeenMessageId()
     }
     
-    @HistoryActor
     private func scrollupAndNotPorgramatically() async -> Bool {
         let scrollingUP = await threadVM?.scrollVM.scrollingUP == true
         let isProgramaticallyScroll = await threadVM?.scrollVM.getIsProgramaticallyScrollingHistoryActor() == true

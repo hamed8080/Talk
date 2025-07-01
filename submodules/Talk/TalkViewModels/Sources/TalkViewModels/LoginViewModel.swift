@@ -44,7 +44,6 @@ public final class LoginViewModel: ObservableObject {
         return !text.isEmpty
     }
 
-    @MainActor
     public func login() {
         isLoading = true
         if selectedServerType == .integration {
@@ -94,7 +93,6 @@ public final class LoginViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func requestOTP(identity: String, keyId: String, resend: Bool = false) {
         if isLoading { return }
         let spec = AppState.shared.spec
@@ -137,7 +135,6 @@ public final class LoginViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func verifyCode() {
         if isLoading { return }
         let codes = verifyCodes.joined(separator:"").replacingOccurrences(of: "\u{200B}", with: "").replaceRTLNumbers()

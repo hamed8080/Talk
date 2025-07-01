@@ -139,8 +139,7 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
-    public func onContacts(_ response: ChatResponse<[Contact]>) async {
+    public func onContacts(_ response: ChatResponse<[Contact]>) {
         if !response.cache, response.pop(prepend: GET_CONTACTS_KEY) != nil {
             if let contacts = response.result {
                 firstSuccessResponse = !response.cache
@@ -153,14 +152,12 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
-    func onBlockedList(_ response: ChatResponse<[BlockedContactResponse]>) async {
+    func onBlockedList(_ response: ChatResponse<[BlockedContactResponse]>) {
         blockedContacts = .init(response.result ?? [])
         animateObjectWillChange()
     }
 
-    @MainActor
-    public func getContacts() async {
+    public func getContacts() {
         lazyList.setLoading(true)
         let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
         RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
@@ -169,7 +166,6 @@ public class ContactsViewModel: ObservableObject {
         }
     }
     
-    @MainActor
     public func onConnectedGetContacts() async {
         await try? Task.sleep(200)
         lazyList.setLoading(true)
@@ -178,8 +174,7 @@ public class ContactsViewModel: ObservableObject {
         AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getContacts(req: req))
     }
 
-    @MainActor
-    public func searchContacts(_ searchText: String) async {
+    public func searchContacts(_ searchText: String) {
         lazyList.setLoading(true)
         let req: ContactsRequest
         if searchType == .username {
@@ -195,7 +190,6 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func onDeleteContacts(_ response: ChatResponse<[Contact]>, _ deleted: Bool) async {
         if deleted {
             response.result?.forEach{ contact in
@@ -206,26 +200,23 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
-    public func loadMore() async {
-        if await !lazyList.canLoadMore() { return }
+    public func loadMore() {
+        if !lazyList.canLoadMore() { return }
         lazyList.prepareForLoadMore()
-        await getContacts()
+        getContacts()
     }
 
-    @MainActor
-    public func loadMore(id: Int?) async {
-        if await !lazyList.canLoadMore(id: id) { return }
-        await loadMore()
+    public func loadMore(id: Int?) {
+        if !lazyList.canLoadMore(id: id) { return }
+        loadMore()
     }
 
-    public func refresh() async {
-        await clear()
-        await getContacts()
+    public func refresh() {
+        clear()
+        getContacts()
     }
 
-    @MainActor
-    public func clear() async {
+    public func clear() {
         searchContactString = ""
         firstSuccessResponse = false
         lazyList.reset()
@@ -284,7 +275,6 @@ public class ContactsViewModel: ObservableObject {
         animateObjectWillChange()
     }
 
-    @MainActor
     public func onAddContacts(_ response: ChatResponse<[Contact]>) async {
         if response.cache { return }
         if response.error == nil, let contacts = response.result {
@@ -326,7 +316,6 @@ public class ContactsViewModel: ObservableObject {
         selectedContacts.remove(at: index)
     }
 
-    @MainActor
     public func onSearchContacts(_ response: ChatResponse<[Contact]>) async {
         if !response.cache, response.pop(prepend: SEARCH_CONTACTS_KEY) != nil {
             lazyList.setLoading(false)
@@ -339,7 +328,6 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func addContact(contactValue: String, firstName: String?, lastName: String?) async {
         lazyList.setLoading(true)
         let isNumber = ContactsViewModel.isNumber(value: contactValue)
@@ -388,7 +376,6 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func onBlockResponse(_ response: ChatResponse<BlockedContactResponse>) async {
         if let result = response.result, let index = contacts.firstIndex(where: { $0.id == result.contact?.id }) {
             contacts[index].blocked = true
@@ -397,7 +384,6 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func onUNBlockResponse(_ response: ChatResponse<BlockedContactResponse>) async {
         if let result = response.result, let index = contacts.firstIndex(where: { $0.id == result.contact?.id }) {
             contacts[index].blocked = false
@@ -434,18 +420,16 @@ public class ContactsViewModel: ObservableObject {
             .compactMap{$0 as? ConversationNavigationValue}
             .compactMap{$0.viewModel}
             .compactMap{$0.historyVM}
-
-        Task { @MainActor in
-            for vm in historyVMS {
-                await vm.getSections()
-                    .compactMap{$0.vms}
-                    .flatMap({$0})
-                    .filter{$0.message.participant?.id == contact.id}
-                    .forEach { viewModel in
-                        viewModel.message.participant?.contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
-                        viewModel.message.participant?.name = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
-                    }
-            }
+        
+        for vm in historyVMS {
+            vm.getSections()
+                .compactMap{$0.vms}
+                .flatMap({$0})
+                .filter{$0.message.participant?.id == contact.id}
+                .forEach { viewModel in
+                    viewModel.message.participant?.contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
+                    viewModel.message.participant?.name = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
+                }
         }
     }
 
@@ -461,12 +445,10 @@ public class ContactsViewModel: ObservableObject {
             animateObjectWillChange()
         }
     }
-
+    
     private func onCancelTimer(_ key: String) {
-        Task { @MainActor in
-            if key.contains("Add-Contact-ContactsViewModel") {
-                lazyList.setLoading(false)
-            }
+        if key.contains("Add-Contact-ContactsViewModel") {
+            lazyList.setLoading(false)
         }
     }
     

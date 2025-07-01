@@ -246,7 +246,6 @@ public final class ImageLoaderViewModel: ObservableObject {
         return nil
     }
     
-    @MainActor
     private func getPaths() -> (images: String, files: String) {
         let podspace = AppState.shared.spec.server.file
         let images = "\(podspace)\(AppState.shared.spec.paths.podspace.download.images)"
@@ -312,7 +311,6 @@ public final class ImageLoaderViewModel: ObservableObject {
         return config.metaData ?? fileMetadata
     }
     
-    @MainActor
     private func setUniqueId(_ uniqueId: String?) async {
         self.uniqueId = uniqueId
     }

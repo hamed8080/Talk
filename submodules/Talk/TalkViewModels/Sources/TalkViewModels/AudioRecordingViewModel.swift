@@ -128,7 +128,6 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         }
     }
 
-    @MainActor
     private func onPermission(granted: Bool) {
         if granted {
             start()

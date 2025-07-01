@@ -10,7 +10,7 @@ import Logger
 import Chat
 import Combine
 
-@HistoryActor
+@MainActor
 final class MiddleHistoryFetcherViewModel {
     private let TO_TIME_KEY: String
     private let FROM_TIME_KEY: String
@@ -25,7 +25,6 @@ final class MiddleHistoryFetcherViewModel {
     private var fromTimeUniqueId: String?
     private var topPartCompleted: Bool = false
     private var bottomPartCompleted: Bool = false
-    @MainActor
     private var cancelable: AnyCancellable?
     private let readOnly: Bool
 
@@ -40,11 +39,10 @@ final class MiddleHistoryFetcherViewModel {
         }
     }
 
-    @MainActor
     private func registerObservers() {
         cancelable = NotificationCenter.message.publisher(for: .message).sink { [weak self] notif in
             if let event = notif.object as? MessageEventTypes {
-                Task { @HistoryActor [weak self] in                    
+                Task { [weak self] in                    
                     await self?.onMessageEvent(event)
                 }
             }
@@ -76,11 +74,11 @@ final class MiddleHistoryFetcherViewModel {
         doRequest(fromTimeRequest, FROM_TIME_KEY)
     }
 
-    func onBottomPart(_ response: ResponseType) async {
-        await processBottomPart(response)
+    func onBottomPart(_ response: ResponseType) {
+        processBottomPart(response)
     }
 
-    private func processBottomPart(_ response: ResponseType) async {
+    private func processBottomPart(_ response: ResponseType) {
         messages.append(contentsOf: response.result ?? [])
         let response = ResponseType(uniqueId: response.uniqueId,
                                     result: messages,

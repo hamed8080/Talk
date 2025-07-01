@@ -20,11 +20,11 @@ public actor DeceleratingBackgroundActor {}
 public final class ThreadScrollingViewModel {
     var task: Task<(), Never>?
     private var isProgramaticallyScroll: Bool = false
-    @HistoryActor public var scrollingUP = false
+    public var scrollingUP = false
     public weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1)}
     public var isAtBottomOfTheList: Bool = false
-    @HistoryActor public var lastContentOffsetY: CGFloat = 0
+    public var lastContentOffsetY: CGFloat = 0
     @DeceleratingActor public var isEndedDecelerating: Bool = true
     init() {}
 
@@ -49,19 +49,18 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) async {
+    public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) {
         if isAtBottomOfTheList || message.isMe(currentUserId: AppState.shared.user?.id), let uniqueId = message.uniqueId {
             disableExcessiveLoading()
             scrollTo(uniqueId, animate: true)
         }
     }
 
-    @HistoryActor
-    public func scrollToLastMessageOnlyIfIsAtBottom() async {
-        let message = await lastMessageOrLastUploadingMessage()
-        if await isAtBottomOfTheList, let uniqueId = message?.uniqueId {
-            await disableExcessiveLoading()
-            await scrollTo(uniqueId, animate: true)
+    public func scrollToLastMessageOnlyIfIsAtBottom() {
+        let message = lastMessageOrLastUploadingMessage()
+        if isAtBottomOfTheList, let uniqueId = message?.uniqueId {
+            disableExcessiveLoading()
+            scrollTo(uniqueId, animate: true)
         }
     }
 
@@ -74,7 +73,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func scrollToLastUploadedMessageWith(_ indexPath: IndexPath) async {
+    public func scrollToLastUploadedMessageWith(_ indexPath: IndexPath) {
         disableExcessiveLoading()
         viewModel?.delegate?.scrollTo(index: indexPath, position: .top, animate: true)
     }
@@ -87,7 +86,7 @@ public final class ThreadScrollingViewModel {
         }
     }
 
-    public func setIsProgramaticallyScrolling(_ newValue: Bool) async {
+    public func setIsProgramaticallyScrolling(_ newValue: Bool) {
         self.isProgramaticallyScroll = newValue
     }
     
@@ -96,7 +95,6 @@ public final class ThreadScrollingViewModel {
         return isProgramaticallyScroll
     }
     
-    @HistoryActor
     public func getIsProgramaticallyScrollingHistoryActor() async -> Bool {
         let isProgramaticallyScroll = await isProgramaticallyScroll
         return isProgramaticallyScroll

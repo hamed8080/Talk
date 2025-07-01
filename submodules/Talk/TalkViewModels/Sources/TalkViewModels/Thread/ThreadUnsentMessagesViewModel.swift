@@ -128,9 +128,7 @@ public final class ThreadUnsentMessagesViewModel {
             }
         case let req as UploadFileMessage:
             // remove unset message type to start upload again the new one.
-            Task { @HistoryActor in
-                await viewModel?.historyVM.removeByUniqueId(req.uniqueId)
-            }
+            viewModel?.historyVM.removeByUniqueId(req.uniqueId)
             if message.isImage, let imageRequest = req.uploadImageRequest {
                 let imageMessage = UploadFileMessage(imageFileRequest: imageRequest, sendTextMessageRequest: req.sendTextMessageRequest, thread: thread)
                 viewModel?.uploadMessagesViewModel.append([imageMessage])

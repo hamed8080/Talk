@@ -10,7 +10,6 @@ import Chat
 
 extension ThreadsViewModel {
 
-    @MainActor
     func setupObservers() async {
         lazyList.objectWillChange.sink { [weak self] _ in
             self?.animateObjectWillChange()
@@ -81,7 +80,6 @@ extension ThreadsViewModel {
             .store(in: &cancelable)
     }
 
-    @MainActor
     func onThreadSystemEvent(_ event: SystemEventTypes) async {
         switch event {
         case .systemMessage(let chatResponse):
@@ -94,7 +92,6 @@ extension ThreadsViewModel {
         }
     }
 
-    @MainActor
     func onParticipantEvent(_ event: ParticipantEventTypes) async {
         switch event {
         case .add(let chatResponse):
@@ -104,7 +101,6 @@ extension ThreadsViewModel {
         }
     }
 
-    @MainActor
     func onThreadEvent(_ event: ThreadEventTypes?) async {
         switch event {
         case .threads(let response):
@@ -161,7 +157,6 @@ extension ThreadsViewModel {
         }
     }
 
-    @MainActor
     func onCallEvent(_ event: CallEventTypes) async {
         switch event {
         case let .callEnded(response):
@@ -175,7 +170,6 @@ extension ThreadsViewModel {
         }
     }
 
-    @MainActor
     func onMessageEvent(_ event: MessageEventTypes) async {
         switch event {
         case .new(let chatResponse):

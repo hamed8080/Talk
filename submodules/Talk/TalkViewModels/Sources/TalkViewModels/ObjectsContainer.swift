@@ -52,17 +52,16 @@ public final class ObjectsContainer: ObservableObject {
         fetchUserProfile(user: user)
     }
 
-    @MainActor
     public func reset() async {
         AppState.shared.clear()
-        await threadsVM.clear()
-        await contactsVM.clear()
+        threadsVM.clear()
+        contactsVM.clear()
         tagsVM.clear()
         tagsVM.getTagList()
         navVM.clear()
         logVM.clearLogs()
         appOverlayVM.clear()
-        await conversationBuilderVM.clear()
+        conversationBuilderVM.clear()
         userProfileImageVM.clear()
     }
 

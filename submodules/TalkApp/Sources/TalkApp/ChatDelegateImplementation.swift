@@ -19,10 +19,8 @@ import SwiftUI
 @MainActor
 public final class ChatDelegateImplementation: ChatDelegate {
     private var retryCount = 0
-    @MainActor
     public private(set) static var sharedInstance = ChatDelegateImplementation()
     
-    @MainActor
     public func initialize() {
         let manager = BundleManager.init()
         if let spec = Spec.cachedSpec(), manager.hasBundle {
@@ -79,7 +77,6 @@ public final class ChatDelegateImplementation: ChatDelegate {
         }
     }
 
-    @MainActor
     func createChatObject() {
         if let userConfig = UserConfigManagerVM.instance.currentUserConfig, let userId = userConfig.id {
             UserConfigManagerVM.instance.createChatObjectAndConnect(userId: userId, config: userConfig.config, delegate: self)
@@ -131,7 +128,6 @@ public final class ChatDelegateImplementation: ChatDelegate {
         }
     }
 
-    @MainActor
     private func onUserEvent(_ event: UserEventTypes) {
         switch event {
         case let .user(response):
@@ -188,7 +184,6 @@ public final class ChatDelegateImplementation: ChatDelegate {
         }
     }
     
-    @MainActor
     public func logout() async {
         AppState.shared.user = nil
         Task { @ChatGlobalActor in

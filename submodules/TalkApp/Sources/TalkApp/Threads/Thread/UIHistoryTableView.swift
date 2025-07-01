@@ -16,7 +16,7 @@ import Logger
 class UIHistoryTableView: UITableView {
     private weak var viewModel: ThreadViewModel?
     private let revealAnimation = RevealAnimation()
-    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sectionsHolder.sections ?? [] }
+    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -73,7 +73,6 @@ extension UIHistoryTableView: UITableViewDataSource {
 // MARK: TableView Delegate
 extension UIHistoryTableView: UITableViewDelegate {
 
-    @MainActor
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard let viewModel = viewModel else { return nil }
         if let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: String(describing: SectionHeaderView.self)) as? SectionHeaderView {
@@ -192,9 +191,7 @@ extension UIHistoryTableView {
     }
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        Task { @HistoryActor [weak self] in
-            await self?.viewModel?.scrollVM.lastContentOffsetY = scrollView.contentOffset.y
-        }
+        viewModel?.scrollVM.lastContentOffsetY = scrollView.contentOffset.y
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = false
         }

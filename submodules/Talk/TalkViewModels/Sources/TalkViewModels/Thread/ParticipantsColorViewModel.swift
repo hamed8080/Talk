@@ -8,7 +8,7 @@
 import UIKit
 import SwiftUI
 
-@HistoryActor
+@AppBackgroundActor
 public final class ParticipantsColorViewModel {
     private var participantsColor: [Int: UIColor] = [:]
     private var reservedColors: [Int] = []

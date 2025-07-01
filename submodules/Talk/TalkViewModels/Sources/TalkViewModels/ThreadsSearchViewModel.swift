@@ -22,7 +22,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
     @Published public var showUnreadConversations: Bool? = nil
     private var cachedAttribute: [String: AttributedString] = [:]
     public var isInSearchMode: Bool { searchText.count > 0 || (!searchedConversations.isEmpty || !searchedContacts.isEmpty) }
-    @MainActor public private(set) var lazyList = LazyListViewModel()
+    public private(set) var lazyList = LazyListViewModel()
     private var objectId = UUID().uuidString
     private let SEARCH_KEY: String
     private let SEARCH_LOAD_MORE_KEY: String
@@ -40,7 +40,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func setupObservers() async {
         lazyList.objectWillChange.sink { [weak self] _ in
             self?.animateObjectWillChange()
@@ -96,13 +95,12 @@ public final class ThreadsSearchViewModel: ObservableObject {
         .store(in: &cancelable)
     }
 
-    @MainActor
     private func onSearchTextChanged(_ newValue: String) async {
         if newValue.first == "@", newValue.count > 2 {
             await reset()
             let startIndex = newValue.index(newValue.startIndex, offsetBy: 1)
             let newString = newValue[startIndex..<newValue.endIndex]
-            await searchPublicThreads(String(newString))
+            searchPublicThreads(String(newString))
         } else if newValue.first != "@" && !newValue.isEmpty {
             await reset()
             await searchThreads(newValue, new: showUnreadConversations)
@@ -112,7 +110,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func onUnreadConversationToggled(_ newValue: Bool?) async {
         if newValue == true {
             await getUnreadConversations()
@@ -121,7 +118,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     public func loadMore() async {
         if await !lazyList.canLoadMore() { return }
         lazyList.prepareForLoadMore()
@@ -158,9 +154,8 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
-    private func searchThreads(_ text: String, new: Bool? = nil, loadMore: Bool = false) async {
-        if await !lazyList.canLoadMore() { return }
+    private func searchThreads(_ text: String, new: Bool? = nil, loadMore: Bool = false) {
+        if !lazyList.canLoadMore() { return }
         lazyList.setLoading(true)
         let req = ThreadsRequest(searchText: text, count: lazyList.count, offset: lazyList.offset, new: new)
         RequestsManager.shared.append(prepend: loadMore ? SEARCH_LOAD_MORE_KEY : SEARCH_KEY, value: req)
@@ -169,9 +164,8 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
-    private func searchPublicThreads(_ text: String) async {
-        if await !lazyList.canLoadMore() { return }
+    private func searchPublicThreads(_ text: String) {
+        if !lazyList.canLoadMore() { return }
         lazyList.setLoading(true)
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, name: text, type: .publicGroup)
         RequestsManager.shared.append(prepend: SEARCH_PUBLIC_THREAD_KEY, value: req)
@@ -180,7 +174,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func onSearch(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_KEY) != nil {
@@ -190,7 +183,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func onSearchLoadMore(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_LOAD_MORE_KEY) != nil {
@@ -200,7 +192,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func onPublicThreadSearch(_ response: ChatResponse<[Conversation]>) async {
         lazyList.setLoading(false)
         if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_PUBLIC_THREAD_KEY) != nil {
@@ -210,7 +201,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
     private func setHasNextOnResponse(_ response: ChatResponse<[Conversation]>) async {
         if !response.cache, response.result?.count ?? 0 > 0 {
             lazyList.setHasNext(response.hasNext)
@@ -246,32 +236,28 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    @MainActor
-    public func closedSearchUI() async {
-        await reset()
+    public func closedSearchUI() {
+        reset()
         searchText = ""
         showUnreadConversations = false
     }
 
-    @MainActor
-    public func reset() async {
+    public func reset() {
         lazyList.reset()
         searchedConversations.removeAll()
         searchedContacts.removeAll()
         cachedAttribute.removeAll()
     }
 
-    @MainActor
-    private func getUnreadConversations() async {
-        await reset()
-        await searchThreads(searchText, new: true)
+    private func getUnreadConversations() {
+        reset()
+        searchThreads(searchText, new: true)
         searchContacts(searchText)
     }
 
-    @MainActor
-    private func resetUnreadConversations() async {
-        await reset()
-        await searchThreads(searchText, new: nil)
+    private func resetUnreadConversations() {
+        reset()
+        searchThreads(searchText, new: nil)
         searchContacts(searchText)
     }
 
@@ -292,11 +278,9 @@ public final class ThreadsSearchViewModel: ObservableObject {
     }
 
     private func onCancelTimer(key: String) {
-        Task { @MainActor in
-            if lazyList.isLoading {
-                lazyList.setLoading(false)
-                animateObjectWillChange()
-            }
+        if lazyList.isLoading {
+            lazyList.setLoading(false)
+            animateObjectWillChange()
         }
     }
     
