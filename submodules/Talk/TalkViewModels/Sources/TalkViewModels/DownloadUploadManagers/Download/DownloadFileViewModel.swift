@@ -6,7 +6,7 @@ import SwiftUI
 
 @MainActor
 public protocol DownloadFileViewModelProtocol {
-    var message: Message? { get }
+    var message: Message { get }
     var fileHashCode: String { get }
     var data: Data? { get }
     var state: DownloadFileState { get }
@@ -27,7 +27,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     
     public var fileHashCode: String = ""
     var uniqueId: String = ""
-    public var message: Message?
+    public let message: Message
     private var cancellableSet: Set<AnyCancellable> = .init()
     public var fileURL: URL? = nil
     public var url: URL? = nil
@@ -40,14 +40,27 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         thumbnailVM = .init()
         setObservers()
         Task { @AppBackgroundActor in
-            let url = await message.url
-            let fileURL = await message.fileURL
-            let fileHashCode = await message.fileHashCode
-            await MainActor.run {
-                self.url = url
-                self.fileURL = fileURL
-                self.fileHashCode = fileHashCode
-            }
+            await prepare()
+        }
+    }
+    
+    public init(message: Message) async {
+        self.message = message
+        thumbnailVM = .init()
+        setObservers()
+        await prepare()
+        await setup()
+    }
+    
+    @AppBackgroundActor
+    private func prepare() async {
+        let url = await message.url
+        let fileURL = await message.fileURL
+        let fileHashCode = await message.fileHashCode
+        await MainActor.run {
+            self.url = url
+            self.fileURL = fileURL
+            self.fileHashCode = fileHashCode
         }
     }
 
@@ -111,7 +124,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 
     public func startDownload() {
         if isInCache { return }
-        if message?.isImage == true {
+        if message.isImage == true {
             downloadImage()
         } else {
             downloadFile()
@@ -124,7 +137,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             guard let self = self else { return }
             let fileHashCode = await getHashCode()
             state = .downloading
-            let req = FileRequest(hashCode: fileHashCode, conversationId: message?.threadId ?? message?.conversation?.id)
+            let req = FileRequest(hashCode: fileHashCode, conversationId: message.threadId ?? message.conversation?.id)
             uniqueId = req.uniqueId
             RequestsManager.shared.append(value: req, autoCancel: false)
             Task { @ChatGlobalActor in
@@ -140,7 +153,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             guard let self = self else { return }
             let fileHashCode = await getHashCode()
             state = .downloading
-            let req = ImageRequest(hashCode: fileHashCode, size: .ACTUAL, conversationId: message?.threadId ?? message?.conversation?.id)
+            let req = ImageRequest(hashCode: fileHashCode, size: .ACTUAL, conversationId: message.threadId ?? message.conversation?.id)
             uniqueId = req.uniqueId
             RequestsManager.shared.append(value: req, autoCancel: false)
             Task { @ChatGlobalActor in
@@ -152,7 +165,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
     public func downloadBlurImage(quality: Float = 0.02, size: ImageSize = .SMALL) {
-        guard let threadId = message?.threadId ?? message?.conversation?.id else { return }
+        guard let threadId = message.threadId ?? message.conversation?.id else { return }
         state = .thumbnailDownloaing
         let message = message
         Task { @AppBackgroundActor [weak self] in
@@ -176,7 +189,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             return fileHashCode
         } else {
             let copied = await message
-            return copied?.fileHashCode ?? ""
+            return copied.fileHashCode ?? ""
         }
     }
 
@@ -198,7 +211,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     private func setData(data: Data?) {
-        guard let filePath = fileURL, !isConverting, let message = message else { return }
+        guard let filePath = fileURL, !isConverting else { return }
         Task { [weak self] in
             guard let self = self else { return }
             let isVoice = message.type == .podSpaceVoice || message.type == .voice
@@ -286,6 +299,13 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         let uniqueId = uniqueId
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .resume)
+        }
+    }
+    
+    public func cancelDownload() {
+        let uniqueId = uniqueId
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .cancel)
         }
     }
 

@@ -101,7 +101,7 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     }
 
     public func downloadVM(message: Message) -> DownloadFileViewModel {
-        if let localVM = downloadVMS.first(where: {$0.message?.id == message.id}) {
+        if let localVM = downloadVMS.first(where: {$0.message.id == message.id}) {
             return localVM
         } else {
             let newDownloadVM = DownloadFileViewModel(message: message)

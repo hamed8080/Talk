@@ -53,7 +53,7 @@ public final class DownloadFileManager {
     }
 
     public func viewModel(for messageId: Int) -> DownloadFileViewModel? {
-        downloadVMS.first(where: {$0.message?.id == messageId})
+        downloadVMS.first(where: {$0.message.id == messageId})
     }
 
     public func isContains(_ message: HistoryMessageType) -> Bool {
@@ -127,7 +127,7 @@ public final class DownloadFileManager {
     }
 
     private func unRegister(messageId: Int) {
-        downloadVMS.removeAll(where: {$0.message?.id == messageId})
+        downloadVMS.removeAll(where: {$0.message.id == messageId})
     }
 
     private func blurImage(vm: DownloadFileViewModel) -> UIImage? {
@@ -227,7 +227,7 @@ public final class DownloadFileManager {
     }
 
     private func getIconState(vm: DownloadFileViewModel) -> String {
-        if let iconName = vm.message?.iconName, vm.state == .completed {
+        if let iconName = vm.message.iconName, vm.state == .completed {
             return iconName
         } else if vm.state == .downloading {
             return "pause.fill"
