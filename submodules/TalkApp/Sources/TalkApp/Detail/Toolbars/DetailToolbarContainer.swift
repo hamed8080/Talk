@@ -14,7 +14,9 @@ struct DetailToolbarContainer: View {
     var body: some View {
         VStack(spacing: 0) {
             let type = viewModel.thread?.type
-            let typeKey = type == .normal ? "General.contact" : type?.isChannelType == true ? "Thread.channel" : "Thread.group"
+            let isChannel = type?.isChannelType == true
+            let isGroup = type == .channelGroup || type == .ownerGroup || type == .publicGroup || viewModel.thread?.group == true && !isChannel
+            let typeKey = isGroup ? "Thread.group" : isChannel ? "Thread.channel" : "General.contact"
             ToolbarView(searchId: "DetailView",
                         title: "\("General.info".bundleLocalized()) \(typeKey.bundleLocalized())",
                         showSearchButton: false,
