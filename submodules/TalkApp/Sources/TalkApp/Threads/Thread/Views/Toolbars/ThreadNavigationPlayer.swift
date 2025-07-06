@@ -22,6 +22,7 @@ class ThreadNavigationPlayer: UIView {
     private let progress = UIProgressView(progressViewStyle: .bar)
     private weak var viewModel: ThreadViewModel?
     private var cancellableSet = Set<AnyCancellable>()
+    private var swapPlayerCancellable: AnyCancellable?
     private var playerVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
     weak var stack: UIStackView?
 
@@ -29,6 +30,7 @@ class ThreadNavigationPlayer: UIView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
+        registerSwapAudioNotification()
     }
 
     required init(coder: NSCoder) {
@@ -141,36 +143,50 @@ class ThreadNavigationPlayer: UIView {
 
     private func close() {
         removeFromSuperViewWithAnimation()
-        playerVM.close()
+        playerVM.pause()
     }
-
+    
+    private func registerSwapAudioNotification() {
+        swapPlayerCancellable = NotificationCenter.default.publisher(for: Notification.Name("SWAP_PLAYER")).sink { [weak self] notif in
+            self?.unregister()
+            self?.register()
+        }
+    }
+    
     public func register() {
-        show(show: playerVM.isClosed != true)
-        playerVM.$isPlaying.sink { [weak self] isPlaying in
+        guard let item = playerVM.item else {
+            show(show: false)
+            return
+        }
+        titleLabel.text = item.title
+        show(show: !item.isFinished)
+        
+        item.$isPlaying.sink { [weak self] isPlaying in
             let image = isPlaying ? "pause.fill" : "play.fill"
             self?.playButton.imageView.image = UIImage(systemName: image)
         }
         .store(in: &cancellableSet)
 
-        playerVM.$title.sink { [weak self] title in
-            self?.titleLabel.text = title
-            self?.animate()
-        }
-        .store(in: &cancellableSet)
-
-        playerVM.$currentTime.sink { [weak self] currentTime in
+        item.$currentTime.sink { [weak self] currentTime in
             guard let self = self else { return }
             timerLabel.text = currentTime.timerString(locale: Language.preferredLocale) ?? ""
-            let progress = Float(max(currentTime, 0.0) / playerVM.duration)
+            let progress = Float(max(currentTime, 0.0) / item.duration)
             self.progress.progress = progress.isNaN ? 0.0 : progress
             animate()
         }
         .store(in: &cancellableSet)
 
-        playerVM.$isClosed.sink { [weak self] closed in
+        item.$isFinished.sink { [weak self] closed in
             self?.show(show: !closed)
         }
         .store(in: &cancellableSet)
+    }
+    
+    public func unregister() {
+        cancellableSet.forEach { cancellable in
+            cancellable.cancel()
+        }
+        cancellableSet.removeAll()
     }
 
     private func animate() {

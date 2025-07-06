@@ -74,7 +74,7 @@ final class MessageAudioView: UIView {
         fileNameLabel.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         fileNameLabel.isOpaque = true
         addSubview(fileNameLabel)
-
+        
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
         fileSizeLabel.font = UIFont.fBoldCaption
         fileSizeLabel.textAlignment = .left
@@ -109,7 +109,11 @@ final class MessageAudioView: UIView {
         addSubview(playbackSpeedButton)
         
         waveView.onSeek = { [weak self] to in
-            self?.audioVM.seek(to)
+            guard let self = self else { return }
+            viewModel?.calMessage.avPlayerItem?.currentTime = to * (viewModel?.calMessage.avPlayerItem?.duration ?? 0)
+            if audioVM.item?.messageId == viewModel?.calMessage.avPlayerItem?.messageId {
+                audioVM.seek(to)
+            }
         }
         fileNameHeightConstraint = fileNameLabel.heightAnchor.constraint(equalToConstant: 42)
         fileNameHeightConstraint?.isActive = true
@@ -150,7 +154,6 @@ final class MessageAudioView: UIView {
         } else {
             playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -margin).isActive = true
         }
-        registerObservers()
     }
     
     public func set(_ viewModel: MessageRowViewModel) {
@@ -161,27 +164,36 @@ final class MessageAudioView: UIView {
         fileNameLabel.text = viewModel.calMessage.fileName
         fileNameLabel.isHidden = viewModel.message.type == .voice || viewModel.message.type == .podSpaceVoice
         fileNameHeightConstraint?.constant = fileNameLabel.isHidden ? 0 : 42
-        waveView.setImage(to: viewModel.calMessage.waveForm)
-        timeLabel.text = audioTimerString()
+        waveView.setPlaybackProgress(Double(viewModel.calMessage.avPlayerItem?.progress ?? 0.0))
+        waveView.setImage(to: viewModel.calMessage.avPlayerItem?.waveFormImage)
+        timeLabel.text = viewModel.calMessage.avPlayerItem?.audioTimerString()
+        
+        /// If the user started the music/voice from the tabs inside the thread info.
+        if audioVM.item?.uniqueId != viewModel.calMessage.avPlayerItem?.uniqueId, audioVM.item?.messageId == viewModel.calMessage.avPlayerItem?.messageId {
+            unregisterObservers()
+            viewModel.calMessage.avPlayerItem = audioVM.item
+            waveView.setPlaybackProgress(Double(viewModel.calMessage.avPlayerItem?.progress ?? 0.0))
+            registerObservers()
+        } else {
+            unregisterObservers()
+            registerObservers()
+        }
     }
     
     @objc private func onTap(_ sender: UIGestureRecognizer) {
         viewModel?.onTap()
-        if isSameFile {
-            if let viewModel = viewModel {
-                updateProgress(viewModel: viewModel)
-            }
+        if let viewModel = viewModel {
+            updateProgress(viewModel: viewModel)
         }
     }
     
     @objc private func onPlaybackSpeedTapped(_ sender: UIGestureRecognizer) {
         playbackSpeed = playbackSpeed.increase()
         playbackSpeedButton.setTitle(playbackSpeed.string(), for: .normal)
-        audioVM.setPlayback(playbackSpeed.rawValue)
+        audioVM.setPlaybackSpeed(playbackSpeed.rawValue)
     }
     
     private func onPlayingStateChanged(_ isPlaying: Bool) {
-        guard isSameFile else { return }
         let image = isPlaying ? "pause.fill" : "play.fill"
         progressButton.animate(to: 1.0, systemIconName: image)
         progressButton.setProgressVisibility(visible: false)
@@ -189,15 +201,13 @@ final class MessageAudioView: UIView {
         playbackSpeedButton.isHidden = !isPlaying
     }
     
-    private func onTimeChanged() {
-        guard isSameFile else { return }
-        waveView.setPlaybackProgress(progress)
-        self.timeLabel.text = audioTimerString()
+    private func onTimeChanged(_ time: Double) {
+        guard let item = viewModel?.calMessage.avPlayerItem else { return }
+        waveView.setPlaybackProgress(item.progress)
+        self.timeLabel.text = item.audioTimerString()
     }
     
-    private func onClosed(_ closed: Bool) {
-        if closed, isSameFile {}
-    }
+    private func onClosed(_ closed: Bool) {}
     
     public func updateProgress(viewModel: MessageRowViewModel) {
         let progress = viewModel.fileState.progress
@@ -215,10 +225,10 @@ final class MessageAudioView: UIView {
     }
     
     private func calculateWaveform(viewModel: MessageRowViewModel) {
-        if viewModel.calMessage.waveForm == nil {
+        if viewModel.calMessage.avPlayerItem?.waveFormImage == nil {
             Task {
                 await viewModel.recalculate(mainData: viewModel.getMainData())
-                waveView.setImage(to: viewModel.calMessage.waveForm)
+                waveView.setImage(to: viewModel.calMessage.avPlayerItem?.waveFormImage)
             }
         }
     }
@@ -233,78 +243,44 @@ final class MessageAudioView: UIView {
         viewModel?.fileState.state == .downloading || viewModel?.fileState.isUploading == true
     }
     
-    var isSameFile: Bool {
-        if audioVM.fileURL == nil { return true } // It means it has never played a audio.
-        if isSameFileConverted { return true }
-        let furl = viewModel?.calMessage.fileURL
-        return furl != nil && audioVM.fileURL?.absoluteString == furl?.absoluteString
-    }
-    
-    var isSameFileConverted: Bool {
-        message?.convertedFileURL != nil && audioVM.fileURL?.absoluteString == message?.convertedFileURL?.absoluteString
-    }
-    
-    var progress: CGFloat {
-        isSameFile ? min(audioVM.currentTime / audioVM.duration, 1.0) : 0
-    }
-    
     func registerObservers() {
-        audioVM.$currentTime.sink { [weak self] time in
-            self?.onTimeChanged()
+        guard let item = viewModel?.calMessage.avPlayerItem else { return }
+        item.$currentTime.sink { [weak self] time in
+            self?.onTimeChanged(time)
         }
         .store(in: &cancellableSet)
         
-        audioVM.$isPlaying.sink { [weak self] isPlaying in
+        item.$isPlaying.sink { [weak self] isPlaying in
             self?.onPlayingStateChanged(isPlaying)
         }
         .store(in: &cancellableSet)
         
-        audioVM.$isClosed.sink { [weak self] closed in
+        item.$isFinished.sink { [weak self] closed in
             self?.onClosed(closed)
         }
         .store(in: &cancellableSet)
     }
     
-    private func audioTimerString() -> String {
-        let duration = (viewModel?.calMessage.voiceDuration ?? 0).timerString(locale: Language.preferredLocale) ?? " "
-        let currentTime = audioVM.currentTime.timerString(locale: Language.preferredLocale) ?? " "
-        return isSameFile ? "\(currentTime) / \(duration)" : " "
+    private func unregisterObservers() {
+        cancellableSet.forEach { cancellable in
+            cancellable.cancel()
+        }
+        cancellableSet.removeAll()
     }
     
     var playingIcon: String {
-        if !isSameFile { return "play.fill" }
-        return audioVM.isPlaying ? "pause.fill" : "play.fill"
+        guard let item = viewModel?.calMessage.avPlayerItem else { return "play.fill" }
+        return item.isPlaying ? "pause.fill" : "play.fill"
     }
     
     private func setAudioDurationAndWaveform() {
-        guard let fileURL = viewModel?.calMessage.fileURL,
-              let message = viewModel?.message,
-              let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL() else { return }
-        setAudioDuration(url: url)
-        createWaveform(url: url, message: message)
-    }
-    
-    private func setAudioDuration(url: URL) {
-        viewModel?.calMessage.voiceDuration = voiceDuration(url)
-        timeLabel.text = audioTimerString()
-    }
-    
-    private func createWaveform(url: URL, message: HistoryMessageType) {
-        if viewModel?.calMessage.waveForm != nil { return }
-        Task { [weak self] in
-            let waveImage = try? await WaveformGenerator(url: url).generate()
-            await self?.viewModel?.calMessage.waveForm = waveImage
-            
-            /// Update the UI after creating the wave view and calculating the voice duration
-            if let viewModel = await self?.viewModel {
-                self?.waveView.setImage(to: viewModel.calMessage.waveForm)
-            }
+        guard let audioURL = viewModel?.calMessage.avPlayerItem?.fileURL,
+              let message = viewModel?.message else { return }
+        timeLabel.text = viewModel?.calMessage.avPlayerItem?.audioTimerString()
+        Task {
+            let image = await viewModel?.calMessage.avPlayerItem?.createWaveform()
+            waveView.setImage(to: image)
         }
-    }
-    
-    private func voiceDuration(_ fileURL: URL) -> Double {
-        let asset = AVAsset(url: fileURL)
-        return Double(CMTimeGetSeconds(asset.duration))
     }
 }
 

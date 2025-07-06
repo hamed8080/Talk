@@ -41,10 +41,8 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var isLastMessageOfTheUser: Bool = false
     public var canShowIconFile: Bool = false
     public var groupMessageParticipantName: String?
+    public var avPlayerItem: AVAudioPlayerItem?
     public var canEdit: Bool = false
-    /// Store only once the row is on the screen and save it for later use
-    public var waveForm: UIImage?
-    public var voiceDuration: Double?
     // Disk file path
     public var fileURL: URL?
 //    public var textLayer: CATextLayer?

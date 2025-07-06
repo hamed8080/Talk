@@ -14,6 +14,7 @@ struct ConversationTopSafeAreaInset: View {
     @EnvironmentObject var threadsVM: ThreadsViewModel
     private var container: ObjectsContainer { AppState.shared.objectsContainer }
     @State private var isInSearchMode: Bool = false
+    @State private var item: AVAudioPlayerItem?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,8 +28,9 @@ struct ConversationTopSafeAreaInset: View {
             ThreadListSearchBarFilterView(isInSearchMode: $isInSearchMode)
                 .background(MixMaterialBackground())
                 .environmentObject(container.searchVM)
-            if AppState.isInSlimMode {
+            if AppState.isInSlimMode, let item = item {
                 AudioPlayerView()
+                    .environmentObject(item)
             }
             ThreadSearchView()
                 .environmentObject(container.searchVM)
@@ -40,6 +42,11 @@ struct ConversationTopSafeAreaInset: View {
         .onReceive(NotificationCenter.cancelSearch.publisher(for: .cancelSearch)) { newValue in
             if let cancelSearch = newValue.object as? Bool, cancelSearch == true, cancelSearch && isInSearchMode {
                 isInSearchMode.toggle()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("SWAP_PLAYER"))) { notif in
+            if let item = notif.object as? AVAudioPlayerItem {
+                self.item = item
             }
         }
     }

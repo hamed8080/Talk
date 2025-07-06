@@ -15,6 +15,7 @@ public struct AudioPlayerView: View {
     @State private var playIsPressing = false
     @State private var isPressing = false
     @State private var titleIsPressing = false
+    @EnvironmentObject private var item: AVAudioPlayerItem
 
     public init(threadVM: ThreadViewModel? = nil){
         self.threadVM = threadVM
@@ -22,7 +23,7 @@ public struct AudioPlayerView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            if !audioPlayerVM.isClosed {
+            if !isFinished {
                 HStack() {
                     playButtonView
                     messageTitleView
@@ -34,14 +35,14 @@ public struct AudioPlayerView: View {
                 progressView
             }
         }
-        .frame(height: audioPlayerVM.isClosed ? 0 : 40)
+        .frame(height: isFinished ? 0 : 40)
         .frame(minWidth: 0, maxWidth: .infinity)
         .clipped()
         .background(MixMaterialBackground())
         .transition(.asymmetric(insertion: .push(from: .top), removal: .move(edge: .top)))
-        .animation(.easeInOut(duration: 0.15), value: audioPlayerVM.isPlaying)
-        .animation(.easeInOut(duration: 0.15), value: audioPlayerVM.isClosed)
-        .disabled(audioPlayerVM.isClosed)
+        .animation(.easeInOut(duration: 0.15), value: item.isPlaying == true)
+        .animation(.easeInOut(duration: 0.15), value: isFinished)
+        .disabled(isFinished)
         .onTapGesture {
             Task {
                 guard let message = audioPlayerVM.message, let time = message.time, let id = message.id else { return }
@@ -71,13 +72,14 @@ public struct AudioPlayerView: View {
             .scaledToFit()
             .foregroundStyle(Color.App.textSecondary)
             .fontWeight(.bold)
-            .padding(audioPlayerVM.isClosed ? 0 : 12)
+            .padding(isFinished ? 0 : 12)
             .clipShape(Rectangle())
             .opacity(isPressing ? 0.5 : 1.0)
             .contentShape(Rectangle())
-            .disabled(audioPlayerVM.isClosed)
+            .disabled(isFinished)
             .onTapGesture {
                 withAnimation {
+                    audioPlayerVM.pause()
                     audioPlayerVM.close()
                 }
             }
@@ -94,13 +96,13 @@ public struct AudioPlayerView: View {
     }
 
     private var playButtonView: some View {
-        Image(systemName: audioPlayerVM.isPlaying ? "pause.fill" : "play.fill")
+        Image(systemName: item.isPlaying == true ? "pause.fill" : "play.fill")
             .resizable()
             .scaledToFit()
             .offset(x: -8)
             .foregroundStyle(Color.App.accent)
             .fontWeight(.bold)
-            .padding(audioPlayerVM.isClosed ? 0 : 12)
+            .padding(isFinished ? 0 : 12)
             .clipShape(Rectangle())
             .opacity(playIsPressing ? 0.5 : 1.0)
             .contentShape(Rectangle())
@@ -122,7 +124,7 @@ public struct AudioPlayerView: View {
     }
 
     private var progressView: some View {
-        ProgressView(value: min(audioPlayerVM.currentTime / audioPlayerVM.duration, 1.0),
+        ProgressView(value: min((item.currentTime ?? 0) / (item.duration ?? 0.0), 1.0),
                      total: 1.0)
         .progressViewStyle(.linear)
         .scaleEffect(x: 1, y: 0.5, anchor: .center)
@@ -131,7 +133,7 @@ public struct AudioPlayerView: View {
     }
 
     private var messageTitleView: some View {
-        Text(verbatim: audioPlayerVM.title)
+        Text(verbatim: item.title ?? "")
             .font(.fCaption)
             .foregroundColor(Color.App.textPrimary)
             .opacity(titleIsPressing ? 0.5 : 1.0)
@@ -141,12 +143,19 @@ public struct AudioPlayerView: View {
 
     @ViewBuilder
     private var timerView: some View {
-        if !audioPlayerVM.isClosed {
-            Text(verbatim: audioPlayerVM.currentTime.timerString(locale: Language.preferredLocale) ?? "")
+        if !isFinished {
+            Text(verbatim: item.currentTime.timerString(locale: Language.preferredLocale) ?? "")
                 .foregroundColor(.gray)
                 .font(.fCaption2)
                 .disabled(true)
         }
+    }
+    
+    private var isFinished: Bool {
+        if audioPlayerVM.item == nil {
+            return true
+        }
+        return item.isFinished == true
     }
 }
 
@@ -158,8 +167,14 @@ struct AudioPlayerPreview: PreviewProvider {
             AudioPlayerView()
                 .environmentObject(audioPlayerVm)
                 .onAppear {
-                    try? audioPlayerVm.setup(fileURL: URL(string: "https://www.google.com")!, ext: "mp3", title: "Note", subtitle: "Test")
-                    audioPlayerVm.isClosed = false
+                    try? audioPlayerVm.setup(item: .init(messageId: 1,
+                                                         duration: 10.0,
+                                                         fileURL: URL(string: "https://www.google.com")!,
+                                                         ext: "mp3",
+                                                         title: "Note",
+                                                         subtitle: "Test"),
+                                             message: .init()
+                    )
                 }
         }
     }

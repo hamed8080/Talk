@@ -141,30 +141,25 @@ struct DownloadedMusicPlayer: View {
     let message: Message
     let fileURL: URL
     @EnvironmentObject var viewModel: AVAudioPlayerViewModel
-    /// Because of shared AVAudioPlayerViewModel we have to check that the file is the same.
-    /// There are cases where we can play more than one audio and pause them. In these situations, progress should be checked.
-    var isSameFile: Bool { viewModel.fileURL?.absoluteString == fileURL.absoluteString }
-    @State var failed = false
+    @State private var item: AVAudioPlayerItem?
 
     var icon: String {
-        if failed {
+        if item?.failed == true {
             return "exclamationmark.circle.fill"
         } else {
-            return viewModel.isPlaying && isSameFile ? "pause.fill" : "play.fill"
+            return item?.isPlaying == true ? "pause.fill" : "play.fill"
         }
     }
 
     var body: some View {
         Button {
-            do {
-                try viewModel.setup(message: message,
-                                fileURL: fileURL,
-                                ext: message.fileMetaData?.file?.mimeType?.ext,
-                                title: message.fileMetaData?.name,
-                                subtitle: message.fileMetaData?.file?.originalName ?? "")
-                viewModel.toggle()
-            } catch {
-                failed = true
+            if let item = item {
+                do {
+                    try viewModel.setup(item: item, message: message)
+                    viewModel.toggle()
+                } catch {
+                    
+                }
             }
         } label: {
             ZStack {
@@ -174,21 +169,38 @@ struct DownloadedMusicPlayer: View {
                     .frame(width: 12, height: 12)
                     .foregroundStyle(Color.App.textPrimary)
 
-                Circle()
-                    .trim(from: 0.0, to: isSameFile ? min(viewModel.currentTime / viewModel.duration, 1.0) : 0)
-                    .stroke(style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-                    .frame(width: 28, height: 28)
-                    .foregroundStyle(Color.App.textPrimary)
-                    .rotationEffect(Angle(degrees: 270))
-                    .environment(\.layoutDirection, .leftToRight)
+                if let item = item {
+                    PlayingCircleStatus(item: item)
+                }
             }
             .frame(width: 36, height: 36)
-            .background(failed ? Color.App.red : Color.App.accent)
+            .background(item?.failed == true ? Color.App.red : Color.App.accent)
             .clipShape(RoundedRectangle(cornerRadius: 22))
             .contentShape(Rectangle())
         }
         .frame(width: 48, height: 48)
         .padding(4)
+        .task { @AppBackgroundActor in
+            if let url = await MessageRowCalculators.getFileURL(serverURL: message.url) {
+                let item = await MessageRowCalculators.calculatePlayerItem(url, message.fileMetaData, message)
+                await MainActor.run {
+                    self.item = item
+                }
+            }
+        }
+    }
+}
+
+fileprivate struct PlayingCircleStatus: View {
+    @ObservedObject var item: AVAudioPlayerItem
+    var body: some View {
+        Circle()
+            .trim(from: 0.0, to: min(item.currentTime / item.duration, 1.0))
+            .stroke(style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+            .frame(width: 28, height: 28)
+            .foregroundStyle(Color.App.textPrimary)
+            .rotationEffect(Angle(degrees: 270))
+            .environment(\.layoutDirection, .leftToRight)
     }
 }
 

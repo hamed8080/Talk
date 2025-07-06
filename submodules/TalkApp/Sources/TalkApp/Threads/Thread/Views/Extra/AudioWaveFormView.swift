@@ -24,6 +24,7 @@ public class AudioWaveFormView: UIView {
     
     // Sizes
     private let margin: CGFloat = 6
+    private var topImageViewConstant: NSLayoutConstraint?
     
     public init() {
         super.init(frame: .zero)
@@ -38,7 +39,7 @@ public class AudioWaveFormView: UIView {
         waveImageView.translatesAutoresizingMaskIntoConstraints = false
         waveImageView.isUserInteractionEnabled = true
         waveImageView.accessibilityIdentifier = "waveImageViewMessageAudioView"
-        waveImageView.layer.opacity = 0.2
+        waveImageView.layer.opacity = 0.4
         waveImageView.contentMode = .scaleAspectFit
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(onDragOverWaveform))
         gesture.maximumNumberOfTouches = 1
@@ -53,11 +54,12 @@ public class AudioWaveFormView: UIView {
         playbackWaveformImageView.contentMode = .scaleAspectFit
         addSubview(playbackWaveformImageView)
         bringSubviewToFront(playbackWaveformImageView)
-        
+   
+        topImageViewConstant = waveImageView.topAnchor.constraint(equalTo: topAnchor, constant: 0)
+        topImageViewConstant?.isActive = true
         NSLayoutConstraint.activate([
             waveImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             waveImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            waveImageView.topAnchor.constraint(equalTo: topAnchor),
             waveImageView.heightAnchor.constraint(equalToConstant: 42),
                         
             playbackWaveformImageView.heightAnchor.constraint(equalTo: waveImageView.heightAnchor),
@@ -88,6 +90,8 @@ public class AudioWaveFormView: UIView {
     public func setPlaybackProgress(_ progress: Double) {
         if !isSeeking {
             animateMaskLayer(newPath: createPath(progress))
+        } else {
+            maskLayer.removeAnimation(forKey: "pathAnimation")
         }
     }
     
@@ -99,6 +103,7 @@ public class AudioWaveFormView: UIView {
     }
     
     @objc private func onDragOverWaveform(_ sender: UIPanGestureRecognizer) {
+        maskLayer.removeAllAnimations()
         let to: Double = sender.location(in: sender.view).x / waveImageView.frame.size.width
         let path = createPath(to)
         
@@ -122,5 +127,10 @@ public class AudioWaveFormView: UIView {
         } else {
             waveImageView.image = prerenderImage
         }
+    }
+    
+    public func setTopConstant(value: CGFloat) {
+        topImageViewConstant?.constant = value
+        setNeedsLayout()
     }
 }

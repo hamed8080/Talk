@@ -96,10 +96,6 @@ private struct Preview: View {
                     for thread in MockData.generateThreads(count: 5) {
                         await container.threadsVM.calculateAppendSortAnimate(thread)
                     }
-                    if let fileURL = Language.rootBundle?.url(forResource: "new_message", withExtension: "mp3") {
-                        try? container.audioPlayerVM.setup(fileURL: fileURL, ext: "mp3", title: "Note")
-                        container.audioPlayerVM.toggle()
-                    }
                 }
         }
     }
@@ -107,14 +103,22 @@ private struct Preview: View {
 
 struct ThreadContentList_Previews: PreviewProvider {
     struct AudioPlayerPreview: View {
-        @ObservedObject var audioPlayerVm = AVAudioPlayerViewModel()
+        @ObservedObject var audioPlayerVM = AVAudioPlayerViewModel()
 
         var body: some View {
             AudioPlayerView()
-                .environmentObject(audioPlayerVm)
+                .environmentObject(audioPlayerVM)
                 .onAppear {
-                    try? audioPlayerVm.setup(fileURL: URL(string: "https://www.google.com")!, ext: "mp3", title: "Note", subtitle: "Test")
-                    audioPlayerVm.isClosed = false
+                    if let fileURL = Language.rootBundle?.url(forResource: "new_message", withExtension: "mp3") {
+                        let item = AVAudioPlayerItem(messageId: 1,
+                                                     duration: 2.0,
+                                                     fileURL: fileURL,
+                                                     ext: "mp3",
+                                                     title: "Note")
+                        try? audioPlayerVM.setup(item: item)
+                        audioPlayerVM.toggle()
+                    }
+                    audioPlayerVM.item?.isFinished = false
                 }
         }
     }
