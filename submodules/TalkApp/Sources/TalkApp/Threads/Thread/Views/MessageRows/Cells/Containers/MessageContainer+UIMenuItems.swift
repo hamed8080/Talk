@@ -271,6 +271,7 @@ private extension MessageContainerStackView {
         Task {
             if let threadVM = model.threadVM {
                 model.viewModel.calMessage.state.isSelected = true
+                model.viewModel.threadVM?.selectedMessagesViewModel.add(model.viewModel)
                 let deleteVM = DeleteMessagesViewModelModel()
                 await deleteVM.setup(viewModel: threadVM)
                 let dialog = DeleteMessageDialog(viewModel: deleteVM)
