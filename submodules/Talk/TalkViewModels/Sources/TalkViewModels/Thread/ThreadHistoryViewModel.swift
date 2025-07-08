@@ -406,6 +406,12 @@ extension ThreadHistoryViewModel {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
         var viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
+        viewModels.forEach { vm in
+            if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
+                vm.calMessage.state.isSelected = true
+            }
+        }
         
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
@@ -500,6 +506,12 @@ extension ThreadHistoryViewModel {
         let messages = response.result ?? []
         let sortedMessages = messages.sortedByTime()
         var viewModels = await makeCalculateViewModelsFor(sortedMessages)
+        let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
+        viewModels.forEach { vm in
+            if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
+                vm.calMessage.state.isSelected = true
+            }
+        }
 
         await waitingToFinishDecelerating()
         await waitingToFinishUpdating()
