@@ -222,12 +222,13 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if response.result != nil, response.error == nil, let index = archives.firstIndex(where: {$0.id == response.result}) {
             var conversation = archives[index]
             conversation.isArchive = false
-            conversation.mute = nil
+            conversation.mute = false
             archives.remove(at: index)
             let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
             threadsVM.threads.append(calThreads)
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
+            calThreads.animateObjectWillChange()
             animateObjectWillChange()
         }
     }

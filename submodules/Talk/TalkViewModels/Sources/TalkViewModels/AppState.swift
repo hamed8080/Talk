@@ -205,6 +205,8 @@ extension AppState {
     }
     
     public func openSelfThread() {
+        /// We cannot use saved self conversation in UserDefaults, dut to the fact that it has old lastMessageVO
+        /// so on opening the conversation it will scroll to nowhere.
         selfThreadBuilder = SelfThreadBuilder()
         selfThreadBuilder?.create { [weak self] conversation in
             self?.showThread(conversation)

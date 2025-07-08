@@ -25,6 +25,7 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var userProfileImageVM: ImageLoaderViewModel!
     @Published public var pendingManager = PendingManager()
     @Published public var sizeClassObserver = SizeClassObserver()
+    public let selfConversationBuilder = SelfThreadBuilder()
     public var chatRequestQueue = ChatRequestQueue()
 
     /// As a result of a bug in the SwiftUI sheet where it can't release the memory, we have to keep a global object and rest its values to default to prevent memory leak unless we end up not receiving server messages.

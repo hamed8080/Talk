@@ -33,6 +33,8 @@ public class SelfThreadBuilder {
 
     private func onCreated(_ response: ChatResponse<Conversation>) {
         guard response.pop(prepend: id) != nil, let conversation = response.result, conversation.type == .selfThread else { return }
+        UserDefaults.standard.setValue(codable: conversation, forKey: "SELF_THREAD")
+        UserDefaults.standard.synchronize()
         completion?(conversation)
     }
 
@@ -43,11 +45,21 @@ public class SelfThreadBuilder {
                 self?.onThreadEvent(event)
             }
             .store(in: &cancelable)
+        
+        AppState.shared.$connectionStatus.sink { [weak self]  newState in
+            if newState == .connected, self?.cachedSlefConversation  == nil {
+                self?.create()
+            }
+        }.store(in: &cancelable)
     }
 
     private func onThreadEvent(_ event: ThreadEventTypes?) {
         if case .created(let response) = event {
             onCreated(response)
         }
+    }
+    
+    public var cachedSlefConversation: Conversation? {
+        return UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
     }
 }
