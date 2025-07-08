@@ -21,6 +21,16 @@
 		AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC7408932D777A81009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408922D777A81009217C8 /* TalkApp */; };
 		AC7408952D777A86009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408942D777A86009217C8 /* TalkApp */; };
+		AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */; };
+		AC90FBA72E1C2D4000890CDA /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA62E1C2D4000890CDA /* TalkApp */; };
+		AC90FBA82E1C2D9100890CDA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */; };
+		AC90FBAA2E1C2DA000890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */; };
+		AC90FBAC2E1C2DA500890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBAB2E1C2DA500890CDA /* LeitnerBoxApp */; };
+		AC90FBAD2E1C2EAB00890CDA /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
+		AC90FBAE2E1C2EB200890CDA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
+		AC90FBB02E1C2ED500890CDA /* Talk.docc in Sources */ = {isa = PBXBuildFile; fileRef = 0506DE1E2AD42AF00009701E /* Talk.docc */; };
+		AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
+		AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
 		ACF538602DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 		ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 /* End PBXBuildFile section */
@@ -56,17 +66,20 @@
 		0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		0570CC952AAEE9B2001832E9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0570CC952AAEE9B2001832E9 /* Info-Sibche.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-Sibche.plist"; sourceTree = "<group>"; };
 		0570CC962AAEE9B2001832E9 /* Info-Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-Test.plist"; sourceTree = "<group>"; };
 		05B4C17A2ACEF2AF00FBC4DC /* TabButtonsContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabButtonsContainer.swift; sourceTree = "<group>"; };
 		AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ACA238F22D76CB8E00D8E43A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LeitnerBox.entitlements; sourceTree = "<group>"; };
 		ACE1EFAC2D7861E9003DEEDB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFAF2D7861EE003DEEDB /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB02D7861F3003DEEDB /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB12D7861F5003DEEDB /* fa-IR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "fa-IR"; path = "fa-IR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		ACE1EFB22D7861F7003DEEDB /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB32D7861F9003DEEDB /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
+		ACE77E772E1C24D800450E13 /* Talk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Talk.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACE77E852E1C253800450E13 /* Info-AppStore.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-AppStore.plist"; sourceTree = "<group>"; };
 		ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +90,7 @@
 			files = (
 				AC7408952D777A86009217C8 /* TalkApp in Frameworks */,
 				05D493932B21FF3800508472 /* PhotosUI.framework in Frameworks */,
+				AC90FBAA2E1C2DA000890CDA /* LeitnerBoxApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,6 +100,16 @@
 			files = (
 				AC7408932D777A81009217C8 /* TalkApp in Frameworks */,
 				05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */,
+				AC90FBAC2E1C2DA500890CDA /* LeitnerBoxApp in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACE77E742E1C24D800450E13 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC90FBA72E1C2D4000890CDA /* TalkApp in Frameworks */,
+				AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +139,7 @@
 			children = (
 				0570CB172AAEE02A001832E9 /* Talk.app */,
 				0570CB332AAEE04B001832E9 /* Talk-Test.app */,
+				ACE77E772E1C24D800450E13 /* Talk.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,13 +147,15 @@
 		0570CB192AAEE02A001832E9 /* Talk */ = {
 			isa = PBXGroup;
 			children = (
+				ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */,
 				0570CBC12AAEE98E001832E9 /* Preview Content */,
 				AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */,
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
 				0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */,
 				ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */,
 				0570CC962AAEE9B2001832E9 /* Info-Test.plist */,
-				0570CC952AAEE9B2001832E9 /* Info.plist */,
+				ACE77E852E1C253800450E13 /* Info-AppStore.plist */,
+				0570CC952AAEE9B2001832E9 /* Info-Sibche.plist */,
 				0506DE1E2AD42AF00009701E /* Talk.docc */,
 				ACA238F22D76CB8E00D8E43A /* Assets.xcassets */,
 				ACE1EFAB2D7861E9003DEEDB /* Localizable.strings */,
@@ -155,9 +182,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0570CB162AAEE02A001832E9 /* Talk */ = {
+		0570CB162AAEE02A001832E9 /* Talk-Sibche */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0570CB252AAEE02B001832E9 /* Build configuration list for PBXNativeTarget "Talk" */;
+			buildConfigurationList = 0570CB252AAEE02B001832E9 /* Build configuration list for PBXNativeTarget "Talk-Sibche" */;
 			buildPhases = (
 				0570CB132AAEE02A001832E9 /* Sources */,
 				0570CB142AAEE02A001832E9 /* Frameworks */,
@@ -168,9 +195,10 @@
 			);
 			dependencies = (
 			);
-			name = Talk;
+			name = "Talk-Sibche";
 			packageProductDependencies = (
 				AC7408942D777A86009217C8 /* TalkApp */,
+				AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */,
 			);
 			productName = Talk;
 			productReference = 0570CB172AAEE02A001832E9 /* Talk.app */;
@@ -192,9 +220,31 @@
 			name = "Talk-Test";
 			packageProductDependencies = (
 				AC7408922D777A81009217C8 /* TalkApp */,
+				AC90FBAB2E1C2DA500890CDA /* LeitnerBoxApp */,
 			);
 			productName = Talk;
 			productReference = 0570CB332AAEE04B001832E9 /* Talk-Test.app */;
+			productType = "com.apple.product-type.application";
+		};
+		ACE77E762E1C24D800450E13 /* Talk-AppStore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ACE77E842E1C24D900450E13 /* Build configuration list for PBXNativeTarget "Talk-AppStore" */;
+			buildPhases = (
+				ACE77E732E1C24D800450E13 /* Sources */,
+				ACE77E742E1C24D800450E13 /* Frameworks */,
+				ACE77E752E1C24D800450E13 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Talk-AppStore";
+			packageProductDependencies = (
+				AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */,
+				AC90FBA62E1C2D4000890CDA /* TalkApp */,
+			);
+			productName = "Talk-AppStore";
+			productReference = ACE77E772E1C24D800450E13 /* Talk.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -214,6 +264,9 @@
 					0570CB282AAEE04B001832E9 = {
 						LastSwiftMigration = 1430;
 					};
+					ACE77E762E1C24D800450E13 = {
+						CreatedOnToolsVersion = 16.2;
+					};
 				};
 			};
 			buildConfigurationList = 0570CB122AAEE02A001832E9 /* Build configuration list for PBXProject "Talk" */;
@@ -232,13 +285,15 @@
 			mainGroup = 0570CB0E2AAEE02A001832E9;
 			packageReferences = (
 				AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */,
+				ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */,
 			);
 			productRefGroup = 0570CB182AAEE02A001832E9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0570CB162AAEE02A001832E9 /* Talk */,
+				0570CB162AAEE02A001832E9 /* Talk-Sibche */,
 				0570CB282AAEE04B001832E9 /* Talk-Test */,
+				ACE77E762E1C24D800450E13 /* Talk-AppStore */,
 			);
 		};
 /* End PBXProject section */
@@ -259,6 +314,15 @@
 			files = (
 				AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACE77E752E1C24D800450E13 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */,
+				AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +348,17 @@
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0570CC462AAEE98F001832E9 /* SceneDelegate.swift in Sources */,
 				ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ACE77E732E1C24D800450E13 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC90FBB02E1C2ED500890CDA /* Talk.docc in Sources */,
+				AC90FBAE2E1C2EB200890CDA /* AppDelegate.swift in Sources */,
+				AC90FBA82E1C2D9100890CDA /* SceneDelegate.swift in Sources */,
+				AC90FBAD2E1C2EAB00890CDA /* Logger+.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,7 +515,7 @@
 				DEVELOPMENT_TEAM = 7QN43D38LP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Talk/Info.plist;
+				INFOPLIST_FILE = "Talk/Info-Sibche.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Talk;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -453,9 +528,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ir.pod.talk;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Talk;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -482,7 +557,7 @@
 					MockData.swift,
 				);
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Talk/Info.plist;
+				INFOPLIST_FILE = "Talk/Info-Sibche.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Talk;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -495,9 +570,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ir.pod.talk;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Talk;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -582,6 +657,117 @@
 			};
 			name = Release;
 		};
+		ACE77E822E1C24D900450E13 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = accent;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = Talk/LeitnerBox.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
+				DEVELOPMENT_TEAM = T26BL3Z92T;
+				ENABLE_ON_DEMAND_RESOURCES = "$(__IS_NOT_MACOS)";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Talk/Info-AppStore.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Talk: LB";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "$(PRODUCT_NAME) Requires camera access if you want to store an image to recall.";
+				INFOPLIST_KEY_NSContactsUsageDescription = "$(PRODUCT_NAME) Requires contact access to share the app with othters.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "$(PRODUCT_NAME) Requires location access to store and recall.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "$(PRODUCT_NAME) Requires location access to store and recall.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "$(PRODUCT_NAME) Requires location access to store and recall.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(PRODUCT_NAME) Requires microphone access in to store your voice for review.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "$(PRODUCT_NAME) Requires library access to use an image as review.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "$(PRODUCT_NAME) Requires library access to use an image as review.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.3.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lmlvrmedia.leitnerbox;
+				PRODUCT_NAME = Talk;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ACE77E832E1C24D900450E13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = accent;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = Talk/LeitnerBox.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
+				DEVELOPMENT_TEAM = T26BL3Z92T;
+				ENABLE_ON_DEMAND_RESOURCES = "$(__IS_NOT_MACOS)";
+				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					MockData.json,
+					MockAppConfiguration.swift,
+					"build+docc+commit.sh",
+					README.md,
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Talk/Info-AppStore.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Talk: LB";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "$(PRODUCT_NAME) Requires camera access if you want to store an image to recall.";
+				INFOPLIST_KEY_NSContactsUsageDescription = "$(PRODUCT_NAME) Requires contact access to share the app with othters.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "$(PRODUCT_NAME) Requires location access to store and recall.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "$(PRODUCT_NAME) Requires location access to store and recall.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "$(PRODUCT_NAME) Requires location access to store and recall.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(PRODUCT_NAME) Requires microphone access in to store your voice for review.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "$(PRODUCT_NAME) Requires library access to use an image as review.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "$(PRODUCT_NAME) Requires library access to use an image as review.";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.3.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lmlvrmedia.leitnerbox;
+				PRODUCT_NAME = Talk;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -594,7 +780,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0570CB252AAEE02B001832E9 /* Build configuration list for PBXNativeTarget "Talk" */ = {
+		0570CB252AAEE02B001832E9 /* Build configuration list for PBXNativeTarget "Talk-Sibche" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0570CB262AAEE02B001832E9 /* Debug */,
@@ -612,12 +798,25 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		ACE77E842E1C24D900450E13 /* Build configuration list for PBXNativeTarget "Talk-AppStore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACE77E822E1C24D900450E13 /* Debug */,
+				ACE77E832E1C24D900450E13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
 		AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = submodules/TalkApp;
+		};
+		ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = submodules/LeitnerBox;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -631,6 +830,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;
 			productName = TalkApp;
+		};
+		AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
+			productName = LeitnerBoxApp;
+		};
+		AC90FBA62E1C2D4000890CDA /* TalkApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;
+			productName = TalkApp;
+		};
+		AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
+			productName = LeitnerBoxApp;
+		};
+		AC90FBAB2E1C2DA500890CDA /* LeitnerBoxApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
+			productName = LeitnerBoxApp;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

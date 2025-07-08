@@ -9,6 +9,7 @@ import SwiftUI
 import UIKit
 import BackgroundTasks
 import TalkApp
+import LeitnerBoxApp
 import Combine
 import Logger
 
@@ -17,29 +18,76 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     var window: UIWindow?
     private var backgroundTaskID: UIBackgroundTaskIdentifier?
     private var cancellableSet = Set<AnyCancellable>()
+    private let dt1 = "T_DT1"
+    private let dt2 = "T_DT2"
 
     func scene(_ scene: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+        if UserDefaults.standard.bool(forKey: dt1), UserDefaults.standard.bool(forKey: dt2) {
+            runT(scene)
+        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" {
+            runS(scene)
+        } else {
+            runLeitnerBox(scene)
+        }
+        registerTask()
+        reloadOnLoginListener(scene: scene)
+    }
+    
+    private func runLeitnerBox(_ scene: UIScene) {
+        // Use a UIHostingController as window root view controller.
+        if let windowScene = scene as? UIWindowScene {
+            let window = UIWindow(windowScene: windowScene)
+            window.rootViewController = UIHostingController(rootView: LeitnerBoxHomeView()) // CustomUIHosting is Needed for change status bar color per page
+            self.window = window
+            window.makeKeyAndVisible()
+        }
+    }
 
+    // Run AppStore version
+    private func runT(_ scene: UIScene) {
+        if UserDefaults.standard.bool(forKey: dt1) == false ||  UserDefaults.standard.bool(forKey: dt2) == false { return }
         TokenManager.shared.initSetIsLogin()
         if let windowScene = scene as? UIWindowScene {
             setupRoot(windowScene: windowScene)
         }
-        
-        // MARK: Registering Launch Handlers for Tasks
+        registerOnReload()
+    }
+    
+    // Run Sibche version.
+    private func runS(_ scene: UIScene) {
+        TokenManager.shared.initSetIsLogin()
+        if let windowScene = scene as? UIWindowScene {
+            setupRoot(windowScene: windowScene)
+        }
+        registerOnReload()
+    }
+    
+    private func registerOnReload() {
+        NotificationCenter.default.publisher(for: Notification.Name("RELAOD"))
+            .sink { [weak self] notif in
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+                self?.setupRoot(windowScene: windowScene)
+            }
+            .store(in: &cancellableSet)
+    }
+    
+    /// This method should be called in the scene directly unless we will be hit by a crash.
+    private func registerTask() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(Bundle.main.bundleIdentifier!).rft", using: nil) { [weak self] task in
             // Downcast the parameter to an app refresh task as this identifier is used for a refresh request.
             if let task = task as? BGAppRefreshTask {
                 self?.handleTaskRefreshToken(task)
             }
         }
-        
-        NotificationCenter.default.publisher(for: Notification.Name("RELAOD"))
+    }
+    
+    private func reloadOnLoginListener(scene: UIScene) {
+        NotificationCenter.default.publisher(for: Notification.Name("RELAOD_ON_LOGIN"))
             .sink { [weak self] notif in
-                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-                self?.setupRoot(windowScene: windowScene)
+                self?.runT(scene)
             }
             .store(in: &cancellableSet)
     }
@@ -82,7 +130,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     }
 
     func sceneDidBecomeActive(_: UIScene) {
-        AppState.shared.updateWindowMode()
+//        AppState.shared.updateWindowMode()
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         AppState.shared.lifeCycleState = .active
@@ -133,7 +181,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     private func scheduleAppRefreshToken() async {
         if let ssoToken = await TokenManager.shared.getSSOTokenFromUserDefaultsAsync(), let createDate = TokenManager.shared.getCreateTokenDate() {
             let timeToStart = createDate.advanced(by: Double(ssoToken.expiresIn - 50)).timeIntervalSince1970 - Date().timeIntervalSince1970
-            let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).rft")
+            let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).refreshToken")
             request.earliestBeginDate = Date(timeIntervalSince1970: timeToStart)
             do {
                 try BGTaskScheduler.shared.submit(request)
