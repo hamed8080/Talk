@@ -411,6 +411,13 @@ extension ThreadHistoryViewModel {
     }
 
     private func onMoreTop(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false, moveToLastMessage: Bool = false) async {
+        let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
+        viewModels.forEach { vm in
+            if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
+                vm.calMessage.state.isSelected = true
+            }
+        }
+        
         await waitingToFinishDecelerating()
         
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
@@ -497,6 +504,13 @@ extension ThreadHistoryViewModel {
     }
 
     private func onMoreBottomNew(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
+        let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
+        viewModels.forEach { vm in
+            if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
+                vm.calMessage.state.isSelected = true
+            }
+        }
+
         await waitingToFinishDecelerating()
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         
@@ -635,7 +649,17 @@ extension ThreadHistoryViewModel {
         
         let sortedMessages = messages.sortedByTime()
         var viewModels = await makeCalculateViewModelsFor(sortedMessages)
-        appendSort(viewModels)
+
+        /// Remove duplicated messeages if the onForwardMessageForActiveThread called twice, as a result of cuncrrency issue.
+        /// PS: It does not matter if we remove duplicate messages by method above,
+        /// we have to do this to make sure no duplicate messages insert into append and sort,
+        /// if not it will lead to an exception.
+        for message in messages {
+            if sections.last?.vms.contains(where: {$0.message.id == message.id}) == true {
+                viewModels.removeAll(where: {$0.message.id == message.id})
+            }
+        }
+        await appendSort(viewModels)
         
         let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
         delegate?.inserted(tuple.sections, tuple.rows, .left, nil)

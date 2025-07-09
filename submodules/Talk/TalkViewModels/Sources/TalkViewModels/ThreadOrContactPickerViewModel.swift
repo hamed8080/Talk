@@ -22,6 +22,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     private var objectId = UUID().uuidString
     private let GET_THREADS_IN_SELECT_THREAD_KEY: String
     private let GET_CONTCATS_IN_SELECT_CONTACT_KEY: String
+    private var selfConversation: Conversation? = AppState.shared.objectsContainer.selfConversationBuilder.cachedSlefConversation
 
     public init() {
         GET_THREADS_IN_SELECT_THREAD_KEY = "GET-THREADS-IN-SELECT-THREAD-\(objectId)"
@@ -113,6 +114,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     }
 
     public func getThreads() {
+        if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
         RequestsManager.shared.append(prepend: GET_THREADS_IN_SELECT_THREAD_KEY, value: req)
@@ -125,7 +127,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         if !response.cache, response.pop(prepend: GET_THREADS_IN_SELECT_THREAD_KEY) != nil {
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(response.hasNext)
-            let filtered = (response.result ?? []).filter({$0.closed == false })
+            let filtered = (response.result ?? []).filter({$0.closed == false }).filter({$0.type != .selfThread})
             var calculatedConversations: [CalculatedConversation] = []
             let myId = AppState.shared.user?.id
             for thread in filtered {
@@ -133,6 +135,11 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 calculatedConversations.append(calculated)
             }
             conversations.append(contentsOf: calculatedConversations)
+            
+            if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
+                let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
+                conversations.append(calculated)
+            }
             animateObjectWillChange()
         }
     }

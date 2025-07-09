@@ -31,6 +31,7 @@ struct PictureView: View {
                 MessageListPictureView(itemWidth: abs(itemWidth))
             }
         }
+        .environment(\.layoutDirection, .leftToRight)
         .padding(padding)
         .environmentObject(viewModel)
         .background(frameReader)

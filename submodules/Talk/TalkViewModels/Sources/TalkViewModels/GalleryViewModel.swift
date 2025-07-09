@@ -151,6 +151,7 @@ public final class GalleryViewModel: ObservableObject {
                                     count: count,
                                     fromTime: fromTime,
                                     messageType: ChatCore.MessageType.podSpacePicture.rawValue,
+                                    order: toTime != nil ? "DESC" : "ASC",
                                     toTime: toTime
         )
         RequestsManager.shared.append(prepend: FETCH_GALLERY_MESSAGES_KEY, value: req)
