@@ -121,7 +121,7 @@ public class MessageRowCalculators {
         calculatedMessage.avatarSplitedCharaters = String.splitedCharacter(message.participant?.name ?? message.participant?.username ?? "")
         
         let isEditableOrNil = (message.editable == true || message.editable == nil)
-        calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && thread?.admin == true && thread?.type?.isChannelType == true)
+        calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && thread?.admin == true && thread?.type?.isChannelType == true && calculatedMessage.isMe)
         if message.forwardInfo != nil {
             calculatedMessage.canEdit = false
         }

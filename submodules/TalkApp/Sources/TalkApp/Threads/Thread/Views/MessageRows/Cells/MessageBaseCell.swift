@@ -163,6 +163,7 @@ public class MessageBaseCell: UITableViewCell {
             viewModel.calMessage.state.isSelected = false
             radio.set(selected: false, viewModel: viewModel)
             setSelectedBackground()
+            viewModel.threadVM?.selectedMessagesViewModel.remove(viewModel)
             viewModel.threadVM?.delegate?.updateSelectionView()
         }
     }
@@ -173,6 +174,7 @@ public class MessageBaseCell: UITableViewCell {
             viewModel.calMessage.state.isSelected = true
             radio.set(selected: true, viewModel: viewModel)
             setSelectedBackground()
+            viewModel.threadVM?.selectedMessagesViewModel.add(viewModel)
             viewModel.threadVM?.delegate?.updateSelectionView()
         }
     }

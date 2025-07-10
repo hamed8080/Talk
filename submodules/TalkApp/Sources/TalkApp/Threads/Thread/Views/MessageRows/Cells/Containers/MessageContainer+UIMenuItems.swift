@@ -37,7 +37,7 @@ extension MessageContainerStackView {
             }
             menu.addItem(replyAction)
             
-            if threadVM?.thread.group == true, !viewModel.calMessage.isMe {
+            if threadVM?.thread.type?.isChannelType == false, threadVM?.thread.group == true, !viewModel.calMessage.isMe {
                 let replyPrivatelyAction = ActionMenuItem(model: .replyPrivately) { [weak self] in
                     self?.onReplyPrivatelyAction(model)
                     onMenuClickedDismiss()
@@ -271,6 +271,7 @@ private extension MessageContainerStackView {
         Task {
             if let threadVM = model.threadVM {
                 model.viewModel.calMessage.state.isSelected = true
+                model.viewModel.threadVM?.selectedMessagesViewModel.add(model.viewModel)
                 let deleteVM = DeleteMessagesViewModelModel()
                 await deleteVM.setup(viewModel: threadVM)
                 let dialog = DeleteMessageDialog(viewModel: deleteVM)
