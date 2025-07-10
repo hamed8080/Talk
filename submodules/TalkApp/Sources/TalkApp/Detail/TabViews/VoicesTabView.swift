@@ -44,9 +44,9 @@ struct MessageListVoiceView: View {
 
     var body: some View {
         ForEach(viewModel.messagesModels) { model in
-            VoiceRowView()
+            VoiceRowView(viewModel: detailViewModel)
                 .environmentObject(model)
-                .appyDetailViewContextMenu(VoiceRowView(), model, detailViewModel)
+                .appyDetailViewContextMenu(VoiceRowView(viewModel: detailViewModel), model, detailViewModel)
                 .overlay(alignment: .bottom) {
                     if model.message != viewModel.messagesModels.last?.message {
                         Rectangle()
@@ -67,28 +67,12 @@ struct MessageListVoiceView: View {
 
 struct VoiceRowView: View {
     @EnvironmentObject var rowModel: TabRowModel
-    @EnvironmentObject var viewModel: ThreadDetailViewModel
+    let viewModel: ThreadDetailViewModel
 
     var body: some View {
         HStack {
             TabDownloadProgressButton()
-            
-            VStack(alignment: .leading) {
-                Text(rowModel.fileName)
-                    .font(.fBody)
-                    .foregroundStyle(Color.App.textPrimary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                HStack {
-                    Text(rowModel.time)
-                        .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption2)
-                    Spacer()
-                    Text(rowModel.fileSizeString)
-                        .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption3)
-                }
-            }
+            TabDetailsText(rowModel: rowModel)
             Spacer()
         }
         .padding(.all)
