@@ -78,6 +78,9 @@ struct VoiceRowView: View {
         .padding(.all)
         .contentShape(Rectangle())
         .background(Color.App.bgPrimary)
+        .onTapGesture {
+            rowModel.onTap(viewModel: viewModel)
+        }
     }
 }
 
