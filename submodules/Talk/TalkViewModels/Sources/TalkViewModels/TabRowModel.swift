@@ -26,6 +26,7 @@ public class TabRowModel: ObservableObject {
     @Published public var smallText: String? = nil
     @Published public var links: [String] = []
     @Published public var thumbnailImage: UIImage?
+    @Published public var isPlaying: Bool = false
     
     private var cancellableSet = Set<AnyCancellable>()
     private var timer: Timer?
@@ -62,6 +63,10 @@ public class TabRowModel: ObservableObject {
         
         if state.state != .completed {
             registerNotifications(messageId: message.id ?? -1)
+        }
+        
+        if state.state == .completed, message.isAudio {
+            registerAudioNotification()
         }
     }
     
@@ -202,7 +207,9 @@ extension TabRowModel {
     public var stateIcon: String {
         switch state.state {
         case .completed:
-            if message.isVideo || message.isAudio {
+            if message.isAudio && isPlaying && isSameAudioFile {
+                "pause.fill"
+            } else if message.isVideo || message.isAudio {
                 "play.fill"
             } else {
                 message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "document"
@@ -258,6 +265,18 @@ extension TabRowModel {
                 }
             }
             .store(in: &cancellableSet)
+    }
+    
+    private func registerAudioNotification() {
+        AppState.shared.objectsContainer.audioPlayerVM.$isPlaying.sink { [weak self] newValue in
+            /// This will show pause for all current playing
+            self?.isPlaying = false
+            
+            if newValue, self?.isSameAudioFile == true {
+                self?.isPlaying = true
+            }
+        }
+        .store(in: &cancellableSet)
     }
     
     private func onStateChange(_ state: MessageFileState) {
