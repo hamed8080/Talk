@@ -1,5 +1,5 @@
 //
-//  MutualThreadsView.swift
+//  MutualsTabView.swift
 //  Talk
 //
 //  Created by hamed on 3/26/23.
@@ -8,8 +8,9 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Chat
 
-struct MutualThreadsView: View {
+struct MutualsTabView: View {
     @EnvironmentObject var viewModel: MutualGroupViewModel
 
     var body: some View {
@@ -45,8 +46,33 @@ struct MutualThreadsView: View {
     }
 }
 
+struct MutualThreadRow: View {
+    var thread: Conversation
+
+    init(thread: Conversation) {
+        self.thread = thread
+    }
+
+    var body: some View {
+        HStack {
+            ImageLoaderView(conversation: thread)
+                .id("\(thread.computedImageURL ?? "")\(thread.id ?? 0)")
+                .font(.fSubtitle)
+                .foregroundColor(.white)
+                .frame(width: 36, height: 36)
+                .background(Color(uiColor: String.getMaterialColorByCharCode(str: thread.title ?? "")))
+                .clipShape(RoundedRectangle(cornerRadius:(18)))
+            Text(thread.computedTitle)
+                .font(.fSubheadline)
+            Spacer()
+        }
+        .contentShape(Rectangle())
+        .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+    }
+}
+
 struct MutualThreadsView_Previews: PreviewProvider {
     static var previews: some View {
-        MutualThreadsView()
+        MutualsTabView()
     }
 }

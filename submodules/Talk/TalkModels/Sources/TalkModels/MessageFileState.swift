@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 
 public struct MessageFileState: Sendable {
+    /// A value between 0...1
     public var progress: CGFloat
     public var showDownload: Bool
     public var isUploading: Bool

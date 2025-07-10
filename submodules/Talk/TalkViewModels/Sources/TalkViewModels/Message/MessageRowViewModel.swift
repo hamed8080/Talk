@@ -61,18 +61,14 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
         if message is UploadProtocol {
             threadVM?.uploadFileManager.register(message: message, viewModelUniqueId: uniqueId)
         }
-        if fileState.state != .completed {
-            threadVM?.downloadFileManager.register(message: message)
-        }
-        
-        if calMessage.isReplyImage && fileState.replyImage == nil {
-            threadVM?.downloadFileManager.registerIfReplyImage(vm: self)
+        if calMessage.rowType.isMap, let message = message as? Message, fileState.state != .completed {
+            AppState.shared.objectsContainer.downloadsManager.toggleDownloading(message: message)
         }
     }
 
     public func setFileState(_ state: MessageFileState, fileURL: URL?) {
         fileState.update(state)
-        if state.state == .completed {
+        if state.state == .completed, let fileURL = fileURL {
             calMessage.fileURL = fileURL
         }
     }
@@ -115,10 +111,14 @@ public extension MessageRowViewModel {
     }
 
     private func manageDownload() {
-        if let messageId = message.id {
-            Task { [weak self] in
-                guard let self = self else { return }
-                await threadVM?.downloadFileManager.manageDownload(messageId: messageId, isImage: calMessage.rowType.isImage, isMap: calMessage.rowType.isMap)
+        guard let message = message as? Message else { return }
+        Task {
+            do {
+                try AppState.shared.objectsContainer.downloadsManager.enqueue(element: await .init(message: message))
+            } catch {
+                if let error = error as? DownloadsManagerError, error == .duplicate {
+                    Logger.log(title: "A duplicate download rejected for messageId: \(message.id ?? -1)")
+                }
             }
         }
     }
@@ -269,17 +269,3 @@ public extension MessageRowViewModel {
         )
     }
 }
-//
-//public extension MessageRowViewModel {
-//    @MainActor
-//    func copy() -> MessageRowViewModel? {
-//        guard let threadVM = threadVM else { return nil }
-//        let copyViewModel = MessageRowViewModel(message: message, viewModel: threadVM)
-//        
-//        /// TextStack should have a new copy for each TextView
-//        copyViewModel.calMessage = calMessage
-//        copyViewModel.fileState = fileState
-//        copyViewModel.reactionsModel = reactionsModel
-//        return copyViewModel
-//    }
-//}

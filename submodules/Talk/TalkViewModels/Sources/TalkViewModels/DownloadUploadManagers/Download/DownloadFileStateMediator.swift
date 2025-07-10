@@ -13,7 +13,7 @@ import Logger
 
 /// A mediator to prepare the new state for UI, and notify it.
 @MainActor
-class DownloadFileStateMediator {
+public class DownloadFileStateMediator {
     nonisolated(unsafe) public static var emptyImage = UIImage(named: "empty_image")!
     nonisolated(unsafe) public static var mapPlaceholder = UIImage(named: "map_placeholder")!
     
@@ -29,7 +29,7 @@ class DownloadFileStateMediator {
     
     private func getNewState(_ element: DownloadManagerElement) -> MessageFileState {
         let vm = element.viewModel
-        let progress: CGFloat = CGFloat(vm.downloadPercentValue())
+        let progress: CGFloat = CGFloat(vm.downloadPercent)
         let state = MessageFileState(
             progress: min(CGFloat(progress) / 100, 1.0),
             showDownload: vm.state != .completed,
@@ -43,7 +43,7 @@ class DownloadFileStateMediator {
     
     private func preloadImage(_ element: DownloadManagerElement) -> UIImage? {
         if element.viewModel.state == .completed { return nil }
-        return element.isMap ? DownloadFileManager.mapPlaceholder : element.isImage ? DownloadFileManager.emptyImage : nil
+        return element.isMap ? DownloadFileStateMediator.mapPlaceholder : element.isImage ? DownloadFileStateMediator.emptyImage : nil
     }
     
     private func getIconState(vm: DownloadFileViewModel) -> String {
@@ -86,7 +86,12 @@ class DownloadFileStateMediator {
         guard
             let viewModel = await AppState.shared.objectsContainer.navVM.viewModel(for: threadId),
             let result = await viewModel.historyVM.sections.viewModelAndIndexPath(for: messageId)
-        else { return }
+        else {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .init("DOWNALOD_STATUS_\(messageId)"), object: state)
+            }
+            return
+        }
         let fileURL = await result.vm.message.fileURL
         await MainActor.run {
             /// We have to check if the state is not completed yet,
@@ -98,11 +103,10 @@ class DownloadFileStateMediator {
             let delegate = viewModel.delegate
             if state.state == .completed {
                 delegate?.downloadCompleted(at: result.indexPath, viewModel: result.vm)
-            } else if state.state == .thumbnail {
-                delegate?.updateThumbnail(at: result.indexPath, viewModel: result.vm)
             } else {
                 delegate?.updateProgress(at: result.indexPath, viewModel: result.vm)
             }
+            NotificationCenter.default.post(name: .init("DOWNALOD_STATUS_\(messageId)"), object: state)
         }
     }
     

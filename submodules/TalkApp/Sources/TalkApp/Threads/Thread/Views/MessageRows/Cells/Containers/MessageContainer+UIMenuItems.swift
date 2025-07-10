@@ -250,7 +250,7 @@ private extension MessageContainerStackView {
                 await newVM.recalculate(mainData: newVM.getMainData())
                 
                 /// Register to download the file again
-                await threadVM.downloadFileManager.register(message: message)
+                await AppState.shared.objectsContainer.downloadsManager.toggleDownloading(message: message)
                 
                 /// Reload the message row with its new viewModel
                 await threadVM.historyVM.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)

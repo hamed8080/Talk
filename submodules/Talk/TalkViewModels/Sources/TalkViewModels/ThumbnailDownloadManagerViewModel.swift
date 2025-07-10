@@ -4,7 +4,7 @@ import Foundation
 import UIKit
 
 @MainActor
-class ThumbnailDownloadManagerViewModel {
+public class ThumbnailDownloadManagerViewModel {
     private var objectId = UUID().uuidString
     private let THUMBNAIL_KEY: String
     private var uniqueId: String = ""
@@ -85,5 +85,18 @@ class ThumbnailDownloadManagerViewModel {
 
     public func removeKey() {
         _ = RequestsManager.shared.pop(prepend: THUMBNAIL_KEY, for: uniqueId)
+    }
+}
+
+extension ThumbnailDownloadManagerViewModel {
+    @AppBackgroundActor
+    public class func get(message: Message) async -> UIImage? {
+        guard let url = await message.url else { return nil }
+        let req = ImageRequest(hashCode: message.fileHashCode, quality: 1.0, size: .MEDIUM, thumbnail: true)
+        guard
+            let data = await ThumbnailDownloadManagerViewModel().downloadThumbnail(req: req, url: url),
+            let image = UIImage(data: data)
+        else { return nil }
+        return image
     }
 }

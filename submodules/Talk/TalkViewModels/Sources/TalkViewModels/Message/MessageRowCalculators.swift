@@ -340,8 +340,8 @@ class MessageRowCalculators {
     class func calculateImageSize(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> CGSize? {
         if message.isImage {
             /// We use max to at least have a width, because there are times that maxWidth is nil.
-            let uploadMapSizeWidth = message is UploadFileMessage ? DownloadFileManager.emptyImage.size.width : nil
-            let uploadMapSizeHeight = message is UploadFileMessage ? DownloadFileManager.emptyImage.size.height : nil
+            let uploadMapSizeWidth = message is UploadFileMessage ? DownloadFileStateMediator.emptyImage.size.width : nil
+            let uploadMapSizeHeight = message is UploadFileMessage ? DownloadFileStateMediator.emptyImage.size.height : nil
             let uploadImageReq = (message as? UploadFileMessage)?.uploadImageRequest
             let imageWidth = CGFloat(calculatedMessage.fileMetaData?.file?.actualWidth ?? uploadImageReq?.wC ?? Int(uploadMapSizeWidth ?? 0))
             let maxWidth = ThreadViewModel.maxAllowedWidth

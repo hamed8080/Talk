@@ -234,10 +234,6 @@ public class MessageBaseCell: UITableViewCell {
         messageContainer.updateProgress(viewModel: viewModel)
     }
 
-    public func updateThumbnail(viewModel: MessageRowViewModel) {
-        messageContainer.updateThumbnail(viewModel: viewModel)
-    }
-
     public func updateReplyImageThumbnail(viewModel: MessageRowViewModel) {
         messageContainer.updateReplyImageThumbnail(viewModel: viewModel)
     }

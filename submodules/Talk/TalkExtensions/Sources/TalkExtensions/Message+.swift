@@ -295,6 +295,16 @@ public extension HistoryMessageProtocol {
         guard let hashCode = fileMetaData?.fileHash ?? fileMetaData?.file?.hashCode else { return nil }
         return Message.convertedDIRURL?.appending(path: "\(hashCode).mp4")
     }
+    
+    func isFileExistOnDisk() async -> Bool {
+        guard let url = await url else { return false }
+        return await isFileExist(url: url)
+    }
+    
+    @ChatGlobalActor
+    private func isFileExist(url: URL) -> Bool {
+        return ChatManager.activeInstance?.file.isFileExist(url) ?? false || ChatManager.activeInstance?.file.isFileExistInGroup(url) ?? false
+    }
 }
 
 public extension Array where Element == Message {

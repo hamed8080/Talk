@@ -1,0 +1,271 @@
+//
+//  TabRowModel.swift
+//  TalkViewModels
+//
+//  Created by Hamed Hosseini on 5/27/21.
+//
+
+import Foundation
+import Chat
+import Combine
+import TalkModels
+import SwiftUI
+
+@MainActor
+public class TabRowModel: ObservableObject {
+    public let message: Message
+    public let id: Int
+    
+    @Published public var shareDownloadedFile = false
+    @Published public var state: MessageFileState = MessageFileState()
+    @Published public var degree: Double = 0
+    @Published public var fileName: String = ""
+    @Published public var time: String = ""
+    @Published public var fileSizeString: String = ""
+    @Published public var showFullScreen = false
+    @Published public var smallText: String? = nil
+    @Published public var links: [String] = []
+    @Published public var thumbnailImage: UIImage?
+    
+    private var cancellableSet = Set<AnyCancellable>()
+    private var timer: Timer?
+    public private(set) var playerVM: VideoPlayerViewModel?
+    public private(set) var tempShareURL: URL?
+    public private(set) var metadata: FileMetaData?
+    public private(set) var fileURL: URL?
+    
+    private var manager: DownloadsManager { AppState.shared.objectsContainer.downloadsManager }
+    private var audioVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
+    
+    init(message: Message) async {
+        self.message = message
+        self.id = message.id ?? -1
+        metadata = await metaData(message: message)
+        fileURL = await message.fileURL
+        fileName = metadata?.name ?? message.messageTitle
+        time = message.time?.date.localFormattedTime ?? ""
+        fileSizeString = metadata?.file?.size?.toSizeStringShort(locale: Language.preferredLocale) ?? ""
+        
+        /// Initial state by fetching the curretn element state.
+        if let vm = manager.element(for: message.id ?? -1)?.viewModel {
+            state.state = vm.state
+            state.progress = CGFloat(CGFloat(vm.downloadPercent) / 100.0)
+        }
+        
+        if await message.isFileExistOnDisk() {
+            state.state = .completed
+        }
+        
+        if message.type == .link {
+            await calculateLinkText(message: message.message)
+        }
+        
+        if state.state != .completed {
+            registerNotifications(messageId: message.id ?? -1)
+        }
+    }
+    
+    public func onTap(viewModel: ThreadDetailViewModel) {
+        Task {
+            if message.isImage {
+                showPictureInGallery(viewModel)
+                return
+            }
+            if state.state != .completed {
+                manager.toggleDownloading(message: message)
+            } else if state.state == .completed {
+                if message.isVideo {
+                    showFullScreenPlayer()
+                } else if message.isAudio {
+                    await playAudio()
+                } else {
+                    await showShareFileSheet()
+                }
+            }
+        }
+    }
+}
+
+/// Identifiable
+extension TabRowModel: Identifiable {}
+
+/// Hashable
+/// Notice: It is required if not it will lead to unexpected crashed in SwiftUI.
+extension TabRowModel: Hashable {
+    nonisolated public static func == (lhs: TabRowModel, rhs: TabRowModel) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    nonisolated public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+/// Audio
+extension TabRowModel {
+    private func playAudio() async {
+        do {
+            guard let fileURL = fileURL else { return }
+            let convrtedURL = await convertedFileURL(message: message)
+            let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
+            try audioVM.setup(message: message,
+                                fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
+                                ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
+                                title: metadata?.name,
+                                subtitle: metadata?.file?.originalName ?? "")
+            audioVM.toggle()
+        } catch {
+            state.state = .error
+        }
+    }
+    
+    @AppBackgroundActor
+    private func convertedFileURL(message: HistoryMessageType) -> URL? {
+        message.convertedFileURL
+    }
+    
+    var isSameAudioFile: Bool {
+        if isSameConvertedAudioFile { return true }
+        return audioVM.fileURL?.absoluteString == fileURL?.absoluteString
+    }
+    
+    var isSameConvertedAudioFile: Bool {
+        message.convertedFileURL != nil && audioVM.fileURL?.absoluteString == message.convertedFileURL?.absoluteString
+    }
+}
+
+/// Video
+extension TabRowModel {
+    private func showFullScreenPlayer() {
+        guard let fileURL = fileURL else { return }
+        playerVM = VideoPlayerViewModel(fileURL: fileURL, ext: message.fileMetaData?.file?.mimeType?.ext)
+        playerVM?.toggle()
+        playerVM?.animateObjectWillChange()
+        DispatchQueue.main.async { [weak self] in
+            self?.showFullScreen = true
+        }
+    }
+}
+
+/// Files
+extension TabRowModel {
+    @AppBackgroundActor
+    private func showShareFileSheet() async {
+        _ = await message.makeTempURL()
+        let tempURL = message.tempURL
+        await MainActor.run {
+            self.tempShareURL = tempURL
+            shareDownloadedFile.toggle()
+        }
+    }
+}
+
+/// Links
+extension TabRowModel {
+    @AppBackgroundActor
+    private func calculateLinkText(message: String?) async {
+        let smallText = String(message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
+        var links: [String] = []
+        message?.links().forEach { link in
+            links.append(link)
+        }
+        await MainActor.run { [links] in
+            self.smallText = smallText
+            self.links = links
+        }
+    }
+}
+
+/// Pictures
+extension TabRowModel {
+    private func showPictureInGallery(_ viewModel: ThreadDetailViewModel) {
+        AppState.shared.objectsContainer.appOverlayVM.galleryMessage = .init(message: message, goToHistoryTapped: {
+            /// Dismiss Detail View if it is showing
+            viewModel.dismiss = true
+        })
+    }
+    
+    public func prepareThumbnail() async {
+        if thumbnailImage == nil, let image = await ThumbnailDownloadManagerViewModel.get(message: message) {
+            self.thumbnailImage = image
+        }
+    }
+}
+
+/// Common methods
+extension TabRowModel {
+    @AppBackgroundActor
+    private func metaData(message: Message) -> FileMetaData? {
+        message.fileMetaData
+    }
+    
+    public var stateIcon: String {
+        switch state.state {
+        case .completed:
+            if message.isVideo || message.isAudio {
+                "play.fill"
+            } else {
+                message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "document"
+            }
+        case .downloading:
+            "pause.fill"
+        case .error:
+            "exclamationmark"
+        case .undefined, .started, .paused:
+            "arrow.down"
+        }
+    }
+}
+
+/// Rotation animation timer
+extension TabRowModel {
+    private func startRotationTimer() {
+        stopRotationTimer()
+        timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true, block: { [weak self] _ in
+            Task { @MainActor [weak self] in
+                withAnimation(.linear(duration: 2)) {
+                    self?.degree += 360
+                }
+            }
+        })
+    }
+    
+    private func stopRotationTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+}
+
+/// Move to the Message
+extension TabRowModel {
+    public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
+        Task {
+            await detailVM.threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
+            detailVM.dismiss = true
+        }
+    }
+}
+
+/// Notification state change
+extension TabRowModel {
+    private func registerNotifications(messageId: Int) {
+        NotificationCenter.default.publisher(for: .init("DOWNALOD_STATUS_\(messageId)"))
+            .sink { [weak self] notif in
+                Task { @MainActor [weak self] in
+                    if let state = notif.object as? MessageFileState {
+                        self?.onStateChange(state)
+                    }
+                }
+            }
+            .store(in: &cancellableSet)
+    }
+    
+    private func onStateChange(_ state: MessageFileState) {
+        self.state = state
+        if state.state == .completed || state.state == .paused || state.state == .error {
+            stopRotationTimer()
+        } else if timer == nil, state.state == .downloading {
+            startRotationTimer()
+        }
+    }
+}

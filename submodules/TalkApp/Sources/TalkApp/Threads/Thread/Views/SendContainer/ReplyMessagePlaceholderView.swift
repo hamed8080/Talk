@@ -11,15 +11,12 @@ import TalkExtensions
 import TalkUI
 import TalkModels
 import Chat
-import Combine
 
 public final class ReplyMessagePlaceholderView: UIStackView {
     private let nameLabel = UILabel()
     private let messageLabel = UILabel()
     private var replyImage = UIImageButton(imagePadding: .init(all: 4))
     private weak var viewModel: ThreadViewModel?
-    private var downloadFileVM: DownloadFileViewModel?
-    private var cancellable: AnyCancellable?
     
     public init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -86,8 +83,8 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         NSLayoutConstraint.activate([
             staticImageReply.widthAnchor.constraint(equalToConstant: 28),
             staticImageReply.heightAnchor.constraint(equalToConstant: 28),
-            replyImage.widthAnchor.constraint(equalToConstant: 28),
-            replyImage.heightAnchor.constraint(equalToConstant: 28),
+            replyImage.widthAnchor.constraint(equalToConstant: 42),
+            replyImage.heightAnchor.constraint(equalToConstant: 42),
             closeButton.widthAnchor.constraint(equalToConstant: 42),
             closeButton.heightAnchor.constraint(equalToConstant: 42),
         ])
@@ -141,21 +138,13 @@ public final class ReplyMessagePlaceholderView: UIStackView {
     }
     
     private func setImage(_ replyMessage: Message) {
-        downloadFileVM = DownloadFileViewModel(message: replyMessage)
-        cancellable = downloadFileVM?.objectWillChange.sink { [weak self] in
-            Task { [weak self] in
-                self?.onDownloadedReplyImage()
+        Task {
+            guard let url = await replyMessage.url else { return }
+            let req = ImageRequest(hashCode: replyMessage.fileHashCode, quality: 0.5, size: .SMALL, thumbnail: true)
+            guard let data = await ThumbnailDownloadManagerViewModel().downloadThumbnail(req: req, url: url) else { return }
+            await MainActor.run { [weak self] in
+                self?.replyImage.imageView.image = UIImage(data: data)
             }
-        }
-        downloadFileVM?.startDownload()
-    }
-    
-    private func onDownloadedReplyImage() {
-        if downloadFileVM?.state == .completed, let url = downloadFileVM?.fileURL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-            self.replyImage.imageView.image = image
-            downloadFileVM = nil
-            cancellable?.cancel()
-            cancellable = nil
         }
     }
     

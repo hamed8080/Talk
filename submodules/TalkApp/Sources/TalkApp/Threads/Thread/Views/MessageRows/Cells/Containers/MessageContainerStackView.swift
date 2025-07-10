@@ -291,10 +291,6 @@ extension MessageContainerStackView {
         messageVideoView.updateProgress(viewModel: viewModel)
     }
 
-    func updateThumbnail(viewModel: MessageRowViewModel) {
-        messageImageView.updateThumbnail(viewModel: viewModel)
-    }
-
     func updateReplyImageThumbnail(viewModel: MessageRowViewModel) {
         replyInfoMessageRow.setImageView(viewModel: viewModel)
     }

@@ -14,6 +14,7 @@ struct ConversationTopSafeAreaInset: View {
     @EnvironmentObject var threadsVM: ThreadsViewModel
     private var container: ObjectsContainer { AppState.shared.objectsContainer }
     @State private var isInSearchMode: Bool = false
+    @State private var isDownloading: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,7 +23,7 @@ struct ConversationTopSafeAreaInset: View {
                 title: "",
                 leadingViews: ConversationPlusContextMenu(),
                 centerViews: EmptyView(),
-                trailingViews: searchButton
+                trailingViews: trainlingViews
             )
             ThreadListSearchBarFilterView(isInSearchMode: $isInSearchMode)
                 .background(MixMaterialBackground())
@@ -41,6 +42,48 @@ struct ConversationTopSafeAreaInset: View {
             if let cancelSearch = newValue.object as? Bool, cancelSearch == true, cancelSearch && isInSearchMode {
                 isInSearchMode.toggle()
             }
+        }.onReceive(AppState.shared.objectsContainer.downloadsManager.$elements) { newValue in
+            isDownloading = newValue.count > 0
+        }
+    }
+    
+    
+    private var trainlingViews: some View {
+        HStack {
+            compatibleDownladsManagerButton
+            searchButton
+        }
+    }
+    
+    @ViewBuilder
+    private var compatibleDownladsManagerButton: some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *) {
+            iOS17AnimatedDownloadButton
+        } else {
+            downloadsManagerButton
+        }
+    }
+    
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    private var iOS17AnimatedDownloadButton: some View {
+        downloadsManagerButton
+            .symbolEffect(.pulse)
+    }
+    
+    private var downloadsManagerButton: some View {
+        NavigationLink {
+            DownloadsManagerListView()
+                .environmentObject(AppState.shared.objectsContainer.downloadsManager)
+        } label: {
+            Image(systemName: "arrow.down.circle.dotted")
+                .resizable()
+                .scaledToFit()
+                .padding(8)
+                .frame(minWidth: 0, maxWidth: isDownloading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isDownloading ? 38 : 0)
+                .accessibilityHint("Download")
+                .fontWeight(.medium)
+                .clipped()
+                .foregroundStyle(Color.App.toolbarButton)
         }
     }
 

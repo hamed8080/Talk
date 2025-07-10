@@ -14,7 +14,7 @@ import TalkModels
 
 @MainActor
 public class DetailTabDownloaderViewModel: ObservableObject {
-    public private(set) var messages: ContiguousArray<Message> = []
+    public private(set) var messagesModels: ContiguousArray<TabRowModel> = []
     private var conversation: Conversation
     private var offset = 0
     private var cancelable = Set<AnyCancellable>()
@@ -23,7 +23,6 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     private let messageType: ChatModels.MessageType
     private let count = 25
     public var itemCount = 3
-    private var downloadVMS: [DownloadFileViewModel] = []
     private let tabName: String
     private var objectId = UUID().uuidString
     private let DETAIL_HISTORY_KEY: String
@@ -36,24 +35,28 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
-                self?.onMessageEvent(event)
+                Task { @MainActor in
+                    await self?.onMessageEvent(event)
+                }
             }
             .store(in: &cancelable)
     }
 
-    private func onMessageEvent(_ event: MessageEventTypes) {
+    private func onMessageEvent(_ event: MessageEventTypes) async {
         switch event {
         case let .history(response):
             if !response.cache,
                response.subjectId == conversation.id,
                response.pop(prepend: DETAIL_HISTORY_KEY) != nil,
                let messages = response.result {
-                messages.forEach { message in
-                    if !self.messages.contains(where: { $0.id == message.id }) {
-                        self.messages.append(message)
+                for message in messages {
+                    if !self.messagesModels.contains(where: { $0.id == message.id }) {
+                        let model = await TabRowModel(message: message)
+                        messagesModels.append(model)
                     }
                 }
-                self.messages.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
+                self.messagesModels.sort(by: { $0.message.time ?? 0 > $1.message.time ?? 0 })
+                
                 hasNext = response.hasNext
                 isLoading = false
                 animateObjectWillChange()
@@ -64,8 +67,8 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     }
 
     public func isCloseToLastThree(_ message: Message) -> Bool {
-        let index = Array<Message>.Index(messages.count - 3)
-        if messages.indices.contains(index), messages[index].id == message.id {
+        let index = Array<TabRowModel>.Index(messagesModels.count - 3)
+        if messagesModels.indices.contains(index), messagesModels[index].id == message.id {
             return true
         } else {
             return false
@@ -100,15 +103,6 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         }
     }
 
-    public func downloadVM(message: Message) -> DownloadFileViewModel {
-        if let localVM = downloadVMS.first(where: {$0.message.id == message.id}) {
-            return localVM
-        } else {
-            let newDownloadVM = DownloadFileViewModel(message: message)
-            downloadVMS.append(newDownloadVM)
-            return newDownloadVM
-        }
-    }
 #if DEBUG
     deinit {
         print("deinit DetailTabDownloaderViewModel for\(tabName)")

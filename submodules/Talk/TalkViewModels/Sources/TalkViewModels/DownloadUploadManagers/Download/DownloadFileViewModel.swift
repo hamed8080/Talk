@@ -20,9 +20,9 @@ public protocol DownloadFileViewModelProtocol {
 
 @MainActor
 public final class DownloadFileViewModel: ObservableObject, DownloadFileViewModelProtocol {
-    private var downloadPercent: Int64 = 0
+    /// A value between 0...100
+    public private(set) var downloadPercent: Int64 = 0
     public var state: DownloadFileState = .undefined
-    public var thumbnailData: Data?
     public var data: Data?
     
     public var fileHashCode: String = ""
@@ -32,12 +32,10 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     public var fileURL: URL? = nil
     public var url: URL? = nil
     public var isInCache: Bool = false
-    private var thumbnailVM: ThumbnailDownloadManagerViewModel?
     private var isConverting = false
 
     public init(message: Message) {
         self.message = message
-        thumbnailVM = .init()
         setObservers()
         Task { @AppBackgroundActor in
             await prepare()
@@ -46,7 +44,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     
     public init(message: Message) async {
         self.message = message
-        thumbnailVM = .init()
         setObservers()
         await prepare()
         await setup()
@@ -67,18 +64,12 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     /// It should be on the background thread because it decodes metadata in message.url.
     public func setup() async {
         if let url = url {
-            isInCache = await isFileExist(url: url)
+            isInCache = await message.isFileExistOnDisk()
             if isInCache {
                 state = .completed
-                thumbnailData = nil
                 animateObjectWillChange()
             }
         }
-    }
-    
-    @ChatGlobalActor
-    private func isFileExist(url: URL) -> Bool {
-        return ChatManager.activeInstance?.file.isFileExist(url) ?? false || ChatManager.activeInstance?.file.isFileExistInGroup(url) ?? false
     }
 
     public func setObservers() {
@@ -87,6 +78,16 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             .sink { [weak self] value in
                 Task { @MainActor [weak self] in
                     self?.onDownloadEvent(value)
+                }
+            }
+            .store(in: &cancellableSet)
+        
+        NotificationCenter.error.publisher(for: .error)
+            .compactMap { $0.object as? ChatResponse<any Sendable> }
+            .filter { $0.uniqueId == self.uniqueId }
+            .sink { [weak self] result in
+                Task { @MainActor [weak self] in
+                    self?.onFailed()
                 }
             }
             .store(in: &cancellableSet)
@@ -163,21 +164,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         }
     }
     
-    /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
-    public func downloadBlurImage(quality: Float = 0.02, size: ImageSize = .SMALL) {
-        guard let threadId = message.threadId ?? message.conversation?.id else { return }
-        state = .thumbnailDownloaing
-        let message = message
-        Task { @AppBackgroundActor [weak self] in
-            guard let self = self else { return }
-            let hashCode = await getHashCode()
-            let req = ImageRequest(hashCode: hashCode, quality: quality, size: size, thumbnail: true, conversationId: threadId)
-            if let url = await url, let data = await thumbnailVM?.downloadThumbnail(req: req, url: url) {
-                await setThumbnail(data: data)
-            }
-        }
-    }
-    
     /// We will test to see if fileHashCode inside init has been set or not,
     /// If it has been set, we can use it properly and it has decoded on the background thread,
     /// If not we have got to decode it on the main thread with message file
@@ -223,6 +209,11 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         }
     }
     
+    private func onFailed() {
+        state = .error
+        animateObjectWillChange()
+    }
+    
     private func isOpus(filePath: URL) async -> Bool {
 #if canImport(ffmpegkit)
         return await OpusConverter.isOpus(path: filePath)
@@ -245,19 +236,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             state = .completed
             downloadPercent = 100
             self.data = data
-            thumbnailData = nil
-            thumbnailVM?.removeKey()
-            thumbnailVM = nil
             isInCache = true
-            animateObjectWillChange()
-        }
-    }
-
-    private func setThumbnail(data: Data?) {
-        //State is not completed and blur view can show the thumbnail
-        state = .thumbnail
-        autoreleasepool {
-            self.thumbnailData = data
             animateObjectWillChange()
         }
     }
@@ -311,14 +290,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 
     private func isSameUnqiueId(_ uniqueId: String) -> Bool {
         RequestsManager.shared.contains(key: self.uniqueId) && uniqueId == self.uniqueId
-    }
-
-    public func downloadPercentValue() -> Int64 {
-        return downloadPercent
-    }
-
-    public func downloadPercentValueNoLock() -> Int64 {
-        return downloadPercent
     }
 
     deinit {

@@ -60,7 +60,7 @@ final class MessageLocationView: UIImageView {
                 await self.setImage(fileURL: fileURL)
             }
         } else {
-            self.image = viewModel.fileState.preloadImage ?? DownloadFileManager.mapPlaceholder
+            self.image = viewModel.fileState.preloadImage ?? DownloadFileStateMediator.mapPlaceholder
         }
         tintColor = viewModel.fileState.state == .completed ? .clear : .gray
         

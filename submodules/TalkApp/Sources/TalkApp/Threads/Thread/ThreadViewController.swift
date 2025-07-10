@@ -511,11 +511,6 @@ extension ThreadViewController: HistoryScrollDelegate {
         cell.updateProgress(viewModel: viewModel)
     }
 
-    func updateThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
-        guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
-        cell.updateThumbnail(viewModel: viewModel)
-    }
-
     func updateReplyImageThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
         guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
         cell.updateReplyImageThumbnail(viewModel: viewModel)

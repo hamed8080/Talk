@@ -28,7 +28,6 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func delivered(_ indexPath: IndexPath)
     func seen(_ indexPath: IndexPath)
     func updateProgress(at: IndexPath, viewModel: MessageRowViewModel)
-    func updateThumbnail(at: IndexPath, viewModel: MessageRowViewModel)
     func updateReplyImageThumbnail(at: IndexPath, viewModel: MessageRowViewModel)
     func downloadCompleted(at: IndexPath, viewModel: MessageRowViewModel)
     func uploadCompleted(at: IndexPath, viewModel: MessageRowViewModel)
