@@ -7,8 +7,13 @@
 
 import UIKit
 import TalkModels
+import AVFoundation
 
-public class AVAudioPlayerItem: ObservableObject {
+/**
+ This class is marked with @unchecked because we are sure that this object will be made on th background thread,
+ and then will be used by the main thread.
+ */
+public class AVAudioPlayerItem: ObservableObject, @unchecked Sendable {
     @Published public var currentTime: Double = 0
     @Published public var isPlaying: Bool = false
     @Published public var isFinished: Bool = false
@@ -17,6 +22,8 @@ public class AVAudioPlayerItem: ObservableObject {
     public let messageId: Int
     public let duration: Double    
     public let fileURL: URL
+    public let hardLinkAudioURL: URL?
+    public let artworkMetadata: AVMetadataItem?
     public let ext: String?
     public let title: String?
     public let subtitle: String?
@@ -25,7 +32,8 @@ public class AVAudioPlayerItem: ObservableObject {
     public init(
         messageId: Int,
         duration: Double, fileURL: URL, ext: String?, currentTime: Double = 0,
-        isPlaying: Bool = false, title: String? = nil, subtitle: String? = nil, isFinished: Bool = false
+        isPlaying: Bool = false, title: String? = nil, subtitle: String? = nil,
+        hardLinkAudioURL: URL? = nil, isFinished: Bool = false, artworkMetadata: AVMetadataItem? = nil
     ) {
         self.messageId = messageId
         self.duration = duration
@@ -35,7 +43,9 @@ public class AVAudioPlayerItem: ObservableObject {
         self.isPlaying = isPlaying
         self.title = title ?? fileURL.lastPathComponent
         self.subtitle = subtitle
+        self.hardLinkAudioURL = hardLinkAudioURL
         self.isFinished = isFinished
+        self.artworkMetadata = artworkMetadata
     }
 }
 

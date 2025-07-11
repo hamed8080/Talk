@@ -195,7 +195,7 @@ class MessageRowCalculators {
         if newCal.rowType.isAudio, let message = message as? Message, let fileURL = newCal.fileURL {
             let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL()
             newCal.fileURL = url
-            newCal.avPlayerItem = calculatePlayerItem(url, newCal.fileMetaData, message)
+            newCal.avPlayerItem = await calculatePlayerItem(url, newCal.fileMetaData, message)
         }
         return newCal
     }
@@ -843,22 +843,28 @@ class MessageRowCalculators {
         return estimatedHeight
     }
     
-    public class func calculatePlayerItem(_ fileURL: URL?, _ metadata: FileMetaData?, _ message: Message) -> AVAudioPlayerItem? {
+    public class func calculatePlayerItem(_ fileURL: URL?, _ metadata: FileMetaData?, _ message: Message) async -> AVAudioPlayerItem? {
         guard let fileURL = fileURL,
               let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL(),
               let asset = try? AVAsset(url: url)
         else { return nil }
         let convrtedURL = message.convertedFileURL
         let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
+        let assetMetadata = try? await asset.load(.commonMetadata)
+        let artworkMetadata = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtwork.rawValue })
         return AVAudioPlayerItem(messageId: message.id ?? -1,
                                  duration: Double(CMTimeGetSeconds(asset.duration)),
                                  fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
                                  ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
                                  title: metadata?.file?.originalName ?? metadata?.name ?? "",
-                                 subtitle: metadata?.file?.originalName ?? "")
-        
+                                 subtitle: metadata?.file?.originalName ?? "",
+                                 hardLinkAudioURL: url,
+                                 artworkMetadata: artworkMetadata
+        )
     }
 }
+
+extension AVMetadataItem: @unchecked Sendable {}
 
 extension String {
     func formatCodeBlocks() -> String {

@@ -178,6 +178,13 @@ final class MessageAudioView: UIView {
             unregisterObservers()
             registerObservers()
         }
+        Task {
+            if let data = try? await viewModel.calMessage.avPlayerItem?.artworkMetadata?.load(.dataValue), let image = UIImage(data: data) {
+                progressButton.setArtwork(image)
+            } else {
+                progressButton.setArtwork(nil)
+            }
+        }
     }
     
     @objc private func onTap(_ sender: UIGestureRecognizer) {
@@ -204,10 +211,10 @@ final class MessageAudioView: UIView {
     private func onTimeChanged(_ time: Double) {
         guard let item = viewModel?.calMessage.avPlayerItem else { return }
         waveView.setPlaybackProgress(item.progress)
+        progressButton.setProgressVisibility(visible: !item.isFinished)
+        progressButton.displayLinkAnimateTo(progress: item.isFinished ? 0.0 : item.progress)
         self.timeLabel.text = item.audioTimerString()
     }
-    
-    private func onClosed(_ closed: Bool) {}
     
     public func updateProgress(viewModel: MessageRowViewModel) {
         let progress = viewModel.fileState.progress
@@ -255,8 +262,11 @@ final class MessageAudioView: UIView {
         }
         .store(in: &cancellableSet)
         
-        item.$isFinished.sink { [weak self] closed in
-            self?.onClosed(closed)
+        item.$isFinished.sink { [weak self] isFinished in
+            if isFinished {
+                self?.progressButton.setProgressVisibility(visible: false)
+                self?.progressButton.displayLinkAnimateTo(progress: 0.0)
+            }
         }
         .store(in: &cancellableSet)
     }

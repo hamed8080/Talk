@@ -14,6 +14,8 @@ public final class CircleProgressButton: UIButton {
     private var bgColor: UIColor?
     private var shapeLayer = CAShapeLayer()
     private let imgCenter = UIImageView()
+    private let artworkShadowLayer = CALayer()
+    private let artworkImageLayer = CALayer()
     private var iconTint: UIColor?
     private var lineWidth: CGFloat
     private var animation = CABasicAnimation(keyPath: "strokeEnd")
@@ -43,6 +45,12 @@ public final class CircleProgressButton: UIButton {
     }
 
     private func configureView(iconSize: CGSize) {
+        artworkImageLayer.contentsGravity = .resizeAspectFill
+        artworkImageLayer.masksToBounds = true
+        
+        artworkShadowLayer.backgroundColor = UIColor.gray.withAlphaComponent(0.3).cgColor
+        artworkImageLayer.addSublayer(artworkShadowLayer)
+    
         imgCenter.translatesAutoresizingMaskIntoConstraints = false
         imgCenter.contentMode = .scaleAspectFit
         imgCenter.tintColor = iconTint
@@ -60,17 +68,31 @@ public final class CircleProgressButton: UIButton {
     public override func layoutSubviews() {
         super.layoutSubviews()
         layer.cornerRadius = bounds.width / 2
+                
+        artworkImageLayer.frame = bounds
+        artworkImageLayer.cornerRadius = bounds.width / 2
+        artworkShadowLayer.frame = bounds
+        artworkShadowLayer.cornerRadius = bounds.width / 2
+    
+        bringSubviewToFront(imgCenter)
+        
         drawProgress()
     }
 
     private func drawProgress() {
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
-        let path = UIBezierPath(arcCenter: center,
-                                radius: (bounds.width / 2) - margin,
-                                startAngle: -CGFloat.pi / 2,
-                                endAngle: 2 * CGFloat.pi,
-                                clockwise: true)
-
+        let radius = (bounds.width / 2) - margin
+        let startAngle = -CGFloat.pi / 2
+        let endAngle = startAngle + (2 * CGFloat.pi)
+        
+        let path = UIBezierPath(
+            arcCenter: center,
+            radius: radius,
+            startAngle: startAngle,
+            endAngle: endAngle,
+            clockwise: true
+        )
+        
         shapeLayer.fillColor = UIColor.clear.cgColor
         shapeLayer.strokeColor = progressColor?.cgColor
         shapeLayer.path = path.cgPath
@@ -78,7 +100,11 @@ public final class CircleProgressButton: UIButton {
         shapeLayer.lineWidth = lineWidth
         layer.addSublayer(shapeLayer)
     }
-
+    
+    /// Animate the progress line.
+    /// - Parameters:
+    ///   - progress: A value between 0...1
+    ///   - systemIconName: Hide icon if it is not passed
     public func animate(to progress: CGFloat, systemIconName: String = "") {
         if systemIconName != systemImageName {
             self.systemImageName = systemIconName
@@ -86,15 +112,37 @@ public final class CircleProgressButton: UIButton {
                 self.imgCenter.image = UIImage(systemName: systemIconName, withConfiguration: CircleProgressButton.config)
             }
         }
-        animation.toValue = progress
+        
+        shapeLayer.removeAnimation(forKey: "strokeEndAnimation")
+
+        let fromValue = shapeLayer.presentation()?.strokeEnd ?? shapeLayer.strokeEnd
+        animation.fromValue = fromValue
+        animation.toValue = min(max(progress, 0.0), 1.0) // clamp between 0 and 1
         animation.duration = 0.3
-        animation.fillMode = CAMediaTimingFillMode.forwards
+        animation.fillMode = .forwards
         animation.isRemovedOnCompletion = false
-        shapeLayer.strokeEnd = progress
+
         shapeLayer.add(animation, forKey: "strokeEndAnimation")
+
+        // Update model layer after animation starts
+        shapeLayer.strokeEnd = progress
+    }
+    
+    public func displayLinkAnimateTo(progress: CGFloat) {
+        shapeLayer.removeAnimation(forKey: "strokeEndAnimation")
+        shapeLayer.strokeEnd = progress
     }
 
     public func setProgressVisibility(visible: Bool) {
         shapeLayer.isHidden = !visible
+    }
+    
+    public func setArtwork(_ image: UIImage?) {
+        if let image = image {
+            artworkImageLayer.contents = image.cgImage
+            layer.addSublayer(artworkImageLayer)
+        } else {
+            layer.sublayers?.removeAll(where: {$0 == artworkImageLayer})
+        }
     }
 }

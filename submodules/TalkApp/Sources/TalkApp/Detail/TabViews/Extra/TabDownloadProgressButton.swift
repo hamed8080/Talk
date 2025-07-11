@@ -7,6 +7,7 @@
 
 import SwiftUI
 import TalkViewModels
+import AVFoundation
 
 struct TabDownloadProgressButton: View {
     @EnvironmentObject var rowModel: TabRowModel
@@ -59,8 +60,23 @@ fileprivate struct DownloadCircle: View {
 
 fileprivate struct PlayerAudioCircle: View {
     @EnvironmentObject var item: AVAudioPlayerItem
+    @State var artwork: UIImage?
     
     var body: some View {
+        if let artwork = artwork {
+            Image(uiImage: artwork)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 36, height: 36)
+                .clipShape(RoundedRectangle(cornerRadius:(36 / 2)))
+                .overlay {
+                    Circle()
+                        .fill(.gray.opacity(0.3))
+                        .frame(width: 36, height: 36)
+                        .clipShape(RoundedRectangle(cornerRadius:(36 / 2)))
+                }
+        }
+        
         Image(systemName: item.isPlaying ? "pause.fill" : "play.fill")
             .resizable()
             .scaledToFit()
@@ -75,5 +91,15 @@ fileprivate struct PlayerAudioCircle: View {
             .foregroundStyle(Color.App.textPrimary)
             .rotationEffect(Angle(degrees: 270))
             .environment(\.layoutDirection, .leftToRight)
+            .task {
+                await fetchArtwork()
+            }
+    }
+    
+    @MainActor
+    private func fetchArtwork() async {
+        if let artworkData = try? await item.artworkMetadata?.load(.dataValue), let image = UIImage(data: artworkData) {
+            self.artwork = image
+        }
     }
 }
