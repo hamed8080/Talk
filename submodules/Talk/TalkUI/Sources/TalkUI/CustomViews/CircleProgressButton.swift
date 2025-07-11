@@ -141,6 +141,7 @@ public final class CircleProgressButton: UIButton {
         if let image = image {
             artworkImageLayer.contents = image.cgImage
             layer.addSublayer(artworkImageLayer)
+            bringSubviewToFront(imgCenter)
         } else {
             layer.sublayers?.removeAll(where: {$0 == artworkImageLayer})
         }
