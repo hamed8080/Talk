@@ -12,7 +12,7 @@ import SwiftUI
 public final class CircleProgressButton: UIButton {
     private var progressColor: UIColor?
     private var bgColor: UIColor?
-    private var shapeLayer = CAShapeLayer()
+    private var progressLayerLine = CAShapeLayer()
     private let imgCenter = UIImageView()
     private let artworkShadowLayer = CALayer()
     private let artworkImageLayer = CALayer()
@@ -45,18 +45,33 @@ public final class CircleProgressButton: UIButton {
     }
 
     private func configureView(iconSize: CGSize) {
+        layer.backgroundColor = bgColor?.cgColor
+        
+        /// Setup artwork layer.
         artworkImageLayer.contentsGravity = .resizeAspectFill
         artworkImageLayer.masksToBounds = true
         
+        /// Setup shadow layer over artwork layer.
+        artworkShadowLayer.opacity = 0.0
         artworkShadowLayer.backgroundColor = UIColor.gray.withAlphaComponent(0.3).cgColor
         artworkImageLayer.addSublayer(artworkShadowLayer)
+        layer.addSublayer(artworkImageLayer)
+        
+        /// Setup progress line layer.
+        progressLayerLine.fillColor = UIColor.clear.cgColor
+        progressLayerLine.strokeColor = progressColor?.cgColor
+        progressLayerLine.lineCap = .round
+        progressLayerLine.lineWidth = lineWidth
+        layer.addSublayer(progressLayerLine)
     
+        /// Setup centered image like(play/pause) icon.
         imgCenter.translatesAutoresizingMaskIntoConstraints = false
         imgCenter.contentMode = .scaleAspectFit
         imgCenter.tintColor = iconTint
         imgCenter.accessibilityIdentifier = "imgCenterCircleProgressButton"
         addSubview(imgCenter)
-        layer.backgroundColor = bgColor?.cgColor
+        bringSubviewToFront(imgCenter)
+        
         NSLayoutConstraint.activate([
             imgCenter.centerXAnchor.constraint(equalTo: centerXAnchor),
             imgCenter.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -74,11 +89,11 @@ public final class CircleProgressButton: UIButton {
         artworkShadowLayer.frame = bounds
         artworkShadowLayer.cornerRadius = bounds.width / 2
     
-        bringSubviewToFront(imgCenter)
-        
         drawProgress()
     }
-
+    
+    /// Draw line progress.
+    /// This method should be called inside the layout subview to get correct bounds.
     private func drawProgress() {
         let center = CGPoint(x: bounds.midX, y: bounds.midY)
         let radius = (bounds.width / 2) - margin
@@ -92,13 +107,7 @@ public final class CircleProgressButton: UIButton {
             endAngle: endAngle,
             clockwise: true
         )
-        
-        shapeLayer.fillColor = UIColor.clear.cgColor
-        shapeLayer.strokeColor = progressColor?.cgColor
-        shapeLayer.path = path.cgPath
-        shapeLayer.lineCap = .round
-        shapeLayer.lineWidth = lineWidth
-        layer.addSublayer(shapeLayer)
+        progressLayerLine.path = path.cgPath
     }
     
     /// Animate the progress line.
@@ -113,37 +122,32 @@ public final class CircleProgressButton: UIButton {
             }
         }
         
-        shapeLayer.removeAnimation(forKey: "strokeEndAnimation")
+        progressLayerLine.removeAnimation(forKey: "strokeEndAnimation")
 
-        let fromValue = shapeLayer.presentation()?.strokeEnd ?? shapeLayer.strokeEnd
+        let fromValue = progressLayerLine.presentation()?.strokeEnd ?? progressLayerLine.strokeEnd
         animation.fromValue = fromValue
         animation.toValue = min(max(progress, 0.0), 1.0) // clamp between 0 and 1
         animation.duration = 0.3
         animation.fillMode = .forwards
         animation.isRemovedOnCompletion = false
 
-        shapeLayer.add(animation, forKey: "strokeEndAnimation")
+        progressLayerLine.add(animation, forKey: "strokeEndAnimation")
 
         // Update model layer after animation starts
-        shapeLayer.strokeEnd = progress
+        progressLayerLine.strokeEnd = progress
     }
     
     public func displayLinkAnimateTo(progress: CGFloat) {
-        shapeLayer.removeAnimation(forKey: "strokeEndAnimation")
-        shapeLayer.strokeEnd = progress
+        progressLayerLine.removeAnimation(forKey: "strokeEndAnimation")
+        progressLayerLine.strokeEnd = progress
     }
 
     public func setProgressVisibility(visible: Bool) {
-        shapeLayer.isHidden = !visible
+        progressLayerLine.isHidden = !visible
     }
     
     public func setArtwork(_ image: UIImage?) {
-        if let image = image {
-            artworkImageLayer.contents = image.cgImage
-            layer.addSublayer(artworkImageLayer)
-            bringSubviewToFront(imgCenter)
-        } else {
-            layer.sublayers?.removeAll(where: {$0 == artworkImageLayer})
-        }
+        artworkImageLayer.contents = image?.cgImage
+        artworkShadowLayer.opacity = image == nil ? 0.0 : 1.0
     }
 }
