@@ -33,9 +33,7 @@ struct CalculatedDataResult {
     var message: HistoryMessageType
 }
 
-//@HistoryActor
-public class MessageRowCalculators {
-    
+class MessageRowCalculators {
     
     class func batchCalulate(_ messages: [HistoryMessageType],
                              mainData: MainRequirements,
@@ -55,7 +53,7 @@ public class MessageRowCalculators {
         }
         
         
-        let viewModels = createViewModels(msgsCal, viewModel)
+        let viewModels = await createViewModels(msgsCal, viewModel)
         return viewModels
     }
     
@@ -75,7 +73,8 @@ public class MessageRowCalculators {
         }
         return msgsCal
     }
-    
+   
+    @MainActor
     private class func createViewModels(_ msgsCal: [CalculatedDataResult], _ viewModel: ThreadViewModel) -> [MessageRowViewModel] {
         var viewModels: [MessageRowViewModel] = []
         for msgCal in msgsCal {
@@ -83,7 +82,7 @@ public class MessageRowCalculators {
             vm.calMessage = msgCal.calData
             if vm.calMessage.fileURL != nil {
                 let fileState = completionFileState(vm.fileState, msgCal.message.iconName)
-                vm.setFileStateNonIsloated(fileState)
+                vm.setFileState(fileState, fileURL: nil)
             }
             viewModels.append(vm)
         }
@@ -188,10 +187,9 @@ public class MessageRowCalculators {
         return calculatedMessage
     }
     
-    @HistoryActor
     class func calculateColorAndFileURL(mainData: MainRequirements, message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) async -> MessageRowCalculatedData {
         var newCal = calculatedMessage
-        let color = mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
+        let color = await mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
         newCal.participantColor = color ?? .clear
         newCal.fileURL = await getFileURL(serverURL: message.url)
         if newCal.rowType.isAudio, let message = message as? Message, let fileURL = newCal.fileURL {
@@ -347,8 +345,8 @@ public class MessageRowCalculators {
     class func calculateImageSize(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> CGSize? {
         if message.isImage {
             /// We use max to at least have a width, because there are times that maxWidth is nil.
-            let uploadMapSizeWidth = message is UploadFileMessage ? DownloadFileManager.emptyImage.size.width : nil
-            let uploadMapSizeHeight = message is UploadFileMessage ? DownloadFileManager.emptyImage.size.height : nil
+            let uploadMapSizeWidth = message is UploadFileMessage ? DownloadFileStateMediator.emptyImage.size.width : nil
+            let uploadMapSizeHeight = message is UploadFileMessage ? DownloadFileStateMediator.emptyImage.size.height : nil
             let uploadImageReq = (message as? UploadFileMessage)?.uploadImageRequest
             let imageWidth = CGFloat(calculatedMessage.fileMetaData?.file?.actualWidth ?? uploadImageReq?.wC ?? Int(uploadMapSizeWidth ?? 0))
             let maxWidth = ThreadViewModel.maxAllowedWidth

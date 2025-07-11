@@ -25,6 +25,8 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var userProfileImageVM: ImageLoaderViewModel!
     @Published public var pendingManager = PendingManager()
     @Published public var sizeClassObserver = SizeClassObserver()
+    @Published public var downloadsManager = DownloadsManager()
+    @Published public var uploadsManager = UploadsManager()
     public let selfConversationBuilder = SelfThreadBuilder()
     public var chatRequestQueue = ChatRequestQueue()
 
@@ -53,17 +55,16 @@ public final class ObjectsContainer: ObservableObject {
         fetchUserProfile(user: user)
     }
 
-    @MainActor
     public func reset() async {
         AppState.shared.clear()
-        await threadsVM.clear()
-        await contactsVM.clear()
+        threadsVM.clear()
+        contactsVM.clear()
         tagsVM.clear()
         tagsVM.getTagList()
         navVM.clear()
         logVM.clearLogs()
         appOverlayVM.clear()
-        await conversationBuilderVM.clear()
+        conversationBuilderVM.clear()
         userProfileImageVM.clear()
     }
 

@@ -43,7 +43,6 @@ public final class ThreadViewModel {
     public var threadPinMessageViewModel: ThreadPinMessageViewModel = .init()
     public var reactionViewModel: ThreadReactionViewModel = .init()
     public var seenVM: HistorySeenViewModel = .init()
-    public var downloadFileManager: DownloadFileManager = .init()
     public var uploadFileManager: UploadFileManager = .init()
     public var avatarManager: ThreadAvatarManager = .init()
     public var conversationSubtitle: ConversationSubtitleViewModel = .init()
@@ -95,10 +94,7 @@ public final class ThreadViewModel {
         participantsViewModel.setup(viewModel: self)
         historyVM.viewModel = self
         let thread = thread
-        Task { @HistoryActor [weak self] in
-            guard let self = self else { return }
-            await historyVM.setup(thread: thread, readOnly: readOnly)
-        }
+        historyVM.setup(thread: thread, readOnly: readOnly)
         sendMessageViewModel.setup(viewModel: self)
         scrollVM.setup(viewModel: self)
         unsentMessagesViewModel.setup(viewModel: self)
@@ -107,7 +103,6 @@ public final class ThreadViewModel {
         exportMessagesViewModel.setup(viewModel: self)
         reactionViewModel.setup(viewModel: self)
         attachmentsViewModel.setup(viewModel: self)
-        downloadFileManager.setup(viewModel: self)
         uploadFileManager.setup(viewModel: self)
         avatarManager.setup(viewModel: self)
         conversationSubtitle.setup(viewModel: self)
@@ -283,16 +278,13 @@ public final class ThreadViewModel {
         }
     }
 
-    @HistoryActor
     private func onEditedMessage(_ response: ChatResponse<Message>) async {
         guard
             let editedMessage = response.result,
-            var oldMessage = await historyVM.sectionsHolder.sections.message(for: response.result?.id)?.message
+            var oldMessage = await historyVM.sections.message(for: response.result?.id)?.message
         else { return }
         oldMessage.updateMessage(message: editedMessage)
-        await MainActor.run {
-            updateIfIsPinMessage(editedMessage: editedMessage)
-        }
+        updateIfIsPinMessage(editedMessage: editedMessage)
     }
 
     // MARK: Logs
@@ -313,9 +305,7 @@ public final class ThreadViewModel {
         participantsViewModel.cancelAllObservers()
         mentionListPickerViewModel.cancelAllObservers()
         sendContainerViewModel.cancelAllObservers()
-        Task { @HistoryActor [weak self] in
-            await self?.historyVM.cancel()
-        }
+        historyVM.cancelAllObservers()
         threadPinMessageViewModel.cancelAllObservers()
 //        scrollVM.cancelAllObservers()
     }

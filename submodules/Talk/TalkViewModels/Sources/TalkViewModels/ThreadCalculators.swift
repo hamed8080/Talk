@@ -154,7 +154,6 @@ public class ThreadCalculators {
         classConversation.isSelected
     }
     
-    @MainActor
     private class func convertToStruct(_ classConversation: CalculatedConversation) -> Conversation {
         classConversation.toStruct()
     }
@@ -172,7 +171,6 @@ public class ThreadCalculators {
         return classConversation
     }
     
-    @MainActor
     private class func unreadCountOnMain(_ classConversation: CalculatedConversation) -> Int? {
         classConversation.unreadCount
     }

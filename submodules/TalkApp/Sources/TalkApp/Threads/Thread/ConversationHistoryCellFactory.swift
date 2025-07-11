@@ -14,7 +14,7 @@ import ChatModels
 @MainActor
 public final class ConversationHistoryCellFactory {
     class func reuse(_ tableView: UITableView, _ indexPath: IndexPath, _ viewModel: ThreadViewModel?) -> UITableViewCell {
-        guard let viewModel = viewModel?.historyVM.sectionsHolder.sections.viewModelWith(indexPath) else {
+        guard let viewModel = viewModel?.historyVM.sections.viewModelWith(indexPath) else {
             return UITableViewCell()
         }
         let identifier = viewModel.calMessage.rowType.cellType

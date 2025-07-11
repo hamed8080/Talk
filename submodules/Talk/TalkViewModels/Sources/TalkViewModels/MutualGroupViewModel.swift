@@ -15,7 +15,7 @@ public final class MutualGroupViewModel: ObservableObject {
     @Published public private(set) var mutualThreads: ContiguousArray<Conversation> = []
     private var partner: Participant?
     private var cancelable: AnyCancellable?
-    @MainActor public private(set) var lazyList = LazyListViewModel()
+    public private(set) var lazyList = LazyListViewModel()
 
     public init() {
         cancelable = NotificationCenter.thread.publisher(for: .thread)
@@ -26,22 +26,20 @@ public final class MutualGroupViewModel: ObservableObject {
     }
 
     public func setPartner(_ partner: Participant?) {
-        Task {
-            self.partner = partner
-            if let userName = partner?.username {
-                await fetchMutualThreads(username: userName)
-            }
+        self.partner = partner
+        if let userName = partner?.username {
+            fetchMutualThreads(username: userName)
         }
     }
 
     public func loadMoreMutualGroups() async {
         if let username = partner?.username, await lazyList.canLoadMore() {
             lazyList.prepareForLoadMore()
-            await fetchMutualThreads(username: username)
+            fetchMutualThreads(username: username)
         }
     }
 
-    public func fetchMutualThreads(username: String) async {
+    public func fetchMutualThreads(username: String) {
         guard AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue else { return }
         lazyList.setLoading(true)
         let invitee = Invitee(id: "\(username)", idType: .username)
@@ -63,13 +61,11 @@ public final class MutualGroupViewModel: ObservableObject {
 
     private func onMutual(_ response: ChatResponse<[Conversation]>) {
         if let threads = response.result {
-            Task { @MainActor in
-                lazyList.setLoading(false)
-                lazyList.setHasNext(response.hasNext)
-                for (_, thread) in threads.enumerated() {
-                    if !self.mutualThreads.contains(where: {$0.id == thread.id}) {
-                        mutualThreads.append(thread)
-                    }
+            lazyList.setLoading(false)
+            lazyList.setHasNext(response.hasNext)
+            for (_, thread) in threads.enumerated() {
+                if !self.mutualThreads.contains(where: {$0.id == thread.id}) {
+                    mutualThreads.append(thread)
                 }
             }
         }

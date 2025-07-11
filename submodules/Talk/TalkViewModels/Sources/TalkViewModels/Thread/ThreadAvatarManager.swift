@@ -27,9 +27,9 @@ public class ThreadAvatarManager {
         self.viewModel = viewModel
     }
 
-    public func addToQueue(_ viewModel: MessageRowViewModel) {
-        guard let link = httpsImage(viewModel.message.participant),
-              let participantId = viewModel.message.participant?.id else { return }
+    public func addToQueue(_ viewModel: MessageRowViewModel) async {
+        let message = await viewModel.message
+        guard let link = httpsImage(message.participant), let participantId = message.participant?.id else { return }
         
         if let image = cachedAvatars[link] {
             updateRow(image, participantId)
@@ -38,8 +38,8 @@ public class ThreadAvatarManager {
         }
     }
 
-    public func getImage(_ viewModel: MessageRowViewModel) -> UIImage? {
-        guard let link = httpsImage(viewModel.message.participant) else { return nil }
+    public func getImage(_ viewModel: MessageRowViewModel) async -> UIImage? {
+        guard let link = await httpsImage(viewModel.message.participant) else { return nil }
         return cachedAvatars[link]
     }
 

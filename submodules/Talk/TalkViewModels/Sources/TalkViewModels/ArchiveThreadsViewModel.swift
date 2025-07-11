@@ -127,7 +127,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    @MainActor
     func onParticipantEvent(_ event: ParticipantEventTypes) async {
         switch event {
         case .add(let chatResponse):
@@ -233,7 +232,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    @MainActor
     public func appendThreads(newThreads: [CalculatedConversation], oldThreads: ContiguousArray<CalculatedConversation>)
     async -> ContiguousArray<CalculatedConversation> {
         var arr = oldThreads
@@ -408,7 +406,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    @MainActor
     func onUnreadCounts(_ response: ChatResponse<[String : Int]>) async {
         response.result?.forEach { key, value in
             if let index = firstIndex(Int(key)) {

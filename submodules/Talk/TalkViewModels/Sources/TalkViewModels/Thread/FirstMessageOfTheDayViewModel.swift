@@ -10,7 +10,7 @@ import Combine
 import Foundation
 import Logger
 
-@HistoryActor
+@MainActor
 final class FirstMessageOfTheDayViewModel {
     private let threadId: Int
     private let readOnly: Bool
@@ -19,7 +19,6 @@ final class FirstMessageOfTheDayViewModel {
     typealias ResponseType = ChatResponse<[Message]>
     public var completion: ((Message?) -> Void)?
     private var uniqueId: String?
-    @MainActor
     private var cancelable: AnyCancellable?
 
     public init(threadId: Int, readOnly: Bool) {
@@ -32,11 +31,10 @@ final class FirstMessageOfTheDayViewModel {
         }
     }
 
-    @MainActor
     private func registerObservers() {
         cancelable = NotificationCenter.message.publisher(for: .message).sink { [weak self] notif in
             if let event = notif.object as? MessageEventTypes {
-                Task { @HistoryActor [weak self] in
+                Task { [weak self] in
                     await self?.onMessageEvent(event)
                 }
             }

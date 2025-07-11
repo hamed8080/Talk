@@ -39,13 +39,13 @@ struct DetailTabContainer: View {
     private func makeTabs() {
         if let thread = viewModel.thread {
             var tabs: [TalkUI.Tab] = [
-                .init(title: "Thread.Tabs.members", view: AnyView(MemberView().ignoresSafeArea(.all))),
-                .init(title: "Thread.Tabs.photos", view: AnyView(PictureView(conversation: thread, messageType: .podSpacePicture))),
-                .init(title: "Thread.Tabs.videos", view: AnyView(VideoView(conversation: thread, messageType: .podSpaceVideo))),
-                .init(title: "Thread.Tabs.music", view: AnyView(MusicView(conversation: thread, messageType: .podSpaceSound))),
-                .init(title: "Thread.Tabs.voice", view: AnyView(VoiceView(conversation: thread, messageType: .podSpaceVoice))),
-                .init(title: "Thread.Tabs.file", view: AnyView(FileView(conversation: thread, messageType: .podSpaceFile))),
-                .init(title: "Thread.Tabs.link", view: AnyView(LinkView(conversation: thread, messageType: .link))),
+                .init(title: "Thread.Tabs.members", view: AnyView(MembersTabView().ignoresSafeArea(.all))),
+                .init(title: "Thread.Tabs.photos", view: AnyView(PicturesTabView(conversation: thread, messageType: .podSpacePicture))),
+                .init(title: "Thread.Tabs.videos", view: AnyView(VideosTabView(conversation: thread, messageType: .podSpaceVideo))),
+                .init(title: "Thread.Tabs.music", view: AnyView(MusicsTabView(conversation: thread, messageType: .podSpaceSound))),
+                .init(title: "Thread.Tabs.voice", view: AnyView(VoicesTabView(conversation: thread, messageType: .podSpaceVoice))),
+                .init(title: "Thread.Tabs.file", view: AnyView(FilesTabView(conversation: thread, messageType: .podSpaceFile))),
+                .init(title: "Thread.Tabs.link", view: AnyView(LinksTabView(conversation: thread, messageType: .link))),
             ]
             if thread.group == false || thread.group == nil {
                 tabs.removeAll(where: {$0.title == "Thread.Tabs.members"})
@@ -56,7 +56,7 @@ struct DetailTabContainer: View {
 
             let canShowMutalTab = thread.group == false && thread.type != .selfThread
             if canShowMutalTab {
-                let view = AnyView(MutualThreadsView().ignoresSafeArea(.all).environmentObject(viewModel.mutualGroupsVM))
+                let view = AnyView(MutualsTabView().ignoresSafeArea(.all).environmentObject(viewModel.mutualGroupsVM))
                 tabs.append(.init(title: "Thread.Tabs.mutualgroup", view: view))
             }
 

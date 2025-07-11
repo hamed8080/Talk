@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "0570CB162AAEE02A001832E9"
-               BuildableName = "Talk-Sibche.app"
+               BuildableName = "Talk.app"
                BlueprintName = "Talk-Sibche"
                ReferencedContainer = "container:Talk.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0570CB162AAEE02A001832E9"
-            BuildableName = "Talk-Sibche.app"
+            BuildableName = "Talk.app"
             BlueprintName = "Talk-Sibche"
             ReferencedContainer = "container:Talk.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0570CB162AAEE02A001832E9"
-            BuildableName = "Talk-Sibche.app"
+            BuildableName = "Talk.app"
             BlueprintName = "Talk-Sibche"
             ReferencedContainer = "container:Talk.xcodeproj">
          </BuildableReference>

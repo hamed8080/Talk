@@ -46,7 +46,7 @@ public struct ProgressRotationAnimation: ViewModifier {
         if isValid {
             reverseAnimation()
         } else {
-          stopAnimation()
+            stopAnimation()
         }
     }
 

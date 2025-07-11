@@ -1,5 +1,5 @@
 //
-//  MemberView.swift
+//  MembersTabView.swift
 //  Talk
 //
 //  Created by hamed on 3/7/22.
@@ -13,7 +13,7 @@ import TalkViewModels
 import ActionableContextMenu
 
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-struct MemberView: View {
+struct MembersTabView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
     @EnvironmentObject var detailViewModel: ThreadDetailViewModel
     
@@ -277,7 +277,7 @@ struct MemberView_Previews: PreviewProvider {
     static var previews: some View {
         let viewModel = ParticipantsViewModel()
         List {
-            MemberView()
+            MembersTabView()
         }
         .listStyle(.plain)
         .environmentObject(viewModel)

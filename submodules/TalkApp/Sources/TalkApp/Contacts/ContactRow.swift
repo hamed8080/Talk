@@ -135,7 +135,6 @@ struct ContactRowRadioButton: View {
 
 @MainActor
 public struct ShowInviteeEnvironmentKey: @preconcurrency EnvironmentKey {
-    @MainActor
     public static var defaultValue: Bool = false
 }
 

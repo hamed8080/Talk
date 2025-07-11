@@ -1,5 +1,5 @@
 //
-//  LinkView.swift
+//  LinksTabView.swift
 //  Talk
 //
 //  Created by hamed on 3/7/22.
@@ -11,7 +11,7 @@ import TalkUI
 import TalkViewModels
 import TalkExtensions
 
-struct LinkView: View {
+struct LinksTabView: View {
     @StateObject var viewModel: DetailTabDownloaderViewModel
 
     init(conversation: Conversation, messageType: ChatModels.MessageType) {
@@ -22,11 +22,11 @@ struct LinkView: View {
         LazyVStack {
             ThreadTabDetailStickyHeaderSection(header: "", height:  4)
                 .onAppear {
-                    if viewModel.messages.count == 0 {
+                    if viewModel.messagesModels.count == 0 {
                         viewModel.loadMore()
                     }
                 }
-            if viewModel.isLoading || viewModel.messages.count > 0 {
+            if viewModel.isLoading || viewModel.messagesModels.count > 0 {
                 MessageListLinkView()
                     .padding(.top, 8)
                     .environmentObject(viewModel)
@@ -41,10 +41,11 @@ struct MessageListLinkView: View {
     @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
 
     var body: some View {
-        ForEach(viewModel.messages) { message in
-            LinkRowView(message: message)
+        ForEach(viewModel.messagesModels) { model in
+            LinkRowView()
+                .environmentObject(model)
                 .overlay(alignment: .bottom) {
-                    if message != viewModel.messages.last {
+                    if model.id != viewModel.messagesModels.last?.id {
                         Rectangle()
                             .fill(Color.App.textSecondary.opacity(0.3))
                             .frame(height: 0.5)
@@ -52,7 +53,7 @@ struct MessageListLinkView: View {
                     }
                 }
                 .onAppear {
-                    if message == viewModel.messages.last {
+                    if model.id == viewModel.messagesModels.last?.id {
                         viewModel.loadMore()
                     }
                 }
@@ -62,12 +63,8 @@ struct MessageListLinkView: View {
 }
 
 struct LinkRowView: View {
-    let message: Message
-    @State var smallText: String? = nil
-    @State var links: [String] = []
-    var threadVM: ThreadViewModel? { viewModel.threadVM }
     @EnvironmentObject var viewModel: ThreadDetailViewModel
-    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var rowModel: TabRowModel
 
     var body: some View {
         HStack {
@@ -83,13 +80,13 @@ struct LinkRowView: View {
                         .foregroundStyle(Color.App.textPrimary)
                 }
             VStack(alignment: .leading, spacing: 2) {
-                if let smallText = smallText {
+                if let smallText = rowModel.smallText {
                     Text(smallText)
                         .font(.fBody)
                         .foregroundStyle(Color.App.textPrimary)
                         .lineLimit(1)
                 }
-                ForEach(links, id: \.self) { link in
+                ForEach(rowModel.links, id: \.self) { link in
                     Text(verbatim: link)
                         .font(.fBody)
                         .foregroundStyle(Color.App.accent)
@@ -100,28 +97,7 @@ struct LinkRowView: View {
         .padding()
         .contentShape(Rectangle())
         .onTapGesture {
-            onTap()
-        }.task {
-            await calculateText(message: message.message)
-        }
-    }
-
-    private func onTap() {
-        Task {
-            await threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
-            viewModel.dismiss = true
-        }
-    }
-
-    private nonisolated func calculateText(message: String?) async {
-        let smallText = String(message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
-        var links: [String] = []
-        message?.links().forEach { link in
-            links.append(link)
-        }
-        await MainActor.run { [links] in
-            self.smallText = smallText
-            self.links = links
+            rowModel.moveToMessage(viewModel)
         }
     }
 }
@@ -129,7 +105,7 @@ struct LinkRowView: View {
 #if DEBUG
 struct LinkView_Previews: PreviewProvider {
     static var previews: some View {
-        LinkView(conversation: MockData.thread, messageType: .link)
+        LinksTabView(conversation: MockData.thread, messageType: .link)
     }
 }
 #endif

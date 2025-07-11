@@ -194,7 +194,7 @@ final class MessageImageView: UIImageView {
     // Thumbnail or placeholder image
     private func setPreloadImage(viewModel: MessageRowViewModel) {
         if viewModel.fileState.state == .undefined {
-            self.image = DownloadFileManager.emptyImage
+            self.image = DownloadFileStateMediator.emptyImage
         }
         guard let image = viewModel.fileState.preloadImage else { return }
         self.image = image
@@ -212,10 +212,6 @@ final class MessageImageView: UIImageView {
         let progress = viewModel.fileState.progress
         progressView.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressView.setProgressVisibility(visible: canShowProgress)
-    }
-
-    public func updateThumbnail(viewModel: MessageRowViewModel) {
-        setPreloadImage(viewModel: viewModel)
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {

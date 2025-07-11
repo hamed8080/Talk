@@ -82,7 +82,6 @@ public final class TokenManager: ObservableObject {
         ChatManager.activeInstance?.config
     }
     
-    @MainActor
     public func getNewTokenWithRefreshToken() async throws {
         if isInFetchingRefreshToken { return }
         isInFetchingRefreshToken = true

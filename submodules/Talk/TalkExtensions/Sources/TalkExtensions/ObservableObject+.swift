@@ -9,21 +9,19 @@ import Foundation
 import Combine
 import SwiftUI
 
+@MainActor
 public extension ObservableObject where Self.ObjectWillChangePublisher == ObservableObjectPublisher {
 
-    @MainActor
     func animateObjectWillChange() {
         Task { [weak self] in
             await self?.animate()
         }
     }
     
-    @MainActor
     func asyncAnimateObjectWillChange() async {
         await animate()
     }
     
-    @MainActor
     private func animate() {
         withAnimation {
             objectWillChange.send()

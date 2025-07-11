@@ -216,6 +216,7 @@ public final class MessageContainerStackView: UIStackView {
     }
 }
 
+@MainActor
 public struct ActionModel {
     let viewModel: MessageRowViewModel
     var threadVM: ThreadViewModel? { viewModel.threadVM }
@@ -288,10 +289,6 @@ extension MessageContainerStackView {
         messageFileView.updateProgress(viewModel: viewModel)
         messageImageView.updateProgress(viewModel: viewModel)
         messageVideoView.updateProgress(viewModel: viewModel)
-    }
-
-    func updateThumbnail(viewModel: MessageRowViewModel) {
-        messageImageView.updateThumbnail(viewModel: viewModel)
     }
 
     func updateReplyImageThumbnail(viewModel: MessageRowViewModel) {
