@@ -114,7 +114,12 @@ public extension MessageRowViewModel {
         guard let message = message as? Message else { return }
         Task {
             do {
-                try AppState.shared.objectsContainer.downloadsManager.enqueue(element: await .init(message: message))
+                let manager = AppState.shared.objectsContainer.downloadsManager
+                if let element = manager.element(for: message.id ?? -1), element.viewModel.state == .error {
+                    manager.redownload(message: message)
+                } else {
+                    try manager.enqueue(element: await .init(message: message))
+                }
             } catch {
                 if let error = error as? DownloadsManagerError, error == .duplicate {
                     Logger.log(title: "A duplicate download rejected for messageId: \(message.id ?? -1)")

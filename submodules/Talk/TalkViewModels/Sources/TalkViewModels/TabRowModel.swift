@@ -77,7 +77,11 @@ public class TabRowModel: ObservableObject {
                 return
             }
             if state.state != .completed {
-                manager.toggleDownloading(message: message)
+                if state.state == .error {
+                    manager.redownload(message: message)
+                } else {
+                    manager.toggleDownloading(message: message)
+                }
             } else if state.state == .completed {
                 if message.isVideo {
                     showFullScreenPlayer()

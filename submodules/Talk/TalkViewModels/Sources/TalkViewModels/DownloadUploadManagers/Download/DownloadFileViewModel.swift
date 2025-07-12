@@ -291,6 +291,12 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     private func isSameUnqiueId(_ uniqueId: String) -> Bool {
         RequestsManager.shared.contains(key: self.uniqueId) && uniqueId == self.uniqueId
     }
+    
+    public func redownload() {
+        let uniqueId = uniqueId
+        cancelDownload()
+        startDownload()
+    }
 
     deinit {
 //        cancellableSet.forEach { cancellable in

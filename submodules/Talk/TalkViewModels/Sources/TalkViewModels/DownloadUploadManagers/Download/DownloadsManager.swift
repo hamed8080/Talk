@@ -19,6 +19,7 @@ public final class DownloadsManager: ObservableObject {
     @Published public private(set) var elements: [DownloadManagerElement] = []
     private let stateMediator = DownloadFileStateMediator()
     public init(){}
+    private let MAX_NUMBER_OF_CONCURRENT_DOWNLOAD = 3
     
     public func enqueue(element: DownloadManagerElement) throws {
         /// Reject if it is already downloaded
@@ -32,10 +33,7 @@ public final class DownloadsManager: ObservableObject {
         elements.append(element)
         elements.sort(by: {$0.date < $1.date})
         
-        /// Download the first element if the user tap on the item.
-        if elements.count(where: {$0.viewModel.state == .downloading }) == 0 {
-            downloadNextElement(element)
-        }
+        downloadNextElement(element)
     }
     
     private func onDownloadStateChanged(_ element: DownloadManagerElement) async {
@@ -51,7 +49,15 @@ public final class DownloadsManager: ObservableObject {
         downloadNextElement(element)
     }
     
+    /**
+     * Download the next element if the user didn't try to make it pause.
+     * If the model is in pause state, it means that the user doesn’t want to download it from the time being.
+     *
+     * This checks the number of downloads to always remain lower or equal than **MAX_NUMBER_OF_CONCURRENT_DOWNLOAD**.
+     */
     private func downloadNextElement(_ element: DownloadManagerElement) {
+        let filtered = elements.filter{ $0.viewModel.state != .paused }
+        guard filtered.count(where: {$0.viewModel.state == .downloading }) <= MAX_NUMBER_OF_CONCURRENT_DOWNLOAD else { return }
         if let index = elements.firstIndex(where: {$0.id == element.id}) {
             elements[index].isInQueue = false
         }
@@ -111,5 +117,10 @@ extension DownloadsManager {
                 try? enqueue(element: await .init(message: message))
             }
         }
+    }
+    
+    public func redownload(message: Message) {
+        guard let element = elements.first(where: { $0.viewModel.message.id == message.id }) else { return }
+        element.viewModel.redownload()
     }
 }
