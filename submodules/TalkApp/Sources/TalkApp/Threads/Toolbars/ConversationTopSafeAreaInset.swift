@@ -30,8 +30,15 @@ struct ConversationTopSafeAreaInset: View {
                 .background(MixMaterialBackground())
                 .environmentObject(container.searchVM)
             if AppState.isInSlimMode, let item = item {
-                AudioPlayerView()
-                    .environmentObject(item)
+                NavigationPlayerWrapper()
+                    .padding(0)
+                    .frame(height: 40)
+                    .frame(maxWidth: .infinity)
+                    .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+                    .background(MixMaterialBackground())
+                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name("CLOSE_PLAYER"))) { _ in
+                        self.item = nil
+                    }
             }
             ThreadSearchView()
                 .environmentObject(container.searchVM)
@@ -48,7 +55,6 @@ struct ConversationTopSafeAreaInset: View {
             isDownloading = newValue.count > 0
         }
     }
-    
     
     private var trainlingViews: some View {
         HStack {

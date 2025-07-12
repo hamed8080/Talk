@@ -44,6 +44,7 @@ class ThreadNavigationPlayer: UIView {
         titleLabel.font = UIFont.fCaption
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "titleLabelThreadNavigationPlayer"
+        titleLabel.textAlignment = Language.isRTL ? .right : .left
         addSubview(titleLabel)
 
         timerLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -58,9 +59,16 @@ class ThreadNavigationPlayer: UIView {
         progress.accessibilityIdentifier = "progressThreadNavigationPlayer"
         addSubview(progress)
 
+        // Get the system-preferred font for a text style
+        let font = UIFont.preferredFont(forTextStyle: .body)
+
+        // Create a symbol configuration based on the font
+        let config = UIImage.SymbolConfiguration(pointSize: font.pointSize, weight: .bold)
+        
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.tintColor = Color.App.accentUIColor
-        closeButton.imageView.image = UIImage(systemName: "xmark")
+        closeButton.imageView.image = UIImage(systemName: "xmark", withConfiguration: config)
+        closeButton.imageView.contentMode = .scaleAspectFit
         closeButton.imageView.tintColor = Color.App.textSecondaryUIColor
         closeButton.accessibilityIdentifier = "closeButtonThreadNavigationPlayer"
         closeButton.action = { [weak self] in
@@ -110,6 +118,13 @@ class ThreadNavigationPlayer: UIView {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
+        guard let touch = touches.first else { return }
+        
+        // Replace `ignoredView` with the actual UIView you want to ignore touches on
+        if playButton.bounds.contains(touch.location(in: playButton)) {
+            return // Ignore the touch if it's inside the ignoredView
+        }
+        
         UIView.animate(withDuration: 0.2) {
             self.alpha = 0.5
         }
@@ -130,9 +145,14 @@ class ThreadNavigationPlayer: UIView {
     }
 
     @objc private func taped(_ sender: UIGestureRecognizer) {
-        Task {
-            if let message = playerVM.message, let time = message.time, let id = message.id {
+        Task { [weak self] in
+            guard let self = self, let message = playerVM.message, let time = message.time, let id = message.id else { return }
+            if viewModel != nil {
                 await viewModel?.historyVM.moveToTime(time, id)
+            } else {
+                /// Open thread and move to the message directly if we are outside of the thread and player is still plying
+                let threadId = message.conversation?.id ?? -1
+                AppState.shared.openThreadAndMoveToMessage(conversationId: threadId, messageId: id, messageTime: time)
             }
         }
     }
@@ -142,8 +162,9 @@ class ThreadNavigationPlayer: UIView {
     }
 
     private func close() {
-        removeFromSuperViewWithAnimation()
+        removeFromSuperViewWithAnimation(withAimation: false)
         playerVM.pause()
+        NotificationCenter.default.post(name: NSNotification.Name("CLOSE_PLAYER"), object: nil)
     }
     
     private func registerSwapAudioNotification() {
@@ -211,4 +232,29 @@ class ThreadNavigationPlayer: UIView {
             }
         }
     }
+}
+
+struct NavigationPlayerWrapper: UIViewRepresentable {
+    @Environment(\.layoutDirection) var layoutDirection
+
+    func makeUIView(context: Context) -> UIView {
+        let playerView = ThreadNavigationPlayer(viewModel: nil)
+        playerView.semanticContentAttribute = layoutDirection == .rightToLeft ? .forceRightToLeft : .forceLeftToRight
+        playerView.register()
+       
+        /// A wrapper to fix the width and content semantic of a view
+        let wrapper = UIView()
+        playerView.translatesAutoresizingMaskIntoConstraints = false
+        wrapper.addSubview(playerView)
+        
+        NSLayoutConstraint.activate([
+            playerView.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor),
+            playerView.trailingAnchor.constraint(equalTo: wrapper.trailingAnchor),
+            playerView.topAnchor.constraint(equalTo: wrapper.topAnchor),
+            playerView.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor),
+        ])
+        return wrapper
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
 }

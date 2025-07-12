@@ -843,9 +843,8 @@ class MessageRowCalculators {
         return estimatedHeight
     }
     
-    public class func calculatePlayerItem(_ fileURL: URL?, _ metadata: FileMetaData?, _ message: Message) async -> AVAudioPlayerItem? {
-        guard let fileURL = fileURL,
-              let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL(),
+    public class func calculatePlayerItem(_ url: URL?, _ metadata: FileMetaData?, _ message: Message) async -> AVAudioPlayerItem? {
+        guard let url = url,
               let asset = try? AVAsset(url: url)
         else { return nil }
         let convrtedURL = message.convertedFileURL
@@ -854,11 +853,10 @@ class MessageRowCalculators {
         let artworkMetadata = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtwork.rawValue })
         return AVAudioPlayerItem(messageId: message.id ?? -1,
                                  duration: Double(CMTimeGetSeconds(asset.duration)),
-                                 fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
+                                 fileURL: url,
                                  ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
                                  title: metadata?.file?.originalName ?? metadata?.name ?? "",
                                  subtitle: metadata?.file?.originalName ?? "",
-                                 hardLinkAudioURL: url,
                                  artworkMetadata: artworkMetadata
         )
     }

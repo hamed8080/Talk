@@ -65,9 +65,9 @@ public class TabRowModel: ObservableObject {
             registerNotifications(messageId: message.id ?? -1)
         }
        
-        // FIXME: Should be fixed the file disk url if it didn't work.
         if let url = fileURL {
-            let item = await MessageRowCalculators.calculatePlayerItem(url, message.fileMetaData, message)
+            let audioURL = AudioFileURLCalculator(fileURL: url, message: message).audioURL()
+            let item = await MessageRowCalculators.calculatePlayerItem(audioURL, message.fileMetaData, message)
             self.itemPlayer = item
         }
     }

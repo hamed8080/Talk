@@ -202,8 +202,7 @@ final class MessageAudioView: UIView {
     
     private func onPlayingStateChanged(_ isPlaying: Bool) {
         let image = isPlaying ? "pause.fill" : "play.fill"
-        progressButton.animate(to: 1.0, systemIconName: image)
-        progressButton.setProgressVisibility(visible: false)
+        progressButton.animate(to: viewModel?.calMessage.avPlayerItem?.progress ?? 0.0, systemIconName: image)
         playbackSpeedButton.setTitle(playbackSpeed.string(), for: .normal)
         playbackSpeedButton.isHidden = !isPlaying
     }
@@ -217,7 +216,7 @@ final class MessageAudioView: UIView {
     }
     
     public func updateProgress(viewModel: MessageRowViewModel) {
-        let progress = viewModel.fileState.progress
+        let progress = viewModel.calMessage.avPlayerItem?.progress ?? viewModel.fileState.progress
         let icon = viewModel.fileState.iconState
         let canShowDownloadUpload = viewModel.fileState.state != .completed
         progressButton.animate(to: progress, systemIconName: canShowDownloadUpload ? icon : playingIcon)
@@ -247,7 +246,9 @@ final class MessageAudioView: UIView {
     }
     
     private var canShowProgress: Bool {
-        viewModel?.fileState.state == .downloading || viewModel?.fileState.isUploading == true
+        if viewModel?.calMessage.avPlayerItem?.isFinished == true { return false }
+        if viewModel?.calMessage.avPlayerItem?.progress ?? 0.0 > 0.0 { return true }
+        return viewModel?.fileState.state == .downloading || viewModel?.fileState.isUploading == true
     }
     
     func registerObservers() {

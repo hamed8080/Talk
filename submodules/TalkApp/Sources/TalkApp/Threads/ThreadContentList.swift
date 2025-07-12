@@ -100,33 +100,4 @@ private struct Preview: View {
         }
     }
 }
-
-struct ThreadContentList_Previews: PreviewProvider {
-    struct AudioPlayerPreview: View {
-        @ObservedObject var audioPlayerVM = AVAudioPlayerViewModel()
-
-        var body: some View {
-            AudioPlayerView()
-                .environmentObject(audioPlayerVM)
-                .onAppear {
-                    if let fileURL = Language.rootBundle?.url(forResource: "new_message", withExtension: "mp3") {
-                        let item = AVAudioPlayerItem(messageId: 1,
-                                                     duration: 2.0,
-                                                     fileURL: fileURL,
-                                                     ext: "mp3",
-                                                     title: "Note")
-                        try? audioPlayerVM.setup(item: item)
-                        audioPlayerVM.toggle()
-                    }
-                    audioPlayerVM.item?.isFinished = false
-                }
-        }
-    }
-
-    static var previews: some View {
-        AudioPlayerPreview()
-            .previewDisplayName("AudioPlayerPreview")
-        Preview()
-    }
-}
 #endif
