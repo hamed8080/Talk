@@ -30,6 +30,7 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
 
     public var calMessage = MessageRowCalculatedData()
     public private(set) var fileState: MessageFileState = .init()
+    public var uploadElementUniqueId: String?
 
     public init(message: HistoryMessageType, viewModel: ThreadViewModel) {
         self.message = message
@@ -58,9 +59,6 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
     }
     
     public func register() {
-        if message is UploadProtocol {
-            threadVM?.uploadFileManager.register(message: message, viewModelUniqueId: uniqueId)
-        }
         if calMessage.rowType.isMap, let message = message as? Message, fileState.state != .completed {
             AppState.shared.objectsContainer.downloadsManager.toggleDownloading(message: message)
         }
@@ -166,8 +164,10 @@ public extension MessageRowViewModel {
 
     func cancelUpload() {
         Task { [weak self] in
-            guard let self = self else { return }
-            await threadVM?.uploadFileManager.cancel(viewModelUniqueId: uniqueId)
+            guard let self = self, let uniqueId = uploadElementUniqueId else { return }
+            if let element = AppState.shared.objectsContainer.uploadsManager.element(uniqueId: uniqueId) {
+                AppState.shared.objectsContainer.uploadsManager.cancel(element: element)
+            }
         }
     }
 }

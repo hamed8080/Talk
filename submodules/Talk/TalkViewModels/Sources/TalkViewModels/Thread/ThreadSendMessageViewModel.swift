@@ -19,7 +19,7 @@ public final class ThreadSendMessageViewModel {
     private var thread: Conversation { viewModel?.thread ?? .init() }
     private var threadId: Int { thread.id ?? 0 }
     private var attVM: AttachmentsViewModel { viewModel?.attachmentsViewModel ?? .init() }
-    private var uplVM: ThreadUploadMessagesViewModel { viewModel?.uploadMessagesViewModel ?? .init() }
+    private var uploadsManager: UploadsManager { appState.objectsContainer.uploadsManager }
     private var sendVM: SendContainerViewModel { viewModel?.sendContainerViewModel ?? .init() }
     private var selectVM: ThreadSelectedMessagesViewModel { viewModel?.selectedMessagesViewModel ?? .init() }
     private var appState: AppState { AppState.shared }
@@ -105,7 +105,7 @@ public final class ThreadSendMessageViewModel {
                 
         if !uploads.isEmpty {
             /// Append to the messages list while uploading
-            uplVM.append(uploads)
+            uploadsManager.enqueue(with: uploads)
         } else {
             send(.reply(ReplyMessageRequest(model: model)))
         }
@@ -135,7 +135,7 @@ public final class ThreadSendMessageViewModel {
            
             if !uploads.isEmpty {
                 /// Append to the messages list while uploading
-                uplVM.append(uploads)
+                uploadsManager.enqueue(with: uploads)
             } else {
                 guard let req = ReplyPrivatelyRequest(model: model) else { return }
                 send(.replyPrivately(req))
@@ -178,7 +178,7 @@ public final class ThreadSendMessageViewModel {
             guard let self = self,
                   let request = UploadFileMessage(audioFileURL: recorderVM.recordingOutputPath, model: model)
             else { return }
-            uplVM.append([request])
+            uploadsManager.enqueue(with: [request])
             recorderVM.cancel()
         }
     }
@@ -264,7 +264,7 @@ public final class ThreadSendMessageViewModel {
                 let imageMessage = UploadFileMessage(imageItem: imageItem, model: model)
                 imageMessages.append(imageMessage)
             }
-            uplVM.append(imageMessages)
+            uploadsManager.enqueue(with: imageMessages)
             sendVideos(imageItems.filter({$0.isVideo}))
             attVM.clear()
         }
@@ -278,7 +278,7 @@ public final class ThreadSendMessageViewModel {
             let videoMessage = UploadFileMessage(videoItem: item, model: model)
             videoMessages.append(videoMessage)
         }
-        self.uplVM.append(videoMessages)
+        self.uploadsManager.enqueue(with: videoMessages)
     }
 
     /// add a upload messge entity to bottom of the messages in the thread and then the view start sending upload file
@@ -294,7 +294,7 @@ public final class ThreadSendMessageViewModel {
                     fileMessages.append(fileMessage)
                 }
             }
-            self.uplVM.append(fileMessages)
+            self.uploadsManager.enqueue(with: fileMessages)
             attVM.clear()
         }
     }
@@ -309,7 +309,7 @@ public final class ThreadSendMessageViewModel {
                 let fileMessage = UploadFileMessage(dropItem: item, model: model)
                 fileMessages.append(fileMessage)
             }
-            self.uplVM.append(fileMessages)
+            self.uploadsManager.enqueue(with: fileMessages)
             attVM.clear()
         }
     }
@@ -323,7 +323,7 @@ public final class ThreadSendMessageViewModel {
     public func sendLocation(_ location: LocationItem) {
         createConversationIfNeeded { [weak self] in
             guard let self = self else {return}
-            uplVM.append([UploadFileMessage(location: location, model: model)])
+            uploadsManager.enqueue(with: [UploadFileMessage(location: location, model: model)])
             attVM.clear()
         }
     }

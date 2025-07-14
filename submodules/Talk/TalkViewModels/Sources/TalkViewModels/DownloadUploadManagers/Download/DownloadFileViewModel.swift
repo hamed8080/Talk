@@ -293,14 +293,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
     
     public func redownload() {
-        let uniqueId = uniqueId
         cancelDownload()
         startDownload()
-    }
-
-    deinit {
-//        cancellableSet.forEach { cancellable in
-//            cancellable.cancel()
-//        }
     }
 }

@@ -159,12 +159,12 @@ extension ContiguousArray where Element == MessageSection {
      the function below is likely to be O(1) because we always insert at the bottom of a thread.
      */
     @discardableResult
-    public func viewModelAndIndexPath(viewModelUniqueId uniqueId: String) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
+    public func viewModelAndIndexPath(uploadElementUniqueId: String) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
         if isEmpty { return nil }
         var sectionIndex = count - 1
         var rowIndex: Int? = nil
         while sectionIndex >= 0 {
-            if let index = self[sectionIndex].vms.firstIndex(where: {$0.uniqueId == uniqueId}) {
+            if let index = self[sectionIndex].vms.firstIndex(where: {$0.uploadElementUniqueId == uploadElementUniqueId}) {
                 rowIndex = index
                 break
             } else {

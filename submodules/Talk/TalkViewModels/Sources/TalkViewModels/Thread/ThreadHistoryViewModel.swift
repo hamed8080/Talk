@@ -45,6 +45,7 @@ public final class ThreadHistoryViewModel {
     private let keys = RequestKeys()
     private var middleFetcher: MiddleHistoryFetcherViewModel?
     private var firstMessageOfTheDayVM: FirstMessageOfTheDayViewModel?
+    private var isReattachedUploads = false
     
     private var lastScrollTime: Date = .distantPast
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
@@ -141,6 +142,7 @@ extension ThreadHistoryViewModel {
         trySeventhScenario()
         tryEightScenario()
         tryNinthScenario()
+        reattachUploads()
     }
 }
 
@@ -631,7 +633,6 @@ extension ThreadHistoryViewModel {
                 let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
                 viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
                 vm.register()
-                sortAndMoveRowIfNeeded(message: message, currentIndexPath: currentIndexPath)
                 reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
             }
         }
@@ -674,19 +675,6 @@ extension ThreadHistoryViewModel {
     }
 
     /*
-     We use this method in new messages due to the fact that, if we are uploading multiple files/pictures...
-     we don't know when the upload message will be completed, thus it's essential to sort them and then check if the row has been moved after sorting.
-    */
-    private func sortAndMoveRowIfNeeded(message: Message, currentIndexPath: IndexPath?) {
-        sort()
-        let newIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
-        if let currentIndexPath = currentIndexPath, let newIndexPath = newIndexPath, currentIndexPath != newIndexPath {
-            delegate?.moveRow(at: currentIndexPath, to: newIndexPath)
-            viewModel?.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
-        }
-    }
-
-    /*
      Check if we have the last message in our list,
      It'd useful in case of onNewMessage to check if we have move to time or not.
      We also check greater messages in the last section, owing to
@@ -694,7 +682,7 @@ extension ThreadHistoryViewModel {
      Therefore, the id is greater than the id of the previous conversation.lastMessageVO.id
      */
     private func isLastMessageInsideTheSections(_ oldConversation: Conversation?) -> Bool {
-        let hasAnyUploadMessage = viewModel?.uploadMessagesViewModel.hasAnyUploadMessage() ?? false
+        let hasAnyUploadMessage = AppState.shared.objectsContainer.uploadsManager.hasAnyUpload(threadId: threadId) ?? false
         let isLastMessageExistInLastSection = sections.last?.vms.last?.message.id ?? 0 >= oldConversation?.lastMessageVO?.id ?? 0
         return isLastMessageExistInLastSection || hasAnyUploadMessage
     }
@@ -900,6 +888,20 @@ extension ThreadHistoryViewModel {
         for vm in viewModels {
             vm.register()
         }
+    }
+    
+    public func injectUploadsAndSort(_ elements: [UploadManagerElement]) async {
+        guard let viewModel = viewModel else { return }
+        let mainData = await getMainData()
+        var viewModels: [MessageRowViewModel] = []
+        for element in elements {
+            let viewModel = MessageRowViewModel(message: element.viewModel.message, viewModel: viewModel)
+            viewModel.uploadElementUniqueId = element.id
+            await viewModel.recalculate(mainData: mainData)
+            viewModels.append(viewModel)
+        }
+        viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
+        appendSort(viewModels)
     }
 
     private func insertIntoProperSection(_ viewModel: MessageRowViewModel) {
@@ -1433,5 +1435,17 @@ extension ThreadHistoryViewModel {
     private func isSectionAndRowExist(_ indexPath: IndexPath) -> Bool {
         guard sections.indices.contains(where: {$0 == indexPath.section}) else { return false }
         return sections[indexPath.section].vms.indices.contains(where: {$0 == indexPath.row})
+    }
+}
+
+extension ThreadHistoryViewModel {
+    public func reattachUploads() {
+        if isReattachedUploads == true { return }
+        isReattachedUploads = true
+        Task {
+            let elements = AppState.shared.objectsContainer.uploadsManager.elements.filter { $0.threadId  == threadId }
+            if elements.isEmpty { return }
+            await AppState.shared.objectsContainer.uploadsManager.stateMediator.append(elements: elements)
+        }
     }
 }

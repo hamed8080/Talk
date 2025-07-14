@@ -3,4 +3,5 @@ public enum UploadFileState: Sendable {
     case uploading
     case paused
     case error
+    case undefined
 }

@@ -43,3 +43,17 @@ public class UploadFileMessage: HistoryMessageBaseCalss, UploadProtocol {
         fatalError("init(from:) has not been implemented")
     }
 }
+
+public extension UploadFileMessage {
+    var fileSize: Int? {
+        uploadFileRequest?.dataToSend?.count ?? uploadImageRequest?.dataToSend?.count
+    }
+    
+    var fileName: String? {
+        uploadFileRequest?.fileName ?? uploadImageRequest?.fileName
+    }
+    
+    var uploadRequestUniuqeId: String? {
+        uploadFileRequest?.uniqueId ?? uploadImageRequest?.uniqueId ?? locationRequest?.uniqueId
+    }
+}

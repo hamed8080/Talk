@@ -27,7 +27,6 @@ public final class ThreadViewModel {
     @Published public var dismiss = false
     public var exportMessagesViewModel: ExportMessagesViewModel = .init()
     public var unsentMessagesViewModel: ThreadUnsentMessagesViewModel = .init()
-    public var uploadMessagesViewModel: ThreadUploadMessagesViewModel = .init()
     public var searchedMessagesViewModel: ThreadSearchMessagesViewModel = .init()
     public var selectedMessagesViewModel: ThreadSelectedMessagesViewModel = .init()
     public var unreadMentionsViewModel: ThreadUnreadMentionsViewModel = .init()
@@ -43,7 +42,6 @@ public final class ThreadViewModel {
     public var threadPinMessageViewModel: ThreadPinMessageViewModel = .init()
     public var reactionViewModel: ThreadReactionViewModel = .init()
     public var seenVM: HistorySeenViewModel = .init()
-    public var uploadFileManager: UploadFileManager = .init()
     public var avatarManager: ThreadAvatarManager = .init()
     public var conversationSubtitle: ConversationSubtitleViewModel = .init()
     public weak var threadsViewModel: ThreadsViewModel?
@@ -99,11 +97,9 @@ public final class ThreadViewModel {
         scrollVM.setup(viewModel: self)
         unsentMessagesViewModel.setup(viewModel: self)
         selectedMessagesViewModel.setup(viewModel: self)
-        uploadMessagesViewModel.setup(viewModel: self)
         exportMessagesViewModel.setup(viewModel: self)
         reactionViewModel.setup(viewModel: self)
         attachmentsViewModel.setup(viewModel: self)
-        uploadFileManager.setup(viewModel: self)
         avatarManager.setup(viewModel: self)
         conversationSubtitle.setup(viewModel: self)
         registerNotifications()
@@ -299,7 +295,6 @@ public final class ThreadViewModel {
         }
         exportMessagesViewModel.cancelAllObservers()
         unsentMessagesViewModel.cancelAllObservers()
-        uploadMessagesViewModel.cancelAllObservers()
         searchedMessagesViewModel.cancelAllObservers()
         unreadMentionsViewModel.cancelAllObservers()
         participantsViewModel.cancelAllObservers()
@@ -376,6 +371,7 @@ public final class ThreadViewModel {
     public func onConversationClosed() {
         delegate?.onConversationClosed()
     }
+   
 
     deinit {
         let title = thread.title ?? ""

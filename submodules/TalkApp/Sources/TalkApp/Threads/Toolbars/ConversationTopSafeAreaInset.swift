@@ -15,6 +15,7 @@ struct ConversationTopSafeAreaInset: View {
     private var container: ObjectsContainer { AppState.shared.objectsContainer }
     @State private var isInSearchMode: Bool = false
     @State private var isDownloading: Bool = false
+    @State private var isUploading: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -45,12 +46,15 @@ struct ConversationTopSafeAreaInset: View {
         }.onReceive(AppState.shared.objectsContainer.downloadsManager.$elements) { newValue in
             isDownloading = newValue.count > 0
         }
+        .onReceive(AppState.shared.objectsContainer.uploadsManager.$elements) { newValue in
+            isUploading = newValue.count > 0
+        }
     }
-    
     
     private var trainlingViews: some View {
         HStack {
             compatibleDownladsManagerButton
+            compatibleUploadsManagerButton
             searchButton
         }
     }
@@ -81,6 +85,38 @@ struct ConversationTopSafeAreaInset: View {
                 .padding(8)
                 .frame(minWidth: 0, maxWidth: isDownloading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isDownloading ? 38 : 0)
                 .accessibilityHint("Download")
+                .fontWeight(.medium)
+                .clipped()
+                .foregroundStyle(Color.App.toolbarButton)
+        }
+    }
+    
+    @ViewBuilder
+    private var compatibleUploadsManagerButton: some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *) {
+            iOS17AnimatedUploadButton
+        } else {
+            uploadsManagerButton
+        }
+    }
+    
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    private var iOS17AnimatedUploadButton: some View {
+        uploadsManagerButton
+            .symbolEffect(.pulse)
+    }
+    
+    private var uploadsManagerButton: some View {
+        NavigationLink {
+            UploadsManagerListView()
+                .environmentObject(AppState.shared.objectsContainer.uploadsManager)
+        } label: {
+            Image(systemName: "arrow.up.circle.dotted")
+                .resizable()
+                .scaledToFit()
+                .padding(8)
+                .frame(minWidth: 0, maxWidth: isUploading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isUploading ? 38 : 0)
+                .accessibilityHint("Upload")
                 .fontWeight(.medium)
                 .clipped()
                 .foregroundStyle(Color.App.toolbarButton)

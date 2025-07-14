@@ -6,26 +6,25 @@ import Foundation
 @MainActor
 public final class UploadFileViewModel: ObservableObject {
     @Published public private(set) var uploadPercent: Int64 = 0
-    @Published public var state: UploadFileState = .paused
+    @Published public var state: UploadFileState = .undefined
     public var message: HistoryMessageType
     var locationThreadId: Int? { message.threadId }
     var threadId: Int? { message.conversation?.id ?? locationThreadId }
     public var uploadUniqueId: String?
     public private(set) var cancelable: Set<AnyCancellable> = []
     public private(set) var fileMetaData: FileMetaData?
-    private var pending: (sendRequest: SendTextMessageRequest, fileMessage: UploadFileMessage)?
+    public private(set) var fileSizeString: String = ""
+    public private(set) var fileNameString: String = ""
     
-    public init(message: HistoryMessageType) {
+    public init(message: HistoryMessageType) async {
         self.message = message
+        fileSizeString = (message as? UploadFileMessage)?.fileSize?.toSizeStringShort(locale: Language.preferredLocale) ?? ""
+        fileNameString = (message as? UploadFileMessage)?.fileName ?? message.messageTitle
+        uploadUniqueId = (message as? UploadFileMessage)?.uploadRequestUniuqeId
         NotificationCenter.upload.publisher(for: .upload)
             .compactMap { $0.object as? UploadEventTypes }
             .sink { [weak self] event in
                 self?.onUploadEvent(event)
-            }
-            .store(in: &cancelable)
-        AppState.shared.$connectionStatus
-            .sink { [weak self] status in
-                self?.onConnectionStatusChanged(status)
             }
             .store(in: &cancelable)
     }
@@ -46,13 +45,11 @@ public final class UploadFileViewModel: ObservableObject {
         
         let textMessageType: ChatModels.MessageType = message.isImage ? .podSpacePicture : (message.messageType ?? .podSpaceFile)
         let sendRequest = SendTextMessageRequest(threadId: threadId, textMessage: message.message ?? "", messageType: textMessageType)
-        self.pending = (sendRequest, fileMessage)
         handleFileUpload(for: fileMessage, sendRequest: sendRequest)
     }
     
     private func handleFileUpload(for fileMessage: UploadFileMessage, sendRequest: SendTextMessageRequest) {
         if let request = fileMessage.uploadFileRequest {
-            uploadUniqueId = request.uniqueId
             if let replyPrivately = fileMessage.replyPrivatelyRequest {
                 upload(.replyPrivatelyFile(replyPrivately, request))
             } else if let reply = fileMessage.replyRequest {
@@ -61,7 +58,6 @@ public final class UploadFileViewModel: ObservableObject {
                 upload(.file(sendRequest, request))
             }
         } else if let request = fileMessage.uploadImageRequest {
-            uploadUniqueId = request.uniqueId
             if let replyPrivately = fileMessage.replyPrivatelyRequest {
                 upload(.replyPrivatelyImage(replyPrivately, request))
             } else if let reply = fileMessage.replyRequest {
@@ -70,7 +66,6 @@ public final class UploadFileViewModel: ObservableObject {
                 upload(.image(sendRequest, request))
             }
         } else if let locationRequest = fileMessage.locationRequest {
-            uploadUniqueId = locationRequest.uniqueId
             upload(.location(locationRequest))
         }
     }
@@ -85,7 +80,6 @@ public final class UploadFileViewModel: ObservableObject {
         self.fileMetaData = metaData
         if uniqueId == uploadUniqueId {
             state = .completed
-            pending = nil
         }
     }
     
@@ -97,9 +91,15 @@ public final class UploadFileViewModel: ObservableObject {
     
     public func action(_ action: DownloaUploadAction) {
         guard let uploadUniqueId = uploadUniqueId else { return }
+        state = .paused
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.file.manageUpload(uniqueId: uploadUniqueId, action: action)
         }
+    }
+    
+    public func reUpload() {
+        action(.cancel)
+        startUpload()
     }
     
     fileprivate enum SendType {
@@ -124,12 +124,6 @@ public final class UploadFileViewModel: ObservableObject {
             case .replyPrivatelyFile(let replyPrivatelyRequest, let fileReq): messageManager.replyPrivately(replyPrivatelyRequest, fileReq)
             case .location(let request): messageManager.send(request)
             }
-        }
-    }
-    
-    private func onConnectionStatusChanged(_ status: ConnectionStatus) {
-        if status == .connected, let pending = pending {
-            handleFileUpload(for: pending.fileMessage, sendRequest: pending.sendRequest)
         }
     }
 }
