@@ -124,8 +124,10 @@ public final class CircleProgressButton: UIButton {
         
         progressLayerLine.removeAnimation(forKey: "strokeEndAnimation")
 
+        /// This value initially is not equal to zero it's 0.999 which will lead to an issue when we want to show
+        /// the progress for the first time. It shows a little progress.
         let fromValue = progressLayerLine.presentation()?.strokeEnd ?? progressLayerLine.strokeEnd
-        animation.fromValue = fromValue
+        animation.fromValue = progress == 0.0 ? 0.0 : fromValue
         animation.toValue = min(max(progress, 0.0), 1.0) // clamp between 0 and 1
         animation.duration = 0.3
         animation.fillMode = .forwards

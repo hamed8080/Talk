@@ -48,10 +48,10 @@ fileprivate struct DownloadCircle: View {
         if rowModel.state.state == .paused || rowModel.state.state == .downloading {
             Circle()
                 .trim(from: 0.0, to: min(rowModel.state.progress, 1.0))
-                .stroke(style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                .stroke(style: StrokeStyle(lineWidth: 4.0, lineCap: .round, lineJoin: .round))
                 .foregroundColor(Color.App.white)
                 .rotationEffect(Angle(degrees: 270))
-                .frame(width: 28, height: 28)
+                .frame(width: 36, height: 36)
                 .environment(\.layoutDirection, .leftToRight)
                 .rotationEffect(.degrees(rowModel.degree))
         }
@@ -86,8 +86,8 @@ fileprivate struct PlayerAudioCircle: View {
         
         Circle()
             .trim(from: 0.0, to: item.duration > 0.0 ? min(item.currentTime / item.duration, 1.0) : 0.0)
-            .stroke(style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-            .frame(width: 28, height: 28)
+            .stroke(style: StrokeStyle(lineWidth: 4.0, lineCap: .round, lineJoin: .round))
+            .frame(width: 36, height: 36)
             .foregroundStyle(Color.App.textPrimary)
             .rotationEffect(Angle(degrees: 270))
             .environment(\.layoutDirection, .leftToRight)
