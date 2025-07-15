@@ -88,7 +88,7 @@ public class TabRowModel: ObservableObject {
                 if message.isVideo {
                     showFullScreenPlayer()
                 } else if message.isAudio {
-                    await playAudio()
+                    await playAudio(viewModel)
                 } else {
                     await showShareFileSheet()
                 }
@@ -114,14 +114,27 @@ extension TabRowModel: Hashable {
 
 /// Audio
 extension TabRowModel {
-    private func playAudio() async {
+    private func playAudio(_ viewModel: ThreadDetailViewModel) async {
         do {
             if let item = itemPlayer {
                 try audioVM.setup(item: item, message: message)
+                updateHistoryItemAndReload(viewModel, item)
             }
             audioVM.toggle()
         } catch {
             state.state = .error
+        }
+    }
+    
+    /// Update thread history audio to sync itself by reloading it with the new item player.
+    private func updateHistoryItemAndReload(_ viewModel: ThreadDetailViewModel, _ item: AVAudioPlayerItem) {
+        let historyVM = viewModel.threadVM?.historyVM
+        if let tuple = historyVM?.sections.viewModelAndIndexPath(for: message.id ?? -1) {
+            tuple.vm.calMessage.avPlayerItem = item
+            
+            /// Reloading message force it to call set method on MessageAudioView,
+            /// and that will lead to call register and syncing audio
+            historyVM?.reload(at: tuple.indexPath, vm: tuple.vm)
         }
     }
 }

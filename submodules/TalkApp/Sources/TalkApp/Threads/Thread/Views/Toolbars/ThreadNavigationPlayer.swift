@@ -164,6 +164,7 @@ class ThreadNavigationPlayer: UIView {
     private func close() {
         removeFromSuperViewWithAnimation(withAimation: false)
         playerVM.pause()
+        playerVM.item = nil
         NotificationCenter.default.post(name: NSNotification.Name("CLOSE_PLAYER"), object: nil)
     }
     
