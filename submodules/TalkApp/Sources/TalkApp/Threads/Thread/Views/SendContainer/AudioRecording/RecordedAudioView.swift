@@ -17,7 +17,7 @@ import TalkModels
 public final class RecordedAudioView: UIStackView {
     private let btnSend = UIImageButton(imagePadding: .init(all: 8))
     private let lblTimer = UILabel()
-    private let waveImageView = UIImageView()
+    private let waveView = AudioWaveFormView()
     private let btnTogglePlayer = UIButton(type: .system)
     private var cancellableSet = Set<AnyCancellable>()
     private weak var viewModel: ThreadViewModel?
@@ -30,7 +30,6 @@ public final class RecordedAudioView: UIStackView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureView()
-        registerObservers()
     }
 
     required init(coder: NSCoder) {
@@ -72,11 +71,10 @@ public final class RecordedAudioView: UIStackView {
         lblTimer.setContentHuggingPriority(.required, for: .horizontal)
         lblTimer.setContentCompressionResistancePriority(.required, for: .horizontal)
 
-        waveImageView.translatesAutoresizingMaskIntoConstraints = false
-        waveImageView.accessibilityIdentifier = "waveImageViewRecordedAudioView"
-        waveImageView.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        waveImageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        waveImageView.contentMode = .center
+        waveView.translatesAutoresizingMaskIntoConstraints = false
+        waveView.accessibilityIdentifier = "waveViewRecordedAudioView"
+        waveView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        waveView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         btnTogglePlayer.translatesAutoresizingMaskIntoConstraints = false
         btnTogglePlayer.accessibilityIdentifier = "btnTogglePlayerRecordedAudioView"
@@ -84,13 +82,13 @@ public final class RecordedAudioView: UIStackView {
 
         addArrangedSubview(btnSend)
         addArrangedSubview(lblTimer)
-        addArrangedSubview(waveImageView)
+        addArrangedSubview(waveView)
         addArrangedSubview(btnTogglePlayer)
         addArrangedSubview(btnDelete)
 
         NSLayoutConstraint.activate([
-            waveImageView.centerXAnchor.constraint(greaterThanOrEqualTo: centerXAnchor),
-            waveImageView.heightAnchor.constraint(equalToConstant: AudioRecordingView.height / 2),
+            waveView.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
+            waveView.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
             btnSend.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
             btnSend.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
             btnDelete.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
@@ -98,62 +96,38 @@ public final class RecordedAudioView: UIStackView {
             btnTogglePlayer.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
             btnTogglePlayer.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
         ])
+        waveView.setTopConstant(value: -8)
     }
 
-    func setup() async throws {
+    func setup() throws {
         addProgressView()
-        guard let url = audioPlayerVM.fileURL else { return }
-        let image = try await waveImageFor(url: url)
-        await MainActor.run {
-            self.waveImageView.alpha = 0
-            self.waveImageView.image = image
+        registerObservers()
+        guard let item = audioPlayerVM.item else { return }
+        let url = item.fileURL
+        Task {
+            let image = try await item.createWaveform(height: AudioRecordingView.height - 4)
+            self.waveView.alpha = 0
+            self.waveView.setImage(to: image)
             UIView.animate(withDuration: 0.25) {
-                self.waveImageView.alpha = 1
+                self.waveView.alpha = 1
             }
             self.removeProgressView()
         }
     }
-    
-    private func waveImageFor(url: URL) async throws -> UIImage {
-        let waveformImageDrawer = WaveformImageDrawer()
-        return try await waveformImageDrawer.waveformImage(
-            fromAudioAt: url,
-            with: .init(
-                size: .init(width: waveImageView.bounds.size.width, height: AudioRecordingView.height),
-                style: .striped(
-                    .init(
-                        color: Color.App.accentUIColor ?? .white,
-                        width: 3,
-                        spacing: 2,
-                        lineCap: .round
-                    )
-                ),
-                shouldAntialias: true
-            ),
-            renderer: LinearWaveformRenderer()
-        )
-    }
 
     private func registerObservers() {
-        audioRecoderVM?.$timerString.sink { [weak self] timerString in
-            self?.lblTimer.text = timerString
-        }
-        .store(in: &cancellableSet)
-        
-        audioPlayerVM.$currentTime.sink { [weak self] isPlaying in
-            self?.lblTimer.text = self?.timerString()
+        guard let item = audioPlayerVM.item else { return }
+        item.$currentTime.sink { [weak self] isPlaying in
+            self?.lblTimer.text = item.audioTimerString()
+            self?.waveView.setPlaybackProgress(item.progress)
         }
         .store(in: &cancellableSet)
 
-        audioPlayerVM.$isPlaying.sink { [weak self] isPlaying in
+        item.$isPlaying.sink { [weak self] isPlaying in
             let image = UIImage(systemName: isPlaying ? "pause.fill" : "play.fill")
             self?.btnTogglePlayer.setImage(image, for: .normal)
         }
         .store(in: &cancellableSet)
-    }
-    
-    private func timerString() -> String {
-        audioPlayerVM.currentTime.timerString(locale: Language.preferredLocale) ?? ""
     }
 
     @objc private func deleteTapped(_ sender: UIButton) {
@@ -164,7 +138,7 @@ public final class RecordedAudioView: UIStackView {
     }
     
     public func clear() {
-        waveImageView.image = nil
+        waveView.setImage(to: nil)
         removeProgressView()
     }
     

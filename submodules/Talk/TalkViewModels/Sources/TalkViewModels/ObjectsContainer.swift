@@ -71,12 +71,12 @@ public final class ObjectsContainer: ObservableObject {
     private func onMessageEvent(_ event: MessageEventTypes) async {
         switch event {
         case .new(let chatResponse):
-            if !audioPlayerVM.isPlaying {
+            if audioPlayerVM.item?.isPlaying == false {
                 await onNewMessage(chatResponse)
             }
             break
         case .sent(_):
-            if !audioPlayerVM.isPlaying {
+            if audioPlayerVM.item?.isPlaying == false {
                 await playMessageSound(sent: true)
             }
             break
@@ -107,7 +107,12 @@ public final class ObjectsContainer: ObservableObject {
 
     private func playMessageSound(sent: Bool) async {
         if let fileURL = Language.rootBundle?.url(forResource: sent ? "sent_message" : "new_message", withExtension: "mp3") {
-            try? messagePlayer.setup(message: nil, fileURL: fileURL, ext: "mp3", category: .ambient)
+            try? messagePlayer.setup(item: .init(messageId: -2,
+                                                 duration: 3.0,
+                                                 fileURL: fileURL,
+                                                 ext: "mp3"),
+                                     message: nil,
+                                     category: .ambient)
             messagePlayer.toggle()
         }
     }

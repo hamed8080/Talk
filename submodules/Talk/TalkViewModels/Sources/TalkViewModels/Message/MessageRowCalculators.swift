@@ -10,6 +10,7 @@ import SwiftUI
 import TalkModels
 import Chat
 import UIKit
+import AVFoundation
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -33,7 +34,6 @@ struct CalculatedDataResult {
 }
 
 class MessageRowCalculators {
-    
     
     class func batchCalulate(_ messages: [HistoryMessageType],
                              mainData: MainRequirements,
@@ -192,6 +192,11 @@ class MessageRowCalculators {
         let color = await mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
         newCal.participantColor = color ?? .clear
         newCal.fileURL = await getFileURL(serverURL: message.url)
+        if newCal.rowType.isAudio, let message = message as? Message, let fileURL = newCal.fileURL {
+            let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL()
+            newCal.fileURL = url
+            newCal.avPlayerItem = await calculatePlayerItem(url, newCal.fileMetaData, message)
+        }
         return newCal
     }
     
@@ -605,7 +610,7 @@ class MessageRowCalculators {
         let text = text.formatCodeBlocks()
         guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
         let range = (text.startIndex..<text.endIndex)
-                
+        
         mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
         mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
         mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
@@ -630,7 +635,7 @@ class MessageRowCalculators {
             mutableAttr.addAttribute(.foregroundColor, value: UIColor.clear, range: result.range)
             mutableAttr.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: result.range)
         }
-                
+        
         return NSAttributedString(attributedString: mutableAttr)
     }
     
@@ -704,7 +709,7 @@ class MessageRowCalculators {
         
         var formattedString = ""
         if isStarted || isMissed || isCanceled {
-            let key = isStarted ? "Thread.callAccepted" : isMissed ? "Thread.callMissed" : "Thread.callCanceled"            
+            let key = isStarted ? "Thread.callAccepted" : isMissed ? "Thread.callMissed" : "Thread.callCanceled"
             formattedString = String(format: key.bundleLocalized(), hour)
         } else if isDeclined {
             let decliner = message.participant?.name ?? ""
@@ -714,7 +719,7 @@ class MessageRowCalculators {
             let duration = (message.callHistory?.endTime ?? 0) - (message.callHistory?.startTime ?? 0)
             let seconds = duration / 1000
             let durationString = seconds.timerStringTripleSection(locale: Language.preferredLocale) ?? ""
-                        
+            
             let endText = "Thread.callEnded".bundleLocalized()
             formattedString = String(format: endText, hour, durationString)
         }
@@ -723,9 +728,9 @@ class MessageRowCalculators {
         attr.append(textAttr)
         return attr
     }
-
+    
     @ChatGlobalActor
-    class func getFileURL(serverURL: URL?) -> URL? {
+    public class func getFileURL(serverURL: URL?) -> URL? {
         if let url = serverURL {
             if ChatManager.activeInstance?.file.isFileExist(url) == false { return nil }
             let fileURL = ChatManager.activeInstance?.file.filePath(url)
@@ -749,7 +754,7 @@ class MessageRowCalculators {
     class func isSingleEmoji(_ message: HistoryMessageType) -> Bool {
         message.message?.isEmoji == true && message.message?.isEmpty == false && message.replyInfo == nil && message.message?.count ?? 0 == 1
     }
-
+    
     class func getRect(markdownTitle: NSAttributedString?, width: CGFloat) -> CGRect? {
         guard let markdownTitle = markdownTitle else { return nil }
         let ts = NSTextStorage(attributedString: markdownTitle)
@@ -763,7 +768,7 @@ class MessageRowCalculators {
         let rect = lm.usedRect(for: tc)
         return rect
     }
-
+    
     class func calculateEstimatedHeight(_ calculatedMessage: MessageRowCalculatedData, _ sizes: MessageRowSizes) -> CGFloat {
         if calculatedMessage.rowType.cellType == .call {
             return 32
@@ -778,67 +783,86 @@ class MessageRowCalculators {
         var estimatedHeight: CGFloat = 0
         let margin: CGFloat = 4 // stack margin
         let spacing: CGFloat = 4
-
+        
         estimatedHeight += containerMargin
         estimatedHeight += margin
-
+        
         //group participant name height
         if calculatedMessage.isFirstMessageOfTheUser && !calculatedMessage.isMe {
             estimatedHeight += 16
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isReply {
             estimatedHeight += spacing
             estimatedHeight += 48
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isForward {
             estimatedHeight += 48
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isImage {
             estimatedHeight += sizes.imageHeight ?? 0
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isVideo {
             estimatedHeight += 196
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isAudio {
             estimatedHeight += 78
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isFile {
             estimatedHeight += 44
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.isMap {
             estimatedHeight += sizes.mapHeight // static inside MessageRowCalculatedData
             estimatedHeight += spacing
         }
-
+        
         if calculatedMessage.rowType.hasText {
             estimatedHeight += calculatedMessage.textRect?.height ?? 0
             estimatedHeight += spacing
             estimatedHeight += 15 // UITextView margin
         }
-
+        
         //footer height
         estimatedHeight += 18
         estimatedHeight += margin
         estimatedHeight += containerMargin
-
+        
         return estimatedHeight
+    }
+    
+    public class func calculatePlayerItem(_ url: URL?, _ metadata: FileMetaData?, _ message: Message) async -> AVAudioPlayerItem? {
+        guard let url = url,
+              let asset = try? AVAsset(url: url)
+        else { return nil }
+        let convrtedURL = message.convertedFileURL
+        let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
+        let assetMetadata = try? await asset.load(.commonMetadata)
+        let artworkMetadata = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtwork.rawValue })
+        return AVAudioPlayerItem(messageId: message.id ?? -1,
+                                 duration: Double(CMTimeGetSeconds(asset.duration)),
+                                 fileURL: url,
+                                 ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
+                                 title: metadata?.file?.originalName ?? metadata?.name ?? "",
+                                 subtitle: metadata?.file?.originalName ?? "",
+                                 artworkMetadata: artworkMetadata
+        )
     }
 }
 
+extension AVMetadataItem: @unchecked Sendable {}
 
 extension String {
     func formatCodeBlocks() -> String {

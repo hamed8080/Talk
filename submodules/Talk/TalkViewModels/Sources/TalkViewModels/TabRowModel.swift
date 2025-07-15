@@ -26,7 +26,7 @@ public class TabRowModel: ObservableObject {
     @Published public var smallText: String? = nil
     @Published public var links: [String] = []
     @Published public var thumbnailImage: UIImage?
-    @Published public var isPlaying: Bool = false
+    @Published public var itemPlayer: AVAudioPlayerItem?
     
     private var cancellableSet = Set<AnyCancellable>()
     private var timer: Timer?
@@ -64,9 +64,11 @@ public class TabRowModel: ObservableObject {
         if state.state != .completed {
             registerNotifications(messageId: message.id ?? -1)
         }
-        
-        if state.state == .completed, message.isAudio {
-            registerAudioNotification()
+       
+        if let url = fileURL {
+            let audioURL = AudioFileURLCalculator(fileURL: url, message: message).audioURL()
+            let item = await MessageRowCalculators.calculatePlayerItem(audioURL, message.fileMetaData, message)
+            self.itemPlayer = item
         }
     }
     
@@ -114,32 +116,13 @@ extension TabRowModel: Hashable {
 extension TabRowModel {
     private func playAudio() async {
         do {
-            guard let fileURL = fileURL else { return }
-            let convrtedURL = await convertedFileURL(message: message)
-            let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
-            try audioVM.setup(message: message,
-                                fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
-                                ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
-                                title: metadata?.name,
-                                subtitle: metadata?.file?.originalName ?? "")
+            if let item = itemPlayer {
+                try audioVM.setup(item: item, message: message)
+            }
             audioVM.toggle()
         } catch {
             state.state = .error
         }
-    }
-    
-    @AppBackgroundActor
-    private func convertedFileURL(message: HistoryMessageType) -> URL? {
-        message.convertedFileURL
-    }
-    
-    var isSameAudioFile: Bool {
-        if isSameConvertedAudioFile { return true }
-        return audioVM.fileURL?.absoluteString == fileURL?.absoluteString
-    }
-    
-    var isSameConvertedAudioFile: Bool {
-        message.convertedFileURL != nil && audioVM.fileURL?.absoluteString == message.convertedFileURL?.absoluteString
     }
 }
 
@@ -211,9 +194,7 @@ extension TabRowModel {
     public var stateIcon: String {
         switch state.state {
         case .completed:
-            if message.isAudio && isPlaying && isSameAudioFile {
-                "pause.fill"
-            } else if message.isVideo || message.isAudio {
+            if message.isVideo || message.isAudio {
                 "play.fill"
             } else {
                 message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "document"
@@ -269,18 +250,6 @@ extension TabRowModel {
                 }
             }
             .store(in: &cancellableSet)
-    }
-    
-    private func registerAudioNotification() {
-        AppState.shared.objectsContainer.audioPlayerVM.$isPlaying.sink { [weak self] newValue in
-            /// This will show pause for all current playing
-            self?.isPlaying = false
-            
-            if newValue, self?.isSameAudioFile == true {
-                self?.isPlaying = true
-            }
-        }
-        .store(in: &cancellableSet)
     }
     
     private func onStateChange(_ state: MessageFileState) {

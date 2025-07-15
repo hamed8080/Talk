@@ -14,7 +14,7 @@ public actor WaveformGenerator {
     private let width: CGFloat
     private let height: CGFloat
 
-    public init(url: URL, width: CGFloat = 246, height: CGFloat = 24) {
+    public init(url: URL, width: CGFloat = 246, height: CGFloat = 32) {
         self.url = url
         self.width = width
         self.height = height
@@ -29,14 +29,16 @@ public actor WaveformGenerator {
                 style: .striped(
                     .init(
                         color: UIColor.gray,
-                        width: 2,
+                        width: 3,
                         spacing: 4,
                         lineCap: .round
                     )
                 ),
+                verticalScalingFactor: 1,
                 shouldAntialias: true
             ),
-            renderer: LinearWaveformRenderer()
+            renderer: LinearWaveformRenderer(),
+            position: .bottom
         )
     }
 }

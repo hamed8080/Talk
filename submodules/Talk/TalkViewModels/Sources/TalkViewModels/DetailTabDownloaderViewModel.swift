@@ -49,9 +49,18 @@ public class DetailTabDownloaderViewModel: ObservableObject {
                response.subjectId == conversation.id,
                response.pop(prepend: DETAIL_HISTORY_KEY) != nil,
                let messages = response.result {
+
                 for message in messages {
                     if !self.messagesModels.contains(where: { $0.id == message.id }) {
                         let model = await TabRowModel(message: message)
+                        
+                        /// Attach the avplayer to show progress form the postion the item is playing,
+                        /// then append and attaching it to the list.
+                        let activePlayingId = AppState.shared.objectsContainer.audioPlayerVM.message?.id
+                        if activePlayingId == message.id {
+                            model.itemPlayer = AppState.shared.objectsContainer.audioPlayerVM.item
+                        }
+                        
                         messagesModels.append(model)
                     }
                 }

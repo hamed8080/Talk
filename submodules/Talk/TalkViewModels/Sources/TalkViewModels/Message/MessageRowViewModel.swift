@@ -175,35 +175,12 @@ public extension MessageRowViewModel {
 // MARK: Audio file
 public extension MessageRowViewModel {
     private var audioVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
-
-    private var isSameAudioFile: Bool {
-        if audioVM.fileURL == nil { return true } // It means it has never played a audio.
-        guard let fileURL = calMessage.fileURL else { return false }
-        return audioVM.fileURL?.absoluteString == fileURL.absoluteString
-    }
-
+    
+    @MainActor
     private func toggleAudio() {
-        if isSameAudioFile {
-            togglePlaying()
-        } else {
-            audioVM.close()
-            togglePlaying()
-        }
-    }
-
-    private func togglePlaying() {
-        if let fileURL = calMessage.fileURL {
-            let convrtedURL = message.convertedFileURL
-            let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
-            let mtd = calMessage.fileMetaData
-            do {
-                try audioVM.setup(message: message as? Message,
-                                  fileURL: (convertedExist ? convrtedURL : fileURL) ?? fileURL,
-                                  ext: convertedExist ? "mp4" : mtd?.file?.mimeType?.ext,
-                                  title: mtd?.file?.originalName ?? mtd?.name ?? "",
-                                  subtitle: mtd?.file?.originalName ?? "")
-                audioVM.toggle()
-            } catch {}
+        if let item = calMessage.avPlayerItem {
+            try? audioVM.setup(item: item, message: message as? Message)
+            audioVM.toggle()
         }
     }
 }

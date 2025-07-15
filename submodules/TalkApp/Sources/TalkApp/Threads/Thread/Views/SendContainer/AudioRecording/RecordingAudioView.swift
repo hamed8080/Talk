@@ -11,6 +11,7 @@ import TalkViewModels
 import TalkUI
 import Combine
 import SwiftUI
+import AVFoundation
 
 @MainActor
 public final class RecordingAudioView: UIStackView {
@@ -93,10 +94,15 @@ public final class RecordingAudioView: UIStackView {
         viewModel?.stop()
         if let fileURL = viewModel?.recordingOutputPath {
             let playerVM = AppState.shared.objectsContainer.audioPlayerVM
-            try? playerVM.setup(fileURL: fileURL,
-                                ext: fileURL.fileExtension,
-                                title: fileURL.fileName,
-                                subtitle: "")
+            let asset = try? AVAsset(url: fileURL)
+            let duration = Double(CMTimeGetSeconds(asset?.duration ?? CMTime()))
+            let item = AVAudioPlayerItem(messageId: -2,
+                                         duration: duration,
+                                         fileURL: fileURL,
+                                         ext: fileURL.fileExtension,
+                                         title: fileURL.fileName,
+                                         subtitle: "")
+            try? playerVM.setup(item: item)
             onSubmitRecord?()
         }
         stopAnimation()

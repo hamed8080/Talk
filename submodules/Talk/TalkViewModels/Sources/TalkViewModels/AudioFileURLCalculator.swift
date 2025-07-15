@@ -23,7 +23,12 @@ public class AudioFileURLCalculator {
         }
         
         let mimeType = message.fileMetaData?.file?.mimeType
-        let fileExtension = message.fileMetaData?.file?.extension
+        var fileExtension: String? = message.fileMetaData?.file?.extension
+        
+        /// Find file extension by file name such "MySong.mp3" if the metadata from the server was nil
+        if fileExtension == nil, let lastPathExt = message.fileMetaData?.file?.originalName?.split(separator: ".").last {
+            fileExtension = String(lastPathExt)
+        }
         
         switch (fileExtension, mimeType) {
         case ("mp3", _):
