@@ -69,30 +69,14 @@ public class AudioWaveFormView: UIView {
         ])
     }
     
-    private func animateMaskLayer(newPath: CGPath) {
-        
-        // Remove any previous animation to avoid stacking issues
-        maskLayer.removeAnimation(forKey: "pathAnimation")
-        
-        let animation = CABasicAnimation(keyPath: "path")
-        animation.fromValue = maskLayer.path
-        animation.toValue = newPath
-        animation.duration = 0.5
-        animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
-        animation.fillMode = .forwards
-        animation.isRemovedOnCompletion = false
-        
-        // Add the animation to the mask layer directly
-        maskLayer.add(animation, forKey: "pathAnimation")
-        maskLayer.path = newPath
-    }
-    
     public func setPlaybackProgress(_ progress: Double) {
         if !isSeeking {
-            animateMaskLayer(newPath: createPath(progress))
-        } else {
-            maskLayer.removeAnimation(forKey: "pathAnimation")
+            setPlaybackProgressDisplayLink(progress)
         }
+    }
+    
+    public func setPlaybackProgressDisplayLink(_ progress: Double) {
+        maskLayer.path = createPath(progress)
     }
     
     private func createPath(_ progress: Double) -> CGPath {

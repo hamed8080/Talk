@@ -179,11 +179,7 @@ final class MessageAudioView: UIView {
             registerObservers()
         }
         Task {
-            if let data = try? await viewModel.calMessage.avPlayerItem?.artworkMetadata?.load(.dataValue), let image = UIImage(data: data) {
-                progressButton.setArtwork(image)
-            } else {
-                progressButton.setArtwork(nil)
-            }
+            await updateArtwork()
         }
     }
     
@@ -228,6 +224,24 @@ final class MessageAudioView: UIView {
         updateProgress(viewModel: viewModel)
         calculateWaveform(viewModel: viewModel)
         setAudioDurationAndWaveform()
+        Task {
+            await recalculate()
+            await updateArtwork()
+            registerObservers()
+        }
+    }
+    
+    private func recalculate() async {
+        guard let mainData = viewModel?.threadVM?.historyVM.getMainData() else { return }
+        await viewModel?.recalculate(mainData: mainData)
+    }
+    
+    private func updateArtwork() async {
+        if let data = try? await viewModel?.calMessage.avPlayerItem?.artworkMetadata?.load(.dataValue), let image = UIImage(data: data) {
+            progressButton.setArtwork(image)
+        } else {
+            progressButton.setArtwork(nil)
+        }
     }
     
     private func calculateWaveform(viewModel: MessageRowViewModel) {
@@ -243,6 +257,11 @@ final class MessageAudioView: UIView {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
         setAudioDurationAndWaveform()
+        Task {
+            await recalculate()
+            await updateArtwork()
+            registerObservers()
+        }
     }
     
     private var canShowProgress: Bool {
