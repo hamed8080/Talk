@@ -57,9 +57,23 @@ extension AVAudioPlayerItem {
     @MainActor
     public func createWaveform(height: CGFloat = 32) async -> UIImage? {
         if waveFormImage != nil { return waveFormImage }
+        
+        /// Load from disk and prevent calculation.
+        if FileManager.default.fileExists(atPath: waveformPath.path), let data = try? Data(contentsOf: waveformPath) {
+            waveFormImage = UIImage(data: data)
+            return waveFormImage
+        }
+        
+        /// Calculate the waveform.
         do {
             let waveImage = try await WaveformGenerator(url: fileURL, height: height).generate()
             waveFormImage = waveImage
+                        
+            /// Create waveform directory if it is not exist.
+            try FileManager.default.createDirectory(at: waveformsDIR, withIntermediateDirectories: true)
+            
+            /// Store the waveform with messageId
+            try waveImage.pngData()?.write(to: waveformPath)
             return waveImage
         } catch {
 #if DEBUG
@@ -71,5 +85,17 @@ extension AVAudioPlayerItem {
     
     public var progress: CGFloat {
         return min(currentTime / duration, 1.0)
+    }
+    
+    private var waveformsDIR: URL {
+        docDIR.appendingPathComponent("waveforms", isDirectory: true)
+    }
+    
+    private var docDIR: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
+    }
+    
+    private var waveformPath: URL {
+        waveformsDIR.appendingPathComponent("\(messageId).png")
     }
 }
