@@ -22,7 +22,10 @@ struct PreferenceView: View {
                 .listRowSeparator(.hidden)
             ManageSessionsSection()
                 .listRowInsets(.zero)
-                .listRowSeparator(.hidden)            
+                .listRowSeparator(.hidden)
+            DoubleTapSection()
+                .listRowInsets(.zero)
+                .listRowSeparator(.hidden)
             if EnvironmentValues.isTalkTest {
                 StickyHeaderSection(header: "", height: 10)
                     .listRowInsets(.zero)

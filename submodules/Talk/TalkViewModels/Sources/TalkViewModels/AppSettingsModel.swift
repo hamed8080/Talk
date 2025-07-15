@@ -6,6 +6,7 @@
 //
 import Foundation
 import Combine
+import Chat
 
 @MainActor
 public struct AppSettingsModel: Codable, Hashable, Sendable {
@@ -25,6 +26,12 @@ public struct AppSettingsModel: Codable, Hashable, Sendable {
     public var isDarkModeEnabled: Bool? = nil
     public var notificationSettings: NotificationSettingModel = .init()
     public var automaticDownloadSettings: AutomaticDownloadSettingModel = .init()
+    @MainActor
+    public enum DoubleTapAction: Codable {
+        case reply
+        case specialEmoji(Sticker)
+    }
+    public var doubleTapAction: DoubleTapAction? = nil
     
     public func save() {
         UserDefaults.standard.setValue(codable: self, forKey: AppSettingsModel.key)

@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct ListSectionButton: View {
-    let imageName: String
+    let imageName: String?
     let title: String
     let color: Color
     let showDivider: Bool
@@ -16,7 +16,7 @@ public struct ListSectionButton: View {
     let trailingView: AnyView?
     let action: (() -> ())?
 
-    public init(imageName: String,
+    public init(imageName: String?,
                 title: String,
                 color: Color,
                 showDivider: Bool = true,
@@ -38,16 +38,18 @@ public struct ListSectionButton: View {
         } label: {
             VStack(alignment: .leading) {
                 HStack(spacing: 16) {
-                    HStack {
-                        Image(systemName: imageName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 16, height: 16)
-                            .foregroundColor(.white)
+                    if let imageName = imageName {
+                        HStack {
+                            Image(systemName: imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                                .foregroundColor(.white)
+                        }
+                        .frame(width: 28, height: 28)
+                        .background(color)
+                        .clipShape(RoundedRectangle(cornerRadius:(8)))
                     }
-                    .frame(width: 28, height: 28)
-                    .background(color)
-                    .clipShape(RoundedRectangle(cornerRadius:(8)))
 
                     Text(title)
                     Spacer()
