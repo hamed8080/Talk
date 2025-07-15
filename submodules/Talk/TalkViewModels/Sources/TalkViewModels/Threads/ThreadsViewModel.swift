@@ -31,6 +31,7 @@ public final class ThreadsViewModel: ObservableObject {
     private var wasDisconnected = false
     internal let incQueue = IncommingMessagesQueue()
     internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel(archive: false) }()
+    public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
 
     internal var objectId = UUID().uuidString
     internal let GET_THREADS_KEY: String

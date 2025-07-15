@@ -26,6 +26,7 @@ struct PreferenceView: View {
             DoubleTapSection()
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)
+            SaveScrollPositionSection()
             if EnvironmentValues.isTalkTest {
                 StickyHeaderSection(header: "", height: 10)
                     .listRowInsets(.zero)

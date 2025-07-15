@@ -10,6 +10,7 @@ import UIKit
 import SwiftUI
 import TalkViewModels
 import TalkModels
+import Chat
 import Logger
 
 @MainActor
@@ -202,6 +203,7 @@ extension UIHistoryTableView {
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
         }
+        saveScrollPosition()
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -210,6 +212,18 @@ extension UIHistoryTableView {
             Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
                 await self?.viewModel?.scrollVM.isEndedDecelerating = true
             }
+            saveScrollPosition()
+        }
+    }
+    
+    private func saveScrollPosition() {
+        Task(priority: .background) { [weak self] in
+            guard let self = self,
+                  let indexPath = indexPathsForVisibleRows?.first,
+                  let threadId = viewModel?.threadId,
+                  let message = viewModel?.historyVM.sections[indexPath.section].vms[indexPath.row].message as? Message
+            else { return }
+            await viewModel?.threadsViewModel?.saveScrollPositionVM.saveScrollPosition(threadId: threadId, message: message)
         }
     }
 }

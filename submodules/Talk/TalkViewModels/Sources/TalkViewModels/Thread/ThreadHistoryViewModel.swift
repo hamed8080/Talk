@@ -137,6 +137,12 @@ extension ThreadHistoryViewModel {
             try? await Task.sleep(for: .microseconds(500))
             self?.hasSentHistoryRequest = true
         }
+        if let message = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId) {
+            Task {
+                await tryScrollPositionScenario()
+            }
+            return
+        }
         tryFirstScenario()
         trySecondScenario()
         trySeventhScenario()
@@ -395,6 +401,16 @@ extension ThreadHistoryViewModel {
         firstMessageOfTheDayVM?.startOfDate(time: time, highlight: true)
     }
     
+    // MARK: Scenario 12
+    /// Move to a time if save scroll position was on.
+    private func tryScrollPositionScenario() async {
+        guard let message = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId)
+        else { return }
+        if let time = message.time, let messageId = message.id {
+            await moveToTime(time, messageId)
+        }
+    }
+
     private func moreTop(prepend: String, _ toTime: UInt?) async {
         if !canLoadMoreTop() { return }
         showTopLoading(true)
