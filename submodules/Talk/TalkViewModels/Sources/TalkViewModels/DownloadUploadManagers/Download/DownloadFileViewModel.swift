@@ -296,10 +296,10 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     public func pauseDownload() {
-        let uniqueId = uniqueId
+        let hashCode = fileHashCode
         Task { @ChatGlobalActor in
             do {
-                try ChatManager.activeInstance?.file.pauseResumableDownload(uniqueId: uniqueId)
+                try ChatManager.activeInstance?.file.pauseResumableDownload(hashCode: hashCode)
             } catch {
                 print(error.localizedDescription)
             }
@@ -307,10 +307,10 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     public func resumeDownload() {
-        let uniqueId = uniqueId
+        let hashCode = fileHashCode
         Task { @ChatGlobalActor in
             do {
-                try ChatManager.activeInstance?.file.resumeDownload(uniqueId: uniqueId)
+                try ChatManager.activeInstance?.file.resumeDownload(hashCode: hashCode)
             } catch {
                 print(error.localizedDescription)
             }
@@ -319,8 +319,17 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     
     public func cancelDownload() {
         let uniqueId = uniqueId
+        let hashCode = fileHashCode
         Task { @ChatGlobalActor in
+            /// Cancel a normal download file if there is any.
             ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .cancel)
+            
+            /// Cancel a resumable download file.
+            do {
+                try ChatManager.activeInstance?.file.cancel(hashCode: hashCode)
+            } catch {
+                print(error.localizedDescription)
+            }
         }
     }
 
