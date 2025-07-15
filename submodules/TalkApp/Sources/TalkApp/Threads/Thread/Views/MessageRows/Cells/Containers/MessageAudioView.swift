@@ -158,7 +158,6 @@ final class MessageAudioView: UIView {
     
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        setAudioDurationAndWaveform()
         updateProgress(viewModel: viewModel)
         fileSizeLabel.text = viewModel.calMessage.computedFileSize
         fileNameLabel.text = viewModel.calMessage.fileName
@@ -180,6 +179,7 @@ final class MessageAudioView: UIView {
         }
         Task {
             await updateArtwork()
+            await setAudioDurationAndWaveform()
         }
     }
     
@@ -222,12 +222,11 @@ final class MessageAudioView: UIView {
     public func downloadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
-        calculateWaveform(viewModel: viewModel)
-        setAudioDurationAndWaveform()
         Task {
             await recalculate()
             await updateArtwork()
             registerObservers()
+            await setAudioDurationAndWaveform()
         }
     }
     
@@ -244,23 +243,14 @@ final class MessageAudioView: UIView {
         }
     }
     
-    private func calculateWaveform(viewModel: MessageRowViewModel) {
-        if viewModel.calMessage.avPlayerItem?.waveFormImage == nil {
-            Task {
-                await viewModel.recalculate(mainData: viewModel.getMainData())
-                waveView.setImage(to: viewModel.calMessage.avPlayerItem?.waveFormImage)
-            }
-        }
-    }
-    
     public func uploadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
-        setAudioDurationAndWaveform()
         Task {
             await recalculate()
             await updateArtwork()
             registerObservers()
+            await setAudioDurationAndWaveform()
         }
     }
     
@@ -303,14 +293,12 @@ final class MessageAudioView: UIView {
         return item.isPlaying ? "pause.fill" : "play.fill"
     }
     
-    private func setAudioDurationAndWaveform() {
+    private func setAudioDurationAndWaveform() async {
         guard let audioURL = viewModel?.calMessage.avPlayerItem?.fileURL,
               let message = viewModel?.message else { return }
         timeLabel.text = viewModel?.calMessage.avPlayerItem?.audioTimerString()
-        Task {
-            let image = await viewModel?.calMessage.avPlayerItem?.createWaveform()
-            waveView.setImage(to: image)
-        }
+        let image = await viewModel?.calMessage.avPlayerItem?.createWaveform()
+        waveView.setImage(to: image)
     }
 }
 
