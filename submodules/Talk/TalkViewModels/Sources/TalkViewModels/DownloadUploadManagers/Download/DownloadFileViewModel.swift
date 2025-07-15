@@ -112,8 +112,12 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             onResumed(uniqueId)
         case .file(let chatResponse, let url):
             onResponse(chatResponse, url)
+        case .downloadFile(let chatResponse):
+            onResponse(chatResponse)
         case .image(let chatResponse, let url):
             onResponse(chatResponse, url)
+        case .downloadImage(let chatResponse):
+            onResponse(chatResponse)
         case .suspended(let uniqueId):
             onSuspend(uniqueId)
         case .progress(let uniqueId, let progress):
@@ -142,7 +146,11 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             uniqueId = req.uniqueId
             RequestsManager.shared.append(value: req, autoCancel: false)
             Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.file.get(req)
+                do {
+                    try ChatManager.activeInstance?.file.download(req)
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
             animateObjectWillChange()
         }
@@ -190,9 +198,26 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             setData(data: data)
         }
 
-        if isGalleryURL(response, url: url) {
+        if isGalleryURL(isCache: response.cache, url: url) {
             RequestsManager.shared.remove(key: uniqueId)
             setData(data: response.result)
+        }
+    }
+    
+    private func onResponse(_ response: ChatResponse<URL>) {
+        if response.uniqueId != uniqueId { return }
+        guard let url = response.result, let data = try? Data(contentsOf: url) else { return }
+        if response.cache {
+            setData(data: data)
+        }
+
+        if RequestsManager.shared.contains(key: uniqueId) {
+            setData(data: data)
+        }
+
+        if isGalleryURL(isCache: response.cache, url: url) {
+            RequestsManager.shared.remove(key: uniqueId)
+            setData(data: data)
         }
     }
 
@@ -242,8 +267,8 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     /// When the user clicks on the side of an image not directly hit the download button, it triggers gallery view, and therefore after the user is back to the view the image and file should update properly.
-    private func isGalleryURL(_ response: ChatResponse<Data>, url: URL?) -> Bool {
-        !response.cache && RequestsManager.shared.contains(key: uniqueId) && url?.absoluteString == fileURL?.absoluteString
+    private func isGalleryURL(isCache: Bool, url: URL?) -> Bool {
+        !isCache && RequestsManager.shared.contains(key: uniqueId) && url?.absoluteString == fileURL?.absoluteString
     }
 
     private func onSuspend(_ uniqueId: String) {
@@ -262,22 +287,33 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 
     private func onProgress(_ uniqueId: String, _ progress: DownloadFileProgress?) {
         if isSameUnqiueId(uniqueId) {
+            print("Resumable download progress in viewModel: \(progress?.percent ?? 0)")
             self.downloadPercent = progress?.percent ?? 0
             animateObjectWillChange()
+        } else {
+            print("Resumable download uniqueId is not the same for uniqueId: \(uniqueId)")
         }
     }
 
     public func pauseDownload() {
         let uniqueId = uniqueId
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .suspend)
+            do {
+                try ChatManager.activeInstance?.file.pauseResumableDownload(uniqueId: uniqueId)
+            } catch {
+                print(error.localizedDescription)
+            }
         }
     }
 
     public func resumeDownload() {
         let uniqueId = uniqueId
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.file.manageDownload(uniqueId: uniqueId, action: .resume)
+            do {
+                try ChatManager.activeInstance?.file.resumeDownload(uniqueId: uniqueId)
+            } catch {
+                print(error.localizedDescription)
+            }
         }
     }
     

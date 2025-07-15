@@ -235,6 +235,11 @@ private extension MessageContainerStackView {
                 let newVM = await MessageRowViewModel(message: message, viewModel: threadVM)
                 await newVM.recalculate(mainData: newVM.getMainData())
                 await threadVM.historyVM.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
+                if let hashCode = message.fileMetaData?.hashCode {
+                    Task { @ChatGlobalActor in
+                        try? await ChatManager.activeInstance?.file.cancel(hashCode: hashCode)
+                    }
+                }
             }
         }
     }

@@ -116,7 +116,7 @@ public extension MessageRowViewModel {
                 if let element = manager.element(for: message.id ?? -1), element.viewModel.state == .error {
                     manager.redownload(message: message)
                 } else {
-                    try manager.enqueue(element: await .init(message: message))
+                    try manager.toggleDownloading(message: message)
                 }
             } catch {
                 if let error = error as? DownloadsManagerError, error == .duplicate {
