@@ -34,7 +34,7 @@ public struct AppSettingsModel: Codable, Hashable, Sendable {
         case reply
         case specialEmoji(Sticker)
     }
-    public var doubleTapAction: DoubleTapAction? = nil
+    public var doubleTapAction: DoubleTapAction? = .reply
     
     public func save() {
         UserDefaults.standard.setValue(codable: self, forKey: AppSettingsModel.key)
