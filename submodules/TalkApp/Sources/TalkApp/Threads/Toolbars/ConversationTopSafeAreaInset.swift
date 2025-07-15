@@ -40,6 +40,11 @@ struct ConversationTopSafeAreaInset: View {
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name("CLOSE_PLAYER"))) { _ in
                         self.item = nil
                     }
+                    .onReceive(item.$isFinished) { isFinished in
+                        if isFinished {
+                            self.item = nil
+                        }
+                    }
             }
             ThreadSearchView()
                 .environmentObject(container.searchVM)
@@ -48,6 +53,7 @@ struct ConversationTopSafeAreaInset: View {
                 NothingHasBeenSelectedView(contactsVM: container.contactsVM)
             }
         }
+        .animation(.easeInOut, value: item == nil)
         .onReceive(NotificationCenter.cancelSearch.publisher(for: .cancelSearch)) { newValue in
             if let cancelSearch = newValue.object as? Bool, cancelSearch == true, cancelSearch && isInSearchMode {
                 isInSearchMode.toggle()
