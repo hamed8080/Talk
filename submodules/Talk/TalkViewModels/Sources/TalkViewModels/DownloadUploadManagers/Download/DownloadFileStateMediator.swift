@@ -71,7 +71,6 @@ public class DownloadFileStateMediator {
         let msg = element.viewModel.message
         let threadId = element.threaId ?? -1
         await changeStateTo(threadId: threadId, state: newState, messageId: messageId)
-        await updateReplyImagesIfNeeded(element)
     }
     
     private func onFileChanged(_ element: DownloadManagerElement) async {
@@ -107,27 +106,6 @@ public class DownloadFileStateMediator {
                 delegate?.updateProgress(at: result.indexPath, viewModel: result.vm)
             }
             NotificationCenter.default.post(name: .init("DOWNALOD_STATUS_\(messageId)"), object: state)
-        }
-    }
-    
-    private func updateReplyImagesIfNeeded(_ element: DownloadManagerElement) async {
-        guard
-            element.viewModel.state == .completed,
-            element.isMap || element.isImage,
-            let url = element.viewModel.fileURL,
-            let scaledImage = url.imageScale(width: 48)?.image,
-            let threadId = element.threaId,
-            let threadVM = AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
-        else { return }
-        
-        let vms = threadVM.historyVM.sections
-            .flatMap({$0.vms})
-            .filter({$0.message.replyInfo?.id == element.viewModel.message.id})
-        for vm in vms {
-            await vm.setRelyImage(image: UIImage(cgImage: scaledImage))
-            if let indexPath = await threadVM.historyVM.indexPath(vm: vm) {
-                await threadVM.delegate?.updateReplyImageThumbnail(at: indexPath, viewModel: vm)
-            }
         }
     }
 

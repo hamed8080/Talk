@@ -58,7 +58,7 @@ final class MessageImageView: UIImageView {
         progressView.setContentHuggingPriority(.required, for: .horizontal)
         progressView.setContentHuggingPriority(.required, for: .vertical)
 
-        let blurEffect = UIBlurEffect(style: .systemThinMaterial)
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         effectView = UIVisualEffectView(effect: blurEffect)
         effectView.translatesAutoresizingMaskIntoConstraints = false
         effectView.frame = bounds
@@ -138,7 +138,7 @@ final class MessageImageView: UIImageView {
     
     private func removeEffectViewByHidingAnimation() {
         effectView.layer.opacity = 1.0
-        UIView.animate(withDuration: 0.2) {
+        UIView.animate(withDuration: 0.5) {
             self.effectView.layer.opacity = 0.0
         } completion: { completed in
             if completed {
@@ -149,7 +149,7 @@ final class MessageImageView: UIImageView {
     
     private func removeProgressViewByHidingAnimation() {
         stack.layer.opacity = 1.0
-        UIView.animate(withDuration: 0.2, delay: 0, options: [.curveEaseInOut]) {
+        UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseInOut]) {
             self.stack.layer.opacity = 0.0
         } completion: { completed in
             if completed {
@@ -195,8 +195,15 @@ final class MessageImageView: UIImageView {
         if viewModel.fileState.state == .undefined {
             self.image = DownloadFileStateMediator.emptyImage
         }
-        guard let image = viewModel.fileState.preloadImage else { return }
-        self.image = image
+        
+        if let image = viewModel.fileState.preloadImage {
+            self.image = image
+        } else {
+            Task {
+                let image = await viewModel.downloadThumbnailImage()
+                self.image = image
+            }
+        }
         attachOrDetachEffectView(canShow: true)
         attachOrDetachProgressView(canShow: true)
     }

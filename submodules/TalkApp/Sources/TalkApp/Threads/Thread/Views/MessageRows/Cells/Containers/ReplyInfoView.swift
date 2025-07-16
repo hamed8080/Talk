@@ -151,7 +151,9 @@ final class ReplyInfoView: UIView {
 
     func setImageView(viewModel: MessageRowViewModel) {
         let hasImage = viewModel.calMessage.isReplyImage
-        imageIconView.image = viewModel.fileState.replyImage
+        if hasImage {
+            setReplyImage()
+        }
         imageIconView.setIsHidden(!hasImage)
         imageIconViewLeadingConstriant.constant = hasImage ? ReplyInfoView.margin : -ReplyInfoView.imageSize
     }
@@ -198,5 +200,17 @@ final class ReplyInfoView: UIView {
 
     private var sourceConversationId: Int {
         replyInfo?.replyPrivatelyInfo?.threadId ?? -1
+    }
+    
+    /// Get reply image from the disk or get thumbnail from the server,
+    /// and then store it into fileState
+    private func setReplyImage() {
+        Task {
+            let image = await viewModel?.getReplyImage()
+            await MainActor.run { [weak self] in
+                /// Set imageView
+                self?.imageIconView.image = image
+            }
+        }
     }
 }

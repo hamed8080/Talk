@@ -251,3 +251,57 @@ public extension MessageRowViewModel {
         )
     }
 }
+
+public extension MessageRowViewModel {
+    func downloadThumbnailImage() async -> UIImage? {
+        guard calMessage.fileURL == nil, /// Check if it is already downloaded
+              let message = message as? Message,
+              let hashCode = calMessage.fileMetaData?.file?.hashCode ?? calMessage.fileMetaData?.hashCode
+        else { return nil }
+        let req = ImageRequest(hashCode: hashCode, quality: 0.5, size: .SMALL, thumbnail: true)
+        let thumbnailImage = await ThumbnailDownloadManagerViewModel.get(message: message)
+        fileState.preloadImage = thumbnailImage
+        return thumbnailImage
+    }
+}
+
+public extension MessageRowViewModel {
+    func relaod() {
+        if let indexPath = threadVM?.historyVM.sections.indexPath(for: self) {
+            threadVM?.historyVM.delegate?.reload()
+        }
+    }
+}
+
+public extension MessageRowViewModel {
+    
+    func getReplyImage() async -> UIImage? {
+        if fileState.replyImage != nil {
+            return fileState.replyImage
+        }
+        
+        let metadata = message.replyInfo?.metadata
+        let threadId = message.threadId
+        
+        /// Fetch from disk or server
+        let image = await getReplyImage(threadId: threadId, metadata: metadata)
+        
+        /// Store image in viewModel
+        setRelyImage(image: image)
+        return image
+    }
+    
+    @AppBackgroundActor
+    private func getReplyImage(threadId: Int?, metadata: String?) async -> UIImage? {
+        /// Convert replyInfo to Message to calculate URL
+        let replyMessage = Message(threadId: threadId, metadata: metadata)
+        
+        /// Get url
+        guard let url = await replyMessage.url else { return nil }
+        
+        /// Fetch from disk or server
+        let req = ImageRequest(hashCode: replyMessage.fileHashCode, quality: 0.5, size: .SMALL, thumbnail: true)
+        guard let data = await ThumbnailDownloadManagerViewModel().downloadThumbnail(req: req, url: url) else { return nil }
+        return UIImage(data: data)
+    }
+}
