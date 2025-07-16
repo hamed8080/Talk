@@ -102,8 +102,7 @@ final class MessageImageView: UIImageView {
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        let state = viewModel.fileState.state
-        let canShow = state != .completed
+        let canShow = viewModel.fileState.state != .completed
         if let fileURL = viewModel.calMessage.fileURL {
             Task {
                 await setImage(fileURL: fileURL)
@@ -233,7 +232,8 @@ final class MessageImageView: UIImageView {
             removeProgressViewByHidingAnimation()
             removeEffectViewByHidingAnimation()
             Task {
-                await setImage(fileURL: fileURL)}
+                await setImage(fileURL: fileURL)
+            }
         }
     }
 

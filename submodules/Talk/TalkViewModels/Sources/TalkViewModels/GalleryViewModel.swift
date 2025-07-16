@@ -60,8 +60,21 @@ public class GalleryImageItemViewModel: ObservableObject, @preconcurrency Identi
         if let data = response.result, let request = response.pop(prepend: DOWNLOAD_IMAGE_GALLERY_VIEW_KEY) as? ImageRequest {
             state = .completed
             self.fileURL = fileURL
-            /// Send a notification to update a message if it's exist when the user back to the messages page.
-            NotificationCenter.galleryDownload.post(name: .galleryDownload, object: (request, data))
+            self.updateHistoryMessageImageView()
+        }
+    }
+    
+    /// Update MessageImageView row if the user open up the gallery and scroll to another image.
+    private func updateHistoryMessageImageView() {
+        guard
+            let threadId = message.threadId ?? message.conversation?.id,
+            let threadVM = AppState.shared.objectsContainer.navVM.viewModel(for: threadId),
+            let messageId = message.id,
+            let tuple = threadVM.historyVM.sections.viewModelAndIndexPath(for: messageId)
+        else { return }
+        Task {
+            await tuple.vm.recalculate(mainData: threadVM.historyVM.getMainData())
+            threadVM.historyVM.delegate?.reload(at: tuple.indexPath)
         }
     }
     

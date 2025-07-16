@@ -91,19 +91,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
                 }
             }
             .store(in: &cancellableSet)
-
-        NotificationCenter.galleryDownload.publisher(for: .galleryDownload)
-            .compactMap { $0.object as? (request: ImageRequest, data: Data) }
-            .sink { [weak self] result in
-                self?.onGalleryDownload(result)
-            }
-            .store(in: &cancellableSet)
-    }
-
-    private func onGalleryDownload(_ result: (request: ImageRequest, data: Data)) {
-        if result.request.hashCode == fileHashCode {
-            setData(data: result.data)
-        }
     }
 
     private func onDownloadEvent(_ event: DownloadEventTypes) {
