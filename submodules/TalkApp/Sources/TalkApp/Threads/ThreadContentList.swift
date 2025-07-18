@@ -19,38 +19,48 @@ struct ThreadContentList: View {
     @State private var twoRowTappedAtSameTime = false
 
     var body: some View {
-        List {
-            ForEach(threadsVM.threads) { thread in
-                ThreadRow() {
-                    onTap(thread)
-                }
-                .environmentObject(thread)
-                .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 8))
-                .listRowSeparatorTint(Color.App.dividerSecondary)
-                .listRowBackground(ThreadListRowBackground().environmentObject(thread))
-                .onAppear {
-                    Task {
-                        await threadsVM.loadMore(id: thread.id)
+        ScrollViewReader { reader in
+            List {
+                ForEach(threadsVM.threads) { thread in
+                    ThreadRow() {
+                        onTap(thread)
+                    }
+                    .id(thread.id)
+                    .environmentObject(thread)
+                    .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 8))
+                    .listRowSeparatorTint(Color.App.dividerSecondary)
+                    .listRowBackground(ThreadListRowBackground().environmentObject(thread))
+                    .onAppear {
+                        Task {
+                            await threadsVM.loadMore(id: thread.id)
+                        }
                     }
                 }
+                loadingView
             }
-            loadingView
-        }
-        .listStyle(.plain)
-        .environment(\.defaultMinListRowHeight, 0)
-        .background(Color.App.bgPrimary)
-        .animation(.easeInOut, value: threadsVM.threads.count)
-        .animation(.easeInOut, value: threadsVM.lazyList.isLoading)
-        .overlay(ThreadListShimmer().environmentObject(threadsVM.shimmerViewModel))
-        .safeAreaInset(edge: .top, spacing: 0) {
-            ConversationTopSafeAreaInset()
-        }
-        .sheet(isPresented: sheetBinding) {
-            ThreadsSheetFactoryView()
-        }
-        .refreshable {
-            Task {
-                await threadsVM.refresh()
+            .listStyle(.plain)
+            .environment(\.defaultMinListRowHeight, 0)
+            .background(Color.App.bgPrimary)
+            .animation(.easeInOut, value: threadsVM.threads.count)
+            .animation(.easeInOut, value: threadsVM.lazyList.isLoading)
+            .overlay(ThreadListShimmer().environmentObject(threadsVM.shimmerViewModel))
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ConversationTopSafeAreaInset()
+            }
+            .sheet(isPresented: sheetBinding) {
+                ThreadsSheetFactoryView()
+            }
+            .refreshable {
+                Task {
+                    await threadsVM.refresh()
+                }
+            }
+            .onReceive(threadsVM.$scrollToId) { newValue in
+                if let newId = newValue {
+                    withAnimation {
+                        reader.scrollTo(newId, anchor: .top)
+                    }
+                }
             }
         }
     }

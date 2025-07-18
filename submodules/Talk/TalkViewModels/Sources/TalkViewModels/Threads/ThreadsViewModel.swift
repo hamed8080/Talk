@@ -38,6 +38,7 @@ public final class ThreadsViewModel: ObservableObject {
     internal let CHANNEL_TO_KEY: String
     internal let JOIN_TO_PUBLIC_GROUP_KEY: String
     internal let LEAVE_KEY: String
+    @Published public var scrollToId: Int?
 
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
@@ -155,40 +156,70 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func onThreads(_ response: ChatResponse<[Conversation]>) async {
-        let pinThreads = response.result?.filter({$0.pin == true})
         let hasAnyResults = response.result?.count ?? 0 > 0
         
+        let beforeSortedPins = serverSortedPins
+        storeServerPins(response)
+        
+        let navSelectedId = navVM.selectedId
+        let calculatedThreads = await ThreadCalculators.calculate(response.result ?? [], myId, navSelectedId)
+        let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads:  wasDisconnected ? []
+                                             : threads)
+        let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
+        let threshold = await splitThreshold(sorted)
+      
+        self.threads = sorted
+        updatePresentedViewModels(threads)
+        lazyList.setHasNext(hasAnyResults)
+        lazyList.setLoading(false)
+        lazyList.setThreasholdIds(ids: threshold)
+        if hasAnyResults {
+            firstSuccessResponse = true
+        }
+        if firstSuccessResponse {
+            shimmerViewModel.hide()
+        }
+        objectWillChange.send()
+        
+        await updateActiveThreadAfterDisconnect()
+        if !response.cache, wasDisconnected {
+            /// scroll To first sortedItem if we were way down in the list to show correct row
+            scrollToId = sorted.first?.id
+            beforeSortedPins.forEach { id in
+                updatePinAndSelectedAfterReconnect(oldThreadId: id)
+            }
+            wasDisconnected = false
+        }
+    }
+    
+    private func storeServerPins(_ response: ChatResponse<[Conversation]>) {
+        let pinThreads = response.result?.filter({$0.pin == true}).compactMap({$0.id}) ?? []
+        let isCache = response.cache
+        let isFirstPinsResponse = !isCache && !wasDisconnected && !pinThreads.isEmpty
+        let isFirstResponseAfterDisconnect = !isCache && wasDisconnected && !pinThreads.isEmpty
+        
         /// It only sets sorted pins once because if we have 5 pins, they are in the first response. So when the user scrolls down the list will not be destroyed every time.
-        if !response.cache, let serverSortedPinIds = pinThreads?.compactMap({$0.id}), serverSortedPins.isEmpty {
+        if isFirstPinsResponse || isFirstResponseAfterDisconnect {
             serverSortedPins.removeAll()
-            serverSortedPins.append(contentsOf: serverSortedPinIds)
+            serverSortedPins.append(contentsOf: pinThreads)
             userDefaultSortedPins = serverSortedPins
-        } else if response.cache {
+        } else if isCache {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: userDefaultSortedPins)
         }
-        let navSelectedId = navVM.selectedId
-        let calculatedThreads = await ThreadCalculators.calculate(response.result ?? [], myId, navSelectedId)
-        let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads: threads)
-        let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
-        let threshold = await splitThreshold(sorted)
-       
-        await MainActor.run {
-            self.threads = sorted
-            updatePresentedViewModels(threads)
-            lazyList.setHasNext(hasAnyResults)
-            lazyList.setLoading(false)
-            lazyList.setThreasholdIds(ids: threshold)
-            if hasAnyResults {
-                firstSuccessResponse = true
+    }
+    
+    private func updatePinAndSelectedAfterReconnect(oldThreadId: Int?) {
+        if let thread = threads.first(where: {$0.id == oldThreadId}) {
+            if thread.isSelected == false {
+                thread.animateObjectWillChange()
             }
-            if firstSuccessResponse {
-                shimmerViewModel.hide()
+            if thread.pin == false || thread.pin == nil {
+                /// Allow context menu to active by number of items
+                serverSortedPins.removeAll(where: {$0 == oldThreadId})
+                thread.animateObjectWillChange()
             }
-            objectWillChange.send()
         }
-        
-        await updateActiveThreadAfterDisconnect()
     }
     
     private func updateActiveThreadAfterDisconnect() async {
@@ -197,7 +228,6 @@ public final class ThreadsViewModel: ObservableObject {
            let updatedThread = threads.first(where: {$0.id == activeVM.threadId}) {
             activeVM.thread = updatedThread.toStruct()
             activeVM.delegate?.onUnreadCountChanged()
-            wasDisconnected = false
         }
     }
     
@@ -215,10 +245,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func refresh() async {
-        threads.removeAll()
-        animateObjectWillChange()
         cache = false
-        await silentClear()
+        lazyList.reset()
         await getThreads(withQueue: true)
         cache = true
     }
@@ -331,11 +359,6 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.reset()
         threads = []
         firstSuccessResponse = false
-        animateObjectWillChange()
-    }
-
-    public func silentClear() async {
-        lazyList.reset()
         animateObjectWillChange()
     }
 
