@@ -28,8 +28,9 @@ public extension UploadFileRequest {
     }
 
     init?(url: URL, _ userGroupHash: String? = nil) {
-        guard let data = try? Data(contentsOf: url) else { return nil }
-        self =  UploadFileRequest(data: data,
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+        self =  UploadFileRequest(filePath: url,
+                                  fileSize: Int64(fileSize),
                                   fileExtension: "\(url.fileExtension)",
                                   fileName: "\(url.fileName).\(url.fileExtension)", // it should have file name and extension
                                   mimeType: url.mimeType,
