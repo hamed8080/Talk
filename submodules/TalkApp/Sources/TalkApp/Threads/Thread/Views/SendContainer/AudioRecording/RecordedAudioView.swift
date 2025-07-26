@@ -13,6 +13,7 @@ import Combine
 import SwiftUI
 import DSWaveformImage
 import TalkModels
+import AVFoundation
 
 public final class RecordedAudioView: UIStackView {
     private let btnSend = UIImageButton(imagePadding: .init(all: 8))
@@ -23,6 +24,8 @@ public final class RecordedAudioView: UIStackView {
     private weak var viewModel: ThreadViewModel?
     private var waveProgressView: UILoadingView?
     var onSendOrClose: (()-> Void)?
+    public var fileURL: URL?
+    private var item: AVAudioPlayerItem?
     private var audioRecoderVM: AudioRecordingViewModel? { viewModel?.audioRecoderVM }
     private var audioPlayerVM: AVAudioPlayerViewModel { AppState.shared.objectsContainer.audioPlayerVM }
 
@@ -100,10 +103,11 @@ public final class RecordedAudioView: UIStackView {
     }
 
     func setup() throws {
+        guard let fileURL = fileURL else { return }
+        let item = createItemPlayer(fileURL: fileURL)
+        self.item = item
         addProgressView()
-        registerObservers()
-        guard let item = audioPlayerVM.item else { return }
-        let url = item.fileURL
+        registerObservers(item: item)
         Task {
             let image = try await item.createWaveform(height: AudioRecordingView.height - 4)
             self.waveView.alpha = 0
@@ -115,8 +119,7 @@ public final class RecordedAudioView: UIStackView {
         }
     }
 
-    private func registerObservers() {
-        guard let item = audioPlayerVM.item else { return }
+    private func registerObservers(item: AVAudioPlayerItem) {
         item.$currentTime.sink { [weak self] isPlaying in
             self?.lblTimer.text = item.audioTimerString()
             self?.waveView.setPlaybackProgress(item.progress)
@@ -131,6 +134,7 @@ public final class RecordedAudioView: UIStackView {
     }
 
     @objc private func deleteTapped(_ sender: UIButton) {
+        fileURL = nil
         audioRecoderVM?.cancel()
         audioPlayerVM.close()
         onSendOrClose?()
@@ -160,11 +164,32 @@ public final class RecordedAudioView: UIStackView {
     }
     
     @objc private func onTogglePlayerTapped(_ sender: UIButton) {
+        if let item = item {
+            try? audioPlayerVM.setup(item: item)
+        }
         audioPlayerVM.toggle()
     }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
         btnSend.layer.cornerRadius = btnSend.bounds.width / 2
+    }
+    
+    private func createItemPlayer(fileURL: URL) -> AVAudioPlayerItem {
+        let asset = try? AVAsset(url: fileURL)
+        let duration = Double(CMTimeGetSeconds(asset?.duration ?? CMTime()))
+        let item = AVAudioPlayerItem(messageId: -2,
+                                     duration: duration,
+                                     fileURL: fileURL,
+                                     ext: fileURL.fileExtension,
+                                     title: fileURL.fileName,
+                                     subtitle: "")
+        return item
+    }
+    
+    deinit {
+        Task { @MainActor in
+            AppState.shared.objectsContainer.audioPlayerVM.close()
+        }
     }
 }

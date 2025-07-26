@@ -40,7 +40,8 @@ public final class AudioRecordingView: UIStackView {
         addArrangedSubview(recordedAudioView)
         addArrangedSubview(recordingAudioView)
 
-        recordingAudioView.onSubmitRecord = { [weak self] in
+        recordingAudioView.onSubmitRecord = { [weak self] fileURL in
+            self?.recordedAudioView.fileURL = fileURL
             self?.onSubmitRecord()
         }
 

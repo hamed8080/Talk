@@ -21,7 +21,7 @@ public final class RecordingAudioView: UIStackView {
     private weak var viewModel: AudioRecordingViewModel?
     private var dotTimer: Timer?
     private var cancellableSet = Set<AnyCancellable>()
-    var onSubmitRecord: (()-> Void)?
+    var onSubmitRecord: ((URL)-> Void)?
 
     public init(viewModel: AudioRecordingViewModel?) {
         self.viewModel = viewModel
@@ -93,17 +93,7 @@ public final class RecordingAudioView: UIStackView {
     private func micTapped() {
         viewModel?.stop()
         if let fileURL = viewModel?.recordingOutputPath {
-            let playerVM = AppState.shared.objectsContainer.audioPlayerVM
-            let asset = try? AVAsset(url: fileURL)
-            let duration = Double(CMTimeGetSeconds(asset?.duration ?? CMTime()))
-            let item = AVAudioPlayerItem(messageId: -2,
-                                         duration: duration,
-                                         fileURL: fileURL,
-                                         ext: fileURL.fileExtension,
-                                         title: fileURL.fileName,
-                                         subtitle: "")
-            try? playerVM.setup(item: item)
-            onSubmitRecord?()
+            onSubmitRecord?(fileURL)
         }
         stopAnimation()
     }
