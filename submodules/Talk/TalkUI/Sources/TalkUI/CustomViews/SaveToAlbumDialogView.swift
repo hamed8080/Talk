@@ -25,7 +25,7 @@ public struct SaveToAlbumDialogView: View {
                 Button {
                     openAppSettings()
                 } label: {
-                    Text("Tab.settings")
+                    Text("General.settings")
                         .foregroundStyle(Color.blue)
                         .font(.fBody)
                         .frame(minWidth: 48, minHeight: 48)
