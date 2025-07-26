@@ -20,6 +20,7 @@ public final class ThreadReactionViewModel {
     public var allowedReactions: [Sticker]?
     private let objectId = UUID().uuidString
     private let REACTION_COUNT_LIST_KEY: String
+    private var lock = false
     
     public init() {
         self.REACTION_COUNT_LIST_KEY = "REACTION-COUNT-LIST-KEY-\(objectId)"
@@ -72,7 +73,17 @@ public final class ThreadReactionViewModel {
     }
 
     /// Add/Remove/Replace
+    ///
+    /// If the user double click on a reaction it will lead to call
+    /// this method twice(once in footer reaction row and another in double tap setting menu) as fast as possible,
+    /// and it will lead to a server error, by locking the user for 0.2 we make sure that
+    /// the user is not able to click more than once and if so nothing will happen and the reaction will be removed.
     public func reaction(_ sticker: Sticker, messageId: Int, myReactionId: Int?, myReactionSticker: Sticker?) {
+        if lock { return }
+        lock = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.lock = false
+        }
         let threadId = threadId
         let isLimitedByAdmin = allowedReactions != nil
         let isInAllowedRange = allowedReactions?.contains(where: {$0.emoji == sticker.emoji}) == true
