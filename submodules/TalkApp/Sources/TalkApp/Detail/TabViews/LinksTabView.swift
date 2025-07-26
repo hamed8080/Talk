@@ -38,7 +38,9 @@ struct LinksTabView: View {
 }
 
 struct MessageListLinkView: View {
+    @EnvironmentObject var threadDetailVM: ThreadDetailViewModel
     @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
+    @State var viewWidth: CGFloat = 0
 
     var body: some View {
         ForEach(viewModel.messagesModels) { model in
@@ -52,13 +54,23 @@ struct MessageListLinkView: View {
                             .padding(.leading)
                     }
                 }
+                .background(frameReader)
+                .appyDetailViewContextMenu(LinkRowView().background(MixMaterialBackground()), model, threadDetailVM)
                 .onAppear {
                     if model.id == viewModel.messagesModels.last?.id {
                         viewModel.loadMore()
                     }
-                }
+                }                
         }
         DetailLoading()
+    }
+
+    private var frameReader: some View {
+        GeometryReader { reader in
+            Color.clear.onAppear {
+                self.viewWidth = reader.size.width
+            }
+        }
     }
 }
 
