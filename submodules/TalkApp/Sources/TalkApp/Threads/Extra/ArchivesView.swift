@@ -42,7 +42,13 @@ struct ArchivesView: View {
         .animation(.easeInOut, value: viewModel.archives.count)
         .animation(.easeInOut, value: viewModel.isLoading)
         .listStyle(.plain)
-        .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)       
+        .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)
+        .onAppear {
+            viewModel.isAppeared = true
+        }
+        .onDisappear {
+            viewModel.isAppeared = false
+        }
     }
 }
 

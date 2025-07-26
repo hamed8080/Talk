@@ -28,6 +28,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private let GET_ARCHIVES_KEY: String
     private var wasDisconnected = false
     internal let incQueue = IncommingMessagesQueue()
+    public var isAppeared = false
     
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
@@ -529,7 +530,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     func onAddPrticipant(_ response: ChatResponse<Conversation>) async {
-        if response.result?.participants?.first(where: {$0.id == myId}) != nil, let newConversation = response.result {
+        if isAppeared, response.result?.participants?.first(where: {$0.id == myId}) != nil, let newConversation = response.result {
             /// It means an admin added a user to the conversation, and if the added user is in the app at the moment, should see this new conversation in its conversation list.
             var newConversation = newConversation
             newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
