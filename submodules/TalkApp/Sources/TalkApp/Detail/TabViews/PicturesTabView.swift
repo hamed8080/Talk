@@ -16,9 +16,10 @@ import TalkModels
 struct PicturesTabView: View {
     @EnvironmentObject var detailViewModel: ThreadDetailViewModel
     @StateObject var viewModel: DetailTabDownloaderViewModel
-    @State var viewWidth: CGFloat = 0
+    let maxWidth: CGFloat
 
-    init(conversation: Conversation, messageType: ChatModels.MessageType) {
+    init(conversation: Conversation, messageType: ChatModels.MessageType, maxWidth: CGFloat) {
+        self.maxWidth = maxWidth
         let vm = DetailTabDownloaderViewModel(conversation: conversation, messageType: messageType, tabName: "Picture")
         _viewModel = StateObject(wrappedValue: vm)
     }
@@ -26,26 +27,24 @@ struct PicturesTabView: View {
     var body: some View {
         StickyHeaderSection(header: "", height:  4)
         LazyVGrid(columns: columns, alignment: .leading, spacing: spacing) {
-            if viewWidth != 0 {
-                ForEach(viewModel.messagesModels) { model in
-                    PictureRowView(itemWidth: itemWidth)
-                        .environmentObject(model)
-                        .appyDetailViewContextMenu(PictureRowView(itemWidth: itemWidth), model, detailViewModel)
-                        .id(model.id)
-                        .frame(width: itemWidth, height: itemWidth)
-                        .onAppear {
-                            if viewModel.isCloseToLastThree(model.message) {
-                                viewModel.loadMore()
-                            }
+            ForEach(viewModel.messagesModels) { model in
+                PictureRowView(itemWidth: itemWidth)
+                    .environmentObject(model)
+                    .appyDetailViewContextMenu(PictureRowView(itemWidth: itemWidth), model, detailViewModel)
+                    .id(model.id)
+                    .frame(width: itemWidth, height: itemWidth)
+                    .onAppear {
+                        if viewModel.isCloseToLastThree(model.message) {
+                            viewModel.loadMore()
                         }
-                }
-                DetailLoading()
+                    }
             }
+            DetailLoading()
         }
+        .frame(maxWidth: maxWidth)
         .environment(\.layoutDirection, .leftToRight)
         .padding(padding)
         .environmentObject(viewModel)
-        .background(frameReader)
         .overlay(alignment: .top) {
             emptyTabView
         }
@@ -69,7 +68,7 @@ struct PicturesTabView: View {
     }
 
     private var itemWidth: CGFloat {
-        let viewWidth = viewWidth - padding
+        let viewWidth = maxWidth - padding
         let itemWidthWithouthSpacing = viewModel.itemWidth(readerWidth: viewWidth)
         let itemWidth = itemWidthWithouthSpacing - spacing
         return itemWidth
@@ -78,14 +77,6 @@ struct PicturesTabView: View {
     private func onLoad() {
         if viewModel.messagesModels.count == 0 {
             viewModel.loadMore()
-        }
-    }
-
-    private var frameReader: some View {
-        GeometryReader { reader in
-            Color.clear.onAppear {
-                self.viewWidth = reader.size.width
-            }
         }
     }
 
@@ -156,7 +147,7 @@ struct PictureRowView: View {
 #if DEBUG
 struct PictureView_Previews: PreviewProvider {
     static var previews: some View {
-        PicturesTabView(conversation: MockData.thread, messageType: .podSpacePicture)
+        PicturesTabView(conversation: MockData.thread, messageType: .podSpacePicture, maxWidth: 500)
     }
 }
 #endif

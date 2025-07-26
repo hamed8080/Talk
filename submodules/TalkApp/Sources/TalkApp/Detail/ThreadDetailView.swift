@@ -11,7 +11,8 @@ import TalkModels
 
 struct ThreadDetailView: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel
-    @Environment(\.dismiss) private var dismiss    
+    @Environment(\.dismiss) private var dismiss
+    @State private var viewWidth: CGFloat = 0
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -20,11 +21,12 @@ struct ThreadDetailView: View {
                     DetailSectionContainer()
                         .id("DetailSectionContainer")
                     
-                    if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
-                        DetailTabContainer()
+                    if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *), viewWidth != 0 {
+                        DetailTabContainer(maxWidth: viewWidth)
                             .id("DetailTabContainer")
                     }
                 }
+                .frame(maxWidth: viewWidth == 0 ? .infinity : viewWidth)
             }
             .onAppear {
                 viewModel.scrollViewProxy = proxy
@@ -33,6 +35,7 @@ struct ThreadDetailView: View {
         .navigationBarBackButtonHidden(true)
         .background(Color.App.bgPrimary)
         .environmentObject(viewModel)
+        .background(frameReader)
         .safeAreaInset(edge: .top, spacing: 0) { DetailToolbarContainer() }
         .background(DetailAddOrEditContactSheetView())
         .onReceive(viewModel.$dismiss) { newValue in
@@ -62,8 +65,17 @@ struct ThreadDetailView: View {
 //            AppState.shared.objectsContainer.threadDetailVM.clear()
         }
     }
+    
+    private var frameReader: some View {
+        GeometryReader { reader in
+            Color.clear.onAppear {
+                if viewWidth == 0 {
+                    self.viewWidth = reader.size.width
+                }
+            }
+        }
+    }
 }
-
 
 struct TarilingEditConversation: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel

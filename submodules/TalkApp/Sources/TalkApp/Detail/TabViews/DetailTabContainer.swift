@@ -15,13 +15,16 @@ struct DetailTabContainer: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel
     @State private var tabs: [TalkUI.Tab] = []
     @State private var selectedTabIndex = 0
+    let maxWidth: CGFloat
 
     var body: some View {
         CustomDetailTabView(tabs: tabs, tabButtons: { tabButtons } )
             .environmentObject(viewModel.threadVM?.participantsViewModel ?? .init())
             .selectedTabIndx(index: selectedTabIndex)
             .onAppear {
-                makeTabs()
+                if tabs.isEmpty {
+                    makeTabs()
+                }
             }
             .onChange(of: viewModel.thread?.closed) { newValue in
                 if newValue == true {
@@ -40,7 +43,7 @@ struct DetailTabContainer: View {
         if let thread = viewModel.thread {
             var tabs: [TalkUI.Tab] = [
                 .init(title: "Thread.Tabs.members", view: AnyView(MembersTabView().ignoresSafeArea(.all))),
-                .init(title: "Thread.Tabs.photos", view: AnyView(PicturesTabView(conversation: thread, messageType: .podSpacePicture))),
+                .init(title: "Thread.Tabs.photos", view: AnyView(PicturesTabView(conversation: thread, messageType: .podSpacePicture, maxWidth: maxWidth))),
                 .init(title: "Thread.Tabs.videos", view: AnyView(VideosTabView(conversation: thread, messageType: .podSpaceVideo))),
                 .init(title: "Thread.Tabs.music", view: AnyView(MusicsTabView(conversation: thread, messageType: .podSpaceSound))),
                 .init(title: "Thread.Tabs.voice", view: AnyView(VoicesTabView(conversation: thread, messageType: .podSpaceVoice))),
@@ -76,6 +79,6 @@ struct DetailTabContainer: View {
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 struct DetailTabContainer_Previews: PreviewProvider {
     static var previews: some View {
-        DetailTabContainer()
+        DetailTabContainer(maxWidth: 400)
     }
 }
