@@ -1221,7 +1221,8 @@ extension ThreadHistoryViewModel {
     private func setSeenForAllOlderMessages(newMessage: HistoryMessageType, myId: Int) async {
         let unseenMessages = unseenMessages(myId: myId)
         let isNotMe = !newMessage.isMe(currentUserId: myId)
-        if isNotMe, unseenMessages.count > 0 {
+        let isGroup = thread.group == true
+        if !isGroup, isNotMe, unseenMessages.count > 0 {
             for vm in unseenMessages {
                 await setSeen(vm: vm)
             }
