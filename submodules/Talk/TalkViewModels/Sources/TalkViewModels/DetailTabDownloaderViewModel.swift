@@ -62,6 +62,10 @@ public class DetailTabDownloaderViewModel: ObservableObject {
                         }
                         
                         messagesModels.append(model)
+                        
+                        if model.links.isEmpty && model.message.type == .link {
+                            messagesModels.removeLast()
+                        }
                     }
                 }
                 self.messagesModels.sort(by: { $0.message.time ?? 0 > $1.message.time ?? 0 })

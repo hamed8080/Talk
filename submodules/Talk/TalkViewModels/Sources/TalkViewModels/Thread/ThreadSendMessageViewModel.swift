@@ -187,7 +187,7 @@ public final class ThreadSendMessageViewModel {
         createConversationIfNeeded {
             Task { [weak self] in
                 guard let self = self else { return }
-                let (message, request) = Message.makeRequest(model: model)
+                let (message, request) = Message.makeRequest(model: model, checkLink: true)
                 await historyVM?.injectMessagesAndSort([message])
                 let lastSectionIndex = max(0, (historyVM?.sections.count ?? 0) - 1)
                 let row = max((historyVM?.sections[lastSectionIndex].vms.count ?? 0) - 1, 0)
