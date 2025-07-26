@@ -1,8 +1,8 @@
 //
 //  ToastView.swift
-//  Talk
+//  TalkUI
 //
-//  Created by hamed on 10/7/23.
+//  Created by Hamed Hosseini on 7/26/25.
 //
 
 import SwiftUI

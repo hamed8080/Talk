@@ -194,17 +194,9 @@ public final class GalleryViewModel: ObservableObject {
         pictures.first(where: {$0.id == selectedTabId})
     }
     
-    public func saveAction(iconColor: Color, messageColor: Color) {
-        Task {
-            if let fileURL = selectedVM?.fileURL,
-               let data = try? Data(contentsOf: fileURL),
-               let image = UIImage(data: data) {
-                UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-                let icon = Image(systemName: "externaldrive.badge.checkmark")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(iconColor)
-                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: messageColor)
-            }
+    public func saveAction(iconColor: Color, messageColor: Color) async throws {
+        if let fileURL = selectedVM?.fileURL {
+            try await SaveToAlbumViewModel(fileURL: fileURL).save()
         }
     }
     

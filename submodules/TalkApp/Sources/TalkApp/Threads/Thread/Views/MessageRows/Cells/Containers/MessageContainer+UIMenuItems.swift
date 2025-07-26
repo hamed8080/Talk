@@ -190,12 +190,18 @@ private extension MessageContainerStackView {
 
     func onSaveAction(_ model: ActionModel) {
         Task {
-            if let url = await model.viewModel.message.fileURL, let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-                UIImageWriteToSavedPhotosAlbum(image, model.viewModel, nil, nil)
-                let icon = Image(systemName: "externaldrive.badge.checkmark")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.App.white)
-                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: Color.App.textPrimary)
+            if let fileURL = await model.message.fileURL {
+                do {
+                    try await SaveToAlbumViewModel(fileURL: fileURL).save()
+                    
+                    /// Show a toast after a successful saving.
+                    let icon = Image(systemName: "externaldrive.badge.checkmark")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.App.textPrimary)
+                    AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.imageSaved", messageColor: Color.App.textPrimary)
+                } catch let error as SaveToAlbumViewModel.SaveToAlbumError {
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(SaveToAlbumDialogView())
+                }
             }
         }
     }

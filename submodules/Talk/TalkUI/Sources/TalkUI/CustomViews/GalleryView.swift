@@ -11,6 +11,7 @@ import SwiftUI
 public struct GalleryPageView: View {
     @EnvironmentObject var viewModel: GalleryViewModel
     @StateObject var offsetVM = GalleyOffsetViewModel()
+    @State private var showSavedToast: Bool = false
     
     public init() {}
     
@@ -30,6 +31,11 @@ public struct GalleryPageView: View {
         .tabViewStyle(.page(indexDisplayMode: !offsetVM.isUIHidden ? .always : .never))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .overlay { overlayToolbar }
+        .overlay(alignment: .bottom) {
+            if showSavedToast {
+                savedToastView
+            }
+        }
         .animation(.easeInOut, value: offsetVM.isUIHidden)
     }
     
@@ -59,9 +65,34 @@ public struct GalleryPageView: View {
     
     private var downloadButton: some View {
         GalleryToolbarButton(imageName: "arrow.down") {
-            viewModel.saveAction(iconColor: Color.App.white, messageColor: Color.App.white)
+            Task {
+                do {
+                    try await viewModel.saveAction(iconColor: Color.App.white, messageColor: Color.App.white)
+                    /// Show a toast after a successful saving.
+                    showSavedToast = true
+                } catch let error as SaveToAlbumViewModel.SaveToAlbumError {
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(SaveToAlbumDialogView())
+                }
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius:(20)))
+    }
+    
+    private var savedToastView: some View {
+        ToastView(title: "", message: "General.imageSaved", messageColor: Color.App.textPrimary) {
+            Image(systemName: "externaldrive.badge.checkmark")
+                .fontWeight(.semibold)
+                .foregroundStyle(Color.App.textPrimary)
+        }
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
+                Task { @MainActor in
+                    withAnimation(.easeInOut) {
+                        showSavedToast = false
+                    }
+                }
+            }
+        }
     }
     
     private var dismissButton: some View {
