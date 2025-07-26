@@ -12,9 +12,9 @@ import TalkModels
 import SwiftUI
 
 @MainActor
-public class TabRowModel: ObservableObject {
+public final class TabRowModel: ObservableObject {
     public let message: Message
-    public let id: Int
+    public nonisolated let id: Int
     
     @Published public var shareDownloadedFile = false
     @Published public var state: MessageFileState = MessageFileState()
