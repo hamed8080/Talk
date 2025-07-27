@@ -1,5 +1,5 @@
 //
-//  IncommingMessagesQueue.swift
+//  IncommingForwardMessagesQueue.swift
 //  TalkViewModels
 //
 //  Created by Hamed Hosseini on 5/27/21.
@@ -11,7 +11,7 @@ import Chat
 import Logger
 
 @MainActor
-public class IncommingMessagesQueue {
+public class IncommingForwardMessagesQueue {
     private var messageSubjects: [Int: PassthroughSubject<ChatResponse<Message>, Never>] = [:]
     private var cancellables: Set<AnyCancellable> = []
     private let batchInterval: TimeInterval = 1.0 // Interval to batch messages
@@ -64,6 +64,6 @@ public class IncommingMessagesQueue {
     }
     
     func log(_ string: String) {
-        Logger.log( title: "IncommingMessagesQueue", message: string)
+        Logger.log( title: "IncommingForwardMessagesQueue", message: string)
     }
 }

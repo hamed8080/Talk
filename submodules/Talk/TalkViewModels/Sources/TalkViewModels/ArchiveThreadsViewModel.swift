@@ -27,7 +27,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var objectId = UUID().uuidString
     private let GET_ARCHIVES_KEY: String
     private var wasDisconnected = false
-    internal let incQueue = IncommingMessagesQueue()
+    internal let incQueue = IncommingForwardMessagesQueue()
     public var isAppeared = false
     
     // MARK: Computed properties

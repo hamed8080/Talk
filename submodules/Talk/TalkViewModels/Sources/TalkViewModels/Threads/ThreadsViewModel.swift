@@ -29,7 +29,8 @@ public final class ThreadsViewModel: ObservableObject {
     public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
-    internal let incQueue = IncommingMessagesQueue()
+    internal let incForwardQueue = IncommingForwardMessagesQueue()
+    internal let incNewQueue = IncommingNewMessagesQueue()
     internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel() }()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
 
@@ -52,7 +53,8 @@ public final class ThreadsViewModel: ObservableObject {
         Task {
             await setupObservers()
         }
-        incQueue.viewModel = self
+        incForwardQueue.viewModel = self
+        incNewQueue.viewModel = self
     }
 
     func onCreate(_ response: ChatResponse<Conversation>) async {

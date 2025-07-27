@@ -180,13 +180,13 @@ extension ThreadsViewModel {
             /// This if prevent duplicate joined to a public group by discarding this message,
             /// it will be added by another event directly
             if !isMeJoinedPublic {
-                await onNewMessage([message], conversationId: message.conversation?.id ?? -1)
+                incNewQueue.onMessageEvent(chatResponse)                
             }
             if let uniqueId = message.uniqueId {
                 AppState.shared.objectsContainer.pendingManager.remove(uniqueId: uniqueId)
             }
         case .forward(let chatResponse):
-            incQueue.onMessageEvent(chatResponse)
+            incForwardQueue.onMessageEvent(chatResponse)
             if let uniqueId = chatResponse.uniqueId {
                 AppState.shared.objectsContainer.pendingManager.removeForwards(uniqueId: uniqueId)
             }
