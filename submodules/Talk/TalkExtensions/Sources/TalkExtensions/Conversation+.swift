@@ -236,8 +236,10 @@ public extension CalculatedConversation {
         let isMe = message.participant?.id == meId
         if !isMe {
             thread.unreadCount = (thread.unreadCount ?? 0) + 1
+            thread.unreadCountString = thread.toStruct().unreadCountString ?? ""
         } else if isMe {
             thread.unreadCount = 0
+            thread.unreadCountString = ""
         }
         thread.time = message.time
         thread.lastMessageVO = message.toLastMessageVO

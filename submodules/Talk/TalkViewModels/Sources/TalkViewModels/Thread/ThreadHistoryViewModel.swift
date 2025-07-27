@@ -640,9 +640,14 @@ extension ThreadHistoryViewModel {
     // It will be only called by ThreadsViewModel
     public func onNewMessage(_ messages: [Message], _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
         thread = updatedConversation
-        let wasAtBottom = isLastMessageInsideTheSections(oldConversation)
-        if let viewModel = viewModel, wasAtBottom {
-            for message in messages {
+        guard let viewModel = viewModel else { return }
+        
+        for message in messages {
+            /// If two messages comes at the same time the chat server will sent them in wrong order
+            /// so a new message may come before the old message.
+            let isNewMessageNewerThanLastMessage = message.id ?? 0 > thread.lastMessageVO?.id ?? 0
+            let wasAtBottom = isLastMessageInsideTheSections(oldConversation)
+            if wasAtBottom || isNewMessageNewerThanLastMessage {
                 let bottomVMBeforeJoin = sections.last?.vms.last
                 self.viewModel?.thread = updatedConversation
                 let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
@@ -652,8 +657,10 @@ extension ThreadHistoryViewModel {
                 reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
             }
         }
-        viewModel?.updateUnreadCount(updatedConversation.unreadCount)
-        await setSeenForAllOlderMessages(newMessage: messages.last ?? .init(), myId: appUserId ?? -1)
+        viewModel.updateUnreadCount(updatedConversation.unreadCount)
+        if viewModel.scrollVM.isAtBottomOfTheList {
+            await setSeenForAllOlderMessages(newMessage: messages.last ?? .init(), myId: appUserId ?? -1)
+        }
         showEmptyThread(show: false)
     }
     
