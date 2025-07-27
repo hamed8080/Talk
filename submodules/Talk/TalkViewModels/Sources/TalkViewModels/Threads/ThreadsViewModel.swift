@@ -303,6 +303,10 @@ public final class ThreadsViewModel: ObservableObject {
             var newConversation = newConversation
             newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
             await calculateAppendSortAnimate(newConversation)
+        } else if response.result?.type?.isChannelType == true, let newConversation = response.result {
+            var newConversation = newConversation
+            newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
+            await calculateAppendSortAnimate(newConversation)
         }
         await insertIntoParticipantViewModel(response)
         lazyList.setLoading(false)
@@ -478,6 +482,7 @@ public final class ThreadsViewModel: ObservableObject {
             }
             arrItem.metadata = thread.metadata
             arrItem.title = replacedEmoji
+            arrItem.titleRTLString = ThreadCalculators.calculateTitleRTLString(replacedEmoji)
             arrItem.closed = thread.closed
             arrItem.time = thread.time ?? arrItem.time
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash

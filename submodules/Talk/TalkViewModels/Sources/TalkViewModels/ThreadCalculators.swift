@@ -182,7 +182,7 @@ public class ThreadCalculators {
         return conversation.title ?? ""
     }
     
-    private class func calculateTitleRTLString(_ computedTitle: String) -> String {
+    public class func calculateTitleRTLString(_ computedTitle: String) -> String {
         return textDirectionMark + computedTitle
     }
     

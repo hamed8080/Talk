@@ -15,7 +15,7 @@ import Combine
 public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable, ObservableObject {
     
     public static func == (lhs: CalculatedConversation, rhs: CalculatedConversation) -> Bool {
-        lhs.id == rhs.id
+        lhs.id == rhs.id && lhs.isSelected == rhs.isSelected
     }
     
     public func hash(into hasher: inout Hasher) {
