@@ -225,27 +225,26 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 5
     private func tryFifthScenario(status: ConnectionStatus) {
-        /// 1- Get the bottom part of the list of what is inside the memory.
-        if let lastMessageInListTime = sections.last?.vms.last?.message.time {
-            showBottomLoading(true)
-            bottomRequester = GetHistoryReuqester(key: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
-            let data = getMainData()
-            bottomRequester?.setup(data: data, viewModel: viewModel)
-            do {
-                guard let bottomRequester = bottomRequester else { return }
-                let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
-                Task {
-                    let vms = try await bottomRequester.get(req, queueable: true)
-                    if vms.count > 0 {
-                        removeOldBanner()
-                        await appenedUnreadMessagesBannerIfNeeed()
-                        viewModel?.scrollVM.setIsProgramaticallyScrolling(false)
-                    }
-                    await onMoreBottomNew(vms)
+        showBottomLoading(true)
+        do {
+            Task {
+                let vms = try await onReconnectViewModels()
+                if vms.count > 0 {
+                    removeOldBanner()
+                    await appenedUnreadMessagesBannerIfNeeed()
+                    viewModel?.scrollVM.setIsProgramaticallyScrolling(false)
                 }
-            } catch {
-                showBottomLoading(false)
+                
+                let beforeAppnedLastVM = sections.last?.vms.last
+                /// Set isFirst message of the user befor join at bottom if the prev owner is different
+                /// If the user reconnect less than 45 seconds there is a chance that chat server sent
+                /// onNewMessage event, so in append message in onNewMessage
+                /// we will take care of this situation there too.
+                vms.first?.calMessage.isFirstMessageOfTheUser = vms.first?.message.ownerId != beforeAppnedLastVM?.message.ownerId
+                await onMoreBottomNew(vms)
             }
+        } catch {
+            showBottomLoading(false)
         }
     }
 
@@ -710,6 +709,7 @@ extension ThreadHistoryViewModel {
         let beforeSectionCount = sections.count
         let vm: MessageRowViewModel
         let mainData = getMainData()
+        let beforeAppnedLastVM = sections.last?.vms.last
         if let indexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "") {
             // Update a message sent by Me
             vm = sections[indexPath.section].vms[indexPath.row]
@@ -722,10 +722,8 @@ extension ThreadHistoryViewModel {
             await vm.recalculate(appendMessages: [message], mainData: mainData)
             appendSort([vm])
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, [vm])
-            if vm.message.ownerId == sections.last?.vms.last?.message.ownerId {
-                vm.calMessage.isFirstMessageOfTheUser = false
-                vm.calMessage.isLastMessageOfTheUser = true
-            }
+            vm.calMessage.isFirstMessageOfTheUser = vm.message.ownerId != beforeAppnedLastVM?.message.ownerId
+            vm.calMessage.isLastMessageOfTheUser = true
             delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
         }
         return vm
@@ -1208,6 +1206,18 @@ extension ThreadHistoryViewModel {
     
     public func setThreashold(_ threshold: CGFloat) {
         self.threshold = threshold
+    }
+}
+
+// MARK: Senario Request maker methods
+extension ThreadHistoryViewModel {
+    private func onReconnectViewModels() async throws -> [MessageRowViewModel] {
+        guard let lastMessageInListTime = sections.last?.vms.last?.message.time else { return [] }
+        let bottomRequester = GetHistoryReuqester(key: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
+        let data = getMainData()
+        bottomRequester.setup(data: data, viewModel: viewModel)
+        let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
+        return try await bottomRequester.get(req, queueable: true) ?? []
     }
 }
 
