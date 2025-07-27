@@ -44,6 +44,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
+        
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
@@ -52,14 +53,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
-        NotificationCenter.participant.publisher(for: .participant)
-            .compactMap { $0.object as? ParticipantEventTypes }
-            .sink { [weak self] event in
-                Task { [weak self] in
-                    await self?.onParticipantEvent(event)
-                }
-            }
-            .store(in: &cancelable)
+        
         NotificationCenter.onRequestTimer.publisher(for: .onRequestTimer)
             .sink { [weak self] newValue in
                 if let key = newValue.object as? String {
@@ -67,6 +61,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
+        
         AppState.shared.$connectionStatus
             .sink { [weak self] event in
                 Task { [weak self] in
@@ -104,6 +99,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             onDeleteThread(response)
         case .unreadCount(let response):
             await onUnreadCounts(response)
+        case .userRemoveFormThread(let response):
+            onUserRemovedByAdmin(response)
         default:
             break
         }
@@ -123,15 +120,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             onPinMessage(response)
         case .unpin(let response):
             onUNPinMessage(response)
-        default:
-            break
-        }
-    }
-    
-    func onParticipantEvent(_ event: ParticipantEventTypes) async {
-        switch event {
-        case .add(let chatResponse):
-            await onAddPrticipant(chatResponse)
         default:
             break
         }
@@ -530,21 +518,21 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         archives.firstIndex(where: { $0.id == threadId ?? -1 })
     }
     
-    func onAddPrticipant(_ response: ChatResponse<Conversation>) async {
-        if isAppeared, response.result?.participants?.first(where: {$0.id == myId}) != nil, let newConversation = response.result {
-            /// It means an admin added a user to the conversation, and if the added user is in the app at the moment, should see this new conversation in its conversation list.
-            var newConversation = newConversation
-            newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
-            await calculateAppendSortAnimate(newConversation)
-        }
-    }
-    
     public func calculateAppendSortAnimate(_ thread: Conversation) async {
         let calThreads = await ThreadCalculators.calculate([thread], myId, navVM.selectedId, false)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: archives)
         let sorted = await sort(threads: appendedThreads)
         archives = sorted
         animateObjectWillChange()
+    }
+    
+    func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
+        if let id = response.result, let index = self.firstIndex(id) {
+            archives.remove(at: index)
+            archives[index].animateObjectWillChange()
+            recalculateAndAnimate(archives[index])
+            animateObjectWillChange()
+        }
     }
     
     func log(_ string: String) {

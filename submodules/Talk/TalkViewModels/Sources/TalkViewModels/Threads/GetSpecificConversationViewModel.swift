@@ -15,10 +15,8 @@ public final class GetSpecificConversationViewModel {
     private var objectId = UUID().uuidString
     private let GET_NOT_ACTIVE_THREADS_KEY: String
     private var cancelable: AnyCancellable?
-    private let archive: Bool
     
-    public init(archive: Bool) {
-        self.archive = archive
+    public init() {
         GET_NOT_ACTIVE_THREADS_KEY = "GET-NOT-ACTIVE-THREADS-\(objectId)"
     }
     
@@ -56,12 +54,7 @@ public final class GetSpecificConversationViewModel {
               !response.cache,
               response.pop(prepend: GET_NOT_ACTIVE_THREADS_KEY) != nil
         else { return nil }
-        return  extractConversation(from: response)
-    }
-    
-    private func extractConversation(from response: ChatResponse<[Conversation]>) -> Conversation? {
-        // Extract and return the actual conversation from response
-        return response.result?.first(where: { $0.isArchive == archive || $0.isArchive == nil })
+        return response.result?.first
     }
     
     func log(_ string: String) {

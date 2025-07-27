@@ -30,7 +30,7 @@ public final class ThreadsViewModel: ObservableObject {
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
     internal let incQueue = IncommingMessagesQueue()
-    internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel(archive: false) }()
+    internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel() }()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
 
     internal var objectId = UUID().uuidString
@@ -298,15 +298,24 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func onAddPrticipant(_ response: ChatResponse<Conversation>) async {
-        if response.result?.participants?.first(where: {$0.id == myId}) != nil, let newConversation = response.result {
-            /// It means an admin added a user to the conversation, and if the added user is in the app at the moment, should see this new conversation in its conversation list.
-            var newConversation = newConversation
-            newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
-            await calculateAppendSortAnimate(newConversation)
-        } else if response.result?.type?.isChannelType == true, let newConversation = response.result {
-            var newConversation = newConversation
-            newConversation.reactionStatus = newConversation.reactionStatus ?? .enable
-            await calculateAppendSortAnimate(newConversation)
+        guard let threadId = response.result?.id,
+        var conversation = await GetSpecificConversationViewModel().getNotActiveThreads(threadId)
+        else { return }
+        let isMyselfAdded = response.result?.participants?.first(where: {$0.id == myId}) != nil
+        let isChannel = conversation.type?.isChannelType == true
+        let isArchive = conversation.isArchive == true
+
+        if isArchive {
+            /// Append to ArchiveViewModels
+            await AppState.shared.objectsContainer.archivesVM.calculateAppendSortAnimate(conversation)
+        } else if isMyselfAdded || isChannel {
+            /*
+             * Append to ThreadsViewModel itself
+             *
+             * It means an admin added a user to the conversation,
+             * and if the added user is in the app at the moment, should see this new conversation in its conversation list.
+             */
+            await calculateAppendSortAnimate(conversation)
         }
         await insertIntoParticipantViewModel(response)
         lazyList.setLoading(false)
