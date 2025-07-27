@@ -81,6 +81,9 @@ struct VideoRowView: View {
         .contentShape(Rectangle())
         .background(Color.App.bgPrimary)
         .fullScreenCover(isPresented: $rowModel.showFullScreen) {
+            /// On dismiss
+            rowModel.playerVM?.player?.pause()
+        } content: {
             if let player = rowModel.playerVM?.player {
                 PlayerViewRepresentable(player: player, showFullScreen: $rowModel.showFullScreen)
             }
