@@ -166,6 +166,8 @@ private extension MessageContainerStackView {
     }
 
     func onForwardAction(_ model: ActionModel) {
+        AppState.shared.appStateNavigationModel.replyPrivately = nil
+        model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
@@ -303,6 +305,8 @@ private extension MessageContainerStackView {
     }
 
     func onSelectAction(_ model: ActionModel) {
+        AppState.shared.appStateNavigationModel.replyPrivately = nil
+        model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.delegate?.setSelection(true)
