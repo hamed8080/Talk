@@ -205,25 +205,36 @@ public extension HistoryMessageProtocol {
     func addOrRemoveParticipantString(meId: Int?) -> String? {
         guard let requestType = addRemoveParticipant?.requestTypeEnum else { return nil }
         let isMe = participant?.id == meId
-        let effectedName = addRemoveParticipant?.participnats?.first?.name ?? ""
-        let participantName = participant?.name ?? ""
-        let effectedParticipantsName = addRemoveParticipant?.participnats?.compactMap{$0.name}.joined(separator: ", ") ?? ""
+        let efName = addRemoveParticipant?.participnats?.first?.name ?? ""
+        let pName = participant?.name ?? ""
+        let mulNames = addRemoveParticipant?.participnats?.compactMap{$0.name}.joined(separator: ", ") ?? ""
+        
+        func local(key: String, _ args: any CVarArg...) -> String {
+            /// Reverse English user names in RTL mode to show them correctly in their orders
+            var shouldReverse = false
+            if Language.isRTL, pName.last?.isEnglishCharacter == true && !pName.isEmpty && mulNames.last?.isEnglishCharacter == true && !mulNames.isEmpty {
+                shouldReverse = true
+            }
+            let localizedKey = NSLocalizedString(key, bundle: Language.preferedBundle, comment: "")
+            return MessageHistoryStatics.textDirectionMark + String(format: localizedKey, shouldReverse ? args.reversed() : args)
+        }
+        
         switch requestType {
         case .leaveThread:
-            return MessageHistoryStatics.textDirectionMark + String(format: NSLocalizedString("Message.Participant.left", bundle: Language.preferedBundle, comment: ""), participantName)
+            return local(key: "Message.Participant.left", pName)
         case .joinThread:
-            return MessageHistoryStatics.textDirectionMark + String(format: NSLocalizedString("Message.Participant.joined", bundle: Language.preferedBundle, comment: ""), participantName)
+            return local(key: "Message.Participant.joined", pName)
         case .removedFromThread:
             if isMe {
-                return MessageHistoryStatics.textDirectionMark + String(format: NSLocalizedString("Message.Participant.removedByMe", bundle: Language.preferedBundle, comment: ""), effectedName)
+                return local(key: "Message.Participant.removedByMe", efName)
             } else {
-                return MessageHistoryStatics.textDirectionMark + String(format: NSLocalizedString("Message.Participant.removed", bundle: Language.preferedBundle, comment: ""), participantName, effectedName)
+                return local(key: "Message.Participant.removed", pName, efName)
             }
         case .addParticipant:
             if isMe {
-                return MessageHistoryStatics.textDirectionMark + String(format: NSLocalizedString("Message.Participant.addedByMe", bundle: Language.preferedBundle, comment: ""), effectedParticipantsName)
+                return local(key: "Message.Participant.addedByMe", mulNames)
             } else {
-                return MessageHistoryStatics.textDirectionMark + String(format: NSLocalizedString("Message.Participant.added", bundle: Language.preferedBundle, comment: ""), participantName, effectedParticipantsName)
+                return local(key: "Message.Participant.added", pName, mulNames)
             }
         default:
             return nil
