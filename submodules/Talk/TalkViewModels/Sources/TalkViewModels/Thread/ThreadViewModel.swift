@@ -36,7 +36,7 @@ public final class ThreadViewModel {
     public var sendContainerViewModel: SendContainerViewModel = .init()
     public var audioRecoderVM: AudioRecordingViewModel = .init()
     public var scrollVM: ThreadScrollingViewModel = .init()
-    public var historyVM: ThreadHistoryViewModel = .init()
+    public lazy var historyVM: ThreadHistoryViewModel = { .init(thread: thread) }()
     public var sendMessageViewModel: ThreadSendMessageViewModel = .init()
     public var participantsColorVM: ParticipantsColorViewModel = .init()
     public var threadPinMessageViewModel: ThreadPinMessageViewModel = .init()
@@ -91,8 +91,6 @@ public final class ThreadViewModel {
         threadPinMessageViewModel.setup(viewModel: self)
         participantsViewModel.setup(viewModel: self)
         historyVM.viewModel = self
-        let thread = thread
-        historyVM.setup(thread: thread, readOnly: readOnly)
         sendMessageViewModel.setup(viewModel: self)
         scrollVM.setup(viewModel: self)
         unsentMessagesViewModel.setup(viewModel: self)

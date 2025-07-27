@@ -20,10 +20,6 @@ public final class ThreadHistoryViewModel {
     public weak var delegate: HistoryScrollDelegate?
     public private(set) var sections: ContiguousArray<MessageSection> = .init()
     private var deleteQueue = DeleteMessagesQueue()
-    
-    private var topRequester: GetHistoryReuqester?
-    private var bottomRequester: GetHistoryReuqester?
-    private var offsetRequester: GetHistoryReuqester?
 
     private var threshold: CGFloat = 800
     private var topLoading = false
@@ -37,7 +33,6 @@ public final class ThreadHistoryViewModel {
     private var cancelable: Set<AnyCancellable> = []
     private var hasSentHistoryRequest = false
     internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
-    private var tasks: [Task<Void, Error>] = []
     @VisibleActor
     private var visibleTracker = VisibleMessagesTracker()
     private var highlightVM = ThreadHighlightViewModel()
@@ -55,7 +50,17 @@ public final class ThreadHistoryViewModel {
     private var threadId: Int = -1
     
     // MARK: Initializer
-    nonisolated public init() {}
+    nonisolated public init(thread: Conversation, readOnly: Bool = false) {
+        self.thread = thread
+        threadId = thread.id ?? -1
+        Task { @MainActor in
+            middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: false)
+            await setupVisible()
+            highlightVM.setup(self)
+            setupNotificationObservers()
+            deleteQueue.viewModel = self
+        }
+    }
 }
 
 extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
@@ -82,25 +87,9 @@ extension ThreadHistoryViewModel {
 
 // MARK: Setup/Start
 extension ThreadHistoryViewModel {
-    public func setup(thread: Conversation, readOnly: Bool) {
-        self.thread = thread
-        threadId = thread.id ?? -1
-        middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: readOnly)
-        Task {
-            await setupVisible()
-        }
-        setupMain()
-        deleteQueue.viewModel = self
-    }
-    
     @VisibleActor
     private func setupVisible() {
         visibleTracker.delegate = self
-    }
-    
-    private func setupMain() {
-        highlightVM.setup(self)
-        setupNotificationObservers()
     }
     
     // MARK: Scenarios Common Functions
@@ -158,16 +147,11 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 1
     private func tryFirstScenario() {
         /// 1- Get the top part to time messages
-        if hasUnreadMessage(), let toTime = thread.lastSeenMessageTime {
+        if hasUnreadMessage() {
             Task { @MainActor in
                 showTopLoading(false) // We do not need to show two loadings at the same time.
-                let req = makeRequest(toTime: toTime.advanced(by: 1), offset: nil)
-                topRequester = GetHistoryReuqester(key: keys.MORE_TOP_FIRST_SCENARIO_KEY)
-                let data = getMainData()
-                topRequester?.setup(data: data, viewModel: viewModel)
                 do {
-                    guard let topRequester = topRequester else { return }
-                    let vms = try await topRequester.get(req)
+                    let vms = try await onMoreTopWithTime()
                     await onMoreTop(vms)
                     delegate?.showMoveToButtom(show: true)
                     /*
@@ -201,16 +185,10 @@ extension ThreadHistoryViewModel {
     private func trySecondScenario() {
         if isLastMessageEqualToLastSeen(), thread.id != LocalId.emptyThread.rawValue {
             setHasMoreBottom(false)
-            let req = makeRequest(offset: 0)
             log("trySecondScenario")
-            
-            topRequester = GetHistoryReuqester(key: keys.MORE_TOP_SECOND_SCENARIO_KEY)
-            let data = getMainData()
-            topRequester?.setup(data: data, viewModel: viewModel)
             do {
-                guard let topRequester = topRequester else { return }
                 Task {
-                    let vms = try await topRequester.get(req)
+                    let vms = try await onMoreTopWithOffset()
                     await onMoreTop(vms, moveToLastMessage: true)
                 }
                 showCenterLoading(false)
@@ -241,18 +219,11 @@ extension ThreadHistoryViewModel {
                 /// onNewMessage event, so in append message in onNewMessage
                 /// we will take care of this situation there too.
                 vms.first?.calMessage.isFirstMessageOfTheUser = vms.first?.message.ownerId != beforeAppnedLastVM?.message.ownerId
-                await onMoreBottomNew(vms)
+                await onMoreBottom(vms)
             }
         } catch {
             showBottomLoading(false)
         }
-    }
-
-    private func canGetNewMessagesAfterConnectionEstablished(_ status: ConnectionStatus) -> Bool {
-        /// Prevent updating bottom if we have moved to a specific date
-        if sections.last?.vms.last?.message.id != thread.lastMessageVO?.id { return false }
-        let isActiveThread = viewModel?.isActiveThread == true
-        return !isSimulated() && status == .connected && isFetchedServerFirstResponse == true && isActiveThread
     }
 
     // MARK: Scenario 6
@@ -324,30 +295,20 @@ extension ThreadHistoryViewModel {
     /// When lastMessgeSeenId is bigger than thread.lastMessageVO.id as a result of server chat bug or when the conversation is empty.
     private func trySeventhScenario() {
         if thread.lastMessageVO?.id ?? 0 < thread.lastSeenMessageId ?? 0 {
-            requestBottomPartByCountAndOffset()
-        }
-    }
-    
-    private func requestBottomPartByCountAndOffset() {
-        let req = makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
-        log("Get bottom part by last message deleted detection")
-        offsetRequester = GetHistoryReuqester(key: keys.FETCH_BY_OFFSET_KEY)
-        let data = getMainData()
-        offsetRequester?.setup(data: data, viewModel: viewModel)
-        do {
-            guard let offsetRequester = offsetRequester else { return }
-            Task {
-                let vms = try await offsetRequester.get(req)
-                await onMoreTop(vms)
-                delegate?.showMoveToButtom(show: false)
-                showCenterLoading(false)
-                let uniqueId = sections.last?.vms.last?.message.uniqueId ?? ""
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-                    self?.delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: true)
+            do {
+                Task {
+                    let vms = try await onFetchByOffset()
+                    await onMoreTop(vms)
+                    delegate?.showMoveToButtom(show: false)
+                    showCenterLoading(false)
+                    let uniqueId = sections.last?.vms.last?.message.uniqueId ?? ""
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                        self?.delegate?.scrollTo(uniqueId: uniqueId, position: .bottom, animate: true)
+                    }
                 }
+            } catch {
+                showCenterLoading(false)
             }
-        } catch {
-            showCenterLoading(false)
         }
     }
     
@@ -410,17 +371,11 @@ extension ThreadHistoryViewModel {
         }
     }
 
-    private func moreTop(prepend: String, _ toTime: UInt?) async {
-        if !canLoadMoreTop() { return }
+    private func moreTop(prepend: String, _ toTime: UInt) async {
         showTopLoading(true)
-        let req = makeRequest(toTime: toTime, offset: nil)
         log("SendMoreTopRequest")
-        topRequester = GetHistoryReuqester(key: prepend)
-        let data = getMainData()
-        topRequester?.setup(data: data, viewModel: viewModel)
         do {
-            guard let topRequester = topRequester else { return }
-            let vms = try await topRequester.get(req)
+            let vms = try await onMoreTopWithToTime(toTime: toTime, prepend: prepend)
             await onMoreTop(vms)
         } catch {
             showTopLoading(false)
@@ -486,41 +441,19 @@ extension ThreadHistoryViewModel {
         await prepareAvatars(viewModels)
     }
     
-    private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) {
-        if isLastMessageEqualToLastSeen(), !isLastMessageExistInSortedMessages(sortedMessages) {
-            let lastSortedMessage = sortedMessages.last
-            viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
-            setIsAtBottom(newValue: true)
-            highlightVM.showHighlighted(lastSortedMessage?.uniqueId ?? "",
-                                                lastSortedMessage?.id ?? -1,
-                                                highlight: false)
-        }
-    }
-    
-    private func reloadIfStitchChangedOnNewMessage(_ bottomVMBeforeJoin: MessageRowViewModel?, _ newMessage: Message) {
-        guard let indexPath = StitchAvatarCalculator.forNew(sections, newMessage, bottomVMBeforeJoin) else { return }
-        bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
-        delegate?.reloadData(at: indexPath)
-    }
-    
-    private func moreBottom(prepend: String, _ fromTime: UInt?) async {
+    private func moreBottom(prepend: String, _ fromTime: UInt) async {
         if !canLoadMoreBottom() { return }
         showBottomLoading(true)
-        let req = makeRequest(fromTime: fromTime, offset: nil)
         log("SendMoreBottomRequest")
-        bottomRequester = GetHistoryReuqester(key: prepend)
-        let data = getMainData()
-        bottomRequester?.setup(data: data, viewModel: viewModel)
         do {
-            guard let bottomRequester = bottomRequester else { return }
-            let vms = try await bottomRequester.get(req)
-            await onMoreBottomNew(vms)
+            let vms = try await onMoreBottomWithFromTime(fromTime: fromTime, prepend: prepend)
+            await onMoreBottom(vms)
         } catch {
             showBottomLoading(false)
         }
     }
 
-    private func onMoreBottomNew(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
+    private func onMoreBottom(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
         let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
         viewModels.forEach { vm in
             if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
@@ -561,7 +494,7 @@ extension ThreadHistoryViewModel {
     }
 
     public func loadMoreTop(message: HistoryMessageType) {
-        if let time = message.time {
+        if let time = message.time, canLoadMoreTop() {
             Task {
                 await moreTop(prepend: keys.MORE_TOP_KEY, time)
             }
@@ -575,11 +508,6 @@ extension ThreadHistoryViewModel {
                 await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
             }
         }
-    }
-
-    private func makeCalculateViewModelsFor(_ messages: [HistoryMessageType]) async -> [MessageRowViewModel] {
-        let mainData = getMainData()
-        return await MessageRowCalculators.batchCalulate(messages, mainData: mainData, viewModel: viewModel)
     }
 }
 
@@ -1207,6 +1135,30 @@ extension ThreadHistoryViewModel {
     public func setThreashold(_ threshold: CGFloat) {
         self.threshold = threshold
     }
+    
+    private func canGetNewMessagesAfterConnectionEstablished(_ status: ConnectionStatus) -> Bool {
+        /// Prevent updating bottom if we have moved to a specific date
+        if sections.last?.vms.last?.message.id != thread.lastMessageVO?.id { return false }
+        let isActiveThread = viewModel?.isActiveThread == true
+        return !isSimulated() && status == .connected && isFetchedServerFirstResponse == true && isActiveThread
+    }
+    
+    private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) {
+        if isLastMessageEqualToLastSeen(), !isLastMessageExistInSortedMessages(sortedMessages) {
+            let lastSortedMessage = sortedMessages.last
+            viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
+            setIsAtBottom(newValue: true)
+            highlightVM.showHighlighted(lastSortedMessage?.uniqueId ?? "",
+                                                lastSortedMessage?.id ?? -1,
+                                                highlight: false)
+        }
+    }
+    
+    private func reloadIfStitchChangedOnNewMessage(_ bottomVMBeforeJoin: MessageRowViewModel?, _ newMessage: Message) {
+        guard let indexPath = StitchAvatarCalculator.forNew(sections, newMessage, bottomVMBeforeJoin) else { return }
+        bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
+        delegate?.reloadData(at: indexPath)
+    }
 }
 
 // MARK: Senario Request maker methods
@@ -1218,6 +1170,50 @@ extension ThreadHistoryViewModel {
         bottomRequester.setup(data: data, viewModel: viewModel)
         let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
         return try await bottomRequester.get(req, queueable: true) ?? []
+    }
+    
+    private func onMoreTopWithOffset() async throws -> [MessageRowViewModel] {
+        let req = makeRequest(offset: 0)
+        let topRequester = GetHistoryReuqester(key: keys.MORE_TOP_SECOND_SCENARIO_KEY)
+        let data = getMainData()
+        topRequester.setup(data: data, viewModel: viewModel)
+        return try await topRequester.get(req)
+    }
+    
+    private func onMoreTopWithTime() async throws -> [MessageRowViewModel] {
+        guard let toTime = thread.lastSeenMessageTime else { return [] }
+        let req = makeRequest(toTime: toTime.advanced(by: 1), offset: nil)
+        let topRequester = GetHistoryReuqester(key: keys.MORE_TOP_FIRST_SCENARIO_KEY)
+        let data = getMainData()
+        topRequester.setup(data: data, viewModel: viewModel)
+        return try await topRequester.get(req)
+    }
+    
+    private func onMoreTopWithToTime(toTime: UInt, prepend: String) async throws -> [MessageRowViewModel] {
+        let req = makeRequest(toTime: toTime, offset: nil)
+        log("SendMoreTopRequest")
+        let topRequester = GetHistoryReuqester(key: prepend)
+        let data = getMainData()
+        topRequester.setup(data: data, viewModel: viewModel)
+        return try await topRequester.get(req)
+    }
+    
+    private func onMoreBottomWithFromTime(fromTime: UInt, prepend: String) async throws -> [MessageRowViewModel] {
+        let req = makeRequest(fromTime: fromTime, offset: nil)
+        log("SendMoreBottomRequest")
+        let bottomRequester = GetHistoryReuqester(key: prepend)
+        let data = getMainData()
+        bottomRequester.setup(data: data, viewModel: viewModel)
+        return try await bottomRequester.get(req)
+    }
+    
+    private func onFetchByOffset() async throws -> [MessageRowViewModel] {
+        let req = makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
+        log("Get bottom part by last message deleted detection")
+        let offsetRequester = GetHistoryReuqester(key: keys.FETCH_BY_OFFSET_KEY)
+        let data = getMainData()
+        offsetRequester.setup(data: data, viewModel: viewModel)
+        return try await offsetRequester.get(req)
     }
 }
 
@@ -1411,11 +1407,6 @@ extension ThreadHistoryViewModel {
         AppState.shared.connectionStatus == .connected
     }
     
-    public func indexPath(vm: MessageRowViewModel) -> IndexPath? {
-        if sections.isEmpty { return nil }
-        return sections.indexPath(for: vm)
-    }
-    
     private func findDeletedIndicies(_ messages: [Message]) -> [IndexPath] {
         var indicies: [IndexPath] = []
         for message in messages {
@@ -1424,6 +1415,11 @@ extension ThreadHistoryViewModel {
             }
         }
         return indicies
+    }
+    
+    private func makeCalculateViewModelsFor(_ messages: [HistoryMessageType]) async -> [MessageRowViewModel] {
+        let mainData = getMainData()
+        return await MessageRowCalculators.batchCalulate(messages, mainData: mainData, viewModel: viewModel)
     }
 }
 
