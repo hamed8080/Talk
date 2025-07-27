@@ -662,6 +662,7 @@ class MessageRowCalculators {
     
     class func isLastMessageOfTheUserInsideAppending(_ message: HistoryMessageType, appended: [HistoryMessageType], isChannelType: Bool) -> Bool {
         if isChannelType { return false }
+        if !message.reactionableType { return false }
         let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
         let nextIndex = index + 1
         let isNextExist = appended.indices.contains(nextIndex)
@@ -674,6 +675,7 @@ class MessageRowCalculators {
     
     class func isFirstMessageOfTheUserInsideAppending(_ message: HistoryMessageType, appended: [HistoryMessageType], isChannelType: Bool) -> Bool {
         if isChannelType == true { return false }
+        if !message.reactionableType { return false }
         let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
         let prevIndex = index - 1
         let isPrevExist = appended.indices.contains(prevIndex)

@@ -18,7 +18,7 @@ public class StitchAvatarCalculator {
         else { return nil }
         
         var shouldUpdateTopInSection = false
-        if sectionFirstMessage.message.ownerId == lastSortedMessage.message.ownerId {
+        if sectionFirstMessage.message.ownerId == lastSortedMessage.message.ownerId, sectionFirstMessage.message.reactionableType {
             sectionFirstMessage.calMessage.isFirstMessageOfTheUser = false
             lastSortedMessage.calMessage.isLastMessageOfTheUser = false
             shouldUpdateTopInSection = true
@@ -35,7 +35,7 @@ public class StitchAvatarCalculator {
         else { return nil }
         
         var shouldUpdateBottomInSection = false
-        if sectionLastMessage.message.ownerId == firstSortedMessage.message.ownerId {
+        if sectionLastMessage.message.ownerId == firstSortedMessage.message.ownerId, sectionLastMessage.message.reactionableType {
             sectionLastMessage.calMessage.isLastMessageOfTheUser = false
             firstSortedMessage.calMessage.isFirstMessageOfTheUser = false
             shouldUpdateBottomInSection = true
@@ -46,12 +46,12 @@ public class StitchAvatarCalculator {
     
     public static func forNew(_ sections: ContiguousArray<MessageSection>, _ newMessage: Message, _ bottomVMBeforeJoin: MessageRowViewModel?) -> IndexPath? {
         guard
+            newMessage.reactionableType,
             let bottomVMBeforeJoin = bottomVMBeforeJoin,
             bottomVMBeforeJoin.message.ownerId == newMessage.ownerId,
             let indexPath = sections.indexPath(for: bottomVMBeforeJoin)
         else { return nil }
         return indexPath
     }
-
 }
 
