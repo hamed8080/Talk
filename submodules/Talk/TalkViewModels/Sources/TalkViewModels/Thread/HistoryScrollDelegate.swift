@@ -34,6 +34,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool)
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) async
     func showMoveToButtom(show: Bool)
+    func moveToOffset(_ offset: CGFloat)
     func reactionDeleted(indexPath: IndexPath, reaction: Reaction)
     func reactionAdded(indexPath: IndexPath, reaction: Reaction)
     func reactionReplaced(indexPath: IndexPath, reaction: Reaction)

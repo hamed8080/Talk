@@ -203,7 +203,8 @@ extension UIHistoryTableView {
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
         }
-        saveScrollPosition()
+        guard let message = topVisibleMessage() else { return }
+        saveScrollPosition(message)
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -212,18 +213,24 @@ extension UIHistoryTableView {
             Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
                 await self?.viewModel?.scrollVM.isEndedDecelerating = true
             }
-            saveScrollPosition()
+            
+            Task { [weak self] in
+                guard let self = self, let indexPath = topVisibleIndexPath(), let message = topVisibleMessage() else { return }
+                saveScrollPosition(message)
+            }
         }
     }
     
-    private func saveScrollPosition() {
-        Task(priority: .background) { [weak self] in
-            guard let self = self,
-                  let indexPath = indexPathsForVisibleRows?.first,
-                  let threadId = viewModel?.threadId,
-                  let message = viewModel?.historyVM.sections[indexPath.section].vms[indexPath.row].message as? Message
-            else { return }
-            await viewModel?.threadsViewModel?.saveScrollPositionVM.saveScrollPosition(threadId: threadId, message: message)
+    private func saveScrollPosition(_ message: Message) {
+        let vm = viewModel?.threadsViewModel?.saveScrollPositionVM
+        guard let threadId = viewModel?.threadId else { return }
+        
+        /// We have to check if the last thread message exists if we were moved to time
+        let lastMessageExist = sections.last?.vms.last?.id ?? 0 == viewModel?.thread.lastMessageVO?.id ?? 0
+        if lastMessageExist, viewModel?.scrollVM.isAtBottomOfTheList == true {
+            vm?.remove(threadId)
+        } else {
+            vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: contentOffset.y)
         }
     }
 }
@@ -262,5 +269,43 @@ extension UIHistoryTableView {
             }
         }
         return cells
+    }
+}
+
+// MARK: Top visible message and IndexPath
+extension UIHistoryTableView {
+    private func topVisibleMessage() -> Message? {
+        guard let indexPath = topVisibleIndexPath() else { return nil }
+        return sections[indexPath.section].vms[indexPath.row].message as? Message
+    }
+    
+    private func topVisibleIndexPath() -> IndexPath? {
+        guard let visibleRows = indexPathsForVisibleRows else { return nil }
+        for indexPath in visibleRows {
+            if isCellFullyVisible(indexPath) {
+                return indexPath
+            }
+        }
+        return nil
+    }
+    
+    private func isCellFullyVisible(_ indexPath: IndexPath) -> Bool {
+        guard let cell = cellForRow(at: indexPath) else {
+            // The cell is not visible at all
+            return false
+        }
+        
+        // Convert the cell's frame to the tableView's coordinate space
+        let cellRect = rectForRow(at: indexPath)
+        
+        // The visible area of the table view, excluding insets (like nav bar, tool bar, etc.)
+        let visibleRect = CGRect(
+            x: contentOffset.x,
+            y: contentOffset.y,
+            width: bounds.width,
+            height: bounds.height - (contentInset.top + contentInset.bottom) /// contentInset.top for to nav bar and contentInset.bottom for sendContainer
+        ).inset(by: safeAreaInsets)
+        
+        return visibleRect.contains(cellRect)
     }
 }

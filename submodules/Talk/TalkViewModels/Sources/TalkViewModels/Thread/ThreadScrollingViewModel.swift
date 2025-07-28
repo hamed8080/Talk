@@ -44,6 +44,7 @@ public final class ThreadScrollingViewModel {
     public func scrollToBottom() {
         Task {
             if let messageId = thread.lastMessageVO?.id, let time = thread.lastMessageVO?.time {
+                viewModel?.threadsViewModel?.saveScrollPositionVM.remove(thread.id ?? -1)
                 await viewModel?.historyVM.moveToTime(time, messageId, highlight: false, moveToBottom: true)
             }
         }

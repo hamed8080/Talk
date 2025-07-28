@@ -126,9 +126,13 @@ extension ThreadHistoryViewModel {
             try? await Task.sleep(for: .microseconds(500))
             self?.hasSentHistoryRequest = true
         }
-        if let message = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId) {
+        if let savedScrollModel = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId) {
             Task {
-                await tryScrollPositionScenario()
+                do {
+                    try await tryScrollPositionScenario(savedScrollModel)
+                } catch {
+                    log("An exception happened during move to the saved scroll position!")
+                }
             }
             return
         }
@@ -363,11 +367,38 @@ extension ThreadHistoryViewModel {
     
     // MARK: Scenario 12
     /// Move to a time if save scroll position was on.
-    private func tryScrollPositionScenario() async {
-        guard let message = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId)
-        else { return }
-        if let time = message.time, let messageId = message.id {
-            await moveToTime(time, messageId)
+    private func tryScrollPositionScenario(_ model: SaveScrollPositionModel) async throws {
+        if let time = model.message.time, let messageId = model.message.id {
+            /// Show center loading
+            centerLoading = true
+            viewModel?.delegate?.startCenterAnimation(true)
+            
+            /// Preserve state before join or append
+            let beforeSectionCount = sections.count
+            
+            /// Appned to the list
+            let vms = try await onTopWithFromTime(fromTime: time, prepend: keys.SAVE_SCROOL_POSITION_KEY)
+            appendSort(vms)
+            
+            /// Update delegate insertion
+            let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, vms)
+            viewModel?.scrollVM.disableExcessiveLoading()
+            delegate?.inserted(tuple.sections, tuple.rows, .top, nil)
+            
+            /// Scroll to the saved offset
+            let indexPath = IndexPath(row: 0, section: 0)
+            delegate?.scrollTo(index: indexPath, position: .top, animate: false)
+            
+            /// Hide center loading
+            centerLoading = false
+            viewModel?.delegate?.startCenterAnimation(false)
+            
+            setHasMoreTop(true)
+            
+            /// Fetch reactions
+            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            
+            await prepareAvatars(vms)
         }
     }
 
@@ -1164,55 +1195,64 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     private func onReconnectViewModels() async throws -> [MessageRowViewModel] {
         guard let lastMessageInListTime = sections.last?.vms.last?.message.time else { return [] }
-        let bottomRequester = GetHistoryReuqester(key: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
+        let requester = GetHistoryReuqester(key: keys.MORE_BOTTOM_FIFTH_SCENARIO_KEY)
         let data = getMainData()
-        bottomRequester.setup(data: data, viewModel: viewModel)
+        requester.setup(data: data, viewModel: viewModel)
         let req = makeRequest(fromTime: lastMessageInListTime.advanced(by: 1), offset: nil)
-        return try await bottomRequester.get(req, queueable: true) ?? []
+        return try await requester.get(req, queueable: true) ?? []
     }
     
     private func onMoreTopWithOffset() async throws -> [MessageRowViewModel] {
         let req = makeRequest(offset: 0)
-        let topRequester = GetHistoryReuqester(key: keys.MORE_TOP_SECOND_SCENARIO_KEY)
+        let requester = GetHistoryReuqester(key: keys.MORE_TOP_SECOND_SCENARIO_KEY)
         let data = getMainData()
-        topRequester.setup(data: data, viewModel: viewModel)
-        return try await topRequester.get(req)
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
     }
     
     private func onMoreTopWithTime() async throws -> [MessageRowViewModel] {
         guard let toTime = thread.lastSeenMessageTime else { return [] }
         let req = makeRequest(toTime: toTime.advanced(by: 1), offset: nil)
-        let topRequester = GetHistoryReuqester(key: keys.MORE_TOP_FIRST_SCENARIO_KEY)
+        let requester = GetHistoryReuqester(key: keys.MORE_TOP_FIRST_SCENARIO_KEY)
         let data = getMainData()
-        topRequester.setup(data: data, viewModel: viewModel)
-        return try await topRequester.get(req)
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
     }
     
     private func onMoreTopWithToTime(toTime: UInt, prepend: String) async throws -> [MessageRowViewModel] {
         let req = makeRequest(toTime: toTime, offset: nil)
         log("SendMoreTopRequest")
-        let topRequester = GetHistoryReuqester(key: prepend)
+        let requester = GetHistoryReuqester(key: prepend)
         let data = getMainData()
-        topRequester.setup(data: data, viewModel: viewModel)
-        return try await topRequester.get(req)
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
     }
     
     private func onMoreBottomWithFromTime(fromTime: UInt, prepend: String) async throws -> [MessageRowViewModel] {
         let req = makeRequest(fromTime: fromTime, offset: nil)
         log("SendMoreBottomRequest")
-        let bottomRequester = GetHistoryReuqester(key: prepend)
+        let requester = GetHistoryReuqester(key: prepend)
         let data = getMainData()
-        bottomRequester.setup(data: data, viewModel: viewModel)
-        return try await bottomRequester.get(req)
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
     }
     
     private func onFetchByOffset() async throws -> [MessageRowViewModel] {
         let req = makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
         log("Get bottom part by last message deleted detection")
-        let offsetRequester = GetHistoryReuqester(key: keys.FETCH_BY_OFFSET_KEY)
+        let requester = GetHistoryReuqester(key: keys.FETCH_BY_OFFSET_KEY)
         let data = getMainData()
-        offsetRequester.setup(data: data, viewModel: viewModel)
-        return try await offsetRequester.get(req)
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
+    }
+    
+    private func onTopWithFromTime(fromTime: UInt, prepend: String) async throws -> [MessageRowViewModel] {
+        let req = makeRequest(fromTime: fromTime, offset: nil)
+        log("SendTopWithFromTimeRequest")
+        let requester = GetHistoryReuqester(key: prepend)
+        let data = getMainData()
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
     }
 }
 

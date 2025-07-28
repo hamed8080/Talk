@@ -661,6 +661,10 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     
+    func moveToOffset(_ offset: CGFloat) {
+        tableView.setContentOffset(.init(x: 0, y: offset), animated: false)
+    }
+    
     private func cellFor(indexPath: IndexPath) -> (vm: MessageRowViewModel, cell: MessageBaseCell)?  {
         guard let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell else { return nil }
         guard let vm = sections.viewModelWith(indexPath) else { return nil }
