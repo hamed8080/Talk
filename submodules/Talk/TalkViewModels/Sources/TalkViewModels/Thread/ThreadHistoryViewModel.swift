@@ -1110,7 +1110,6 @@ extension ThreadHistoryViewModel {
 
     private func removeOldBanner() {
         if let indices = sections.indicesByMessageUniqueId("\(LocalId.unreadMessageBanner.rawValue)") {
-            sections[indices.section].vms.remove(at: indices.row)
             deleteIndices([IndexPath(row: indices.row, section: indices.section)])
         }
     }
