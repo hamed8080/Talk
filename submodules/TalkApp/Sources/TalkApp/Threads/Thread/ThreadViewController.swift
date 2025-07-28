@@ -247,8 +247,6 @@ extension ThreadViewController: ThreadViewDelegate {
         self.moveToBottom.show(!appeared)
         if self.viewModel?.scrollVM.isAtBottomOfTheList == true {
             self.tableView.tableFooterView = nil
-        } else {
-            self.tableView.tableFooterView = self.loadingManager.getBottomLoadingContainer()
         }
     }
     
@@ -265,6 +263,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func startBottomAnimation(_ animate: Bool) {
+        self.tableView.tableFooterView = animate ? self.loadingManager.getBottomLoadingContainer() : nil
         self.tableView.tableFooterView?.isHidden = !animate
         UIView.animate(withDuration: 0.25) {
             self.tableView.tableFooterView?.layoutIfNeeded()

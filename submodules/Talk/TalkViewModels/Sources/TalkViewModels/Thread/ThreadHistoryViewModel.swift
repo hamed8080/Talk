@@ -272,13 +272,8 @@ extension ThreadHistoryViewModel {
             setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
         }
         centerLoading = false
-        let lastMessageVOId = thread.lastMessageVO?.id
         delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
-        if messageId == lastMessageVOId {
-            setIsAtBottom(newValue: true)
-        } else {
-            viewModel?.delegate?.showMoveToButtom(show: true)
-        }
+        viewModel?.delegate?.showMoveToButtom(show: true)
         let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
         highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
         viewModel?.delegate?.startCenterAnimation(false)
@@ -955,7 +950,6 @@ extension ThreadHistoryViewModel {
         await visibleTracker.append(message: message)
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         if message.id == thread.lastMessageVO?.id {
-            setIsAtBottom(newValue: true)
             /// Hide the move to bottom button if the last message of the thread is visible,
             /// when we are loading more bottom and we reach to the last message of the thread,
             /// we have to hide this button.
@@ -968,16 +962,6 @@ extension ThreadHistoryViewModel {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message disappeared id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         await visibleTracker.remove(message: message)
-        if message.id == thread.lastMessageVO?.id {
-            setIsAtBottom(newValue: false)
-        }
-    }
-    
-    private func setIsAtBottom(newValue: Bool) {
-        if viewModel?.scrollVM.isAtBottomOfTheList != newValue, viewModel?.isDeletingLastMessage == false {
-            viewModel?.scrollVM.isAtBottomOfTheList = newValue
-            viewModel?.delegate?.lastMessageAppeared(newValue)
-        }
     }
 
     public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) {
@@ -1177,7 +1161,6 @@ extension ThreadHistoryViewModel {
         if isLastMessageEqualToLastSeen(), !isLastMessageExistInSortedMessages(sortedMessages) {
             let lastSortedMessage = sortedMessages.last
             viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
-            setIsAtBottom(newValue: true)
             highlightVM.showHighlighted(lastSortedMessage?.uniqueId ?? "",
                                                 lastSortedMessage?.id ?? -1,
                                                 highlight: false)

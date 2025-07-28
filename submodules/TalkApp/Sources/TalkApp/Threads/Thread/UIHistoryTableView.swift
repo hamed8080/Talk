@@ -98,6 +98,7 @@ extension UIHistoryTableView: UITableViewDelegate {
         revealAnimation.reveal(for: cell)
         sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
         Task { [weak self] in
+            self?.setIsLastMessageIsInVisibleItems()
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
     }
@@ -154,7 +155,6 @@ extension UIHistoryTableView: UITableViewDataSourcePrefetching {
     }
 }
 
-
 // Reply leading/trailing button
 extension UIHistoryTableView {
     func makeReplyButton(indexPath: IndexPath, isLeading: Bool) -> UISwipeActionsConfiguration? {
@@ -202,6 +202,7 @@ extension UIHistoryTableView {
         log("deceleration ended has been called")
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
+            await self?.setIsLastMessageIsInVisibleItems()
         }
         guard let message = topVisibleMessage() else { return }
         saveScrollPosition(message)
@@ -215,6 +216,7 @@ extension UIHistoryTableView {
             }
             
             Task { [weak self] in
+                self?.setIsLastMessageIsInVisibleItems()
                 guard let self = self, let indexPath = topVisibleIndexPath(), let message = topVisibleMessage() else { return }
                 saveScrollPosition(message)
             }
@@ -282,14 +284,14 @@ extension UIHistoryTableView {
     private func topVisibleIndexPath() -> IndexPath? {
         guard let visibleRows = indexPathsForVisibleRows else { return nil }
         for indexPath in visibleRows {
-            if isCellFullyVisible(indexPath) {
+            if isCellFullyVisible(indexPath, heightDelta: contentInset.top + contentInset.bottom) {
                 return indexPath
             }
         }
         return nil
     }
     
-    private func isCellFullyVisible(_ indexPath: IndexPath) -> Bool {
+    private func isCellFullyVisible(_ indexPath: IndexPath, heightDelta: CGFloat = 0) -> Bool {
         guard let cell = cellForRow(at: indexPath) else {
             // The cell is not visible at all
             return false
@@ -303,9 +305,28 @@ extension UIHistoryTableView {
             x: contentOffset.x,
             y: contentOffset.y,
             width: bounds.width,
-            height: bounds.height - (contentInset.top + contentInset.bottom) /// contentInset.top for to nav bar and contentInset.bottom for sendContainer
+            height: bounds.height - heightDelta
         ).inset(by: safeAreaInsets)
         
         return visibleRect.contains(cellRect)
+    }
+    
+    private func setIsLastMessageIsInVisibleItems() {
+        guard let indexPaths = indexPathsForVisibleRows else { return }
+        var result = false
+        /// We use suffix to get a small amount of last two items,
+        /// because if we delete or add a message lastMessageVO.id
+        /// is not equal with last we have to check it with two last item two find it.
+        for indexPath in indexPaths.suffix(2) {
+            var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id ?? 0
+            if isVisible, isCellFullyVisible(indexPath) {
+                result = true
+                break /// No need to fully check because we found it.
+            }
+        }
+        
+        if result == viewModel?.scrollVM.isAtBottomOfTheList { return } /// prevent multiple call
+        viewModel?.scrollVM.isAtBottomOfTheList = result
+        viewModel?.delegate?.lastMessageAppeared(result)
     }
 }
