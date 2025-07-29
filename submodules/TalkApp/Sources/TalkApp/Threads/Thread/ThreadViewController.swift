@@ -33,6 +33,7 @@ final class ThreadViewController: UIViewController {
     public var contextMenuContainer: ContextMenuContainerView!
     private var isViewControllerVisible: Bool = true
     private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
+    private var animatingKeyboard = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,7 +74,11 @@ final class ThreadViewController: UIViewController {
         super.viewDidAppear(animated)
         viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
         contextMenuContainer = ContextMenuContainerView(delegate: self)
-        tableView.contentInset.top = topThreadToolbar.frame.height
+        
+        let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
+        let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
+        let height = (sendContainer.bounds.height - safeAreaHeight) + keyboardheight
+        tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
     }
 
 #if DEBUG
@@ -137,21 +142,8 @@ extension ThreadViewController {
         view.addSubview(sendContainer)
         sendContainer.onUpdateHeight = { [weak self] (height: CGFloat) in
             self?.onSendHeightChanged(height)
-        }
-    }
-    
-    private func onSendHeightChanged(_ height: CGFloat, duration: Double = 0.25, options: UIView.AnimationOptions = []) {
-        let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
-        let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
-        let height = (height - safeAreaHeight) + keyboardheight
-        if tableView.contentInset.bottom != height {
-            tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
-            if AppState.shared.lifeCycleState != .active { return }
-            viewModel?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
-            UIView.animate(withDuration: duration, delay: 0, options: options) { [weak self] in
-                self?.view.layoutIfNeeded()
-            } completion: {  completed in
-                if completed {}
+            if self?.animatingKeyboard == false {
+                self?.moveTolastMessageIfVisible()
             }
         }
     }
@@ -372,6 +364,11 @@ extension ThreadViewController: ThreadViewDelegate {
     
     func visibleIndexPaths() -> [IndexPath] {
         tableView.indexPathsForVisibleRows ?? []
+    }
+    
+    func lastMessageIndexPathIfVisible() -> IndexPath? {
+        guard viewModel?.scrollVM.isAtBottomOfTheList == true else { return nil }
+        return tableView.indexPathsForVisibleRows?.last
     }
 }
 
@@ -706,9 +703,9 @@ extension ThreadViewController {
             }
         }
 
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] _ in
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] notif in
             Task { @MainActor in
-                self?.willHidekeyboard()
+                self?.willHidekeyboard(notif: notif)
             }
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))
@@ -718,43 +715,61 @@ extension ThreadViewController {
     
     private func willShowKeyboard(notif: Notification) {
         if isViewControllerVisible == false { return }
-        if let rect = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-           let animationCurve = notif.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
-           let duration = notif.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        {
-            let animationOptions = UIView.AnimationOptions(rawValue: animationCurve << 16)
-            if rect.size.height <= 69 {
-                hasExternalKeyboard = true
-            } else {
-                hasExternalKeyboard = false
-            }
-
-            sendContainerBottomConstraint?.constant = -rect.height
-            keyboardheight = rect.height
-            onSendHeightChanged(sendContainer.frame.height, duration: duration, options: animationOptions)
-            UIView.animate(withDuration: duration, delay: 0 , options: animationOptions) {
-                self.view.layoutIfNeeded()
-            } completion: { completed in
-                if completed {
-                    self.moveTolastMessageIfVisible()
-                }
-            }
-        }
+        keyboardAnimationTransaction(notif, show: true)
         
         /// Prevent overlaping with the text container if the thread is empty.
         if viewModel?.historyVM.sections.isEmpty == true {
             view.bringSubviewToFront(sendContainer)
         }
     }
-        
-    private func willHidekeyboard() {
+    
+    private func willHidekeyboard(notif: Notification) {
         if isViewControllerVisible == false { return }
-        sendContainerBottomConstraint?.constant = 0
-        keyboardheight = 0
-        hasExternalKeyboard = false
-        onSendHeightChanged(sendContainer.frame.height)
-        UIView.animate(withDuration: 0.2) {
+        keyboardAnimationTransaction(notif, show: false)
+    }
+    
+    private func keyboardAnimationTransaction(_ notif: Notification, show: Bool) {
+        guard let tuple = notif.extractDurationAndAnimation() else { return }
+        hasExternalKeyboard = tuple.rect.height <= 69
+        keyboardheight = show ? tuple.rect.height : 0
+        
+        sendContainerBottomConstraint?.constant = show ? -(keyboardheight ) : keyboardheight
+       
+        let pureHeight = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+        let showInset = pureHeight + keyboardheight - view.safeAreaInsets.bottom
+        let hideInset = pureHeight /// No need to use safeAreaInset because it will handeled by UIKit itself
+        let insetBottom = show ? showInset : hideInset
+        tableView.contentInset.bottom = insetBottom
+        tableView.scrollIndicatorInsets.bottom = insetBottom
+        
+        /// Disable onHeightChanged callback for the send container
+        /// to manipulate the content inset during the animation
+        animatingKeyboard = true
+        
+        UIView.animate(withDuration: tuple.duration, delay: 0.0, options: tuple.opt) {
+            /// Animate layout sendContainerBottomConstraint changes.
+            /// It should be done on it's superView to animate
             self.view.layoutIfNeeded()
+            
+            // Scroll within the transaction block
+            if let indexPath = self.lastMessageIndexPathIfVisible() {
+                /// Animation parameter should be always set to false
+                /// unless it won't animate as we expect in a UIView.animate block.
+                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+            }
+        } completion: { completed in
+            if completed {
+                self.animatingKeyboard = false
+            }
+        }
+    }
+    
+    private func onSendHeightChanged(_ height: CGFloat) {
+        let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
+        let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
+        let height = (height - safeAreaHeight) + keyboardheight
+        if tableView.contentInset.bottom != height {
+            tableView.contentInset.bottom = height
         }
     }
 
@@ -763,4 +778,15 @@ extension ThreadViewController {
     }
 }
 
-extension Notification: @unchecked @retroactive Sendable {}
+extension Notification: @unchecked @retroactive Sendable {
+    func extractDurationAndAnimation() -> (duration: Double, opt: UIView.AnimationOptions, rect: CGRect)? {
+        if let rect = userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+           let animationCurve = userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+           let duration = userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        {
+            let opt = UIView.AnimationOptions(rawValue: animationCurve << 16)
+            return (duration, opt, rect)
+        }
+        return nil
+    }
+}

@@ -40,6 +40,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func reactionAdded(indexPath: IndexPath, reaction: Reaction)
     func reactionReplaced(indexPath: IndexPath, reaction: Reaction)
     func visibleIndexPaths() -> [IndexPath]
+    func lastMessageIndexPathIfVisible() -> IndexPath?
 }
 
 @MainActor
