@@ -157,7 +157,7 @@ extension ThreadHistoryViewModel {
                 do {
                     let vms = try await onMoreTopWithTime()
                     await onMoreTop(vms)
-                    delegate?.showMoveToButtom(show: true)
+                    delegate?.showMoveToBottom(show: true)
                     /*
                      It'd be better to go to the last message in the sections, instead of finding the item.
                      If the last message has been deleted, we can not find the message.
@@ -243,17 +243,12 @@ extension ThreadHistoryViewModel {
         } else {
             log("The message id to move to is not exist in the list")
         }
-        delegate?.showMoveToButtom(show: true)
+        delegate?.showMoveToBottom(show: true)
         centerLoading = true
         topLoading = false
         removeAllSections()
-        Task.detached { [weak self] in
-            guard let self = self else { return }
-            await MainActor.run {
-                viewModel?.delegate?.startCenterAnimation(true)
-                viewModel?.delegate?.startTopAnimation(false)
-            }
-        }
+        viewModel?.delegate?.startCenterAnimation(true)
+        viewModel?.delegate?.startTopAnimation(false)
         middleFetcher?.completion = { [weak self] response in
             Task { [weak self] in
                 await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
@@ -274,7 +269,7 @@ extension ThreadHistoryViewModel {
         }
         centerLoading = false
         delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
-        viewModel?.delegate?.showMoveToButtom(show: true)
+        viewModel?.delegate?.showMoveToBottom(show: true)
         let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
         highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
         viewModel?.delegate?.startCenterAnimation(false)
@@ -299,7 +294,7 @@ extension ThreadHistoryViewModel {
                 Task {
                     let vms = try await onFetchByOffset()
                     await onMoreTop(vms)
-                    delegate?.showMoveToButtom(show: false)
+                    delegate?.showMoveToBottom(show: false)
                     showCenterLoading(false)
                     let uniqueId = sections.last?.vms.last?.message.uniqueId ?? ""
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
@@ -395,6 +390,20 @@ extension ThreadHistoryViewModel {
             fetchReactions(messages: vms.flatMap({$0.message as? Message}))
             
             await prepareAvatars(vms)
+        }
+    }
+    
+    // MARK: Scenario 13
+    public func handleJumpToButtom() {
+        let isLastSeenMessageOnTheScreen = isLastSeenMessageOnTheScreen()
+        let unreadCount = thread.unreadCount ?? 0
+        if isLastSeenMessageOnTheScreen || unreadCount == 0 {
+            viewModel?.scrollVM.scrollToBottom()
+        } else if unreadCount > 0, let time = thread.lastSeenMessageTime, let id = thread.lastSeenMessageId {
+            /// Move to last seen message
+            hasNextBottom = true
+            removeAllSections()
+            tryFirstScenario()
         }
     }
 
@@ -954,7 +963,7 @@ extension ThreadHistoryViewModel {
             /// Hide the move to bottom button if the last message of the thread is visible,
             /// when we are loading more bottom and we reach to the last message of the thread,
             /// we have to hide this button.
-            delegate?.showMoveToButtom(show: false)
+            delegate?.showMoveToBottom(show: false)
         }
         await seenVM?.onAppear(message)
     }
@@ -1010,6 +1019,12 @@ extension ThreadHistoryViewModel {
         }
         lastScrollTime = now
         return false
+    }
+    
+    private func isLastSeenMessageOnTheScreen() -> Bool {
+        let visibleIndexPaths = viewModel?.delegate?.visibleIndexPaths() ?? []
+        let lastSeenMessage = thread.lastSeenMessageId ?? 0
+        return visibleIndexPaths.contains(where: {  sections[$0.section].vms[$0.row].message.id == lastSeenMessage })
     }
 }
 

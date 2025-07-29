@@ -325,7 +325,7 @@ extension UIHistoryTableView {
             }
         }
         
-        if result == viewModel?.scrollVM.isAtBottomOfTheList { return } /// prevent multiple call
+        if result == viewModel?.scrollVM.isAtBottomOfTheList && viewModel?.delegate?.isMoveToBottomOnScreen() ?? false != result { return } /// prevent multiple call
         viewModel?.scrollVM.isAtBottomOfTheList = result
         viewModel?.delegate?.lastMessageAppeared(result)
     }

@@ -189,8 +189,12 @@ extension ThreadViewController {
 // MARK: ThreadViewDelegate
 extension ThreadViewController: ThreadViewDelegate {
     
-    func showMoveToButtom(show: Bool) {
+    func showMoveToBottom(show: Bool) {
         moveToBottom.show(show)
+    }
+    
+    func isMoveToBottomOnScreen() -> Bool {
+        return !moveToBottom.isHidden
     }
     
     func onUnreadCountChanged() {
@@ -364,6 +368,10 @@ extension ThreadViewController: ThreadViewDelegate {
 
     func onConversationClosed() {
         sendContainer.onConversationClosed()
+    }
+    
+    func visibleIndexPaths() -> [IndexPath] {
+        tableView.indexPathsForVisibleRows ?? []
     }
 }
 
