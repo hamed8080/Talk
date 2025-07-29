@@ -91,6 +91,11 @@ public final class ThreadScrollingViewModel {
         self.isProgramaticallyScroll = newValue
     }
     
+    public func cancelExessiveLoading() {
+        task?.cancel()
+        task = nil
+    }
+    
     @MainActor
     public func getIsProgramaticallyScrolling() -> Bool {
         return isProgramaticallyScroll

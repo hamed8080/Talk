@@ -168,6 +168,7 @@ extension ThreadHistoryViewModel {
                     
                     /// 4- Fetch from time messages to get to the bottom part and new messages to stay there if the user scrolls down.
                     if let fromTime = await thread.lastSeenMessageTime {
+                        viewModel?.scrollVM.cancelExessiveLoading() /// To disable ecessive loading timer triggered by onMoreTop.
                         viewModel?.scrollVM.setIsProgramaticallyScrolling(false)
                         await appenedUnreadMessagesBannerIfNeeed()
                         await moreBottom(prepend: keys.MORE_BOTTOM_FIRST_SCENARIO_KEY, fromTime.advanced(by: 1))
