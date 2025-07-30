@@ -10,8 +10,8 @@ import Chat
 import TalkModels
 
 @MainActor
-public struct UploadManagerElement: @preconcurrency Identifiable {
-    public var id: String { viewModel.uploadUniqueId ?? "" }
+public struct UploadManagerElement: Identifiable {
+    public nonisolated var id: String
     
     public let viewModel: UploadFileViewModel
     public let date = Date()
@@ -19,6 +19,7 @@ public struct UploadManagerElement: @preconcurrency Identifiable {
     
     public init(message: HistoryMessageType) async {
         let viewModel = await UploadFileViewModel(message: message)
+        self.id = viewModel.uploadUniqueId ?? ""
         self.viewModel = viewModel
     }
     

@@ -113,6 +113,7 @@ public struct DownloadsManagerListView: View {
 
 fileprivate struct DownloadElementRow: View {
     @EnvironmentObject var viewModel: DownloadFileViewModel
+    @State var paused: Bool = false
     @State var metadata: FileMetaData?
     let element: DownloadManagerElement
     
@@ -155,6 +156,9 @@ fileprivate struct DownloadElementRow: View {
                 AppState.shared.objectsContainer.downloadsManager.pause(element: element)
             }
         }
+        .onChange(of: viewModel.state) { newValue in
+            paused = newValue == .paused
+        }
     }
     
     private var downloadButton: some View {
@@ -171,7 +175,7 @@ fileprivate struct DownloadElementRow: View {
                 .foregroundColor(Color.App.white)
                 .rotationEffect(Angle(degrees: 270))
                 .frame(width: 28, height: 28)
-                .rotateAnimtion(pause: viewModel.state == .paused)
+                .rotateAnimtion(pause: $paused)
                 .environment(\.layoutDirection, .leftToRight)
         }
         .frame(width: 36, height: 36)

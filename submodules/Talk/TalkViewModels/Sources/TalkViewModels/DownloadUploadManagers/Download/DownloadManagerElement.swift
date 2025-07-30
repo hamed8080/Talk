@@ -9,8 +9,8 @@ import Foundation
 import Chat
 
 @MainActor
-public struct DownloadManagerElement: @preconcurrency Identifiable {
-    public var id: Int {viewModel.message.id ?? -1}
+public struct DownloadManagerElement: Identifiable {
+    public nonisolated var id: Int
     
     public let viewModel: DownloadFileViewModel
     public let isMap: Bool
@@ -18,8 +18,10 @@ public struct DownloadManagerElement: @preconcurrency Identifiable {
     public let isImage: Bool
     public let date = Date()
     public var isInQueue = true
+    public var retryCount = 0
     
     public init(message: Message) async {
+        self.id = message.id ?? -1
         let viewModel = await DownloadFileViewModel(message: message)
         let mtd = await DownloadManagerElement.getMetaData(viewModel.message)
         self.isMap = mtd?.mapLink != nil || mtd?.latitude != nil

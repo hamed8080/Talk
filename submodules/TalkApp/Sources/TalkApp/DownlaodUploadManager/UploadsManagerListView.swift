@@ -114,7 +114,8 @@ public struct UploadsManagerListView: View {
 fileprivate struct UploadElementRow: View {
     @EnvironmentObject var viewModel: UploadFileViewModel
     let element: UploadManagerElement
-    
+    @State var paused: Bool = false
+
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
@@ -148,6 +149,9 @@ fileprivate struct UploadElementRow: View {
                 AppState.shared.objectsContainer.uploadsManager.pause(element: element)
             }
         }
+        .onChange(of: viewModel.state) { newValue in
+            paused = newValue == .paused
+        }
     }
     
     private var uploadButton: some View {
@@ -164,7 +168,7 @@ fileprivate struct UploadElementRow: View {
                 .foregroundColor(Color.App.white)
                 .rotationEffect(Angle(degrees: 270))
                 .frame(width: 28, height: 28)
-                .rotateAnimtion(pause: viewModel.state == .paused)
+                .rotateAnimtion(pause: $paused)
                 .environment(\.layoutDirection, .leftToRight)
         }
         .frame(width: 36, height: 36)

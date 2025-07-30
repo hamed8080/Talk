@@ -10,30 +10,37 @@ import SwiftUI
 public struct ProgressRotationAnimation: ViewModifier {
     @State private var degree: Double = 0
     @State private var timer: Timer?
-    @State var pause: Bool
-
-    public init(pause: Bool) {
-        self.pause = pause
+    @Binding var pause: Bool
+    
+    public init(pause: Binding<Bool>) {
+        self._pause = pause
     }
-
+    
     public func body(content: Content) -> some View {
         content
             .rotationEffect(.degrees(degree))
             .onAppear {
-                if pause {
-                    stopAnimation()
-                } else {
-                    reverseAnimation()
-                    scheduleAnimation()
-                }
+                updateAnimation()
+            }
+            .onChange(of: pause) { _ in
+                updateAnimation()
             }
             .onDisappear {
-                timer?.invalidate()
-                timer = nil
+                stopAnimation()
             }
     }
-
+    
+    private func updateAnimation() {
+        if pause {
+            stopAnimation()
+        } else {
+            reverseAnimation()
+            scheduleAnimation()
+        }
+    }
+    
     private func scheduleAnimation() {
+        stopAnimation()
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
             let isValid = timer.isValid
             Task {
@@ -49,7 +56,7 @@ public struct ProgressRotationAnimation: ViewModifier {
             stopAnimation()
         }
     }
-
+    
     func reverseAnimation() {
         DispatchQueue.main.async {
             withAnimation(.easeInOut(duration: 2)) {
@@ -57,7 +64,7 @@ public struct ProgressRotationAnimation: ViewModifier {
             }
         }
     }
-
+    
     func stopAnimation() {
         timer?.invalidate()
         timer = nil
@@ -65,7 +72,7 @@ public struct ProgressRotationAnimation: ViewModifier {
 }
 
 public extension View {
-    func rotateAnimtion(pause: Bool) -> some View {
+    func rotateAnimtion(pause: Binding<Bool>) -> some View {
         modifier(ProgressRotationAnimation(pause: pause))
     }
 }

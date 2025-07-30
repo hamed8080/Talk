@@ -41,6 +41,7 @@ public final class DownloadsManager: ObservableObject {
         if element.viewModel.state == .completed {
             onComplete(messageId: element.viewModel.message.id ?? -1)
         }
+        animateObjectWillChange()
     }
     
     private func onComplete(messageId: Int) {
