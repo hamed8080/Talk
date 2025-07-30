@@ -94,7 +94,7 @@ struct ConversationTopSafeAreaInset: View {
             DownloadsManagerListView()
                 .environmentObject(AppState.shared.objectsContainer.downloadsManager)
         } label: {
-            Image(systemName: "arrow.down.circle.dotted")
+            Image(systemName: downloadIconNameCompatible)
                 .resizable()
                 .scaledToFit()
                 .padding(8)
@@ -131,7 +131,7 @@ struct ConversationTopSafeAreaInset: View {
             UploadsManagerListView()
                 .environmentObject(AppState.shared.objectsContainer.uploadsManager)
         } label: {
-            Image(systemName: "arrow.up.circle.dotted")
+            Image(systemName: uploadIconNameCompatible)
                 .resizable()
                 .scaledToFit()
                 .padding(8)
@@ -175,6 +175,20 @@ struct ConversationTopSafeAreaInset: View {
             .clipped()
             .foregroundStyle(Color.App.toolbarButton)
         }
+    }
+    
+    private var downloadIconNameCompatible: String {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
+            return "arrow.down.circle.dotted"
+        }
+        return "arrow.down.circle"
+    }
+    
+    private var uploadIconNameCompatible: String {
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *) {
+            return "arrow.up.circle.dotted"
+        }
+        return "arrow.up.circle"
     }
 }
 

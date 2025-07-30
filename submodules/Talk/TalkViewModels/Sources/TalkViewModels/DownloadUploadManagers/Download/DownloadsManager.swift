@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import Chat
+import TalkModels
 
 enum DownloadsManagerError: Error {
     case duplicate
@@ -18,7 +19,9 @@ public final class DownloadsManager: ObservableObject {
     private var cancellableSet = Set<AnyCancellable>()
     @Published public private(set) var elements: [DownloadManagerElement] = []
     private let stateMediator = DownloadFileStateMediator()
-    public init(){}
+    public init(){
+        registerConnection()
+    }
     private let MAX_NUMBER_OF_CONCURRENT_DOWNLOAD = 3
     
     public func enqueue(element: DownloadManagerElement) throws {
@@ -123,5 +126,28 @@ extension DownloadsManager {
     public func redownload(message: Message) {
         guard let element = elements.first(where: { $0.viewModel.message.id == message.id }) else { return }
         element.viewModel.redownload()
+    }
+}
+
+extension DownloadsManager {
+    private func registerConnection() {
+        AppState.shared.$connectionStatus
+            .sink { [weak self] event in
+                Task { [weak self] in
+                    await self?.onConnectionStatusChanged(event)
+                }
+            }
+            .store(in: &cancellableSet)
+    }
+    
+    private func onConnectionStatusChanged(_ event: ConnectionStatus) {
+        if event == .connected {
+            let elements = elements.sorted(by: {$0.date < $1.date}).prefix(3)
+            elements.forEach { element in
+                resume(element: element)
+            }
+        } else if event == .disconnected {
+            pauseAll()
+        }
     }
 }

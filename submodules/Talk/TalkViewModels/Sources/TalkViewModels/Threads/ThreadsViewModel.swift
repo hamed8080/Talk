@@ -50,9 +50,9 @@ public final class ThreadsViewModel: ObservableObject {
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
-        Task {
-            await setupObservers()
-        }
+        
+        setupObservers()
+        
         incForwardQueue.viewModel = self
         incNewQueue.viewModel = self
     }
