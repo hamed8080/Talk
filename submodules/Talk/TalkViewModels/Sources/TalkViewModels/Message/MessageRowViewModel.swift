@@ -58,12 +58,6 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
         }
     }
     
-    public func register() {
-        if calMessage.rowType.isMap, let message = message as? Message, fileState.state != .completed {
-            AppState.shared.objectsContainer.downloadsManager.toggleDownloading(message: message)
-        }
-    }
-
     public func setFileState(_ state: MessageFileState, fileURL: URL?) {
         fileState.update(state)
         if state.state == .completed, let fileURL = fileURL {

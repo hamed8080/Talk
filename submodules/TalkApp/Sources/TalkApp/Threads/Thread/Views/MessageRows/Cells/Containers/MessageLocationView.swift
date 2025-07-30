@@ -62,6 +62,11 @@ final class MessageLocationView: UIImageView {
         } else {
             self.image = viewModel.fileState.preloadImage ?? DownloadFileStateMediator.mapPlaceholder
         }
+        
+        if viewModel.fileState.state != .completed {
+            automaticDownloadImage()
+        }
+        
         tintColor = viewModel.fileState.state == .completed ? .clear : .gray
         
         if mapViewHeightConstraint.constant != viewModel.calMessage.sizes.mapHeight {
@@ -94,5 +99,11 @@ final class MessageLocationView: UIImageView {
             return UIImage(cgImage: scaledImage)
         }
         return nil
+    }
+    
+    private func automaticDownloadImage() {
+        if let message = viewModel?.message as? Message {
+            AppState.shared.objectsContainer.downloadsManager.toggleDownloading(message: message)
+        }
     }
 }

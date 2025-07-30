@@ -464,10 +464,7 @@ extension ThreadHistoryViewModel {
         }
    
         topLoading = false
-        // Register for downloading thumbnails or read cached version
-        for vm in viewModels {
-            vm.register()
-        }
+
         viewModel?.delegate?.startTopAnimation(false)
         viewModel?.delegate?.startCenterAnimation(false)
         if !isMiddleFetcher {
@@ -514,10 +511,6 @@ extension ThreadHistoryViewModel {
 
         if let row = shouldUpdateOldBottomSection, let indexPath = sections.indexPath(for: row) {
             delegate?.reloadData(at: indexPath)
-        }
-        
-        for vm in viewModels {
-            vm.register()
         }
 
         isFetchedServerFirstResponse = true
@@ -612,7 +605,6 @@ extension ThreadHistoryViewModel {
                 let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
                 let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
                 viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
-                vm.register()
                 reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
             }
         }
@@ -866,9 +858,6 @@ extension ThreadHistoryViewModel {
         var viewModels = await makeCalculateViewModelsFor(requests)
         viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         appendSort(viewModels)
-        for vm in viewModels {
-            vm.register()
-        }
     }
     
     public func injectUploadsAndSort(_ elements: [UploadManagerElement]) async {
