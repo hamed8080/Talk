@@ -82,7 +82,6 @@ public final class MoveToBottomButton: UIButton {
     }
 
     @objc private func onTap(_ sender: UIGestureRecognizer) {
-        setIsHidden(true)
         viewModel?.historyVM.handleJumpToButtom()
     }
 
