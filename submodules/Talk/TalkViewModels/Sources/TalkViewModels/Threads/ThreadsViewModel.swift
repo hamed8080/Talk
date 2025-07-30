@@ -170,6 +170,7 @@ public final class ThreadsViewModel: ObservableObject {
         let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
         let threshold = await splitThreshold(sorted)
       
+        resetActiveThread()
         self.threads = sorted
         updatePresentedViewModels(threads)
         lazyList.setHasNext(hasAnyResults)
@@ -366,6 +367,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     public func sortInPlace() async {
         let sorted = await sort(threads: threads, serverSortedPins: serverSortedPins)
+        resetActiveThread()
         threads = sorted
     }
 
@@ -386,6 +388,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func removeThread(_ thread: CalculatedConversation) {
         guard let index = firstIndex(thread.id) else { return }
+        resetActiveThread()
         _ = threads.remove(at: index)
         animateObjectWillChange()
     }
@@ -531,6 +534,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
+            resetActiveThread()
             threads.remove(at: index)
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(threads[index])
@@ -707,6 +711,7 @@ public final class ThreadsViewModel: ObservableObject {
         let calThreads = await ThreadCalculators.calculate([thread], myId)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
+        resetActiveThread()
         threads = sorted
         animateObjectWillChange()
     }
@@ -721,6 +726,15 @@ public final class ThreadsViewModel: ObservableObject {
             /// Select / Deselect a thread to remove/add bar and selected background color
             thread.isSelected = selected
             thread.animateObjectWillChange()
+        }
+    }
+    
+    /// Reset active thread will force the SwiftUI to
+    /// remove the selected color before removing the row reference.
+    private func resetActiveThread() {
+        if let index = threads.firstIndex(where: {$0.isSelected}) {
+            threads[index].isSelected = false
+            threads[index].animateObjectWillChange()
         }
     }
 }

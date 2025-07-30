@@ -14,7 +14,9 @@ struct ThreadListRowBackground: View {
     @EnvironmentObject var thread: CalculatedConversation
 
     var body: some View {
-        thread.isSelected ? Color.App.bgChatSelected : thread.pin == true ? Color.App.bgSecondary : Color.App.bgPrimary
+        thread.isSelected ? Color.App.bgChatSelected :
+        thread.pin == true ? Color.App.bgSecondary :
+        Color.App.bgPrimary
     }
 }
 
