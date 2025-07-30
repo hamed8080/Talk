@@ -97,8 +97,11 @@ extension UIHistoryTableView: UITableViewDelegate {
         cell.backgroundColor = UIColor.clear
         revealAnimation.reveal(for: cell)
         sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
+        
+        let isLastMessageVisible = isLastMessageVisible()
+        changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
+        
         Task { [weak self] in
-            self?.setIsLastMessageIsInVisibleItems()
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
     }
@@ -202,10 +205,13 @@ extension UIHistoryTableView {
         log("deceleration ended has been called")
         Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
-            await self?.setIsLastMessageIsInVisibleItems()
         }
-        guard let message = topVisibleMessage() else { return }
-        saveScrollPosition(message)
+        
+        let isLastMessageVisible = isLastMessageVisible()
+        changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
+        if !isLastMessageVisible, let message = topVisibleMessage() {
+            saveScrollPosition(message)
+        }
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
@@ -215,9 +221,9 @@ extension UIHistoryTableView {
                 await self?.viewModel?.scrollVM.isEndedDecelerating = true
             }
             
-            Task { [weak self] in
-                self?.setIsLastMessageIsInVisibleItems()
-                guard let self = self, let indexPath = topVisibleIndexPath(), let message = topVisibleMessage() else { return }
+            let isLastMessageVisible = isLastMessageVisible()
+            changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
+            if !isLastMessageVisible, let message = topVisibleMessage() {
                 saveScrollPosition(message)
             }
         }
@@ -226,14 +232,7 @@ extension UIHistoryTableView {
     private func saveScrollPosition(_ message: Message) {
         let vm = viewModel?.threadsViewModel?.saveScrollPositionVM
         guard let threadId = viewModel?.threadId else { return }
-        
-        /// We have to check if the last thread message exists if we were moved to time
-        let lastMessageExist = sections.last?.vms.last?.id ?? 0 == viewModel?.thread.lastMessageVO?.id ?? 0
-        if lastMessageExist, viewModel?.scrollVM.isAtBottomOfTheList == true {
-            vm?.remove(threadId)
-        } else {
-            vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: contentOffset.y)
-        }
+        vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: contentOffset.y)
     }
 }
 
@@ -311,8 +310,8 @@ extension UIHistoryTableView {
         return visibleRect.contains(cellRect)
     }
     
-    private func setIsLastMessageIsInVisibleItems() {
-        guard let indexPaths = indexPathsForVisibleRows else { return }
+    private func isLastMessageVisible() -> Bool {
+        guard let indexPaths = indexPathsForVisibleRows else { return false }
         var result = false
         /// We use suffix to get a small amount of last two items,
         /// because if we delete or add a message lastMessageVO.id
@@ -324,9 +323,27 @@ extension UIHistoryTableView {
                 break /// No need to fully check because we found it.
             }
         }
+        return result
+    }
+    
+    private func changeLastMessageIfNeeded(isVisible: Bool) {
+        /// prevent multiple call
+        if isVisible == viewModel?.scrollVM.isAtBottomOfTheList && viewModel?.delegate?.isMoveToBottomOnScreen() ?? false != isVisible {
+            return
+        }
         
-        if result == viewModel?.scrollVM.isAtBottomOfTheList && viewModel?.delegate?.isMoveToBottomOnScreen() ?? false != result { return } /// prevent multiple call
-        viewModel?.scrollVM.isAtBottomOfTheList = result
-        viewModel?.delegate?.lastMessageAppeared(result)
+        viewModel?.scrollVM.isAtBottomOfTheList = isVisible
+        viewModel?.delegate?.lastMessageAppeared(isVisible)
+        
+        if isVisible {
+            removeSaveScrollPosition()
+        }
+    }
+    
+    /// Clear save position if last message is visible.
+    private func removeSaveScrollPosition() {
+        if let threadId = viewModel?.thread.id {
+            viewModel?.threadsViewModel?.saveScrollPositionVM.remove(threadId)
+        }
     }
 }
