@@ -86,6 +86,7 @@ struct NavigationTypeView: View {
         switch type {
         case .threadViewModel(let viewModel):
             UIKitThreadViewWrapper(threadVM: viewModel.viewModel)
+                .id(viewModel.threadId) ///
                 .ignoresSafeArea(.all)
                 .navigationBarHidden(true)
         case .preference(_):

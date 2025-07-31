@@ -28,7 +28,7 @@ public final class ConversationSubtitleViewModel {
         self.viewModel = viewModel
         if isP2P {
             getPartnerInfo()
-        } else if viewModel.threadId == LocalId.emptyThread.rawValue {
+        } else if viewModel.id == LocalId.emptyThread.rawValue {
             getLastSeenByUserId()
         } else {
             setParticipantsCountOnOpen()
@@ -105,7 +105,7 @@ public final class ConversationSubtitleViewModel {
         notSeenDurationViewModel = .init(userId: userId)
         Task {
             let notSeenDuration = await notSeenDurationViewModel?.get()
-            if let lastSeenByUserId = notSeenDuration?.time, let threadId = viewModel?.threadId {
+            if let lastSeenByUserId = notSeenDuration?.time, let threadId = viewModel?.id {
                 lastSeenPartnerTime = lastSeenByUserId
                 processResponse(lastSeenByUserId)
             }

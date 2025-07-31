@@ -12,13 +12,13 @@ import TalkModels
 import Logger
 
 @MainActor
-public final class ThreadViewModel {
+public final class ThreadViewModel: Identifiable {
     public static func == (lhs: ThreadViewModel, rhs: ThreadViewModel) -> Bool {
-        rhs.threadId == lhs.threadId
+        rhs.id == lhs.id
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(threadId)
+        hasher.combine(id)
     }
 
     // MARK: Stored Properties
@@ -59,9 +59,8 @@ public final class ThreadViewModel {
     public var participant: Participant?
 
     // MARK: Computed Properties
-    public var id: Int { threadId }
-    public var threadId: Int { thread.id ?? 0 }
-    public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.threadId == threadId }
+    public nonisolated let id: Int
+    public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.id == id }
     public var isSimulatedThared: Bool {
         AppState.shared.appStateNavigationModel.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
@@ -75,6 +74,7 @@ public final class ThreadViewModel {
 
     // MARK: Initializer
     public init(thread: Conversation, readOnly: Bool = false, threadsViewModel: ThreadsViewModel? = nil) {
+        self.id = thread.id ?? -1
         self.threadsViewModel = threadsViewModel
         self.thread = thread
         self.readOnly = readOnly
@@ -111,11 +111,10 @@ public final class ThreadViewModel {
 
     // MARK: Actions
     public func sendStartTyping(_ newValue: String) {
-        if threadId == LocalId.emptyThread.rawValue, threadId != 0 { return }
-        let threadId = threadId
+        if id == LocalId.emptyThread.rawValue, id != 0 { return }
         Task { @ChatGlobalActor in
             if newValue.isEmpty == false {
-                ChatManager.activeInstance?.system.sendStartTyping(threadId: threadId)
+                ChatManager.activeInstance?.system.sendStartTyping(threadId: id)
             } else {
                 ChatManager.activeInstance?.system.sendStopTyping()
             }
@@ -123,9 +122,8 @@ public final class ThreadViewModel {
     }
 
     public func sendSignal(_ signalMessage: SignalMessageType) {
-        let threadId = threadId
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: threadId))
+            ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: id))
         }
     }
 
@@ -224,13 +222,13 @@ public final class ThreadViewModel {
     }
 
     private func onDeleteThread(_ response: ChatResponse<Participant>) {
-        if response.subjectId == threadId {
+        if response.subjectId == id {
             dismiss = true
         }
     }
 
     private func onLeftThread(_ response: ChatResponse<User>) {
-        if response.subjectId == threadId, response.result?.id == AppState.shared.user?.id {
+        if response.subjectId == id, response.result?.id == AppState.shared.user?.id {
             dismiss = true
         } else {
             thread.participantCount = (thread.participantCount ?? 0) - 1
@@ -238,7 +236,7 @@ public final class ThreadViewModel {
     }
 
     private func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
-        if response.result == threadId {
+        if response.result == id {
             dismiss = true
         }
     }
@@ -250,7 +248,7 @@ public final class ThreadViewModel {
     }
     
     private func onLastMessageChanged(_ thread: Conversation) {
-        if thread.id == threadId {
+        if thread.id == id {
             self.thread.lastMessage = thread.lastMessage
             self.thread.lastMessageVO = thread.lastMessageVO
             setUnreadCount(thread.unreadCount)
@@ -258,7 +256,7 @@ public final class ThreadViewModel {
     }
     
     private func onLastMessageDeleted(_ thread: Conversation) {
-        if thread.id == threadId {
+        if thread.id == id {
             isDeletingLastMessage = true
             self.thread.lastMessage = thread.lastMessage
             self.thread.lastMessageVO = thread.lastMessageVO

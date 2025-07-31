@@ -81,7 +81,7 @@ public final class MentionListPickerViewModel {
 
     func onParticipants(_ response: ChatResponse<[Participant]>) {
         /// We have to check threadId when forwarding messages to prevent the previous thread catch the result.
-        if !response.cache, response.subjectId == viewModel?.threadId, response.pop(prepend: MENTION_PARTICIPANTS_KEY) != nil, let participants = response.result {
+        if !response.cache, response.subjectId == viewModel?.id, response.pop(prepend: MENTION_PARTICIPANTS_KEY) != nil, let participants = response.result {
             if lazyList.offset == 0 {
                 self.mentionList.removeAll()
                 self.mentionList = .init(participants)

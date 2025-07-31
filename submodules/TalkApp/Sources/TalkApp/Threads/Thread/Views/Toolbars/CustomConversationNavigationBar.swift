@@ -171,7 +171,7 @@ public class CustomConversationNavigationBar: UIView {
         /// Reattch the participant info if we are inside a simulated thread.
         /// Note: After leaving the thread info with a participant where we didn't have any chat,
         /// the userToCreateThread will be deleted by back button, so we have to reattach this.
-        if viewModel.threadId == LocalId.emptyThread.rawValue {
+        if viewModel.id == LocalId.emptyThread.rawValue {
             AppState.shared.appStateNavigationModel.userToCreateThread = viewModel.participant
         }
         AppState.shared.objectsContainer.navVM.appendThreadDetail(threadViewModel: viewModel)

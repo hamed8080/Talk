@@ -57,7 +57,7 @@ public class IncommingForwardMessagesQueue {
         /// If result is false it means it ignored inserting the message,
         /// so we have to precess insertion by manullay.
         if let activeThreadVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel {
-            if subjectId == activeThreadVM.threadId {
+            if subjectId == activeThreadVM.id {
                 await activeThreadVM.historyVM.onForwardMessageForActiveThread(sorted)
             }
         }

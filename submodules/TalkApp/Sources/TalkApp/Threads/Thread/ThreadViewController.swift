@@ -65,8 +65,8 @@ final class ThreadViewController: UIViewController {
             }
         })
         if !hasAnyInstanceInStack, let viewModel = viewModel {
-            AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.threadId)
-            viewModel.threadsViewModel?.setSelected(for: viewModel.threadId, selected: false, isArchive: viewModel.thread.isArchive == true)
+            AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.id)
+            viewModel.threadsViewModel?.setSelected(for: viewModel.id, selected: false, isArchive: viewModel.thread.isArchive == true)
         }
     }
 

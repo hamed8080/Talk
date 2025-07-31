@@ -89,7 +89,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
-        if updatedConversation.id == activeVM?.threadId {
+        if updatedConversation.id == activeVM?.id {
             Task {
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
@@ -228,7 +228,7 @@ public final class ThreadsViewModel: ObservableObject {
     private func updateActiveThreadAfterDisconnect() async {
         if wasDisconnected,
            let activeVM = navVM.presentedThreadViewModel?.viewModel,
-           let updatedThread = threads.first(where: {$0.id == activeVM.threadId}) {
+           let updatedThread = threads.first(where: {$0.id == activeVM.id}) {
             activeVM.thread = updatedThread.toStruct()
             activeVM.delegate?.onUnreadCountChanged()
         }

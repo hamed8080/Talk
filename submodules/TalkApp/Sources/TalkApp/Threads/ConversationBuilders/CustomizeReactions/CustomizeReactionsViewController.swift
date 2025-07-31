@@ -233,7 +233,7 @@ final class CustomizeReactionsViewController: UIViewController {
 
     private func submitTapped() {
         let selecteds = sections.filter({ $0.type == .selected }).flatMap({$0.rows}).compactMap({$0.sticker})
-        let req = ConversationCustomizeReactionsRequest(conversationId: viewModel?.threadId ?? -1, reactionStatus: .custom, allowedReactions: selecteds)
+        let req = ConversationCustomizeReactionsRequest(conversationId: viewModel?.id ?? -1, reactionStatus: .custom, allowedReactions: selecteds)
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.reaction.customizeReactions(req)
         }

@@ -233,7 +233,7 @@ extension UIHistoryTableView {
     
     private func saveScrollPosition(_ message: Message) {
         let vm = viewModel?.threadsViewModel?.saveScrollPositionVM
-        guard let threadId = viewModel?.threadId else { return }
+        guard let threadId = viewModel?.id else { return }
         vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: contentOffset.y)
     }
 }

@@ -64,7 +64,7 @@ public final class ThreadScrollingViewModel {
     }
 
     public func lastMessageOrLastUploadingMessage() -> HistoryMessageType? {
-        let lastUploadElement = AppState.shared.objectsContainer.uploadsManager.lastUploadingMessage(threadId: viewModel?.threadId ?? -1)
+        let lastUploadElement = AppState.shared.objectsContainer.uploadsManager.lastUploadingMessage(threadId: viewModel?.id ?? -1)
         if let lastUploadElement = lastUploadElement {
             return lastUploadElement.viewModel.message
         } else {

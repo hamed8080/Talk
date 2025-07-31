@@ -47,8 +47,8 @@ struct DetailTopButtonsSection: View {
             //                }
             //            }
 
-            let isSimulated = viewModel.threadVM?.threadId == LocalId.emptyThread.rawValue
-            if viewModel.threadVM?.threadId != nil, viewModel.threadVM?.historyVM.sections.isEmpty == false {
+            let isSimulated = viewModel.threadVM?.id == LocalId.emptyThread.rawValue
+            if viewModel.threadVM?.id != nil, viewModel.threadVM?.historyVM.sections.isEmpty == false {
                 DetailViewButton(accessibilityText: "", icon: "magnifyingglass") {
                     NotificationCenter.forceSearch.post(name: .forceSearch, object: "DetailView")
                 }

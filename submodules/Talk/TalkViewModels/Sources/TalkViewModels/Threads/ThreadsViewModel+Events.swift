@@ -214,7 +214,7 @@ extension ThreadsViewModel {
 
                 // Update Active view model
                 let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
-                if let activeVM = activeVM, activeVM.threadId == response.subjectId {
+                if let activeVM = activeVM, activeVM.id == response.subjectId {
                     activeVM.thread.reactionStatus = response.result?.reactionStatus
                     activeVM.reactionViewModel.allowedReactions = response.result?.allowedReactions ?? []
                 }

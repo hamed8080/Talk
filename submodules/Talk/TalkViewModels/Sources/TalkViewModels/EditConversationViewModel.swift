@@ -254,7 +254,7 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
     }
 
     private func onDeletedConversation(_ response: ChatResponse<Participant>) {
-        if response.subjectId == threadVM?.threadId {
+        if response.subjectId == threadVM?.id {
             AppState.shared.objectsContainer.navVM.popAllPaths()
             animateObjectWillChange()
         }

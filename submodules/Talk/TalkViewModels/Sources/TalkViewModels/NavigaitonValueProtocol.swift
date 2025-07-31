@@ -90,7 +90,7 @@ public struct MessageParticipantsSeenNavigationValue: NavigaitonValueProtocol {
     public init(message: Message, threadVM: ThreadViewModel) {
         self.message = message
         self.threadVM = threadVM
-        self.threadId = threadVM.threadId
+        self.threadId = threadVM.id
     }
 }
 
@@ -110,7 +110,7 @@ public struct ConversationNavigationValue: NavigaitonValueProtocol {
     
     public init(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
-        self.threadId = viewModel.threadId
+        self.threadId = viewModel.id
     }
 }
 

@@ -124,11 +124,11 @@ public extension NavigationModel {
     }
 
     func viewModel(for threadId: Int) -> ThreadViewModel? {
-        return threadStack.first(where: {$0.viewModel.threadId == threadId})?.viewModel
+        return threadStack.first(where: {$0.viewModel.id == threadId})?.viewModel
     }
 
     func setSelectedThreadId() {
-        selectedId = threadStack.last?.viewModel.threadId
+        selectedId = threadStack.last?.viewModel.id
         animateObjectWillChange()
     }
 
@@ -137,7 +137,7 @@ public extension NavigationModel {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
         remove(innerBack: false)
-        if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.threadId == threadId {
+        if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.id == threadId {
             popLastPathTracking()
             popLastPath()
         } else if paths.count > 0 {
@@ -153,7 +153,7 @@ public extension NavigationModel {
         if let detailNavValue = pathsTracking.last as? ConversationDetailNavigationValue, threadId == detailNavValue.threadId {
             popLastPathTracking()
         }
-        if threadId == threadStack.last?.viewModel.threadId {
+        if threadId == threadStack.last?.viewModel.id {
             popLastPathTracking()
         }
         setSelectedThreadId()
@@ -169,7 +169,7 @@ public extension NavigationModel {
         let value = ConversationDetailNavigationValue(viewModel: detailViewModel)
         append(value: value)
         detailsStack.append(detailViewModel)
-        selectedId = threadViewModel.threadId
+        selectedId = threadViewModel.id
         animateObjectWillChange()
     }
 
@@ -194,7 +194,7 @@ public extension NavigationModel {
 
 public extension NavigationModel {
     func updateConversationInViewModel(_ conversation: CalculatedConversation) {
-        if let vm = threadStack.first(where: {$0.viewModel.threadId == conversation.id})?.viewModel {
+        if let vm = threadStack.first(where: {$0.viewModel.id == conversation.id})?.viewModel {
             vm.updateConversation(conversation.toStruct())
         }
     }

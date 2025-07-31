@@ -292,7 +292,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
-        if updatedConversation.id == activeVM?.threadId {
+        if updatedConversation.id == activeVM?.id {
             Task {
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }

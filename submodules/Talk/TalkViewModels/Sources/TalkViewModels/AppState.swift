@@ -142,7 +142,7 @@ extension AppState {
     
     private func onDeleted(_ response: ChatResponse<Participant>) {
         if let index = objectsContainer.navVM.pathsTracking.firstIndex(where: {
-            ($0 as? ThreadViewModel)?.threadId == response.subjectId
+            ($0 as? ThreadViewModel)?.id == response.subjectId
         }) {
             objectsContainer.navVM.popPathTrackingAt(at: index)
         }
@@ -172,7 +172,7 @@ extension AppState {
             /// Remove Thread View model and pop ThreadView
             if let index = objectsContainer.navVM.pathsTracking.firstIndex(
                 where: {
-                    ($0 as? ConversationNavigationValue)?.viewModel.threadId
+                    ($0 as? ConversationNavigationValue)?.viewModel.id
                     == response.subjectId
                 })
             {
