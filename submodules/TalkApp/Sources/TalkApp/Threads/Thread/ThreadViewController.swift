@@ -463,17 +463,17 @@ extension ThreadViewController: HistoryScrollDelegate {
     func emptyStateChanged(isEmpty: Bool) {
         showEmptyThread(show: isEmpty)
     }
-
+    
     func reload() {
         tableView.reloadData()
     }
-
+    
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
         if tableView.numberOfSections == 0 { return }
         if tableView.numberOfRows(inSection: index.section) < index.row + 1 { return }
         tableView.scrollToRow(at: index, at: position, animated: animate)
     }
-
+    
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {
         if let indexPath = sections.indicesByMessageUniqueId(uniqueId) {
             scrollTo(index: indexPath, position: position, animate: animate)
@@ -487,13 +487,13 @@ extension ThreadViewController: HistoryScrollDelegate {
     func moveRow(at: IndexPath, to: IndexPath) {
         tableView.moveRow(at: at, to: to)
     }
-
+    
     func reloadData(at: IndexPath) {
         if let cell = tableView.cellForRow(at: at) as? MessageBaseCell, let vm = sections.viewModelWith(at) {
             cell.setValues(viewModel: vm)
         }
     }
-
+    
     private func moveTolastMessageIfVisible() {
         if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
             scrollTo(index: indexPath, position: .bottom)
@@ -509,17 +509,17 @@ extension ThreadViewController: HistoryScrollDelegate {
         guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
         cell.downloadCompleted(viewModel: viewModel)
     }
-
+    
     func updateProgress(at: IndexPath, viewModel: MessageRowViewModel) {
         guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
         cell.updateProgress(viewModel: viewModel)
     }
-
+    
     func updateReplyImageThumbnail(at: IndexPath, viewModel: MessageRowViewModel) {
         guard let cell = tableView.cellForRow(at: at) as? MessageBaseCell else { return }
         cell.updateReplyImageThumbnail(viewModel: viewModel)
     }
-
+    
     func inserted(at: IndexPath) {
         log("inserted at indexPath: \(at)")
         log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
@@ -536,13 +536,29 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
         if let scrollTo = scrollTo {
-            insertedWithoutAnimation(sections: sections, rows: rows)
+            insertedWithoutAnimation(sections: sections, rows: rows, scrollTo: scrollTo)
         } else {
             insertedWithAnimation(sections: sections, rows: rows)
         }
     }
     
-    func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath]) {
+    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ scrollToIndexPath: IndexPath, _ at: UITableView.ScrollPosition = .none) {
+        UIView.performWithoutAnimation {
+            tableView.beginUpdates()
+            
+            if !sections.isEmpty {
+                self.tableView.insertSections(sections, with: .none)
+            }
+            if !rows.isEmpty {
+                self.tableView.insertRows(at: rows, with: .none)
+            }
+            tableView.endUpdates()
+            
+            tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: false)
+        }
+    }
+    
+    func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath], scrollTo: IndexPath) {
         log("inserted and scroll to")
         log("insertingSections without animation: \(sections), insertingRows: \(rows)")
         log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
@@ -566,7 +582,7 @@ extension ThreadViewController: HistoryScrollDelegate {
             tableView.endUpdates()
             
             // Ensure layout pass fully completes
-            tableView.layoutIfNeeded() // may not be enough, but try this first
+            tableView.layoutIfNeeded()
 
             // 2. Calculate height difference after insert
             let newContentHeight = tableView.contentSize.height

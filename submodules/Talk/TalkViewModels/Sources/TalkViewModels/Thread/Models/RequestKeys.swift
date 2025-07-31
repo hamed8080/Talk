@@ -11,7 +11,8 @@ struct RequestKeys {
     public var objectId: String
     public let MORE_TOP_KEY: String
     public let MORE_BOTTOM_KEY: String
-    public let MORE_TOP_FIRST_SCENARIO_KEY: String
+    public let TOP_FIRST_SCENARIO_KEY: String
+    public let BOTTOM_FIRST_SCENARIO_KEY: String
     public let MORE_BOTTOM_FIRST_SCENARIO_KEY: String
     public let MORE_TOP_SECOND_SCENARIO_KEY: String
     public let MORE_BOTTOM_FIFTH_SCENARIO_KEY: String
@@ -22,7 +23,8 @@ struct RequestKeys {
         let objectId = UUID().uuidString
         MORE_TOP_KEY = "MORE-TOP-\(objectId)"
         MORE_BOTTOM_KEY = "MORE-BOTTOM-\(objectId)"
-        MORE_TOP_FIRST_SCENARIO_KEY = "MORE-TOP-FIRST-SCENARIO-\(objectId)"
+        TOP_FIRST_SCENARIO_KEY = "TOP-FIRST-SCENARIO-\(objectId)"
+        BOTTOM_FIRST_SCENARIO_KEY = "BOTTOM-FIRST-SCENARIO-\(objectId)"
         MORE_BOTTOM_FIRST_SCENARIO_KEY = "MORE-BOTTOM-FIRST-SCENARIO-\(objectId)"
         MORE_TOP_SECOND_SCENARIO_KEY = "MORE-TOP-SECOND-SCENARIO-\(objectId)"
         MORE_BOTTOM_FIFTH_SCENARIO_KEY = "MORE-BOTTOM-FIFTH-SCENARIO-\(objectId)"

@@ -20,6 +20,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func reloadData(at: IndexPath)
     func inserted(at: IndexPath)
     func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate :UITableView.RowAnimation, _ scrollTo: IndexPath?)
+    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ scrollToIndexPath: IndexPath, _ at: UITableView.ScrollPosition)
     func delete(sections: [IndexSet], rows: [IndexPath])
     func moveRow(at: IndexPath, to: IndexPath)
     func edited(_ indexPath: IndexPath)
