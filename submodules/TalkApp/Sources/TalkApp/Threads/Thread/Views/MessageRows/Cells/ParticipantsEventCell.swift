@@ -55,4 +55,20 @@ final class ParticipantsEventCell: UITableViewCell {
     public func setValues(viewModel: MessageRowViewModel) {
         label.label.attributedText = viewModel.calMessage.addOrRemoveParticipantsAttr
     }
+    
+    private func setSelectedBackground(highlight: Bool) {
+        if highlight {
+            let dark = traitCollection.userInterfaceStyle == .dark
+            let selectedColor = dark ? Color.App.accentUIColor?.withAlphaComponent(0.4) : Color.App.dividerPrimaryUIColor?.withAlphaComponent(0.5)
+            contentView.backgroundColor = selectedColor
+        } else {
+            contentView.backgroundColor = nil
+        }
+    }
+    
+    public func setHighlight(highlight: Bool) {
+        UIView.animate(withDuration: 0.2) {
+            self.setSelectedBackground(highlight: highlight)
+        }
+    }
 }

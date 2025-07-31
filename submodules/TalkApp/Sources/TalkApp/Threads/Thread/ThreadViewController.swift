@@ -343,6 +343,10 @@ extension ThreadViewController: ThreadViewDelegate {
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool) {
         if let cell = tableView.baseCell(indexPath) {
             cell.setHighlight()
+        } else if let cell = tableView.cellForRow(at: indexPath) as? CallEventCell {
+            cell.setHighlight(highlight: highlight)
+        } else if let cell = tableView.cellForRow(at: indexPath) as? ParticipantsEventCell {
+            cell.setHighlight(highlight: highlight)
         }
     }
 

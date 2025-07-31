@@ -120,6 +120,11 @@ extension UIHistoryTableView: UITableViewDelegate {
             cell.deselect()
         }
     }
+    
+    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+        let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell
+        return cell != nil
+    }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         makeReplyButton(indexPath: indexPath, isLeading: false)

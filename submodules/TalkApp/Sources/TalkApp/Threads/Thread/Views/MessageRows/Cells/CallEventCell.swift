@@ -58,4 +58,20 @@ final class CallEventCell: UITableViewCell {
     public func setValues(viewModel: MessageRowViewModel) {
         dateLabel.attributedText = viewModel.calMessage.callAttributedString
     }
+    
+    private func setSelectedBackground(highlight: Bool) {
+        if highlight {
+            let dark = traitCollection.userInterfaceStyle == .dark
+            let selectedColor = dark ? Color.App.accentUIColor?.withAlphaComponent(0.4) : Color.App.dividerPrimaryUIColor?.withAlphaComponent(0.5)
+            contentView.backgroundColor = selectedColor
+        } else {
+            contentView.backgroundColor = nil
+        }
+    }
+    
+    public func setHighlight(highlight: Bool) {
+        UIView.animate(withDuration: 0.2) {
+            self.setSelectedBackground(highlight: highlight)
+        }
+    }
 }

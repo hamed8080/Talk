@@ -38,8 +38,6 @@ public final class ThreadHistoryViewModel {
     private var highlightVM = ThreadHighlightViewModel()
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
-    private var middleFetcher: MiddleHistoryFetcherViewModel?
-    private var firstMessageOfTheDayVM: FirstMessageOfTheDayViewModel?
     private var isReattachedUploads = false
     
     private var lastScrollTime: Date = .distantPast
@@ -54,7 +52,6 @@ public final class ThreadHistoryViewModel {
         self.thread = thread
         threadId = thread.id ?? -1
         Task { @MainActor in
-            middleFetcher = MiddleHistoryFetcherViewModel(threadId: threadId, readOnly: false)
             await setupVisible()
             highlightVM.setup(self)
             setupNotificationObservers()
@@ -162,11 +159,11 @@ extension ThreadHistoryViewModel {
     
     // MARK: Scenario 1
     private func runFirstScenario(time: UInt, id: Int) async {
-        /// 1- Get the top part to time messages
-        showCenterLoading(true)
         do {
-            let topVMS = try await onTopToTime()
-            let bottomVMS = try await onBottomFromTime()
+            showCenterLoading(true)
+            
+            let topVMS = try await onTopToTime(toTime: (thread.lastSeenMessageTime ?? 0).advanced(by: 1))
+            let bottomVMS = try await onBottomFromTime(fromTime: (thread.lastSeenMessageTime ?? 0).advanced(by: 1))
             let vm = await createUnreadBanner(time: time, id: id, viewModel: viewModel ?? .init(thread: thread))
             let vms = topVMS + [vm] + bottomVMS
             
@@ -304,7 +301,6 @@ extension ThreadHistoryViewModel {
         }
     }
 
-    // MARK: Scenario 6
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
         /// 1- Move to a message locally if it exists.
         if moveToBottom, !sections.isLastSeenMessageExist(thread: thread) {
@@ -313,40 +309,76 @@ extension ThreadHistoryViewModel {
             showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             moveToMessageLocally(uniqueId, messageId, moveToBottom, highlight, true)
             return
-        } else {
-            log("The message id to move to is not exist in the list")
         }
-        delegate?.showMoveToBottom(show: true)
-        centerLoading = true
-        topLoading = false
-        removeAllSections()
-        viewModel?.delegate?.startCenterAnimation(true)
-        viewModel?.delegate?.startTopAnimation(false)
-        middleFetcher?.completion = { [weak self] response in
-            Task { [weak self] in
-                await self?.onMoveToTime(response, messageId: messageId, highlight: highlight)
-            }
-        }
-        middleFetcher?.start(time: time, messageId: messageId, highlight: highlight)
+        
+        await doMoveToTime(time, messageId, highlight: highlight, moveToBottom: moveToBottom)
     }
-
-    private func onMoveToTime(_ response: HistoryResponse, messageId: Int, highlight: Bool) async {
-        let messages = response.result ?? []
-        let vms = await makeCalculateViewModelsFor(messages)
-        await onMoreTop(vms, isMiddleFetcher: true)
-        // If messageId is equal to thread.lastMessageVO?.id it means we are going to open up the thread at the bottom of it so there is
-        if messageId == thread.lastMessageVO?.id {
-            hasNextBottom = false
-        } else {
-            setHasMoreBottom(response) // We have to set bootom too for when user start scrolling bottom.
+    
+    // MARK: Scenario 6
+    private func doMoveToTime(_ time: UInt, _ messageId: Int, highlight: Bool, moveToBottom: Bool) async {
+        do {
+            viewModel?.scrollVM.isAtBottomOfTheList = false
+            log("The message id to move to is not exist in the list")
+            
+            /// Remove all old sections
+            removeAllSections()
+            
+            /// Show center loading.
+            showCenterLoading(true)
+            
+            /// Fetch Top, Bottom and join them together.
+            let topVMS = try await onTopToTime(toTime: time)
+            let bottomVMS = try await onBottomFromTime(fromTime: time)
+            let vms = topVMS + bottomVMS
+            
+            /// Append it to the sections array.
+            appendSort(vms)
+            
+            /// Calculate appended sections and rows.
+            let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
+            
+            /// If the messageId paramter set to zero it we can not find the message,
+            /// so we use time to move to first message of the day.
+            let section = sections.sectionIndexByDate(time.date) ?? 0
+            let message = messageId == 0 ? sections[section].vms.first?.message : vms.first(where: {$0.id == messageId})?.message
+            
+            /// Update UITableView and scroll to the disered indexPath.
+            if let message = message, let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
+                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top)
+            }
+            
+            /// Animate to show hightlight if is needed.
+            let uniqueId = message?.uniqueId ?? ""
+            highlightVM.showHighlighted(uniqueId, message?.id ?? -1, highlight: highlight, position: .middle)
+            
+            /// Force to show move to bottom button,
+            /// because we know that we are not at the end of the thread.
+            viewModel?.delegate?.showMoveToBottom(show: true)
+            
+            /// Show empty thread banner, if it's empty
+            delegate?.emptyStateChanged(isEmpty: vms.isEmpty)
+            
+            /// Hide center loading.
+            showCenterLoading(false)
+            
+            /// Set we have more top or bottom rows.
+            setHasMoreTop(topVMS.count >= count)
+            setHasMoreBottom(bottomVMS.count >= count)
+            
+            /// If requested messageId to move to is equal to last message of the thread
+            /// it means that we don't have more bottom.
+            if messageId == thread.lastMessageVO?.id {
+                setHasMoreBottom(false)
+            }
+            
+            /// Fetch reactions
+            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            
+            await prepareAvatars(vms)
+            
+        } catch {
+            showCenterLoading(false)
         }
-        centerLoading = false
-        delegate?.emptyStateChanged(isEmpty: response.result?.count == 0)
-        viewModel?.delegate?.showMoveToBottom(show: true)
-        let uniqueId = messages.first(where: {$0.id == messageId})?.uniqueId ?? ""
-        highlightVM.showHighlighted(uniqueId, messageId, highlight: highlight, position: .middle)
-        viewModel?.delegate?.startCenterAnimation(false)
-        fetchReactions(messages: messages)
     }
 
     /// Search for a message with an id in the messages array, and if it can find the message, it will redirect to that message locally, and there is no request sent to the server.
@@ -435,20 +467,9 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) {
         if time > thread.lastMessageVO?.time ?? 0 { return }
-        removeAllSections()
-        /// Getting the first message of the day will take time, specially if the message is an archive message.
-        /// So we have to show the center loading imediately.
-        viewModel?.delegate?.startCenterAnimation(true)
-        viewModel?.delegate?.startTopAnimation(false)
-        
-        firstMessageOfTheDayVM = FirstMessageOfTheDayViewModel(threadId: threadId, readOnly: false)
-        firstMessageOfTheDayVM?.completion = { [weak self] message in
-            guard let message = message else { return }
-            Task { [weak self] in
-                await self?.moveToTime(message.time ?? 0, message.id ?? -1)
-            }
+        Task {
+            await moveToTime(time, 0)
         }
-        firstMessageOfTheDayVM?.startOfDate(time: time, highlight: true)
     }
     
     // MARK: Scenario 12
@@ -1300,18 +1321,16 @@ extension ThreadHistoryViewModel {
         return try await requester.get(req)
     }
     
-    private func onTopToTime() async throws -> [MessageRowViewModel] {
-        guard let toTime = thread.lastSeenMessageTime else { return [] }
-        let req = makeRequest(toTime: toTime.advanced(by: 1), offset: nil)
+    private func onTopToTime(toTime: UInt) async throws -> [MessageRowViewModel] {
+        let req = makeRequest(toTime: toTime, offset: nil)
         let requester = GetHistoryReuqester(key: keys.TOP_FIRST_SCENARIO_KEY)
         let data = getMainData()
         requester.setup(data: data, viewModel: viewModel)
         return try await requester.get(req)
     }
 
-    private func onBottomFromTime() async throws -> [MessageRowViewModel] {
-        guard let time = thread.lastSeenMessageTime else { return [] }
-        let req = makeRequest(fromTime: time.advanced(by: 1), offset: nil)
+    private func onBottomFromTime(fromTime: UInt) async throws -> [MessageRowViewModel] {
+        let req = makeRequest(fromTime: fromTime, offset: nil)
         let requester = GetHistoryReuqester(key: keys.BOTTOM_FIRST_SCENARIO_KEY)
         let data = getMainData()
         requester.setup(data: data, viewModel: viewModel)
