@@ -98,9 +98,6 @@ extension UIHistoryTableView: UITableViewDelegate {
         revealAnimation.reveal(for: cell)
         sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
         
-        let isLastMessageVisible = isLastMessageVisible()
-        changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
-        
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -283,14 +280,14 @@ extension UIHistoryTableView {
     private func topVisibleIndexPath() -> IndexPath? {
         guard let visibleRows = indexPathsForVisibleRows else { return nil }
         for indexPath in visibleRows {
-            if isCellFullyVisible(indexPath, heightDelta: contentInset.top + contentInset.bottom) {
+            if isCellFullyVisible(indexPath, topInset: contentInset.top, bottomInset: contentInset.bottom) {
                 return indexPath
             }
         }
         return nil
     }
-    
-    private func isCellFullyVisible(_ indexPath: IndexPath, heightDelta: CGFloat = 0) -> Bool {
+  
+    private func isCellFullyVisible(_ indexPath: IndexPath, topInset: CGFloat = 0, bottomInset: CGFloat = 0) -> Bool {
         guard let cell = cellForRow(at: indexPath) else {
             // The cell is not visible at all
             return false
@@ -304,8 +301,8 @@ extension UIHistoryTableView {
             x: contentOffset.x,
             y: contentOffset.y,
             width: bounds.width,
-            height: bounds.height - heightDelta
-        ).inset(by: safeAreaInsets)
+            height: bounds.height
+        ).inset(by: safeAreaInsets).inset(by: .init(top: topInset, left: 0, bottom: bottomInset, right: 0))
         
         return visibleRect.contains(cellRect)
     }
@@ -318,7 +315,9 @@ extension UIHistoryTableView {
         /// is not equal with last we have to check it with two last item two find it.
         for indexPath in indexPaths.suffix(2) {
             var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id ?? 0
-            if isVisible, isCellFullyVisible(indexPath) {
+            
+            /// We reduce 16 from contentInset bottom to sort of accept it as fully visible
+            if isVisible, isCellFullyVisible(indexPath, topInset: contentInset.top, bottomInset: contentInset.bottom - 16) {
                 result = true
                 break /// No need to fully check because we found it.
             }

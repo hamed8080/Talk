@@ -205,8 +205,9 @@ extension ThreadHistoryViewModel {
     /// by advance 1, in retriving it next time, the checking system will examaine it with exact time not advance time!
     /// Therefore the cache will always the request from the server.
     private func runSecondScenario() async {
-        log("trySecondScenario")
         do {
+            log("trySecondScenario")
+            
             showCenterLoading(true)
             
             /// Appned to the list
@@ -386,6 +387,9 @@ extension ThreadHistoryViewModel {
             }
             
             showCenterLoading(false)
+            /// Prevent fetch bottom loading
+            /// becuase we get messages with offset so there is not message at bottom.
+            setHasMoreBottom(false)
             
             /// Fetch reactions
             fetchReactions(messages: vms.flatMap({$0.message as? Message}))
@@ -487,6 +491,11 @@ extension ThreadHistoryViewModel {
         let unreadCount = thread.unreadCount ?? 0
         if isLastSeenMessageOnTheScreen || unreadCount == 0 {
             viewModel?.scrollVM.scrollToBottom()
+            
+            /// Once user hit the jump to bottom Table view delegates like didEndDecelerating for scroll view won't be called
+            /// So we have to make sure we are in a right state in the app and isAtBottomOfList is set to true.
+            viewModel?.scrollVM.isAtBottomOfTheList = true
+            viewModel?.delegate?.lastMessageAppeared(true)
         } else if unreadCount > 0, let time = thread.lastSeenMessageTime, let id = thread.lastSeenMessageId {
             /// Move to last seen message
             hasNextBottom = true
@@ -1047,12 +1056,6 @@ extension ThreadHistoryViewModel {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         await visibleTracker.append(message: message)
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
-        if message.id == thread.lastMessageVO?.id {
-            /// Hide the move to bottom button if the last message of the thread is visible,
-            /// when we are loading more bottom and we reach to the last message of the thread,
-            /// we have to hide this button.
-            delegate?.showMoveToBottom(show: false)
-        }
         await seenVM?.onAppear(message)
     }
 

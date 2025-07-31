@@ -30,11 +30,7 @@ public final class ThreadScrollingViewModel {
 
     public func setup(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
-        Task {
-            await MainActor.run {
-                isAtBottomOfTheList = thread.lastMessageVO?.id == thread.lastSeenMessageId
-            }
-        }
+        isAtBottomOfTheList = thread.lastMessageVO?.id == thread.lastSeenMessageId || thread.lastSeenMessageId ?? 0 > thread.lastMessageVO?.id ?? 0
     }
 
     private func scrollTo(_ uniqueId: String, position: UITableView.ScrollPosition = .bottom, animate: Bool) {

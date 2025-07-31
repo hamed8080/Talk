@@ -74,11 +74,15 @@ final class ThreadViewController: UIViewController {
         super.viewDidAppear(animated)
         viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
         contextMenuContainer = ContextMenuContainerView(delegate: self)
-        
-        let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
-        let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
-        let height = (sendContainer.bounds.height - safeAreaHeight) + keyboardheight
-        tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if keyboardheight == 0 {
+            let height = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+            tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+            tableView.scrollIndicatorInsets = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+        }
     }
 
 #if DEBUG
@@ -638,6 +642,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     private func performBatchUpdateForReactions(_ indexPaths: [IndexPath], completion: @escaping () -> Void) {
         log("update reactions")
+
         tableView.performBatchUpdates { [weak self] in
             guard let self = self else {
                 return
@@ -749,7 +754,7 @@ extension ThreadViewController {
         hasExternalKeyboard = tuple.rect.height <= 69
         keyboardheight = show ? tuple.rect.height : 0
         
-        sendContainerBottomConstraint?.constant = show ? -(keyboardheight ) : keyboardheight
+        sendContainerBottomConstraint?.constant = show ? -keyboardheight : keyboardheight
        
         let pureHeight = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
         let showInset = pureHeight + keyboardheight - view.safeAreaInsets.bottom
@@ -761,6 +766,7 @@ extension ThreadViewController {
         /// Disable onHeightChanged callback for the send container
         /// to manipulate the content inset during the animation
         animatingKeyboard = true
+        let indexPath = lastMessageIndexPathIfVisible()
         
         UIView.animate(withDuration: tuple.duration, delay: 0.0, options: tuple.opt) {
             /// Animate layout sendContainerBottomConstraint changes.
@@ -768,7 +774,7 @@ extension ThreadViewController {
             self.view.layoutIfNeeded()
             
             // Scroll within the transaction block
-            if let indexPath = self.lastMessageIndexPathIfVisible() {
+            if let indexPath = indexPath {
                 /// Animation parameter should be always set to false
                 /// unless it won't animate as we expect in a UIView.animate block.
                 self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)

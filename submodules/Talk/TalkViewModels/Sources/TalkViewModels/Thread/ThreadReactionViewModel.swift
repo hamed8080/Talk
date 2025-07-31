@@ -194,8 +194,11 @@ public final class ThreadReactionViewModel {
         // Update UI of each message
         let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
         if !indexPaths.isEmpty {
+            let wasAtBottom = threadVM?.scrollVM.isAtBottomOfTheList == true
             await threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
-            threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
+            if wasAtBottom {
+                threadVM?.scrollVM.scrollToBottom()
+            }
         }
     }
 
