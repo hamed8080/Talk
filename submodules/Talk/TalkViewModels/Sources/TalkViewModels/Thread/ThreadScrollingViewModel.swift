@@ -50,6 +50,8 @@ public final class ThreadScrollingViewModel {
         if isAtBottomOfTheList || message.isMe(currentUserId: AppState.shared.user?.id), let uniqueId = message.uniqueId {
             disableExcessiveLoading()
             scrollTo(uniqueId, animate: true)
+            isAtBottomOfTheList = true
+            viewModel?.delegate?.showMoveToBottom(show: false)
         }
     }
 
