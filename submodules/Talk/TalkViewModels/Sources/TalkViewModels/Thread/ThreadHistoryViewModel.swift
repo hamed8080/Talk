@@ -508,9 +508,10 @@ extension ThreadHistoryViewModel {
     
     // MARK: Scenario 13
     public func handleJumpToButtom() {
-        let isLastSeenMessageOnTheScreen = isLastSeenMessageOnTheScreen()
+        let isLastSeenExist = isLastSeenMessageIsInSections()
         let unreadCount = thread.unreadCount ?? 0
-        if isLastSeenMessageOnTheScreen || unreadCount == 0 {
+        if isLastSeenExist || unreadCount == 0 {
+            /// Move to last seen message.
             viewModel?.scrollVM.scrollToBottom()
             
             /// Once user hit the jump to bottom Table view delegates like didEndDecelerating for scroll view won't be called
@@ -1112,10 +1113,9 @@ extension ThreadHistoryViewModel {
         return false
     }
     
-    private func isLastSeenMessageOnTheScreen() -> Bool {
-        let visibleIndexPaths = viewModel?.delegate?.visibleIndexPaths() ?? []
-        let lastSeenMessage = thread.lastSeenMessageId ?? 0
-        return visibleIndexPaths.contains(where: {  sections[$0.section].vms[$0.row].message.id == lastSeenMessage })
+    private func isLastSeenMessageIsInSections() -> Bool {
+        let lastSeenId = thread.lastSeenMessageId ?? 0
+        return sections.isLastSeenMessageExist(thread: thread)
     }
 }
 
