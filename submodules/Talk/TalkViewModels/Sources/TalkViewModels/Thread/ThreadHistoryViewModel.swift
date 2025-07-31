@@ -476,6 +476,8 @@ extension ThreadHistoryViewModel {
     /// Move to a time if save scroll position was on.
     private func tryScrollPositionScenario(_ model: SaveScrollPositionModel) async throws {
         if let time = model.message.time, let messageId = model.message.id {
+            viewModel?.scrollVM.isAtBottomOfTheList = false
+            
             /// Show center loading
             showCenterLoading(true)
             
