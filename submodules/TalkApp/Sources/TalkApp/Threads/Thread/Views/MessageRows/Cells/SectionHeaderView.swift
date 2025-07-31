@@ -37,8 +37,10 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         label.backgroundColor = .black.withAlphaComponent(0.4)
         label.accessibilityIdentifier = "labelSectionHeaderView"
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onTapped(_:)))
-        addGestureRecognizer(tapGesture)
+        let pressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onPress(_:)))
+        pressGesture.minimumPressDuration = 0
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(pressGesture)
         addSubview(label)
 
         NSLayoutConstraint.activate([
@@ -51,8 +53,18 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         self.label.label.text = section.sectionText
     }
 
-    @objc private func onTapped(_ sender: UITapGestureRecognizer) {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        delegate?.openMoveToDatePicker()
+    @objc private func onPress(_ gesture: UILongPressGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            label.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.6)
+        case .ended:
+            label.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            delegate?.openMoveToDatePicker()
+        case .cancelled, .failed:
+            label.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.6)
+        default:
+            break
+        }
     }
 }

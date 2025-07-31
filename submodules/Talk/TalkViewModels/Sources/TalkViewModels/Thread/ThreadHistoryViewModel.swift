@@ -1032,27 +1032,6 @@ extension ThreadHistoryViewModel {
         }
         viewModel?.selectedMessagesViewModel.clearSelection()
     }
-
-    private func appenedUnreadMessagesBannerIfNeeed() async {
-        guard
-            thread.unreadCount ?? 0 > 0, // in self thread it's essential to check the value always, if not we will always get unread banner.
-            let tuples = sections.message(for: thread.lastSeenMessageId),
-            let viewModel = viewModel
-        else { return }
-        let time = (tuples.message.time ?? 0) + 1
-        let unreadMessage = UnreadMessage(id: LocalId.unreadMessageBanner.rawValue, time: time, uniqueId: "\(LocalId.unreadMessageBanner.rawValue)")
-        let indexPath = tuples.indexPath
-        let vm = MessageRowViewModel(message: unreadMessage, viewModel: viewModel)
-        let mainData = getMainData()
-        await vm.recalculate(mainData: mainData)
-        sections[indexPath.section].vms.append(vm)
-        if let lastIndex = sections[indexPath.section].vms.indices.last {
-            let indexPath = IndexPath(row: lastIndex, section: indexPath.section)
-            delegate?.inserted(at: indexPath)
-        }
-        try? await Task.sleep(for: .seconds(0.5))
-        delegate?.scrollTo(index: indexPath, position: .middle, animate: true)
-    }
     
     private func createUnreadBanner(time: UInt, id: Int, viewModel: ThreadViewModel) async -> MessageRowViewModel {
         let unreadMessage = UnreadMessage(
