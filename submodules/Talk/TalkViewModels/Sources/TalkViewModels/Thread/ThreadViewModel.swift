@@ -136,6 +136,7 @@ public final class ThreadViewModel: Identifiable {
                 let path = message.isImage ? spec.paths.podspace.download.images : spec.paths.podspace.download.files
                 let url = "\(fileServer)\(path)/\(fileHashCode)"
                 ChatManager.activeInstance?.file.deleteCacheFile(URL(string: url)!)
+                try? ChatManager.activeInstance?.file.deleteResumableFile(hashCode: fileHashCode)
             }
             NotificationCenter.message.post(.init(name: .message, object: message))
         }
