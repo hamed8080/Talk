@@ -100,11 +100,15 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         case .file(let chatResponse, let url):
             onResponse(chatResponse, url)
         case .downloadFile(let chatResponse):
-            onResponse(chatResponse)
+            Task {
+                await onResponse(chatResponse)
+            }
         case .image(let chatResponse, let url):
             onResponse(chatResponse, url)
         case .downloadImage(let chatResponse):
-            onResponse(chatResponse)
+            Task {
+                await onResponse(chatResponse)
+            }
         case .suspended(let uniqueId):
             onSuspend(uniqueId)
         case .progress(let uniqueId, let progress):
@@ -131,7 +135,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             state = .downloading
             let req = FileRequest(hashCode: fileHashCode, conversationId: message.threadId ?? message.conversation?.id)
             uniqueId = req.uniqueId
-            RequestsManager.shared.append(value: req, autoCancel: false)
             Task { @ChatGlobalActor in
                 do {
                     try ChatManager.activeInstance?.file.download(req)
@@ -151,7 +154,6 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             state = .downloading
             let req = ImageRequest(hashCode: fileHashCode, size: .ACTUAL, conversationId: message.threadId ?? message.conversation?.id)
             uniqueId = req.uniqueId
-            RequestsManager.shared.append(value: req, autoCancel: false)
             Task { @ChatGlobalActor in
                 ChatManager.activeInstance?.file.get(req)
             }
@@ -181,31 +183,31 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             setData(data: data)
         }
 
-        if RequestsManager.shared.contains(key: uniqueId), let data = response.result {
+        if let data = response.result {
             setData(data: data)
         }
 
         if isGalleryURL(isCache: response.cache, url: url) {
-            RequestsManager.shared.remove(key: uniqueId)
             setData(data: response.result)
         }
     }
     
-    private func onResponse(_ response: ChatResponse<URL>) {
-        if response.uniqueId != uniqueId { return }
-        guard let url = response.result, let data = try? Data(contentsOf: url) else { return }
-        if response.cache {
-            setData(data: data)
+    private func onResponse(_ response: ChatResponse<URL>) async {
+        guard
+            let uniqueId = response.uniqueId,
+            isSameUnqiueId(uniqueId),
+            response.result != nil
+        else { return }
+        
+        state = .completed
+        isInCache = true
+        downloadPercent = 100
+        let isVoice = message.type == .podSpaceVoice || message.type == .voice
+        if let filePath = fileURL, isVoice, await isOpus(filePath: filePath) {
+            await convertIfIsOpus(message: message)
         }
-
-        if RequestsManager.shared.contains(key: uniqueId) {
-            setData(data: data)
-        }
-
-        if isGalleryURL(isCache: response.cache, url: url) {
-            RequestsManager.shared.remove(key: uniqueId)
-            setData(data: data)
-        }
+        
+        animateObjectWillChange()
     }
 
     private func setData(data: Data?) {
@@ -255,7 +257,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 
     /// When the user clicks on the side of an image not directly hit the download button, it triggers gallery view, and therefore after the user is back to the view the image and file should update properly.
     private func isGalleryURL(isCache: Bool, url: URL?) -> Bool {
-        !isCache && RequestsManager.shared.contains(key: uniqueId) && url?.absoluteString == fileURL?.absoluteString
+        !isCache && url?.absoluteString == fileURL?.absoluteString
     }
 
     private func onSuspend(_ uniqueId: String) {
@@ -321,7 +323,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     }
 
     private func isSameUnqiueId(_ uniqueId: String) -> Bool {
-        RequestsManager.shared.contains(key: self.uniqueId) && uniqueId == self.uniqueId
+         uniqueId == self.uniqueId
     }
     
     public func redownload() {

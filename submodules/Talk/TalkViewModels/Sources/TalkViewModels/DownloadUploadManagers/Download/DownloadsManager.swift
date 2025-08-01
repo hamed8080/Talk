@@ -82,7 +82,7 @@ public final class DownloadsManager: ObservableObject {
     }
     
     public func pauseAll() {
-        elements.forEach { element in
+        elements.filter({ $0.viewModel.state == .downloading }).forEach { element in
             element.viewModel.pauseDownload()
         }
     }

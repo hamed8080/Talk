@@ -12,6 +12,7 @@ import Chat
 public struct DownloadManagerElement: Identifiable {
     public nonisolated var id: Int
     
+    // MARK: Stored properties.
     public let viewModel: DownloadFileViewModel
     public let isMap: Bool
     public let isVideo: Bool
@@ -19,6 +20,9 @@ public struct DownloadManagerElement: Identifiable {
     public let date = Date()
     public var isInQueue = true
     public var retryCount = 0
+    
+    // MARK: Computed propeties.
+    public var threaId: Int? { viewModel.message.threadId ?? viewModel.message.conversation?.id }
     
     public init(message: Message) async {
         self.id = message.id ?? -1
@@ -34,6 +38,4 @@ public struct DownloadManagerElement: Identifiable {
     private static func getMetaData(_ message: Message) -> FileMetaData? {
         return message.fileMetaData
     }
-    
-    public var threaId: Int? { viewModel.message.threadId ?? viewModel.message.conversation?.id }
 }
