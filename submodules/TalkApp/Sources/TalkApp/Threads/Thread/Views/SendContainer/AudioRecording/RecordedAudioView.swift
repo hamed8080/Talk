@@ -189,7 +189,10 @@ public final class RecordedAudioView: UIStackView {
     
     deinit {
         Task { @MainActor in
-            AppState.shared.objectsContainer.audioPlayerVM.close()
+            if AppState.shared.objectsContainer.audioPlayerVM.item?.messageId == -2 {
+                AppState.shared.objectsContainer.audioPlayerVM.pause()
+                AppState.shared.objectsContainer.audioPlayerVM.close()
+            }
         }
     }
 }
