@@ -92,7 +92,11 @@ public final class MoveToBottomButton: UIButton {
         let unreadCount = thread?.unreadCount ?? 0
         
         lblUnreadCount.setIsHidden(unreadCount == 0)
-        self.lblUnreadCount.label.addFlipAnimation(text: thread?.unreadCountString)
+        
+        /// Prevent duplicate flip animation if they are the same value.
+        if thread?.unreadCountString != lblUnreadCount.label.text {
+            self.lblUnreadCount.label.addFlipAnimation(text: thread?.unreadCountString)
+        }
     }
     
     public func show(_ show: Bool) {

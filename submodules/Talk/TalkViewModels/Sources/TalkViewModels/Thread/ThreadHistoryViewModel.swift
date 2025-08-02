@@ -160,6 +160,7 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 1
     private func runFirstScenario(time: UInt, id: Int) async {
         do {
+            /// Show cneter loading.
             showCenterLoading(true)
             
             let topVMS = try await onTopToTime(toTime: (thread.lastSeenMessageTime ?? 0).advanced(by: 1))
@@ -175,6 +176,7 @@ extension ThreadHistoryViewModel {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top)
             }
             
+            /// Hide cneter loading.
             showCenterLoading(false)
             
             /// Fetch reactions
