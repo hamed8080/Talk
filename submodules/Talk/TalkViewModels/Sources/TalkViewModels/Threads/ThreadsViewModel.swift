@@ -81,14 +81,16 @@ public final class ThreadsViewModel: ObservableObject {
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
             return true
         } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
+            let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
             await calculateAppendSortAnimate(conversation)
+            updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
             return false
         }
         return false
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
-        let activeVM = navVM.presentedThreadViewModel?.viewModel
+        let activeVM = navVM.viewModel(for: updatedConversation.id ?? -1)
         if updatedConversation.id == activeVM?.id {
             Task {
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
