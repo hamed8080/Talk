@@ -210,7 +210,7 @@ extension TabRowModel {
             if message.isVideo || message.isAudio {
                 "play.fill"
             } else {
-                message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "document"
+                message.iconName ?? "document"
             }
         case .downloading:
             "pause.fill"

@@ -50,7 +50,7 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
         if calMessage.fileURL != nil {
             fileState.state = .completed
             fileState.showDownload = false
-            fileState.iconState = await message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? ""
+            fileState.iconState = await message.iconName ?? ""
         }
         Task { @MainActor in
             self.calMessage = calMessage

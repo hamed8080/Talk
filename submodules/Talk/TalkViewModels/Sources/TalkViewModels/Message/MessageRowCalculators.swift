@@ -93,7 +93,7 @@ class MessageRowCalculators {
         var fileState = oldState
         fileState.state = .completed
         fileState.showDownload = false
-        fileState.iconState = iconName?.replacingOccurrences(of: ".circle", with: "") ?? ""
+        fileState.iconState = iconName ?? ""
         return fileState
     }
     

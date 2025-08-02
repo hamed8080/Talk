@@ -94,9 +94,9 @@ public struct AttachmentFile: Identifiable, Hashable {
         case ".mp4", ".avi", ".mkv":
             return "play.rectangle.fill"
         case ".mp3", ".m4a":
-            return "play.circle.fill"
+            return "play.fill"
         case ".docx", ".pdf", ".xlsx", ".txt", ".ppt":
-            return "doc.circle.fill"
+            return "doc.fill"
         case ".zip", ".rar", ".7z":
             return "doc.zipper"
         default:

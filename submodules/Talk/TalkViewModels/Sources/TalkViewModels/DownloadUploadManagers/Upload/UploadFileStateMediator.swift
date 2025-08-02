@@ -21,7 +21,7 @@ public class UploadFileStateMediator {
     
     private func getIconState(vm: UploadFileViewModel) -> String {
         switch vm.state {
-        case .completed: vm.message.iconName?.replacingOccurrences(of: ".circle", with: "") ?? "arrow.up"
+        case .completed: vm.message.iconName ?? "arrow.up"
         case .uploading: "xmark"
         case .paused: "play.fill"
         default: "arrow.up"

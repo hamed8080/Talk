@@ -12,15 +12,15 @@ public extension ChatModels.MessageType {
     var iconName: String? {
         switch self {
         case .text:
-            return "doc.circle.fill"
+            return "doc.fill"
         case .voice, .sound, .video, .podSpaceVoice, .podSpaceSound, .podSpaceVideo:
-            return "play.circle.fill"
+            return "play.fill"
         case .picture, .podSpacePicture:
-            return "photo.circle.fill"
+            return "photo.fill"
         case .file, .podSpaceFile:
             return nil
         case .link:
-            return "link.circle.fill"
+            return "link.fill"
         case .endCall:
             return "phone.arrow.down.left"
         case .startCall:
@@ -28,7 +28,7 @@ public extension ChatModels.MessageType {
         case .sticker:
             return "face.smiling"
         case .location:
-            return "map.circle.fill"
+            return "map.fill"
         case .participantJoin:
             return "person.crop.rectangle.badge.plus"
         case .participantLeft:
