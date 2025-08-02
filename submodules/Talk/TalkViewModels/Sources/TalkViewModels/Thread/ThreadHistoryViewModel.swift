@@ -549,8 +549,6 @@ extension ThreadHistoryViewModel {
             }
         }
         
-        await waitingToFinishDecelerating()
-        
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         
         /// We have to store section count and last top message before appending them to the threads array
@@ -617,7 +615,6 @@ extension ThreadHistoryViewModel {
             }
         }
 
-        await waitingToFinishDecelerating()
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         
         /// We have to store section count  before appending them to the threads array
@@ -1457,32 +1454,6 @@ public extension ThreadHistoryViewModel {
                                 participantsColorVM: viewModel?.participantsColorVM,
                                 isInSelectMode: viewModel?.selectedMessagesViewModel.isInSelectMode ?? false,
                                 joinLink: AppState.shared.spec.paths.talk.join)
-    }
-}
-
-extension ThreadHistoryViewModel {
-
-    @DeceleratingActor
-    func waitingToFinishDecelerating() async {
-        var isEnded = false
-        while(!isEnded) {
-            if await viewModel?.scrollVM.isEndedDecelerating == true {
-                isEnded = true
-#if DEBUG
-                print("Deceleration has been completed.")
-#endif
-            } else if await viewModel == nil {
-                isEnded = true
-#if DEBUG
-                print("ViewModel has been deallocated, thus, the deceleration will end.")
-#endif
-            } else {
-#if DEBUG
-                print("Waiting for the deceleration to be completed.")
-#endif
-                try? await Task.sleep(for: .nanoseconds(500000))
-            }
-        }
     }
 }
 

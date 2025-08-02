@@ -98,6 +98,10 @@ extension UIHistoryTableView: UITableViewDelegate {
         revealAnimation.reveal(for: cell)
         sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
         
+        /// To set initial state of the move to bottom visibility once opening the thread.
+        if !isDragging && !isDecelerating {
+            changeLastMessageIfNeeded(isVisible: sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id)
+        }
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -198,16 +202,10 @@ extension UIHistoryTableView {
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         viewModel?.scrollVM.lastContentOffsetY = scrollView.contentOffset.y
-        Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
-            await self?.viewModel?.scrollVM.isEndedDecelerating = false
-        }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         log("deceleration ended has been called")
-        Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
-            await self?.viewModel?.scrollVM.isEndedDecelerating = true
-        }
         
         let isLastMessageVisible = isLastMessageVisible()
         changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
@@ -219,9 +217,6 @@ extension UIHistoryTableView {
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if decelerate == false {
             log("stop immediately with no deceleration")
-            Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
-                await self?.viewModel?.scrollVM.isEndedDecelerating = true
-            }
             
             let isLastMessageVisible = isLastMessageVisible()
             changeLastMessageIfNeeded(isVisible: isLastMessageVisible)

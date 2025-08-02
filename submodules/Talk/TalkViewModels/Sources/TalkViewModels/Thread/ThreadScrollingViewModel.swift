@@ -10,12 +10,6 @@ import Foundation
 import UIKit
 import TalkModels
 
-public actor DeceleratingBackgroundActor {}
-
-@globalActor public actor DeceleratingActor: GlobalActor {
-    public static var shared = DeceleratingBackgroundActor()
-}
-
 @MainActor
 public final class ThreadScrollingViewModel {
     var task: Task<(), Never>?
@@ -25,7 +19,6 @@ public final class ThreadScrollingViewModel {
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1)}
     public var isAtBottomOfTheList: Bool = false
     public var lastContentOffsetY: CGFloat = 0
-    @DeceleratingActor public var isEndedDecelerating: Bool = true
     init() {}
 
     public func setup(viewModel: ThreadViewModel) {
