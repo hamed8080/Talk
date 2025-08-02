@@ -100,7 +100,9 @@ extension UIHistoryTableView: UITableViewDelegate {
         
         /// To set initial state of the move to bottom visibility once opening the thread.
         if !isDragging && !isDecelerating {
-            changeLastMessageIfNeeded(isVisible: sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id)
+            let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id
+            let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModel?.thread.lastMessageVO?.id ?? 0
+            changeLastMessageIfNeeded(isVisible: isSame || isGreater)
         }
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)

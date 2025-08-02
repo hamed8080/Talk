@@ -59,11 +59,7 @@ public class UploadFileStateMediator {
             let beforeSectionCount = historyVM.sections.count
             await historyVM.injectUploadsAndSort(elements)
             let tuple = historyVM.sections.indexPathsForUpload(requests: elements.compactMap{$0.viewModel.message}, beforeSectionCount: beforeSectionCount)
-            if let sectionSet = tuple.sectionIndex {
-                threadVM.delegate?.inserted(sectionSet, tuple.indices, .left, nil)
-            } else {
-                threadVM.delegate?.inserted(IndexSet(), tuple.indices, .left, nil)
-            }
+            threadVM.delegate?.inserted(tuple.sectionIndex ?? IndexSet(), tuple.indices, nil, nil, true)
             // Sleep for better animation when we insert something at the end of the list in upload for multiple items.
             try? await Task.sleep(for: .seconds(0.2))
             let sectionCount = historyVM.sections.count

@@ -186,7 +186,7 @@ public final class ThreadsViewModel: ObservableObject {
         }
         objectWillChange.send()
         
-        await updateActiveThreadAfterDisconnect()
+        updateActiveThreadAfterDisconnect()
         if !response.cache, wasDisconnected {
             /// scroll To first sortedItem if we were way down in the list to show correct row
             scrollToId = sorted.first?.id
@@ -227,10 +227,10 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
     
-    private func updateActiveThreadAfterDisconnect() async {
+    private func updateActiveThreadAfterDisconnect() {
         if wasDisconnected,
            let activeVM = navVM.presentedThreadViewModel?.viewModel,
-           let updatedThread = threads.first(where: {$0.id == activeVM.id}) {
+           let updatedThread = threads.first(where: {($0.id ?? 0) as Int == activeVM.id as Int}) {
             activeVM.thread = updatedThread.toStruct()
             activeVM.delegate?.onUnreadCountChanged()
         }

@@ -192,8 +192,7 @@ public final class ThreadSendMessageViewModel {
                 let lastSectionIndex = max(0, (historyVM?.sections.count ?? 0) - 1)
                 let row = max((historyVM?.sections[lastSectionIndex].vms.count ?? 0) - 1, 0)
                 let indexPath = IndexPath(row: row, section: lastSectionIndex)
-                delegate?.inserted(at: indexPath)
-                delegate?.scrollTo(index: indexPath, position: .bottom, animate: true)
+                delegate?.inserted(IndexSet(), [indexPath], indexPath, .bottom, true)
                 send(.normal(request))
             }
         }

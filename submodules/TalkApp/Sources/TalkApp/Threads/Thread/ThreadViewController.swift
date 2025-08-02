@@ -528,49 +528,33 @@ extension ThreadViewController: HistoryScrollDelegate {
         cell.updateReplyImageThumbnail(viewModel: viewModel)
     }
     
-    func inserted(at: IndexPath) {
-        log("inserted at indexPath: \(at)")
-        log("TableView state: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
+    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ scrollToIndexPath: IndexPath?, _ at: UITableView.ScrollPosition?, _ performWithAnimation: Bool) {
+        if performWithAnimation {
+            runInserted(sections, rows, at, scrollToIndexPath, true)
+        } else {
+            UIView.performWithoutAnimation {
+                runInserted(sections, rows, at, scrollToIndexPath, false)
+            }
+        }
+    }
+    
+    func runInserted(_ sections: IndexSet, _ rows: [IndexPath], _ at: UITableView.ScrollPosition?, _ scrollTo: IndexPath?, _ animate: Bool) {
         tableView.beginUpdates()
         
-        // Insert a new section if we have a message in a new day.
-        let beforeNumberOfSections = tableView.numberOfSections
-        if beforeNumberOfSections < at.section + 1 { // +1 for make it count instead of index
-            tableView.insertSections(IndexSet(beforeNumberOfSections..<at.section + 1), with: .none)
+        if !sections.isEmpty {
+            self.tableView.insertSections(sections, with: .none)
         }
-        tableView.insertRows(at: [at], with: .fade)
+        if !rows.isEmpty {
+            self.tableView.insertRows(at: rows, with: .none)
+        }
         tableView.endUpdates()
-    }
-    
-    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ animate: UITableView.RowAnimation = .top, _ scrollTo: IndexPath?) {
-        if let scrollTo = scrollTo {
-            insertedWithoutAnimation(sections: sections, rows: rows, scrollTo: scrollTo)
-        } else {
-            insertedWithAnimation(sections: sections, rows: rows)
-        }
-    }
-    
-    func inserted(_ sections: IndexSet, _ rows: [IndexPath], _ scrollToIndexPath: IndexPath, _ at: UITableView.ScrollPosition = .none) {
-        UIView.performWithoutAnimation {
-            tableView.beginUpdates()
-            
-            if !sections.isEmpty {
-                self.tableView.insertSections(sections, with: .none)
-            }
-            if !rows.isEmpty {
-                self.tableView.insertRows(at: rows, with: .none)
-            }
-            tableView.endUpdates()
-            
-            tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: false)
-        }
-    }
-    
-    func insertedWithoutAnimation(sections: IndexSet, rows: [IndexPath], scrollTo: IndexPath) {
-        log("inserted and scroll to")
-        log("insertingSections without animation: \(sections), insertingRows: \(rows)")
-        log("TableView state without animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
         
+        if let scrollToIndexPath = scrollTo, let at = at {
+            tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: animate)
+        }
+    }
+    
+    func insertedWithContentOffsset(_ sections: IndexSet, _ rows: [IndexPath]) {
         /// We use setContentOffset instead of scrollTo,
         /// it will move without jumping sections and it needs estimated height to be close and calculated
         /// in advance, in order to append at top smoothly.
@@ -580,7 +564,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         let previousContentHeight = tableView.contentSize.height
         UIView.performWithoutAnimation {
             tableView.beginUpdates()
-             
+            
             if !sections.isEmpty {
                 self.tableView.insertSections(sections, with: .none)
             }
@@ -591,30 +575,13 @@ extension ThreadViewController: HistoryScrollDelegate {
             
             // Ensure layout pass fully completes
             tableView.layoutIfNeeded()
-
+            
             // 2. Calculate height difference after insert
             let newContentHeight = tableView.contentSize.height
             let heightDifference = newContentHeight - previousContentHeight
-
+            
             // 3. Adjust content offset to preserve visual position
             tableView.setContentOffset(CGPoint(x: previousOffset.x, y: previousOffset.y + heightDifference), animated: false)
-        }
-    }
-
-    func insertedWithAnimation(sections: IndexSet, rows: [IndexPath]) {
-        if sections.isEmpty && rows.isEmpty {
-            return
-        }
-        log("inserted without scroll to")
-        log("insertingSections with animation: \(sections), insertingRows: \(rows)")
-        log("TableView state with animation: \(tableView.numberOfSections), data source state: \(viewModel?.historyVM.sections.count)")
-        tableView.performBatchUpdates { [weak self] in
-            if !sections.isEmpty {
-                self?.tableView.insertSections(sections, with: .none)
-            }
-            if !rows.isEmpty {
-                self?.tableView.insertRows(at: rows, with: .none)
-            }
         }
     }
     

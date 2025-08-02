@@ -173,7 +173,7 @@ extension ThreadHistoryViewModel {
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
             
             if let indexPath = sections.viewModelAndIndexPath(for: LocalId.unreadMessageBanner.rawValue)?.indexPath {
-                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top)
+                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top, false)
             }
             
             /// Hide cneter loading.
@@ -219,7 +219,7 @@ extension ThreadHistoryViewModel {
             
             /// Insert and scroll to the last thread message.
             if let indexPath = lastMessageIndexPath {
-                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom)
+                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             }
             
             showCenterLoading(false)
@@ -257,21 +257,33 @@ extension ThreadHistoryViewModel {
             /// Reorder the banner to new position.
             removeOldBanner()
             
-            let oldMessage = sections.last?.vms.last?.message as? Message
-            if let time = oldMessage?.time, let id = thread.lastSeenMessageId{
+            /// Keep last section index
+            let beforeSectionCount = sections.count
+            let oldVM = sections.last?.vms.last
+            let oldLastIndex = beforeSectionCount - 1
+            let oldItemsInSectionCount = sections[oldLastIndex].vms.count
+                        
+            if let time = oldVM?.message.time, let id = thread.lastSeenMessageId {
+                
+                /// Create unread banner viewModel
                 let vm = await createUnreadBanner(time: time, id: id, viewModel: viewModel ?? .init(thread: thread))
-                sections[sections.count - 1].vms.append(vm)
-                delegate?.inserted(at: IndexPath(row: sections[sections.count - 1].vms.count, section: sections.count - 1))
+                
+                /// Append bannder to the old section.
+                sections[oldLastIndex].vms.append(vm)
+                
+                /// Create an index path for the banner row where the row index is equal to the count of old section.
+                let indexPath = IndexPath(row: oldItemsInSectionCount, section: oldLastIndex)
+                
+                delegate?.inserted(IndexSet(), [indexPath], nil, nil, false)
             }
             
-            let beforeSectionCount = sections.count
             let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, vms)
-            let beforeAppnedLastVM = sections.last?.vms.last
+   
             /// Set isFirst message of the user befor join at bottom if the prev owner is different
             /// If the user reconnect less than 45 seconds there is a chance that chat server sent
             /// onNewMessage event, so in append message in onNewMessage
             /// we will take care of this situation there too.
-            vms.first?.calMessage.isFirstMessageOfTheUser = vms.first?.message.ownerId != beforeAppnedLastVM?.message.ownerId
+            vms.first?.calMessage.isFirstMessageOfTheUser = vms.first?.message.ownerId != oldVM?.message.ownerId
             
             /// Appned to the list.
             appendSort(vms)
@@ -282,7 +294,7 @@ extension ThreadHistoryViewModel {
             /// Insert with no scroll.
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, vms)
             if let firstIndexPath = tuple.rows.first {
-                delegate?.inserted(tuple.sections, tuple.rows, .bottom, nil)
+                delegate?.inserted(tuple.sections, tuple.rows, nil, nil, false)
             }
             
             /// Reload if sntitchi point has changed.
@@ -346,7 +358,7 @@ extension ThreadHistoryViewModel {
             
             /// Update UITableView and scroll to the disered indexPath.
             if let message = message, let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
-                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top)
+                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top, false)
             }
             
             /// Animate to show hightlight if is needed.
@@ -417,7 +429,7 @@ extension ThreadHistoryViewModel {
             /// Insert and scroll to the last thread message.
             let uniqueId = sections.last?.vms.last?.message.uniqueId
             if let uniqueId = uniqueId, let indexPath = sections.indexPathBy(messageUniqueId: uniqueId) {
-                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom)
+                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             }
             
             showCenterLoading(false)
@@ -495,7 +507,7 @@ extension ThreadHistoryViewModel {
             
             /// Scroll to the saved offset
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, vms)
-            delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top)
+            delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top, false)
 
             /// Hide center loading
             showCenterLoading(false)
@@ -541,7 +553,7 @@ extension ThreadHistoryViewModel {
         }
     }
 
-    private func onMoreTop(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false, moveToLastMessage: Bool = false) async {
+    private func onMoreTop(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
         let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
         viewModels.forEach { vm in
             if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
@@ -563,14 +575,7 @@ extension ThreadHistoryViewModel {
         viewModel?.scrollVM.disableExcessiveLoading()
         setHasMoreTop(viewModels.count >= count)
         let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, viewModels)
-        let closeToTop = viewModel?.scrollVM.lastContentOffsetY ?? 0 < 24
-        var indexPathToScroll: IndexPath?
-        if closeToTop, let lastTopMessageVM = lastTopMessageVM {
-            indexPathToScroll = sections.indexPath(for: lastTopMessageVM)
-        } else if moveToLastMessage, let vm = sections.last?.vms.last {
-            indexPathToScroll = sections.indexPath(for: vm)
-        }
-        delegate?.inserted(tuple.sections, tuple.rows, .top, indexPathToScroll)
+        delegate?.insertedWithContentOffsset(tuple.sections, tuple.rows)
         
         if let row = shouldUpdateOldTopSection, let indexPath = sections.indexPath(for: row) {
             delegate?.reloadData(at: indexPath)
@@ -627,7 +632,7 @@ extension ThreadHistoryViewModel {
         viewModel?.scrollVM.disableExcessiveLoading()
         setHasMoreBottom(viewModels.count >= count)
         let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+        delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
 
         if let row = shouldUpdateOldBottomSection, let indexPath = sections.indexPath(for: row) {
             delegate?.reloadData(at: indexPath)
@@ -757,7 +762,7 @@ extension ThreadHistoryViewModel {
         await appendSort(viewModels)
         
         let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+        delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
         if let lastSortedMessage = sortedMessages.last {
             viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(lastSortedMessage)
         }
@@ -800,7 +805,9 @@ extension ThreadHistoryViewModel {
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, [vm])
             vm.calMessage.isFirstMessageOfTheUser = vm.message.ownerId != beforeAppnedLastVM?.message.ownerId
             vm.calMessage.isLastMessageOfTheUser = true
-            delegate?.inserted(tuple.sections, tuple.rows, .left, nil)
+            let wasAtBottom = viewModel.scrollVM.isAtBottomOfTheList == true
+            let indexPath = tuple.rows.last
+            delegate?.inserted(tuple.sections, tuple.rows, wasAtBottom ? indexPath : nil, wasAtBottom ? .bottom : nil, true)
         }
         return vm
     }
