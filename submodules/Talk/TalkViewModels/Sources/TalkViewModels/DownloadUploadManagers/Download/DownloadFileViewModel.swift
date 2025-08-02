@@ -33,7 +33,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     public var url: URL? = nil
     public var isInCache: Bool = false
     private var isConverting = false
-
+    
     public init(message: Message) {
         self.message = message
         setObservers()
@@ -60,7 +60,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             self.fileHashCode = fileHashCode
         }
     }
-
+    
     /// It should be on the background thread because it decodes metadata in message.url.
     public func setup() async {
         if let url = url {
@@ -71,7 +71,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             }
         }
     }
-
+    
     public func setObservers() {
         NotificationCenter.download.publisher(for: .download)
             .compactMap { $0.object as? DownloadEventTypes }
@@ -92,7 +92,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             }
             .store(in: &cancellableSet)
     }
-
+    
     private func onDownloadEvent(_ event: DownloadEventTypes) {
         switch event {
         case .resumed(let uniqueId):
@@ -117,7 +117,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             break
         }
     }
-
+    
     public func startDownload() {
         if isInCache { return }
         if message.isImage == true {
@@ -126,7 +126,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             downloadFile()
         }
     }
-
+    
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
     private func downloadFile() {
         Task { [weak self] in
@@ -145,7 +145,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             animateObjectWillChange()
         }
     }
-
+    
     /// We use a Task to decode fileMetaData and hashCode inside the fileHashCode.
     private func downloadImage() {
         Task { [weak self] in
@@ -175,18 +175,18 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             return copied.fileHashCode ?? ""
         }
     }
-
+    
     private func onResponse(_ response: ChatResponse<Data>, _ url: URL?) {
         if response.uniqueId != uniqueId { return }
-
+        
         if response.cache, let data = response.result {
             setData(data: data)
         }
-
+        
         if let data = response.result {
             setData(data: data)
         }
-
+        
         if isGalleryURL(isCache: response.cache, url: url) {
             setData(data: response.result)
         }
@@ -209,7 +209,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         
         animateObjectWillChange()
     }
-
+    
     private func setData(data: Data?) {
         guard let filePath = fileURL, !isConverting else { return }
         Task { [weak self] in
@@ -234,7 +234,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
 #endif
         return false
     }
-
+    
 #if canImport(ffmpegkit)
     private func convertIfIsOpus(message: Message) async {
         isConverting = true
@@ -254,26 +254,26 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             animateObjectWillChange()
         }
     }
-
+    
     /// When the user clicks on the side of an image not directly hit the download button, it triggers gallery view, and therefore after the user is back to the view the image and file should update properly.
     private func isGalleryURL(isCache: Bool, url: URL?) -> Bool {
         !isCache && url?.absoluteString == fileURL?.absoluteString
     }
-
+    
     private func onSuspend(_ uniqueId: String) {
         if isSameUnqiueId(uniqueId) {
             state = .paused
             animateObjectWillChange()
         }
     }
-
+    
     private func onResumed(_ uniqueId: String) {
         if isSameUnqiueId(uniqueId) {
             state = .downloading
             animateObjectWillChange()
         }
     }
-
+    
     private func onProgress(_ uniqueId: String, _ progress: DownloadFileProgress?) {
         if isSameUnqiueId(uniqueId) {
             print("Resumable download progress in viewModel: \(progress?.percent ?? 0)")
@@ -283,7 +283,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             print("Resumable download uniqueId is not the same for uniqueId: \(uniqueId)")
         }
     }
-
+    
     public func pauseDownload() {
         let hashCode = fileHashCode
         Task { @ChatGlobalActor in
@@ -294,14 +294,21 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             }
         }
     }
-
+    
     public func resumeDownload() {
-        let hashCode = fileHashCode
-        Task { @ChatGlobalActor in
-            do {
-                try ChatManager.activeInstance?.file.resumeDownload(hashCode: hashCode)
-            } catch {
-                print(error.localizedDescription)
+        /// If the message is an image we have to download this without a resumable API.
+        if message.isImage {
+            redownload()
+            state = .downloading
+            animateObjectWillChange()
+        } else {
+            let hashCode = fileHashCode
+            Task { @ChatGlobalActor in
+                do {
+                    try ChatManager.activeInstance?.file.resumeDownload(hashCode: hashCode)
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
         }
     }
@@ -321,9 +328,9 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             }
         }
     }
-
+    
     private func isSameUnqiueId(_ uniqueId: String) -> Bool {
-         uniqueId == self.uniqueId
+        uniqueId == self.uniqueId
     }
     
     public func redownload() {
