@@ -138,7 +138,6 @@ extension ThreadHistoryViewModel {
         trySeventhScenario()
         tryEightScenario()
         tryNinthScenario()
-        reattachUploads()
     }
 }
 
@@ -221,6 +220,9 @@ extension ThreadHistoryViewModel {
             if let indexPath = lastMessageIndexPath {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             }
+            
+            /// Reattach upload files.
+            reattachUploads()
             
             showCenterLoading(false)
             
@@ -317,19 +319,18 @@ extension ThreadHistoryViewModel {
 
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
         /// 1- Move to a message locally if it exists.
-        if moveToBottom, !sections.isLastSeenMessageExist(thread: thread) {
-            removeAllSections()
-        } else if let uniqueId = canMoveToMessageLocally(messageId) {
+        /// Check to see if the messageId is not nil or greater than zero if we are uploading.
+        if let uniqueId = canMoveToMessageLocally(messageId), messageId > 0 {
             showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             moveToMessageLocally(uniqueId, messageId, moveToBottom, highlight, true)
             return
         }
         
-        await doMoveToTime(time, messageId, highlight: highlight, moveToBottom: moveToBottom)
+        await doMoveToTime(time, messageId, highlight: highlight)
     }
     
     // MARK: Scenario 6
-    private func doMoveToTime(_ time: UInt, _ messageId: Int, highlight: Bool, moveToBottom: Bool) async {
+    private func doMoveToTime(_ time: UInt, _ messageId: Int, highlight: Bool) async {
         do {
             viewModel?.scrollVM.isAtBottomOfTheList = false
             log("The message id to move to is not exist in the list")
@@ -374,6 +375,9 @@ extension ThreadHistoryViewModel {
             
             /// Hide center loading.
             showCenterLoading(false)
+            
+            /// Reattach upload files.
+            reattachUploads()
             
             /// Set we have more top or bottom rows.
             setHasMoreTop(topVMS.count >= count)
@@ -560,6 +564,8 @@ extension ThreadHistoryViewModel {
                 vm.calMessage.state.isSelected = true
             }
         }
+       
+        await waitingToFinishDecelerating()
         
         var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
         
@@ -1461,6 +1467,32 @@ public extension ThreadHistoryViewModel {
                                 participantsColorVM: viewModel?.participantsColorVM,
                                 isInSelectMode: viewModel?.selectedMessagesViewModel.isInSelectMode ?? false,
                                 joinLink: AppState.shared.spec.paths.talk.join)
+    }
+}
+
+extension ThreadHistoryViewModel {
+
+    @DeceleratingActor
+    func waitingToFinishDecelerating() async {
+        var isEnded = false
+        while(!isEnded) {
+            if await viewModel?.scrollVM.isEndedDecelerating == true {
+                isEnded = true
+#if DEBUG
+                print("Deceleration has been completed.")
+#endif
+            } else if await viewModel == nil {
+                isEnded = true
+#if DEBUG
+                print("ViewModel has been deallocated, thus, the deceleration will end.")
+#endif
+            } else {
+#if DEBUG
+                print("Waiting for the deceleration to be completed.")
+#endif
+                try? await Task.sleep(for: .nanoseconds(500000))
+            }
+        }
     }
 }
 

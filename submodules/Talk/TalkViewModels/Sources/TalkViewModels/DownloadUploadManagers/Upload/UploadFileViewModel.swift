@@ -15,6 +15,7 @@ public final class UploadFileViewModel: ObservableObject {
     public private(set) var fileMetaData: FileMetaData?
     public private(set) var fileSizeString: String = ""
     public private(set) var fileNameString: String = ""
+    public var retryCount = 0
     
     public init(message: HistoryMessageType) async {
         self.message = message
@@ -35,6 +36,7 @@ public final class UploadFileViewModel: ObservableObject {
         case .resumed(let uniqueId): updateState(uniqueId, to: .uploading)
         case .progress(let uniqueId, let uploadFileProgress): updateProgress(uniqueId, uploadFileProgress)
         case .completed(let uniqueId, let metaData, let _, let _): uploadCompleted(uniqueId, metaData)
+        case .failed(let uniqueId, let error): uploadFailed(uniqueId, error)
         default: break
         }
     }
@@ -83,6 +85,12 @@ public final class UploadFileViewModel: ObservableObject {
         }
     }
     
+    private func uploadFailed(_ uniqueId: String, _ error: ChatError?) {
+        if uniqueId == uploadUniqueId {
+            state = .error
+        }
+    }
+    
     private func updateState(_ uniqueId: String, to newState: UploadFileState) {
         if uniqueId == uploadUniqueId {
             state = newState
@@ -98,6 +106,11 @@ public final class UploadFileViewModel: ObservableObject {
     }
     
     public func reUpload() {
+        if retryCount > 3 {
+            return
+        }
+        state = .uploading
+        retryCount += 1
         action(.cancel)
         startUpload()
     }

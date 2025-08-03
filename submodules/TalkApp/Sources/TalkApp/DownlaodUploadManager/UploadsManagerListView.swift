@@ -18,7 +18,7 @@ public struct UploadsManagerListView: View {
     public var body: some View {
         List {
             ForEach(uploadsManager.elements) { element in
-                UploadElementRow(element: element)
+                UploadElementRow(element: element, paused: element.viewModel.state == .paused)
                     .environmentObject(element.viewModel)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
@@ -114,7 +114,7 @@ public struct UploadsManagerListView: View {
 fileprivate struct UploadElementRow: View {
     @EnvironmentObject var viewModel: UploadFileViewModel
     let element: UploadManagerElement
-    @State var paused: Bool = false
+    @State var paused: Bool
 
     var body: some View {
         HStack {

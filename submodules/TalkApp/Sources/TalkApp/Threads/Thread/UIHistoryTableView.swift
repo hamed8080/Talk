@@ -204,10 +204,16 @@ extension UIHistoryTableView {
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         viewModel?.scrollVM.lastContentOffsetY = scrollView.contentOffset.y
+        Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
+            await self?.viewModel?.scrollVM.isEndedDecelerating = false
+        }
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         log("deceleration ended has been called")
+        Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
+            await self?.viewModel?.scrollVM.isEndedDecelerating = true
+        }
         
         let isLastMessageVisible = isLastMessageVisible()
         changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
@@ -219,6 +225,9 @@ extension UIHistoryTableView {
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if decelerate == false {
             log("stop immediately with no deceleration")
+            Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
+                await self?.viewModel?.scrollVM.isEndedDecelerating = true
+            }
             
             let isLastMessageVisible = isLastMessageVisible()
             changeLastMessageIfNeeded(isVisible: isLastMessageVisible)

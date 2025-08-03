@@ -15,7 +15,9 @@ public final class UploadsManager: ObservableObject {
     private var cancellableSet = Set<AnyCancellable>()
     @Published public private(set) var elements: [UploadManagerElement] = []
     public let stateMediator = UploadFileStateMediator()
-    public init(){}
+    public init(){
+        registerConnection()
+    }
     private let MAX_NUMBER_OF_CONCURRENT_UPLOAD = 1
     
     public func enqueue(element: UploadManagerElement) {
@@ -34,6 +36,8 @@ public final class UploadsManager: ObservableObject {
         await stateMediator.onVMSatatechanged(element: element)
         if element.viewModel.state == .completed {
             onComplete(messageId: element.viewModel.message.id ?? -1)
+        } else if element.viewModel.state == .error {
+            element.viewModel.reUpload()
         }
     }
     
@@ -65,6 +69,10 @@ public final class UploadsManager: ObservableObject {
     }
     
     public func resume(element: UploadManagerElement) {
+        if element.viewModel.state == .error {
+            element.viewModel.reUpload()
+            return
+        }
         element.viewModel.action(.resume)
     }
     
@@ -90,7 +98,13 @@ public final class UploadsManager: ObservableObject {
     
     /// By resuming just one download another one will be triggered once download is completed.
     public func resumeAll() {
-        elements.first?.viewModel.action(.resume)
+        for element in elements.prefix(3) {
+            if element.viewModel.state == .error {
+                element.viewModel.reUpload()
+            } else {
+                element.viewModel.action(.resume)
+            }
+        }
     }
 }
 
@@ -109,7 +123,7 @@ extension UploadsManager {
         }
     }
     
-    public func redownload(message: Message) {
+    public func reupload(message: Message) {
         guard let element = elements.first(where: { $0.viewModel.message.id == message.id }) else { return }
         element.viewModel.reUpload()
     }
@@ -124,5 +138,28 @@ extension UploadsManager {
     
     public func element(uniqueId: String) -> UploadManagerElement? {
         return elements.first(where: {$0.id == uniqueId})
+    }
+}
+
+extension UploadsManager {
+    private func registerConnection() {
+        AppState.shared.$connectionStatus
+            .sink { [weak self] event in
+                Task { [weak self] in
+                    await self?.onConnectionStatusChanged(event)
+                }
+            }
+            .store(in: &cancellableSet)
+    }
+    
+    private func onConnectionStatusChanged(_ event: ConnectionStatus) {
+        if event == .connected {
+            let elements = elements.sorted(by: {$0.date < $1.date}).prefix(3)
+            elements.forEach { element in
+                resume(element: element)
+            }
+        } else if event == .disconnected {
+            pauseAll()
+        }
     }
 }
