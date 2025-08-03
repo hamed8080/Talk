@@ -66,6 +66,10 @@ public class UploadFileStateMediator {
             let rowCount = historyVM.sections.last?.vms.count ?? 0
             let indexPath = IndexPath(row: rowCount - 1, section: sectionCount - 1)
             await threadVM.scrollVM.scrollToLastUploadedMessageWith(indexPath)
+            
+            /// Force to hide move to buttom.
+            historyVM.delegate?.showMoveToBottom(show: false)
+            
             /// Hide empty thread dialog if it was showing
             await historyVM.showEmptyThread(show: false)
         }

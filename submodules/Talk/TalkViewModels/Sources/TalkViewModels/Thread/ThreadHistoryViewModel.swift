@@ -739,10 +739,26 @@ extension ThreadHistoryViewModel {
         if wasAtBottom {
             for message in messages {
                 let bottomVMBeforeJoin = sections.last?.vms.last
+                
+                /// Update thread properites
                 self.viewModel?.thread = updatedConversation
+                
+                /// Disable scrolling if it was uplaod message.
+                var isUplaod = false
                 let currentIndexPath = sections.indicesByMessageUniqueId(message.uniqueId ?? "")
-                let vm = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
-                viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
+                if let section = currentIndexPath?.section, let row = currentIndexPath?.row {
+                    isUplaod = sections[section].vms[row].message is UploadFileMessage
+                }
+                
+                /// Insert into the proper section or update if needed.
+                _ = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
+                
+                /// Scroll to the last message if it was upload.
+                if !isUplaod {
+                    viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
+                }
+                
+                /// Reload stitch point if it has changed.
                 reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
             }
         }
