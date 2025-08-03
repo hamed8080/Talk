@@ -36,8 +36,6 @@ public final class UploadsManager: ObservableObject {
         await stateMediator.onVMSatatechanged(element: element)
         if element.viewModel.state == .completed {
             onComplete(messageId: element.viewModel.message.id ?? -1)
-        } else if element.viewModel.state == .error {
-            element.viewModel.reUpload()
         }
     }
     
@@ -69,14 +67,11 @@ public final class UploadsManager: ObservableObject {
     }
     
     public func resume(element: UploadManagerElement) {
-        if element.viewModel.state == .error {
-            element.viewModel.reUpload()
-            return
-        }
         element.viewModel.action(.resume)
     }
     
-    public func cancel(element: UploadManagerElement) {
+    public func cancel(element: UploadManagerElement, userCanceled: Bool) {
+        element.viewModel.userCanceled = userCanceled
         element.viewModel.action(.cancel)
         elements.removeAll(where: {$0.viewModel.message.id == element.viewModel.message.id})
         stateMediator.removed(element)
@@ -123,8 +118,8 @@ extension UploadsManager {
         }
     }
     
-    public func reupload(message: Message) {
-        guard let element = elements.first(where: { $0.viewModel.message.id == message.id }) else { return }
+    public func reupload(element: UploadManagerElement) {
+        guard let element = elements.first(where: { $0.viewModel.uploadUniqueId == element.viewModel.uploadUniqueId }) else { return }
         element.viewModel.reUpload()
     }
     
@@ -156,7 +151,7 @@ extension UploadsManager {
         if event == .connected {
             let elements = elements.sorted(by: {$0.date < $1.date}).prefix(3)
             elements.forEach { element in
-                resume(element: element)
+                reupload(element: element)
             }
         } else if event == .disconnected {
             pauseAll()

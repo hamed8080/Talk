@@ -16,6 +16,7 @@ public final class UploadFileViewModel: ObservableObject {
     public private(set) var fileSizeString: String = ""
     public private(set) var fileNameString: String = ""
     public var retryCount = 0
+    public var userCanceled = false
     
     public init(message: HistoryMessageType) async {
         self.message = message
@@ -109,7 +110,6 @@ public final class UploadFileViewModel: ObservableObject {
         if retryCount > 3 {
             return
         }
-        state = .uploading
         retryCount += 1
         action(.cancel)
         startUpload()

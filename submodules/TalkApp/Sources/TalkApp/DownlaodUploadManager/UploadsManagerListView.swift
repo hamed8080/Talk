@@ -22,7 +22,7 @@ public struct UploadsManagerListView: View {
                     .environmentObject(element.viewModel)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
-                            showCancel(element)
+                            onCancelTapped(element)
                         } label: {
                             Label("", systemImage: "xmark.circle")
                         }
@@ -106,8 +106,8 @@ public struct UploadsManagerListView: View {
        .opacity(uploadsManager.elements.isEmpty ? 0.5 : 1.0)
     }
     
-    private func showCancel(_ element: UploadManagerElement) {
-        uploadsManager.cancel(element: element)
+    private func onCancelTapped(_ element: UploadManagerElement) {
+        uploadsManager.cancel(element: element, userCanceled: true)
     }
 }
 

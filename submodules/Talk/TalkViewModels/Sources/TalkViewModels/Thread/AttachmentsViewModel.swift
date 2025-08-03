@@ -78,8 +78,30 @@ public final class AttachmentsViewModel: ObservableObject {
     }
     
     public func onDocumentPicker(_ urls: [URL]) {
-        selectedFileUrls = urls
+        selectedFileUrls = moveURLS(urls)
         addSelectedFile()
+    }
+    
+    private func moveURLS(_ urls: [URL]) -> [URL] {
+        /// move to the temp folder
+        let tempDir = FileManager.default.temporaryDirectory
+        var movedURLs: [URL] = []
+        
+        for url in urls {
+            let filename = url.lastPathComponent
+            let newURL = tempDir.appendingPathComponent(filename)
+            
+            do {
+                if FileManager.default.fileExists(atPath: newURL.path) {
+                    try FileManager.default.removeItem(at: newURL)
+                }
+                try FileManager.default.copyItem(at: url, to: newURL)
+                movedURLs.append(newURL)
+            } catch {
+                print("Error moving file: \(error.localizedDescription)")
+            }
+        }
+        return movedURLs
     }
     
     private func resetSendContainerIfIsEmpty() {

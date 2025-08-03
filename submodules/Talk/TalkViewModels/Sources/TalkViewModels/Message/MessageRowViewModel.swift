@@ -160,7 +160,7 @@ public extension MessageRowViewModel {
         Task { [weak self] in
             guard let self = self, let uniqueId = uploadElementUniqueId else { return }
             if let element = AppState.shared.objectsContainer.uploadsManager.element(uniqueId: uniqueId) {
-                AppState.shared.objectsContainer.uploadsManager.cancel(element: element)
+                AppState.shared.objectsContainer.uploadsManager.cancel(element: element, userCanceled: true)
             }
         }
     }

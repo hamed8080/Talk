@@ -436,6 +436,8 @@ extension ThreadHistoryViewModel {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             }
             
+            reattachUploads()
+            
             showCenterLoading(false)
             /// Prevent fetch bottom loading
             /// becuase we get messages with offset so there is not message at bottom.
@@ -695,12 +697,17 @@ extension ThreadHistoryViewModel {
             break
         }
     }
-
+    
+    /// Only will be removed if the user intentionally
+    /// cancel the task by setting userCanceled falg to true.
     private func onUploadCanceled(_ uniqueId: String?) {
-        if let uniqueId = uniqueId {
-            removeByUniqueId(uniqueId)
-            //            animateObjectWillChange()
-        }
+        guard
+            let uniqueId = uniqueId,
+            let indexPath = sections.viewModelAndIndexPath(uploadElementUniqueId: uniqueId)?.indexPath,
+            AppState.shared.objectsContainer.uploadsManager.element(uniqueId: uniqueId)?.viewModel.userCanceled == true
+        else { return }
+        removeByUniqueId(uniqueId)
+        delegate?.delete(sections: [], rows: [indexPath])
     }
 
     private func onMessageEvent(_ event: MessageEventTypes?) async {
