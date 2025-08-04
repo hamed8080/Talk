@@ -35,12 +35,12 @@ public final class UploadsManager: ObservableObject {
     private func onUploadStateChanged(_ element: UploadManagerElement) async {
         await stateMediator.onVMSatatechanged(element: element)
         if element.viewModel.state == .completed {
-            onComplete(messageId: element.viewModel.message.id ?? -1)
+            onComplete(uniqueId: element.id)
         }
     }
     
-    private func onComplete(messageId: Int) {
-        elements.removeAll(where: {$0.viewModel.message.id == messageId})
+    private func onComplete(uniqueId: String) {
+        elements.removeAll(where: {$0.viewModel.uploadUniqueId == uniqueId})
         guard var element = elements.first else { return }
         uploadNextElement()
     }
