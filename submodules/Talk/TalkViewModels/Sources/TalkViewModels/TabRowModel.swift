@@ -81,6 +81,12 @@ public final class TabRowModel: ObservableObject {
             if state.state != .completed {
                 if state.state == .error {
                     manager.redownload(message: message)
+                } else if state.state == .undefined {
+                    /// Fake showing only downloading mode
+                    state.state = .downloading
+                    
+                    /// It will be moved to download queue if it was free it will start real downlaod
+                    manager.toggleDownloading(message: message)
                 } else {
                     manager.toggleDownloading(message: message)
                 }

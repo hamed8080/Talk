@@ -171,10 +171,10 @@ fileprivate struct DownloadElementRow: View {
             
             Circle()
                 .trim(from: 0.0, to: min(Double(percent) / 100, 1.0))
-                .stroke(style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                .foregroundColor(Color.App.white)
+                .stroke(style: StrokeStyle(lineWidth: 4.0, lineCap: .round, lineJoin: .round))
+                .foregroundColor(Color.App.textPrimary)
                 .rotationEffect(Angle(degrees: 270))
-                .frame(width: 28, height: 28)
+                .frame(width: 36, height: 36)
                 .rotateAnimtion(pause: $paused)
                 .environment(\.layoutDirection, .leftToRight)
         }

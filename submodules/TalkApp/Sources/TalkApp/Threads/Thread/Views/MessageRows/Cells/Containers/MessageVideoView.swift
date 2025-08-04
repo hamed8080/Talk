@@ -214,6 +214,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         let progress = viewModel.fileState.progress
         progressButton.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressButton.setProgressVisibility(visible: canShowProgress)
+        progressButton.showRotation(show: canShowProgress)
     }
 
     private var canShowProgress: Bool {

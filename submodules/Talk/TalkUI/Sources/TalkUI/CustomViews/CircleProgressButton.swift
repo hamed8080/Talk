@@ -27,7 +27,7 @@ public final class CircleProgressButton: UIButton {
     public init(progressColor: UIColor? = .darkText,
                 iconTint: UIColor? = Color.App.textPrimaryUIColor,
                 bgColor: UIColor? = .white.withAlphaComponent(0.3),
-                lineWidth: CGFloat = 3,
+                lineWidth: CGFloat = 2.5,
                 iconSize: CGSize = .init(width: 16, height: 16),
                 margin: CGFloat = 6
     ) {
@@ -90,6 +90,10 @@ public final class CircleProgressButton: UIButton {
         artworkShadowLayer.cornerRadius = bounds.width / 2
     
         drawProgress()
+        
+        progressLayerLine.frame = bounds
+        progressLayerLine.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        progressLayerLine.anchorPoint = CGPoint(x: 0.5, y: 0.5)
     }
     
     /// Draw line progress.
@@ -151,5 +155,34 @@ public final class CircleProgressButton: UIButton {
     public func setArtwork(_ image: UIImage?) {
         artworkImageLayer.contents = image?.cgImage
         artworkShadowLayer.opacity = image == nil ? 0.0 : 1.0
+    }
+    
+    public func showRotation(show: Bool) {
+        if show {
+            startRotatingProgressLayer()
+        } else {
+            stopRotatingProgressLayer()
+        }
+    }
+    
+    /// Starts rotating the progress ring layer indefinitely.
+    /// Call this when you want to begin rotation (e.g., during loading or buffering).
+    private func startRotatingProgressLayer(clockwise: Bool = true, duration: CFTimeInterval = 4.0) {
+        guard progressLayerLine.animation(forKey: "rotationAnimation") == nil else { return }
+
+        let rotation = CABasicAnimation(keyPath: "transform.rotation.z")
+        rotation.fromValue = 0
+        rotation.toValue = clockwise ? CGFloat.pi * 2 : -CGFloat.pi * 2
+        rotation.duration = duration
+        rotation.repeatCount = .infinity
+        rotation.isRemovedOnCompletion = false
+        rotation.fillMode = .forwards
+
+        progressLayerLine.add(rotation, forKey: "rotationAnimation")
+    }
+    
+    /// Stops rotating the progress ring layer.
+    private func stopRotatingProgressLayer() {
+        progressLayerLine.removeAnimation(forKey: "rotationAnimation")
     }
 }

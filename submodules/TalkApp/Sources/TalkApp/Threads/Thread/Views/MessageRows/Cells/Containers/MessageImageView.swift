@@ -218,6 +218,7 @@ final class MessageImageView: UIImageView {
         let progress = viewModel.fileState.progress
         progressView.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressView.setProgressVisibility(visible: canShowProgress)
+        progressView.showRotation(show: canShowProgress)
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {

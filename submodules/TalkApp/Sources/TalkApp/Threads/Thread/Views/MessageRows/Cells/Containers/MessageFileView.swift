@@ -128,6 +128,7 @@ final class MessageFileView: UIStackView {
         let progress = viewModel.fileState.progress
         progressButton.animate(to: progress, systemIconName: viewModel.fileState.iconState)
         progressButton.setProgressVisibility(visible: canShowProgress)
+        progressButton.showRotation(show: canShowProgress)
     }
 
     public func downloadCompleted(viewModel: MessageRowViewModel) {

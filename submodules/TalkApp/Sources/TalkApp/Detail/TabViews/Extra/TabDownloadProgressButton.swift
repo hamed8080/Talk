@@ -49,9 +49,9 @@ fileprivate struct DownloadCircle: View {
             Circle()
                 .trim(from: 0.0, to: min(rowModel.state.progress, 1.0))
                 .stroke(style: StrokeStyle(lineWidth: 4.0, lineCap: .round, lineJoin: .round))
-                .foregroundColor(Color.App.white)
-                .rotationEffect(Angle(degrees: 270))
                 .frame(width: 36, height: 36)
+                .foregroundColor(Color.App.textPrimary)
+                .rotationEffect(Angle(degrees: 270))
                 .environment(\.layoutDirection, .leftToRight)
                 .rotationEffect(.degrees(rowModel.degree))
         }
