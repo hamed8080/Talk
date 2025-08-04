@@ -191,7 +191,10 @@ public final class MainSendButtons: UIStackView {
         threadVM?.attachmentsViewModel.$attachments.dropFirst().sink { [weak self] attachments in
             guard let self = self else { return }
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.setMode(type: .voice, attachmentsCount: attachments.count)
+            viewModel.setMode(type: .voice)
+            if attachments.count > 0 {
+                showSendButton(true)
+            }
         }
         .store(in: &cancellableSet)
     }
@@ -316,7 +319,7 @@ public final class MainSendButtons: UIStackView {
             let mode = viewModel.getMode()
             btnMic.setIsHidden(!viewModel.showAudio(mode: mode))
             btnCamera.showWithAniamtion(viewModel.showCamera(mode: mode))
-            btnSend.showWithAniamtion(viewModel.showSendButton(mode: mode))
+            showSendButton(viewModel.showSendButton(mode: mode))
         }
     }
 
@@ -340,7 +343,7 @@ public final class MainSendButtons: UIStackView {
             let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.setMode(type: .voice, attachmentsCount: 1)
+            viewModel.setMode(type: .voice)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
@@ -356,7 +359,7 @@ public final class MainSendButtons: UIStackView {
             threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
             self.cameraCapturer = nil
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.setMode(type: .voice, attachmentsCount: 1)
+            viewModel.setMode(type: .voice)
         }
         self.cameraCapturer = captureObject
         (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)

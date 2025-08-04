@@ -150,7 +150,7 @@ public final class SendContainerViewModel: ObservableObject {
 
     public func showSendButton(mode: SendcContainerMode) -> Bool {
         !isTextEmpty() ||
-        mode.attachmentsCount > 0 ||
+        viewModel?.attachmentsViewModel.attachments.count ?? 0 > 0 ||
         hasForward() ||
         (mode.type == .edit && !isTextEmpty()) // when we add a peice of text to an empty image we should be able to show send button eventhough it's empty
     }
@@ -189,8 +189,8 @@ public final class SendContainerViewModel: ObservableObject {
         return mode
     }
     
-    public func setMode(type: SendcContainerMode.ModeType, editMessage: Message? = nil, attachmentsCount: Int = 0) {
-        self.mode = .init(type: type, editMessage: editMessage, attachmentsCount: attachmentsCount)
+    public func setMode(type: SendcContainerMode.ModeType, editMessage: Message? = nil) {
+        self.mode = .init(type: type, editMessage: editMessage)
     }
     
     public var modePublisher: Published<SendcContainerMode>.Publisher {

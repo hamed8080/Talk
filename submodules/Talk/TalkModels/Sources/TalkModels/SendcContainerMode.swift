@@ -4,7 +4,6 @@ import Chat
 public struct SendcContainerMode {
     public let type: ModeType
     public var editMessage: Message?
-    public let attachmentsCount: Int
     
     public enum ModeType {
         case voice
@@ -13,9 +12,8 @@ public struct SendcContainerMode {
         case edit
     }
     
-    public init(type: ModeType, editMessage: Message? = nil, attachmentsCount: Int = 0) {
+    public init(type: ModeType, editMessage: Message? = nil) {
         self.type = type
         self.editMessage = editMessage
-        self.attachmentsCount = attachmentsCount
     }
 }

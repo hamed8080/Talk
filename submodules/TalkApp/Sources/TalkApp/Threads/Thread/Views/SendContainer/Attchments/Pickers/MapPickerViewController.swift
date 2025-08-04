@@ -244,7 +244,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
         if let location = locationManager.currentLocation {
             viewModel?.attachmentsViewModel.append(attachments: [.init(type: .map, request: location)])
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel?.sendContainerViewModel.setMode(type: .voice, attachmentsCount: 1)
+            viewModel?.sendContainerViewModel.setMode(type: .voice)
         }
     }
 
