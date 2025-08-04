@@ -450,6 +450,9 @@ extension ThreadHistoryViewModel {
     /// Move to a time if save scroll position was on.
     private func tryScrollPositionScenario(_ model: SaveScrollPositionModel) async throws {
         if let time = model.message.time, let messageId = model.message.id {
+            /// Block top loading to prevent the call load more top
+            topLoading = true
+            
             viewModel?.scrollVM.isAtBottomOfTheList = false
             
             /// Show center loading
@@ -459,22 +462,31 @@ extension ThreadHistoryViewModel {
             let beforeSectionCount = sections.count
             
             /// Appned to the list
-            let vms = try await onTopWithFromTime(fromTime: time, prepend: keys.SAVE_SCROOL_POSITION_KEY)
+            let topParts = try await onMoreTopWithToTime(toTime: time, prepend: keys.SAVE_SCROOL_POSITION_KEY)
+            let bottomParts = try await onMoreBottomWithFromTime(fromTime: time, prepend: keys.SAVE_SCROOL_POSITION_KEY)
+            let vms = topParts + bottomParts
+            
             appendSort(vms)
             
             /// Disable excessive loading
             viewModel?.scrollVM.disableExcessiveLoading()
             
             /// Scroll to the saved offset
+            var scrollIndexPath = IndexPath(row: 0, section: 0)
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, vms)
-            delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top, false)
+            if let indexPath = sections.viewModelAndIndexPath(for: messageId)?.indexPath {
+                scrollIndexPath = indexPath
+            }
+            delegate?.inserted(tuple.sections, tuple.rows, scrollIndexPath, .top, false)
 
             /// Hide center loading
             showCenterLoading(false)
             
-            setHasMoreTop(true)
-            
             fetchReactionsAndAvatars(vms)
+            
+            /// Unblock top loading more method.
+            topLoading = false
+            setHasMoreTop(true)
         }
     }
     
