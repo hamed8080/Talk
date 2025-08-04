@@ -422,7 +422,7 @@ public class ContactsViewModel: ObservableObject {
             .compactMap{$0.historyVM}
         
         for vm in historyVMS {
-            vm.getSections()
+            vm.sections
                 .compactMap{$0.vms}
                 .flatMap({$0})
                 .filter{$0.message.participant?.id == contact.id}

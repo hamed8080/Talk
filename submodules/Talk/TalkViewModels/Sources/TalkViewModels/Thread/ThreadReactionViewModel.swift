@@ -41,18 +41,6 @@ public final class ThreadReactionViewModel {
                 }
             }
             .store(in: &cancelable)
-        AppState.shared.$connectionStatus
-            .sink { [weak self] status in
-                if status == .disconnected {
-                    self?.hasEverDisonnected = true
-                }
-                if status == .connected && self?.hasEverDisonnected == true {
-                    Task {
-                        await self?.onReconnected()
-                    }
-                }
-            }
-            .store(in: &cancelable)
     }
 
     public func getAllowedReactions() {
@@ -142,11 +130,6 @@ public final class ThreadReactionViewModel {
         }
     }
 
-    func onReconnected() async {
-        // clear all reactions
-        await clearReactionsOnReconnect()
-    }
-
     internal func fetchReactions(messages: [Message], withQueue: Bool) {
         guard threadVM?.searchedMessagesViewModel.isInSearchMode == false else { return}
         let messageIds = messages
@@ -161,10 +144,12 @@ public final class ThreadReactionViewModel {
     
     @ChatGlobalActor
     private func getReactionSummary(_ messageIds: [Int], conversationId: Int, withQueue: Bool) async {
+        let req = await ReactionCountRequest(messageIds: messageIds, conversationId: threadId)
+        RequestsManager.shared.append(prepend: REACTION_COUNT_LIST_KEY, value: req)
         if withQueue {
-            await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.reactionCount(req: .init(messageIds: messageIds, conversationId: threadId)))
+            await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.reactionCount(req: req))
         } else {
-            await ChatManager.activeInstance?.reaction.count(.init(messageIds: messageIds, conversationId: threadId))
+            await ChatManager.activeInstance?.reaction.count(req)
         }
     }
 
@@ -172,6 +157,7 @@ public final class ThreadReactionViewModel {
         // We have to check if the response count is greater than zero because there is a chance to get reactions of zero count.
         // And we need to remove older reactions if any of them were removed.
         guard
+            response.pop(prepend: REACTION_COUNT_LIST_KEY) != nil,
             let reactions = response.result,
             let historyVM = threadVM?.historyVM, reactions.count > 0
         else { return }
@@ -200,15 +186,6 @@ public final class ThreadReactionViewModel {
                 threadVM?.scrollVM.scrollToBottom()
             }
         }
-    }
-
-    internal func clearReactionsOnReconnect() async {
-        threadVM?.historyVM.getSections().forEach { section in
-            section.vms.forEach { vm in
-                vm.invalid()
-            }
-        }
-        await fetchVisibleReactionsOnReconnect()
     }
     
     private func onDeleteReaction(_ response: ChatResponse<ReactionMessageResponse>) {
@@ -270,11 +247,6 @@ public final class ThreadReactionViewModel {
     private func vmAndIndex(for messageId: Int?) -> (vm: MessageRowViewModel, indexPath: IndexPath)? {
         guard let messageId = messageId else { return nil }
         return threadVM?.historyVM.sections.viewModelAndIndexPath(for: messageId)
-    }
-
-    internal func fetchVisibleReactionsOnReconnect() async {
-        let visibleMessages = await (threadVM?.historyVM.getInvalidVisibleMessages() ?? []).compactMap({$0 as? Message})
-        fetchReactions(messages: visibleMessages, withQueue: true)
     }
     
 #if DEBUG

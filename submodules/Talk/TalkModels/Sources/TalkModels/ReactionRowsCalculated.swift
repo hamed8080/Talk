@@ -4,9 +4,11 @@ import Chat
 
 public struct ReactionRowsCalculated: Sendable {
     public var rows: [Row]
+    public let messageId: Int
 
-    public init(rows: [Row] = []) {
+    public init(messageId: Int, rows: [Row] = []) {
         self.rows = rows
+        self.messageId = messageId
     }
 
     public struct Row: Identifiable, Sendable {

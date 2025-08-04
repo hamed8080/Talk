@@ -33,8 +33,6 @@ public final class ThreadHistoryViewModel {
     private var cancelable: Set<AnyCancellable> = []
     private var hasSentHistoryRequest = false
     internal var seenVM: HistorySeenViewModel? { viewModel?.seenVM }
-    @VisibleActor
-    private var visibleTracker = VisibleMessagesTracker()
     private var highlightVM = ThreadHighlightViewModel()
     private var lastItemIdInSections = 0
     private let keys = RequestKeys()
@@ -52,7 +50,6 @@ public final class ThreadHistoryViewModel {
         self.thread = thread
         threadId = thread.id ?? -1
         Task { @MainActor in
-            await setupVisible()
             highlightVM.setup(self)
             setupNotificationObservers()
             deleteQueue.viewModel = self
@@ -60,34 +57,8 @@ public final class ThreadHistoryViewModel {
     }
 }
 
-extension ThreadHistoryViewModel: StabledVisibleMessageDelegate {
-    func onStableVisibleMessages(_ messages: [HistoryMessageType]) async {
-        let invalidVisibleMessages = await getInvalidVisibleMessages().compactMap({$0 as? Message})
-        if invalidVisibleMessages.count > 0 {
-            viewModel?.reactionViewModel.fetchReactions(messages: invalidVisibleMessages, withQueue: false)
-        }
-    }
-}
-
-extension ThreadHistoryViewModel {
-    internal func getInvalidVisibleMessages() async -> [HistoryMessageType] {
-        var invalidMessages: [Message] =  []
-        let list = await visibleTracker.visibleMessages.compactMap({$0 as? Message})
-        for message in list {
-            if let vm = sections.messageViewModel(for: message.id ?? -1), await vm.isInvalid {
-                invalidMessages.append(message)
-            }
-        }
-        return invalidMessages
-    }
-}
-
 // MARK: Setup/Start
 extension ThreadHistoryViewModel {
-    @VisibleActor
-    private func setupVisible() {
-        visibleTracker.delegate = self
-    }
     
     // MARK: Scenarios Common Functions
     public func start() {
@@ -178,8 +149,8 @@ extension ThreadHistoryViewModel {
             /// Hide cneter loading.
             showCenterLoading(false)
             
-            /// Fetch reactions
-            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
             
             await prepareAvatars(vms)
         } catch {
@@ -226,8 +197,8 @@ extension ThreadHistoryViewModel {
             
             showCenterLoading(false)
             
-            /// Fetch reactions
-            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
             
             await prepareAvatars(vms)
             
@@ -308,8 +279,8 @@ extension ThreadHistoryViewModel {
             showBottomLoading(false)
             setHasMoreBottom(vms.count >= count)
             
-            /// Fetch reactions
-            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
             
             await prepareAvatars(vms)
         } catch {
@@ -389,8 +360,8 @@ extension ThreadHistoryViewModel {
                 setHasMoreBottom(false)
             }
             
-            /// Fetch reactions
-            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
             
             await prepareAvatars(vms)
             
@@ -408,7 +379,6 @@ extension ThreadHistoryViewModel {
                                           position: moveToBottom ? .bottom : .top,
                                           animate: animate)
     }
-
     
     private func trySeventhScenario() {
         guard thread.lastMessageVO?.id ?? 0 < thread.lastSeenMessageId ?? 0 else { return }
@@ -443,8 +413,8 @@ extension ThreadHistoryViewModel {
             /// becuase we get messages with offset so there is not message at bottom.
             setHasMoreBottom(false)
             
-            /// Fetch reactions
-            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
             
             await prepareAvatars(vms)
             
@@ -520,8 +490,8 @@ extension ThreadHistoryViewModel {
             
             setHasMoreTop(true)
             
-            /// Fetch reactions
-            fetchReactions(messages: vms.flatMap({$0.message as? Message}))
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
             
             /// Fetch user avatars
             await prepareAvatars(vms)
@@ -548,118 +518,67 @@ extension ThreadHistoryViewModel {
         }
     }
 
-    private func moreTop(prepend: String, _ toTime: UInt) async {
-        showTopLoading(true)
-        log("SendMoreTopRequest")
-        do {
-            let vms = try await onMoreTopWithToTime(toTime: toTime, prepend: prepend)
-            await onMoreTop(vms)
-        } catch {
-            showTopLoading(false)
-        }
-    }
-
-    private func onMoreTop(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
-        let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
-        viewModels.forEach { vm in
-            if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
-                vm.calMessage.state.isSelected = true
-            }
-        }
-       
-        await waitingToFinishDecelerating()
-        
-        var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
-        
-        /// We have to store section count and last top message before appending them to the threads array
-        let wasEmpty = sections.isEmpty
-        let topVMBeforeJoin = sections.first?.vms.first
-        let lastTopMessageVM = sections.first?.vms.first
-        let beforeSectionCount = sections.count
-        let shouldUpdateOldTopSection = StitchAvatarCalculator.forTop(sections, viewModels)
-        
-        appendSort(viewModels)
-        /// 4- Disable excessive loading on the top part.
-        viewModel?.scrollVM.disableExcessiveLoading()
-        setHasMoreTop(viewModels.count >= count)
-        let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.insertedWithContentOffsset(tuple.sections, tuple.rows)
-        
-        if let row = shouldUpdateOldTopSection, let indexPath = sections.indexPath(for: row) {
-            delegate?.reloadData(at: indexPath)
-        }
-                
-        /// We should not detect last message deleted if we are going to fetch with middleFetcher
-        /// because the list is empty before we move to time, so it will calculate it wrongly.
-        /// And if we moveToTime, and start scrolling to top the list is not empty anymore,
-        /// so the wasEmpty is false.
-        if !isMiddleFetcher, wasEmpty {
-            detectLastMessageDeleted(sortedMessages: viewModels.compactMap { $0.message })
-        }
-   
-        topLoading = false
-
-        viewModel?.delegate?.startTopAnimation(false)
-        viewModel?.delegate?.startCenterAnimation(false)
-        if !isMiddleFetcher {
-            fetchReactions(messages: viewModels.compactMap({$0.message}))
-        }
-        
-        await prepareAvatars(viewModels)
-    }
-    
-    private func moreBottom(prepend: String, _ fromTime: UInt) async {
-        if !canLoadMoreBottom() { return }
-        showBottomLoading(true)
-        log("SendMoreBottomRequest")
-        do {
-            let vms = try await onMoreBottomWithFromTime(fromTime: fromTime, prepend: prepend)
-            await onMoreBottom(vms)
-        } catch {
-            showBottomLoading(false)
-        }
-    }
-
-    private func onMoreBottom(_ viewModels: [MessageRowViewModel], isMiddleFetcher: Bool = false) async {
-        let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
-        viewModels.forEach { vm in
-            if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
-                vm.calMessage.state.isSelected = true
-            }
-        }
-
-        var viewModels = removeDuplicateMessagesBeforeAppend(viewModels)
-        
-        /// We have to store section count  before appending them to the threads array
-        let beforeSectionCount = sections.count
-        let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, viewModels)
-        
-        appendSort(viewModels)
-
-        /// 4- Disable excessive loading on the top part.
-        viewModel?.scrollVM.disableExcessiveLoading()
-        setHasMoreBottom(viewModels.count >= count)
-        let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
-
-        if let row = shouldUpdateOldBottomSection, let indexPath = sections.indexPath(for: row) {
-            delegate?.reloadData(at: indexPath)
-        }
-
-        isFetchedServerFirstResponse = true
-        showBottomLoading(false)
-
-        if !isMiddleFetcher {
-            fetchReactions(messages: viewModels.compactMap({$0.message}))
-        }
-        await prepareAvatars(viewModels)
-    }
-
     public func loadMoreTop(message: HistoryMessageType) {
         if let time = message.time, canLoadMoreTop() {
             Task {
                 await moreTop(prepend: keys.MORE_TOP_KEY, time)
             }
+        }
+    }
+    
+    private func moreTop(prepend: String, _ toTime: UInt) async {
+        do {
+            showTopLoading(true)
+            log("SendMoreTopRequest")
+            
+            let viewModels = try await onMoreTopWithToTime(toTime: toTime, prepend: prepend)
+            
+            let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
+            viewModels.forEach { vm in
+                if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
+                    vm.calMessage.state.isSelected = true
+                }
+            }
+           
+            await waitingToFinishDecelerating()
+            
+            var vms = removeDuplicateMessagesBeforeAppend(viewModels)
+            
+            /// We have to store section count and last top message before appending them to the threads array
+            let wasEmpty = sections.isEmpty
+            let topVMBeforeJoin = sections.first?.vms.first
+            let lastTopMessageVM = sections.first?.vms.first
+            let beforeSectionCount = sections.count
+            let shouldUpdateOldTopSection = StitchAvatarCalculator.forTop(sections, vms)
+            
+            appendSort(vms)
+            /// 4- Disable excessive loading on the top part.
+            viewModel?.scrollVM.disableExcessiveLoading()
+            setHasMoreTop(vms.count >= count)
+            let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, vms)
+            delegate?.insertedWithContentOffsset(tuple.sections, tuple.rows)
+            
+            if let row = shouldUpdateOldTopSection, let indexPath = sections.indexPath(for: row) {
+                delegate?.reloadData(at: indexPath)
+            }
+            
+            showTopLoading(false)
+                    
+            /// We should not detect last message deleted if we are going to fetch with middleFetcher
+            /// because the list is empty before we move to time, so it will calculate it wrongly.
+            /// And if we moveToTime, and start scrolling to top the list is not empty anymore,
+            /// so the wasEmpty is false.
+            if wasEmpty {
+                detectLastMessageDeleted(sortedMessages: vms.compactMap { $0.message })
+            }
+       
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
+            
+            await prepareAvatars(vms)
+            
+        } catch {
+            showTopLoading(false)
         }
     }
 
@@ -669,6 +588,49 @@ extension ThreadHistoryViewModel {
             Task {
                 await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
             }
+        }
+    }
+    
+    private func moreBottom(prepend: String, _ fromTime: UInt) async {
+        if !canLoadMoreBottom() { return }
+        showBottomLoading(true)
+        log("SendMoreBottomRequest")
+        do {
+            let viewModels = try await onMoreBottomWithFromTime(fromTime: fromTime, prepend: prepend)
+            let selectedMessages = await viewModel?.selectedMessagesViewModel.getSelectedMessages() ?? []
+            viewModels.forEach { vm in
+                if selectedMessages.contains(where: {$0.message.id == vm.message.id}) {
+                    vm.calMessage.state.isSelected = true
+                }
+            }
+
+            var vms = removeDuplicateMessagesBeforeAppend(viewModels)
+            
+            /// We have to store section count  before appending them to the threads array
+            let beforeSectionCount = sections.count
+            let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, vms)
+            
+            appendSort(vms)
+
+            /// 4- Disable excessive loading on the top part.
+            viewModel?.scrollVM.disableExcessiveLoading()
+            setHasMoreBottom(vms.count >= count)
+            let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, vms)
+            delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
+
+            if let row = shouldUpdateOldBottomSection, let indexPath = sections.indexPath(for: row) {
+                delegate?.reloadData(at: indexPath)
+            }
+
+            isFetchedServerFirstResponse = true
+            showBottomLoading(false)
+
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
+            
+            await prepareAvatars(vms)
+        } catch {
+            showBottomLoading(false)
         }
     }
 }
@@ -1091,8 +1053,14 @@ extension ThreadHistoryViewModel {
 // MARK: Appear/Disappear/Display/End Display
 extension ThreadHistoryViewModel {
     public func willDisplay(_ indexPath: IndexPath) async {
+        /// To set initial state of the move to bottom visibility once opening the thread.
+        if let tb = delegate?.tb, !tb.isDragging && !tb.isDecelerating {
+            let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id
+            let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModel?.thread.lastMessageVO?.id ?? 0
+            changeLastMessageIfNeeded(isVisible: isSame || isGreater)
+        }
+        
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
-        await visibleTracker.append(message: message)
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         await seenVM?.onAppear(message)
     }
@@ -1100,7 +1068,6 @@ extension ThreadHistoryViewModel {
     public func didEndDisplay(_ indexPath: IndexPath) async {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message disappeared id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
-        await visibleTracker.remove(message: message)
     }
 
     public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) {
@@ -1154,13 +1121,88 @@ extension ThreadHistoryViewModel {
         let lastSeenId = thread.lastSeenMessageId ?? 0
         return sections.isLastSeenMessageExist(thread: thread)
     }
+    
+    public func didEndDecelerating(_ scrollView: UIScrollView) {
+        log("deceleration ended has been called")
+        Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
+            await self?.viewModel?.scrollVM.isEndedDecelerating = true
+        }
+        
+        Task {
+            await fetchInvalidVisibleReactions()
+        }
+        
+        let isLastMessageVisible = isLastMessageVisible()
+        changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
+        if !isLastMessageVisible, let message = topVisibleMessage() {
+            saveScrollPosition(message)
+        }
+    }
+    
+    public func didEndDragging(_ scrollView: UIScrollView, _ decelerate: Bool) {
+        if decelerate == false {
+            log("stop immediately with no deceleration")
+            Task(priority: .userInitiated) { @DeceleratingActor [weak self] in
+                await self?.viewModel?.scrollVM.isEndedDecelerating = true
+            }
+            
+            let isLastMessageVisible = isLastMessageVisible()
+            changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
+            if !isLastMessageVisible, let message = topVisibleMessage() {
+                saveScrollPosition(message)
+            }
+        }
+    }
+    
+    private func topVisibleMessage() -> Message? {
+        guard let indexPath = topVisibleIndexPath() else { return nil }
+        return sections[indexPath.section].vms[indexPath.row].message as? Message
+    }
+    
+    private func isLastMessageVisible() -> Bool {
+        guard let indexPaths = delegate?.visibleIndexPaths() else { return false }
+        var result = false
+        /// We use suffix to get a small amount of last two items,
+        /// because if we delete or add a message lastMessageVO.id
+        /// is not equal with last we have to check it with two last item two find it.
+        for indexPath in indexPaths.suffix(2) {
+            var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id ?? 0
+            
+            /// We reduce 16 from contentInset bottom to sort of accept it as fully visible
+            if isVisible, delegate?.isCellFullyVisible(at: indexPath, bottomPadding: -24) == true {
+                result = true
+                break /// No need to fully check because we found it.
+            }
+        }
+        return result
+    }
+    
+    private func changeLastMessageIfNeeded(isVisible: Bool) {
+        /// prevent multiple call
+        if isVisible == viewModel?.scrollVM.isAtBottomOfTheList && viewModel?.delegate?.isMoveToBottomOnScreen() ?? false != isVisible {
+            return
+        }
+        
+        viewModel?.scrollVM.isAtBottomOfTheList = isVisible
+        viewModel?.delegate?.lastMessageAppeared(isVisible)
+        
+        if isVisible {
+            removeSaveScrollPosition()
+        }
+    }
+
+    public func isVisible(_ indexPath: IndexPath) -> Bool {
+        delegate?.visibleIndexPaths().contains(where: {$0 == indexPath}) == true
+    }
 }
 
 // MARK: Observers On MainActor
 extension ThreadHistoryViewModel {
     private func setupNotificationObservers() {
         observe(AppState.shared.$connectionStatus) { [weak self] status in
-            self?.onConnectionStatusChanged(status)
+            Task {
+                await self?.onConnectionStatusChanged(status)
+            }
         }
         
         let messageEvent = NotificationCenter.message.publisher(for: .message).compactMap { $0.object as? MessageEventTypes }
@@ -1224,9 +1266,66 @@ extension ThreadHistoryViewModel {
 // MARK: Reactions
 extension ThreadHistoryViewModel {
     
-    private func fetchReactions(messages: [HistoryMessageType]) {
-        if viewModel?.searchedMessagesViewModel.isInSearchMode == false {
-            viewModel?.reactionViewModel.fetchReactions(messages: messages.compactMap({$0 as? Message}), withQueue: false)
+    private func fetchUpdateReactions(_ messages: [HistoryMessageType]) async throws {
+        let messageIds = messages
+            .filter({$0.id ?? -1 > 0})
+            .filter({$0.reactionableType})
+            .compactMap({$0.id})
+        let reactions = try await fetchReactions(messageIds)
+        let indexPaths = attachReactionsToViewModel(reactions)
+        await updateBatchReactions(indexPaths)
+    }
+    
+    private func fetchReactions(_ messageIds: [Int]) async throws -> [ReactionRowsCalculated] {
+        return try await GetMessageReactionsReuqester().get(.init(messageIds: messageIds, conversationId: threadId), queueable: false)
+    }
+    
+    private func attachReactionsToViewModel(_ reactions: [ReactionRowsCalculated]) -> [IndexPath] {
+        var indexPathsToUpdate: [IndexPath] = []
+        for reaction in reactions {
+            if let tuple = sections.viewModelAndIndexPath(for: reaction.messageId) {
+                tuple.vm.setReactionRowsModel(model: reaction)
+                indexPathsToUpdate.append(tuple.indexPath)
+            }
+        }
+        return indexPathsToUpdate
+    }
+    
+    private func updateBatchReactions(_ indexPaths: [IndexPath]) async {
+        await delegate?.performBatchUpdateForReactions(indexPaths)
+    }
+    
+    public func fetchInvalidVisibleReactions() async {
+        let invalidMessageIds = getInvalidReactionsMessageIds()
+        if !invalidMessageIds.isEmpty {
+            do {
+                let reactions = try await fetchReactions(invalidMessageIds)
+                let indexPaths = attachReactionsToViewModel(reactions)
+                await updateBatchReactions(indexPaths)
+            } catch {
+                log("Failed to refetch invalid reaction counts")
+            }
+        }
+    }
+    
+    private func getInvalidReactionsMessageIds() -> [Int] {
+        var list: [Int] = []
+        if let visibleIndexPaths = delegate?.visibleIndexPaths() {
+            for indexPath in visibleIndexPaths {
+                let vm = viewModel?.historyVM.sections.viewModelWith(indexPath)
+                if vm?.isInvalid == true {
+                    list.append(vm?.message.id ?? -1)
+                }
+            }
+        }
+        return list
+    }
+    
+    private func clearReactionsOnReconnect() async {
+        sections.forEach { section in
+            section.vms.forEach { vm in
+                vm.invalid()
+            }
         }
     }
 }
@@ -1431,14 +1530,17 @@ extension ThreadHistoryViewModel {
 
 // MARK: On Notifications actions
 extension ThreadHistoryViewModel {
-    public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) {
+    public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
         if canGetNewMessagesAfterConnectionEstablished(status) {
             // After connecting again get latest messages.
-            Task {
-                await tryFifthScenario(status: status)
-            }
+            await tryFifthScenario(status: status)
         }
-
+        
+        if status == .connected, hasSentHistoryRequest {
+            await clearReactionsOnReconnect()
+            await fetchInvalidVisibleReactions()
+        }
+        
         /// Fetch the history for the first time if the internet connection is not available.
         if !isSimulated(), status == .connected, hasSentHistoryRequest == true, sections.isEmpty {
             startFetchingHistory()
@@ -1479,11 +1581,6 @@ extension ThreadHistoryViewModel {
 }
 
 public extension ThreadHistoryViewModel {
-    
-    func getSections() -> ContiguousArray<MessageSection> {
-        return sections
-    }
-    
     func getMainData() -> MainRequirements {
         return MainRequirements(appUserId: AppState.shared.user?.id,
                                 thread: viewModel?.thread,
@@ -1643,6 +1740,7 @@ extension ThreadHistoryViewModel {
     }
 }
 
+/// Uploads
 extension ThreadHistoryViewModel {
     public func reattachUploads() {
         if isReattachedUploads == true { return }
@@ -1652,5 +1750,45 @@ extension ThreadHistoryViewModel {
             if elements.isEmpty { return }
             await AppState.shared.objectsContainer.uploadsManager.stateMediator.append(elements: elements)
         }
+    }
+}
+
+/// IndexPaths
+extension ThreadHistoryViewModel {
+    public func nextVisibleIndexPath() -> [IndexPath] {
+        guard let lastVisibleIndexPath = delegate?.visibleIndexPaths().last else { return [] }
+        return sections.indexPathsAfter(indexPath: lastVisibleIndexPath, n: 5)
+    }
+    
+    public func prevouisVisibleIndexPath() -> [IndexPath] {
+        guard let firstVisibleIndexPath = delegate?.visibleIndexPaths().first else { return [] }
+        return sections.indexPathsBefore(indexPath: firstVisibleIndexPath, n: 5)
+    }
+    
+    private func topVisibleIndexPath() -> IndexPath? {
+        guard let visibleRows = delegate?.visibleIndexPaths() else { return nil }
+        for indexPath in visibleRows {
+            if delegate?.isCellFullyVisible(at: indexPath, bottomPadding: 0) == true {
+                return indexPath
+            }
+        }
+        return nil
+    }
+}
+
+/// Save scroll position
+extension ThreadHistoryViewModel {
+    
+    /// Clear save position if last message is visible.
+    private func removeSaveScrollPosition() {
+        if let threadId = viewModel?.thread.id {
+            viewModel?.threadsViewModel?.saveScrollPositionVM.remove(threadId)
+        }
+    }
+    
+    private func saveScrollPosition(_ message: Message) {
+        let vm = viewModel?.threadsViewModel?.saveScrollPositionVM
+        guard let threadId = viewModel?.id, let tb = delegate?.tb else { return }
+        vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)
     }
 }

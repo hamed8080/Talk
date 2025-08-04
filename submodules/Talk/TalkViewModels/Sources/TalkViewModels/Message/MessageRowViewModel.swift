@@ -25,7 +25,7 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
     public var message: HistoryMessageType
     public var isInvalid = false
 
-    public var reactionsModel: ReactionRowsCalculated = .init(rows: [])
+    public var reactionsModel: ReactionRowsCalculated
     public weak var threadVM: ThreadViewModel?
 
     public var calMessage = MessageRowCalculatedData()
@@ -33,6 +33,7 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
     public var uploadElementUniqueId: String?
 
     public init(message: HistoryMessageType, viewModel: ThreadViewModel) {
+        self.reactionsModel = .init(messageId: message.id ?? -1, rows: [])
         self.message = message
         self.threadVM = viewModel
     }
@@ -184,12 +185,16 @@ public extension MessageRowViewModel {
 
     func clearReactions() {
         isInvalid = false
-        reactionsModel = .init()
+        reactionsModel = .init(messageId: message.id ?? -1)
     }
 
     func setReaction(reactions: ReactionCountList) {
         isInvalid = false
-        self.reactionsModel = MessageRowCalculators.calulateReactions(reactions)
+        self.reactionsModel = MessageRowCalculators.calulateReactions(reactions, message.id ?? -1)
+    }
+    
+    func setReactionRowsModel(model: ReactionRowsCalculated) {
+        self.reactionsModel = model
     }
     
     func reactionDeleted(_ reaction: Reaction) {

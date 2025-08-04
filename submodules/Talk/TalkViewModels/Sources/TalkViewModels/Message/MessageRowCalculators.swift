@@ -439,7 +439,7 @@ class MessageRowCalculators {
         return width
     }
     
-    class func calulateReactions(_ reactions: ReactionCountList) -> ReactionRowsCalculated {
+    class func calulateReactions(_ reactions: ReactionCountList, _ messageId: Int) -> ReactionRowsCalculated {
         var rows: [ReactionRowsCalculated.Row] = []
         let summaries = reactions.reactionCounts?.sorted(by: {$0.count ?? 0 > $1.count ?? 0}) ?? []
         let myReaction = reactions.userReaction
@@ -467,7 +467,7 @@ class MessageRowCalculators {
             rows.insert(myReactionRow, at: 0)
         }
         let myReactionSticker = myReaction?.reaction
-        return ReactionRowsCalculated(rows: rows)
+        return ReactionRowsCalculated(messageId: messageId, rows: rows)
     }
     
     public class func reactionDeleted(_ calculated: ReactionRowsCalculated, _ reaction: Reaction, myId: Int) -> ReactionRowsCalculated {

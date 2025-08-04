@@ -217,13 +217,17 @@ extension ThreadViewController: ThreadViewDelegate {
         }
         
         // Assure that the previous resuable rows items are in select mode or not
-        for cell in tableView.prevouisVisibleIndexPath() {
-            cell.setInSelectionMode(value)
+        for indexPath in viewModel?.historyVM.prevouisVisibleIndexPath() ?? [] {
+            if let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell {
+                cell.setInSelectionMode(value)
+            }
         }
 
         // Assure that the next resuable rows items are in select mode or not
-        for cell in tableView.nextVisibleIndexPath() {
-            cell.setInSelectionMode(value)
+        for indexPath in viewModel?.historyVM.nextVisibleIndexPath() ?? [] {
+            if let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell {
+                cell.setInSelectionMode(value)
+            }
         }
 
         showSelectionBar(value)
@@ -468,6 +472,8 @@ extension ThreadViewController {
 
 // MARK: Scrolling to
 extension ThreadViewController: HistoryScrollDelegate {
+    var tb: UITableView { tableView }
+    
     func emptyStateChanged(isEmpty: Bool) {
         showEmptyThread(show: isEmpty)
     }
@@ -659,6 +665,10 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     func moveToOffset(_ offset: CGFloat) {
         tableView.setContentOffset(.init(x: 0, y: offset), animated: false)
+    }
+    
+    func isCellFullyVisible(at indexPath: IndexPath, bottomPadding: CGFloat) -> Bool {
+        tableView.isCellFullyVisible(indexPath, topInset: tableView.contentInset.top, bottomInset: tableView.contentInset.bottom + bottomPadding)
     }
     
     private func cellFor(indexPath: IndexPath) -> (vm: MessageRowViewModel, cell: MessageBaseCell)?  {

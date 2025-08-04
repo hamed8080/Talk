@@ -12,6 +12,7 @@ import Chat
 
 @MainActor
 public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable {
+    var tb: UITableView { get }
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool)
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool)
     func reload()
@@ -41,6 +42,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func reactionReplaced(indexPath: IndexPath, reaction: Reaction)
     func visibleIndexPaths() -> [IndexPath]
     func lastMessageIndexPathIfVisible() -> IndexPath?
+    func isCellFullyVisible(at: IndexPath, bottomPadding: CGFloat) -> Bool
 }
 
 @MainActor
