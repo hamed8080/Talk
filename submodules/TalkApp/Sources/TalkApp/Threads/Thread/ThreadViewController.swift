@@ -619,7 +619,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     private func performBatchUpdateForReactions(_ indexPaths: [IndexPath], completion: @escaping () -> Void) {
         log("update reactions")
-
+        let wasAtBottom = viewModel?.scrollVM.isAtBottomOfTheList == true
         tableView.performBatchUpdates { [weak self] in
             guard let self = self else {
                 return
@@ -628,6 +628,9 @@ extension ThreadViewController: HistoryScrollDelegate {
                 if let tuple = cellFor(indexPath: indexPath) {
                     tuple.cell.reactionsUpdated(viewModel: tuple.vm)
                 }
+            }
+            if wasAtBottom {
+                viewModel?.scrollVM.scrollToBottom()
             }
         } completion: { [weak self] completed in
             if completed {

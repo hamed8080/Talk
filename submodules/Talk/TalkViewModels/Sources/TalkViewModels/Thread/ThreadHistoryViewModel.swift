@@ -148,11 +148,8 @@ extension ThreadHistoryViewModel {
             
             /// Hide cneter loading.
             showCenterLoading(false)
-            
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
+    
+            fetchReactionsAndAvatars(vms)
         } catch {
             showCenterLoading(false)
         }
@@ -197,10 +194,7 @@ extension ThreadHistoryViewModel {
             
             showCenterLoading(false)
             
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
+            fetchReactionsAndAvatars(vms)
             
             /// In this scenario we do not have any unread messages,
             /// so there is no need to show bottom loading even once.
@@ -279,10 +273,7 @@ extension ThreadHistoryViewModel {
             showBottomLoading(false)
             setHasMoreBottom(vms.count >= count)
             
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
+            fetchReactionsAndAvatars(vms)
         } catch {
             showBottomLoading(false)
         }
@@ -360,11 +351,7 @@ extension ThreadHistoryViewModel {
                 setHasMoreBottom(false)
             }
             
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
-            
+            fetchReactionsAndAvatars(vms)
         } catch {
             showCenterLoading(false)
         }
@@ -413,10 +400,7 @@ extension ThreadHistoryViewModel {
             /// becuase we get messages with offset so there is not message at bottom.
             setHasMoreBottom(false)
             
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
+            fetchReactionsAndAvatars(vms)
             
             showCenterLoading(false)
         } catch {
@@ -490,11 +474,7 @@ extension ThreadHistoryViewModel {
             
             setHasMoreTop(true)
             
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            /// Fetch user avatars
-            await prepareAvatars(vms)
+            fetchReactionsAndAvatars(vms)
         }
     }
     
@@ -572,10 +552,7 @@ extension ThreadHistoryViewModel {
                 detectLastMessageDeleted(sortedMessages: vms.compactMap { $0.message })
             }
        
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
+            fetchReactionsAndAvatars(vms)
             
         } catch {
             showTopLoading(false)
@@ -625,10 +602,7 @@ extension ThreadHistoryViewModel {
             isFetchedServerFirstResponse = true
             showBottomLoading(false)
 
-            /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
-            
-            await prepareAvatars(vms)
+            fetchReactionsAndAvatars(vms)
         } catch {
             showBottomLoading(false)
         }
@@ -1696,6 +1670,19 @@ extension ThreadHistoryViewModel {
     
     private var lastMessageIndexPath: IndexPath? {
         sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id ?? -1)?.indexPath
+    }
+    
+    private func fetchReactionsAndAvatars(_ vms: [MessageRowViewModel]) {
+        /// A separate task to unblock the method.
+        Task {
+            /// Fetch and upated table view reactions
+            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
+        }
+        
+        /// A separate task to unblock the method.
+        Task {
+            await prepareAvatars(vms)
+        }
     }
 }
 
