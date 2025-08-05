@@ -1041,8 +1041,8 @@ extension ThreadHistoryViewModel {
 // MARK: Appear/Disappear/Display/End Display
 extension ThreadHistoryViewModel {
     public func willDisplay(_ indexPath: IndexPath) async {
-        /// To set initial state of the move to bottom visibility once opening the thread.
-        if let tb = delegate?.tb, !tb.isDragging && !tb.isDecelerating {
+        /// To set the initial state of the move to bottom visibility once opening the thread.
+        if !isFetchedServerFirstResponse, let tb = delegate?.tb, !tb.isDragging && !tb.isDecelerating {
             let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id
             let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModel?.thread.lastMessageVO?.id ?? 0
             changeLastMessageIfNeeded(isVisible: isSame || isGreater)
