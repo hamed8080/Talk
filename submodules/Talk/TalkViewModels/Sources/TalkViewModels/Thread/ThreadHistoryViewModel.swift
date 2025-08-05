@@ -187,6 +187,8 @@ extension ThreadHistoryViewModel {
             /// Insert and scroll to the last thread message.
             if let indexPath = lastMessageIndexPath {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
+            } else {
+                delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: (sections.last?.vms.count ?? 0) - 1, section: sections.count - 1), .bottom, false)
             }
             
             /// Reattach upload files.
@@ -1257,6 +1259,7 @@ extension ThreadHistoryViewModel {
             .filter({$0.id ?? -1 > 0})
             .filter({$0.reactionableType})
             .compactMap({$0.id})
+        if messageIds.isEmpty { return }
         let reactions = try await fetchReactions(messageIds)
         let indexPaths = attachReactionsToViewModel(reactions)
         await updateBatchReactions(indexPaths)

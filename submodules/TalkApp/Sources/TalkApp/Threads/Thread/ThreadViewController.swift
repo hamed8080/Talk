@@ -610,8 +610,8 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     func performBatchUpdateForReactions(_ indexPaths: [IndexPath]) async {
-        return await withCheckedContinuation { continuation in
-            performBatchUpdateForReactions(indexPaths) {
+        return await withCheckedContinuation { [weak self] continuation in
+            self?.performBatchUpdateForReactions(indexPaths) {
                 continuation.resume(with: .success(()))
             }
         }

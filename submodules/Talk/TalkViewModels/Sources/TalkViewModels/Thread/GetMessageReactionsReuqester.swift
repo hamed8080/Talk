@@ -14,6 +14,7 @@ import TalkModels
 public class GetMessageReactionsReuqester {
     private let KEY: String
     private var cancellableSet = Set<AnyCancellable>()
+    private var threadId = 0
     
     enum ReactionError: Error {
         case failed(ChatResponse<Sendable>)
@@ -24,10 +25,12 @@ public class GetMessageReactionsReuqester {
     }
     
     public func get(_ req: ReactionCountRequest, queueable: Bool = false) async throws -> [ReactionRowsCalculated] {
-        return try await withCheckedThrowingContinuation { continuation in
-            sink(continuation)
-            Task { @ChatGlobalActor in
-                RequestsManager.shared.append(prepend: KEY, value: req)
+        let key = KEY
+        self.threadId = req.conversationId
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
+            self?.sink(continuation)
+            Task { @ChatGlobalActor [weak self] in
+                RequestsManager.shared.append(prepend: key, value: req)
                 if queueable {
                     await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.reactionCount(req: req))
                 } else {
@@ -41,7 +44,7 @@ public class GetMessageReactionsReuqester {
         NotificationCenter.reaction.publisher(for: .reaction)
             .compactMap { $0.object as? ReactionEventTypes }
             .sink { [weak self] event in
-                Task {
+                Task { [weak self] in
                     if let result = await self?.handleEvent(event) {
                         continuation.resume(with: .success(result))
                     }
@@ -60,7 +63,7 @@ public class GetMessageReactionsReuqester {
     }
     
     private func handleEvent(_ event: ReactionEventTypes) async -> [ReactionRowsCalculated]? {
-        if case .count(let resp) = event, resp.pop(prepend: KEY) != nil {
+        if case .count(let resp) = event, resp.subjectId == threadId, resp.pop(prepend: KEY) != nil {
             return await calculateReactions(resp.result ?? [])
         }
         return nil

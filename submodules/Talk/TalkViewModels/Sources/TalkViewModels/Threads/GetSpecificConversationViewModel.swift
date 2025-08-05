@@ -24,7 +24,8 @@ public final class GetSpecificConversationViewModel {
         let req = ThreadsRequest(threadIds: [conversationId])
         RequestsManager.shared.append(prepend: GET_NOT_ACTIVE_THREADS_KEY, value: req)
         
-        return await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { [weak self] continuation in
+            guard let self = self else { return }
             log("Get a conversation by id: \(conversationId)")
             sinkWith(continuation)
             // Start request after setting up listener

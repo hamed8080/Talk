@@ -30,10 +30,11 @@ public class GetHistoryReuqester {
     }
     
     public func get(_ req: GetHistoryRequest, queueable: Bool = false) async throws -> [MessageRowViewModel] {
-        return try await withCheckedThrowingContinuation { continuation in
-            sink(continuation)
-            Task { @ChatGlobalActor in
-                RequestsManager.shared.append(prepend: KEY, value: req)
+        let key = KEY
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
+            self?.sink(continuation)
+            Task { @ChatGlobalActor [weak self] in
+                RequestsManager.shared.append(prepend: key, value: req)
                 if queueable {
                     await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.history(req: req))
                 } else {
@@ -47,7 +48,7 @@ public class GetHistoryReuqester {
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
-                Task {
+                Task { [weak self] in
                     if let result = await self?.handleEvent(event) {
                         continuation.resume(with: .success(result))
                     }

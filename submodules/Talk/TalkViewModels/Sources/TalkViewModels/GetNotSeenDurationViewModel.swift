@@ -21,7 +21,8 @@ public final class GetNotSeenDurationViewModel {
     
     public func get() async -> UserLastSeenDuration? {
         let req = NotSeenDurationRequest(userIds: [userId])
-        return await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { [weak self] continuation in
+            guard let self = self else { return }
             sinkWith(continuation)
             // Start request after setting up listener
             Task { @ChatGlobalActor in
