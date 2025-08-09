@@ -1625,6 +1625,7 @@ extension ThreadHistoryViewModel {
 // MARK: Conditions and common functions
 extension ThreadHistoryViewModel {
     private func isLastMessageEqualToLastSeen() -> Bool {
+        guard thread.lastMessageVO != nil else { return false }
         let thread = viewModel?.thread
         return thread?.lastMessageVO?.id ?? 0 == thread?.lastSeenMessageId ?? 0
     }
