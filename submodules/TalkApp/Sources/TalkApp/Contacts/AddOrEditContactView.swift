@@ -54,7 +54,7 @@ struct AddOrEditContactView: View {
                     .applyAppTextfieldStyle(topPlaceholder: "General.firstName", isFocused: focusState == .firstName) {
                         focusState = .firstName
                     }
-                TextField(optioanlAPpend(text: "General.lastName".bundleLocalized()), text: $lastName)
+                TextField(optioanlAppend(text: "General.lastName".bundleLocalized()), text: $lastName)
                     .focused($focusState, equals: .lastName)
                     .textContentType(.familyName)
                     .submitLabel(.next)
@@ -142,7 +142,7 @@ struct AddOrEditContactView: View {
         await viewModel.addContact(contactValue: contactValue, firstName: firstName, lastName: lastName)
     }
 
-    func optioanlAPpend(text: String) -> String {
+    func optioanlAppend(text: String) -> String {
         "\(text.bundleLocalized()) \("General.optional".bundleLocalized())"
     }
 

@@ -23,7 +23,7 @@ struct EditContactInParticipantDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                TextField("General.firstName", text: $firstName)
+                TextField("General.firstName".bundleLocalized(), text: $firstName)
                     .focused($focusState, equals: .firstName)
                     .textContentType(.name)
                     .submitLabel(.done)
@@ -31,7 +31,7 @@ struct EditContactInParticipantDetailView: View {
                     .applyAppTextfieldStyle(topPlaceholder: "General.firstName", isFocused: focusState == .firstName) {
                         focusState = .firstName
                     }
-                TextField(optioanlAppend(text: "General.lastName"), text: $lastName)
+                TextField(optioanlAppend(text: "General.lastName".bundleLocalized()), text: $lastName)
                     .focused($focusState, equals: .lastName)
                     .textContentType(.familyName)
                     .submitLabel(.done)
@@ -39,7 +39,7 @@ struct EditContactInParticipantDetailView: View {
                     .applyAppTextfieldStyle(topPlaceholder: "General.lastName", isFocused: focusState == .lastName) {
                         focusState = .lastName
                     }
-                TextField("Contacts.Add.phoneOrUserName", text: $contactValue)
+                TextField("Contacts.Add.phoneOrUserName".bundleLocalized(), text: $contactValue)
                     .focused($focusState, equals: .contactValue)
                     .keyboardType(.default)
                     .submitLabel(.done)
