@@ -28,12 +28,9 @@ public extension Contact {
         var id: String?
         if let cellphoneNumber = cellphoneNumber, !cellphoneNumber.isEmpty {
             id = cellphoneNumber
-        }
-        if let email = email, !email.isEmpty {
+        } else if let email = email, !email.isEmpty {
             id = email
-        }
-
-        if let userName = user?.username, !userName.isEmpty {
+        } else if let userName = user?.username, !userName.isEmpty {
             id = userName
         }
         return id

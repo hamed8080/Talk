@@ -115,15 +115,10 @@ struct AddOrEditContactView: View {
             hideKeyboard()
         }
         .onAppear {
-            if isInEditMode {
-                firstName = editContact?.firstName ?? ""
-                lastName = editContact?.lastName ?? ""
-                contactValue = editContact?.computedUserIdentifire ?? ""
-            } else {
-                firstName = addContact?.firstName ?? ""
-                lastName = addContact?.lastName ?? ""
-                contactValue = addContact?.computedUserIdentifire ?? ""
-            }
+            let contact = isInEditMode ? editContact : addContact
+            firstName = contact?.firstName ?? ""
+            lastName = contact?.lastName ?? ""
+            contactValue = contact?.computedUserIdentifire ?? ""
             focusState = .firstName
             viewModel.successAdded = false
         }

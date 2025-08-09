@@ -30,11 +30,9 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     public var cellPhoneNumber: String? { participant.cellphoneNumber }
     public var isBlock: Bool { participant.blocked == true }
     public var bio: String? { participant.chatProfileVO?.bio }
-    public var showInfoGroupBox: Bool { bio != nil || cellPhoneNumber != nil }
     public var url: String? { participant.image }
 
     public var partnerContact: Contact?
-    public var searchText: String = ""
     @Published public var dismiss = false
     @Published public var isLoading = false
     @Published public var successEdited: Bool = false
@@ -86,19 +84,6 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
         default:
             break
         }
-    }
-
-    public func createThread() {
-        if let contactId = participant.contactId {
-            AppState.shared.openThread(contact: .init(id: contactId, user: .init(User(coreUserId: participant.coreUserId))))
-        } else {
-            AppState.shared.openThread(participant: participant)
-        }
-    }
-
-    public func copyPhone() {
-        guard let phone = cellPhoneNumber else { return }
-        UIPasteboard.general.string = phone
     }
 
     public func blockUnBlock() {
