@@ -85,7 +85,7 @@ struct ContactContentList: View {
         StickyHeaderSection(header: "Contacts.searched")
             .listRowInsets(.zero)
         ForEach(viewModel.searchedContacts) { contact in
-            ContactRowContainer(contact: .constant(contact), isSearchRow: true)
+            ContactRowContainer(contact: .constant(contact), isSearchRow: true, enableSwipeAction: false)
                 .environment(\.showInviteButton, true)
         }
         .padding()
