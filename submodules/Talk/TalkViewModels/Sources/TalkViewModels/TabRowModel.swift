@@ -175,14 +175,16 @@ extension TabRowModel {
 extension TabRowModel {
     @AppBackgroundActor
     private func calculateLinkText(message: String?) async {
-        let smallText = String(message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
+        var smallText = String(message?.replacingOccurrences(of: "\n", with: " ").prefix(500) ?? "")
         var links: [String] = []
         message?.links().forEach { link in
             links.append(link)
+            /// Remove the link itself from the text message to prevent duplicate linked pirmary color.
+            smallText = smallText.replacingOccurrences(of: link, with: "")
         }
         await MainActor.run { [links] in
-            self.smallText = smallText
             self.links = links
+            self.smallText = smallText.isEmpty ? nil : smallText
         }
     }
 }
