@@ -496,7 +496,12 @@ extension ThreadHistoryViewModel {
     public func handleJumpToButtom() {
         let isLastSeenExist = isLastSeenMessageIsInSections()
         let unreadCount = thread.unreadCount ?? 0
-        if isLastSeenExist || unreadCount == 0 {
+        let lstIndex = delegate?.visibleIndexPaths().last
+        if let lstIndex = lstIndex, sections[lstIndex.section].vms[lstIndex.row].message.id ?? 0 >= thread.lastSeenMessageId ?? 0 {
+            Task {
+                await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false)
+            }
+        } else if isLastSeenExist || unreadCount == 0 {
             /// Move to last seen message.
             viewModel?.scrollVM.scrollToBottom()
             
