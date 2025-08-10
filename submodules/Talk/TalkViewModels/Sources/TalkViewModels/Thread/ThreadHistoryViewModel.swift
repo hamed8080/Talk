@@ -188,6 +188,7 @@ extension ThreadHistoryViewModel {
             if let indexPath = lastMessageIndexPath {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             } else {
+                fixLastMessageIfNeeded()
                 delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: (sections.last?.vms.count ?? 0) - 1, section: sections.count - 1), .bottom, false)
             }
             
@@ -332,7 +333,11 @@ extension ThreadHistoryViewModel {
             
             /// Force to show move to bottom button,
             /// because we know that we are not at the end of the thread.
-            viewModel?.delegate?.showMoveToBottom(show: true)
+            /// Note: If the requested message is equal to the last message so we are going to end of the thread,
+            /// hence we should hide the move to bottom.
+            let wasTheLastMessage = thread.lastMessageVO?.id == messageId
+            viewModel?.scrollVM.isAtBottomOfTheList = wasTheLastMessage
+            viewModel?.delegate?.showMoveToBottom(show: !wasTheLastMessage)
             
             /// Show empty thread banner, if it's empty
             delegate?.emptyStateChanged(isEmpty: vms.isEmpty)
@@ -1409,6 +1414,25 @@ extension ThreadHistoryViewModel {
         bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
         delegate?.reloadData(at: indexPath)
     }
+    
+    private func fixLastMessageIfNeeded() -> Int? {
+        if thread.unreadCount == 0 && thread.lastMessageVO?.id ?? 0 != thread.lastSeenMessageId {
+            viewModel?.thread.lastMessageVO = (sections.last?.vms.last?.message as? Message)?.toLastMessageVO
+            viewModel?.thread.lastSeenMessageId = sections.last?.vms.last?.message.id
+            viewModel?.scrollVM.isAtBottomOfTheList = true
+            
+            thread.lastMessageVO = viewModel?.thread.lastMessageVO
+            thread.lastSeenMessageId = viewModel?.thread.lastSeenMessageId
+            
+            if let index = viewModel?.threadsViewModel?.threads.firstIndex(where: {$0.id as? Int == threadId}) {
+                viewModel?.threadsViewModel?.threads[index].lastMessageVO = viewModel?.thread.lastMessageVO
+                viewModel?.threadsViewModel?.threads[index].lastSeenMessageId = viewModel?.thread.lastSeenMessageId
+            }
+            
+            return thread.lastMessageVO?.id ?? -1
+        }
+        return nil
+    }
 }
 
 // MARK: Senario Request maker methods
@@ -1632,6 +1656,7 @@ extension ThreadHistoryViewModel {
     private func isLastMessageEqualToLastSeen() -> Bool {
         guard thread.lastMessageVO != nil else { return false }
         let thread = viewModel?.thread
+        if thread?.unreadCount == 0 && (thread?.lastMessageVO?.id ?? 0) != (thread?.lastSeenMessageId ?? 0) { return true }
         return thread?.lastMessageVO?.id ?? 0 == thread?.lastSeenMessageId ?? 0
     }
     
@@ -1641,7 +1666,7 @@ extension ThreadHistoryViewModel {
     }
 
     private func hasUnreadMessage() -> Bool {
-        thread.lastMessageVO?.id ?? 0 > thread.lastSeenMessageId ?? 0
+        thread.lastMessageVO?.id ?? 0 > thread.lastSeenMessageId ?? 0 && thread.unreadCount ?? 0 > 0
     }
 
     private func canMoveToMessageLocally(_ messageId: Int) -> String? {
