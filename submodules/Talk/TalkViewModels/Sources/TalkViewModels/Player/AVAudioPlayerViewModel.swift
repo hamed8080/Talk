@@ -4,6 +4,7 @@ import Combine
 import Foundation
 import Logger
 import SwiftUI
+import MediaPlayer
 
 @MainActor
 public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcurrency AVAudioPlayerDelegate {
@@ -11,8 +12,14 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
     public var message: Message?
     public var item: AVAudioPlayerItem?
     private var displayLink: CADisplayLink?
+    private let appIcon = UIImage(named: "global_app_icon", in: .main, compatibleWith: nil)
+    private let commandCenter = MPRemoteCommandCenter.shared()
+    private var albumArtImage: MPMediaItemArtwork?
     
-    public override init() {}
+    public override init() {
+        super.init()
+        setupCommander()
+    }
 
     public func setup(item: AVAudioPlayerItem, message: Message? = nil, category: AVAudioSession.Category = .playback) throws {
         /// Pause the older player if it was playing
@@ -49,6 +56,10 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
         try? AVAudioSession.sharedInstance().setActive(true)
         player?.currentTime = item?.currentTime ?? 0
         player?.play()
+        Task {
+            await setArtwork()
+        }
+        setupNowPlayingInfo()
     }
     
     private func startDisplayLink() {
@@ -67,6 +78,7 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
     @objc private func updatePlaybackTime() {
         guard let currentTime = player?.currentTime else { return }
         item?.currentTime = currentTime
+        setupNowPlayingInfo()
     }
 
     public func pause() {
@@ -87,12 +99,14 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
         stopDisplayLink()
         item?.isFinished = true
         item?.currentTime = 0
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
     public func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully _: Bool) {
         item?.isPlaying = false
         item?.currentTime = item?.duration ?? 0
         stopDisplayLink()
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.onCloseTimer()
         }
@@ -113,5 +127,64 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
 
     public func seek(_ to: Double) {
         player?.currentTime = to * (item?.duration ?? 0)
+    }
+    
+    func setupNowPlayingInfo() {
+        guard let player = player, let item = item else { return }
+        let isSameTitleAndSubtitle = item.title == item.subtitle
+        var nowPlayingInfo: [String: Any] = [
+            MPMediaItemPropertyTitle: item.title,
+            MPMediaItemPropertyArtist: item.artistName ?? (isSameTitleAndSubtitle ? nil : item.subtitle),
+            MPMediaItemPropertyPlaybackDuration: item.duration,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: player.currentTime,
+            MPNowPlayingInfoPropertyPlaybackRate: player.isPlaying == true ? 1.0 : 0.0
+        ]
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = albumArtImage
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    @MainActor
+    private func setArtwork() async {
+        if let artworkData = try? await item?.artworkMetadata?.load(.dataValue), let image = UIImage(data: artworkData) {
+            let artwork = MPMediaItemArtwork(boundsSize: image.size) { @Sendable _ in
+                return image
+            }
+            albumArtImage = artwork
+        } else if let appIcon = appIcon {
+            let artwork = MPMediaItemArtwork(boundsSize: appIcon.size) { @Sendable _ in
+                return appIcon
+            }
+            albumArtImage = artwork
+        }
+    }
+    
+    private func setupCommander() {
+        /// We need to implement next/ previous.
+        commandCenter.nextTrackCommand.isEnabled = false
+        commandCenter.previousTrackCommand.isEnabled = false
+        
+        commandCenter.changePlaybackPositionCommand.isEnabled = true
+
+        /// If we don't use these callbacks nowplaying won't show on the screen.
+        commandCenter.playCommand.addTarget { [weak self] _ -> MPRemoteCommandHandlerStatus in
+            self?.play()
+            return .success
+        }
+        
+        commandCenter.pauseCommand.addTarget { [weak self] _ -> MPRemoteCommandHandlerStatus in
+            self?.pause()
+            return .success
+        }
+        
+        commandCenter.nextTrackCommand.addTarget { [weak self] _ -> MPRemoteCommandHandlerStatus in
+            return .success
+        }
+        
+        commandCenter.changePlaybackPositionCommand.addTarget { [weak self] notif -> MPRemoteCommandHandlerStatus in
+            if let time = (notif as? MPChangePlaybackPositionCommandEvent)?.positionTime {
+                self?.player?.currentTime = time
+            }
+            return .success
+        }
     }
 }

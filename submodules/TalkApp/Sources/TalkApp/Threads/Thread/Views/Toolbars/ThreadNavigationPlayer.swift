@@ -12,6 +12,7 @@ import TalkModels
 import SwiftUI
 import TalkUI
 import Combine
+import MediaPlayer
 
 @MainActor
 class ThreadNavigationPlayer: UIView {
@@ -166,6 +167,7 @@ class ThreadNavigationPlayer: UIView {
         playerVM.pause()
         playerVM.item = nil
         NotificationCenter.default.post(name: NSNotification.Name("CLOSE_PLAYER"), object: nil)
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
     
     private func registerSwapAudioNotification() {

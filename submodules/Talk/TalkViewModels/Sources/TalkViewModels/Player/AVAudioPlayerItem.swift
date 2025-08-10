@@ -23,6 +23,7 @@ public class AVAudioPlayerItem: ObservableObject, @unchecked Sendable {
     public let duration: Double    
     public let fileURL: URL
     public let artworkMetadata: AVMetadataItem?
+    public let artistName: String?
     public let ext: String?
     public let title: String?
     public let subtitle: String?
@@ -32,7 +33,8 @@ public class AVAudioPlayerItem: ObservableObject, @unchecked Sendable {
         messageId: Int,
         duration: Double, fileURL: URL, ext: String?, currentTime: Double = 0,
         isPlaying: Bool = false, title: String? = nil, subtitle: String? = nil,
-        isFinished: Bool = false, artworkMetadata: AVMetadataItem? = nil
+        isFinished: Bool = false, artworkMetadata: AVMetadataItem? = nil,
+        artistName: String? = nil
     ) {
         self.messageId = messageId
         self.duration = duration
@@ -44,6 +46,7 @@ public class AVAudioPlayerItem: ObservableObject, @unchecked Sendable {
         self.subtitle = subtitle
         self.isFinished = isFinished
         self.artworkMetadata = artworkMetadata
+        self.artistName = artistName
     }
 }
 

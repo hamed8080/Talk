@@ -859,13 +859,15 @@ class MessageRowCalculators {
         let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
         let assetMetadata = try? await asset.load(.commonMetadata)
         let artworkMetadata = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtwork.rawValue })
+        let artistName = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtist.rawValue }) as? String
         return AVAudioPlayerItem(messageId: message.id ?? -1,
                                  duration: Double(CMTimeGetSeconds(asset.duration)),
                                  fileURL: url,
                                  ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
                                  title: metadata?.file?.originalName ?? metadata?.name ?? "",
                                  subtitle: metadata?.file?.originalName ?? "",
-                                 artworkMetadata: artworkMetadata
+                                 artworkMetadata: artworkMetadata,
+                                 artistName: artistName
         )
     }
 }
