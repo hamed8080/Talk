@@ -186,9 +186,11 @@ extension ThreadHistoryViewModel {
             /// Insert and scroll to the last thread message.
             if let indexPath = lastMessageIndexPath {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
-            } else {
+            } else if !tuple.rows.isEmpty {
                 fixLastMessageIfNeeded()
                 delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: (sections.last?.vms.count ?? 0) - 1, section: sections.count - 1), .bottom, false)
+            } else if tuple.rows.isEmpty {
+                showEmptyThread(show: true)
             }
             
             /// Reattach upload files.
@@ -1633,7 +1635,6 @@ extension ThreadHistoryViewModel {
 // MARK: Conditions and common functions
 extension ThreadHistoryViewModel {
     private func isLastMessageEqualToLastSeen() -> Bool {
-        guard thread.lastMessageVO != nil else { return false }
         let thread = viewModel?.thread
         if thread?.unreadCount == 0 && (thread?.lastMessageVO?.id ?? 0) != (thread?.lastSeenMessageId ?? 0) { return true }
         return thread?.lastMessageVO?.id ?? 0 == thread?.lastSeenMessageId ?? 0
