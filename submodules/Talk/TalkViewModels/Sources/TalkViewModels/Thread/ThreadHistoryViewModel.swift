@@ -106,7 +106,6 @@ extension ThreadHistoryViewModel {
         }
         tryFirstScenario()
         trySecondScenario()
-        tryEightScenario()
         tryNinthScenario()
     }
 }
@@ -375,16 +374,6 @@ extension ThreadHistoryViewModel {
                                           animate: animate)
     }
     
-    // MARK: Scenario 8
-    /// When a new thread has been built and me is added by another person and this is our first time to visit the thread.
-    private func tryEightScenario() {
-        if let tuple = newThreadLastMessageTimeId() {
-            Task {
-                await moveToTime(tuple.time, tuple.lastMSGId, highlight: false)
-            }
-        }
-    }
-
     // MARK: Scenario 9
     /// When a new thread has been built and there is no message inside the thread yet.
     private func tryNinthScenario() {

@@ -69,6 +69,3 @@ There are numerous ways to fetch history messages of a thread, in which we call 
 2- All the stages are similar except we don't have to add a banner and in the last stage we have to fetch more bottom items to store them when the user scrolls down to see the messages.
 
 >Tip: If the message already exists in the memory there will be no request to the server and move directly to the message.
-
-### Scenario 7
-As a result of a bug in server chat when the lastMessage.id is smaller than last seen message id, we need to move to time with the last message time in the thread.
