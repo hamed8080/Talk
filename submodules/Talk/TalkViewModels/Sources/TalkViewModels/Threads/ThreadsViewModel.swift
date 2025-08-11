@@ -541,6 +541,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(threads[index])
             animateObjectWillChange()
+            AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }
     }
 
