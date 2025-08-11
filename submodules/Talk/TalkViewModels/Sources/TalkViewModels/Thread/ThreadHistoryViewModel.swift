@@ -106,7 +106,6 @@ extension ThreadHistoryViewModel {
         }
         tryFirstScenario()
         trySecondScenario()
-        trySeventhScenario()
         tryEightScenario()
         tryNinthScenario()
     }
@@ -372,47 +371,6 @@ extension ThreadHistoryViewModel {
                                           highlight: highlight,
                                           position: moveToBottom ? .bottom : .top,
                                           animate: animate)
-    }
-    
-    private func trySeventhScenario() {
-        guard thread.lastMessageVO?.id ?? 0 < thread.lastSeenMessageId ?? 0 else { return }
-        Task {
-            await runSeventhScenario()
-        }
-    }
-    
-    // MARK: Scenario 7
-    /// When lastMessgeSeenId is bigger than thread.lastMessageVO.id as a result of server chat bug or when the conversation is empty.
-    private func runSeventhScenario() async {
-        do {
-            showCenterLoading(true)
-            let vms = try await onFetchByOffset()
-    
-            appendSort(vms)
-            
-            /// Update delegate insertion
-            let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
-            viewModel?.scrollVM.disableExcessiveLoading()
-            
-            /// Insert and scroll to the last thread message.
-            let uniqueId = sections.last?.vms.last?.message.uniqueId
-            if let uniqueId = uniqueId, let indexPath = sections.indexPathBy(messageUniqueId: uniqueId) {
-                delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
-            }
-            
-            reattachUploads()
-            
-            showCenterLoading(false)
-            /// Prevent fetch bottom loading
-            /// becuase we get messages with offset so there is not message at bottom.
-            setHasMoreBottom(false)
-            
-            fetchReactionsAndAvatars(vms)
-            
-            showCenterLoading(false)
-        } catch {
-            showCenterLoading(false)
-        }
     }
     
     // MARK: Scenario 8
@@ -875,12 +833,42 @@ extension ThreadHistoryViewModel {
         // We have to update the lastMessageVO to keep moveToBottom hide if the lastMessaegId deleted
         thread.lastMessageVO = viewModel?.thread.lastMessageVO
         let indicies = findDeletedIndicies(messages)
+        
+        /// Reload cell last message first message before deleting rows.
+        changeStitchOnDeleteMessages(indicies: indicies)
+        
         deleteIndices(indicies)
         if sections.isEmpty {
             showEmptyThread(show: true)
         }
         for message in messages {
             await setDeletedIfWasReply(messageId: message.id ?? -1)
+        }
+    }
+    
+    private func changeStitchOnDeleteMessages(indicies: [IndexPath]) {
+        for indexPath in indicies {
+            if sections[indexPath.section].vms[indexPath.row].calMessage.isLastMessageOfTheUser {
+                /// Find previous message of the user and set as last message
+                if let prev = sections.previousIndexPath(indexPath), sections[prev.section].vms[prev.row].message.ownerId == sections[indexPath.section].vms[indexPath.row].message.ownerId {
+                    sections[prev.section].vms[prev.row].calMessage.isLastMessageOfTheUser = true
+                    delegate?.reload(at: prev)
+                }
+            }
+            
+            if sections[indexPath.section].vms[indexPath.row].calMessage.isFirstMessageOfTheUser {
+                /// Find next message of the user and set it as first message
+                if let next = sections.nextIndexPath(indexPath), sections[next.section].vms[next.row].message.ownerId == sections[indexPath.section].vms[indexPath.row].message.ownerId {
+                    sections[next.section].vms[next.row].calMessage.isFirstMessageOfTheUser = true
+                    
+                    sections[next.section].vms[next.row].calMessage.groupMessageParticipantName = MessageRowCalculators.calculateGroupParticipantName(
+                        message: sections[next.section].vms[next.row].message,
+                        calculatedMessage: sections[next.section].vms[next.row].calMessage,
+                        thread: thread
+                    )
+                    delegate?.reload(at: next)
+                }
+            }
         }
     }
     
@@ -1483,15 +1471,6 @@ extension ThreadHistoryViewModel {
         let req = makeRequest(fromTime: fromTime, offset: nil)
         log("SendMoreBottomRequest")
         let requester = GetHistoryReuqester(key: prepend)
-        let data = getMainData()
-        requester.setup(data: data, viewModel: viewModel)
-        return try await requester.get(req)
-    }
-    
-    private func onFetchByOffset() async throws -> [MessageRowViewModel] {
-        let req = makeRequest(toTime: thread.lastMessageVO?.time?.advanced(by: 1), offset: nil)
-        log("Get bottom part by last message deleted detection")
-        let requester = GetHistoryReuqester(key: keys.FETCH_BY_OFFSET_KEY)
         let data = getMainData()
         requester.setup(data: data, viewModel: viewModel)
         return try await requester.get(req)
