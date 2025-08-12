@@ -16,7 +16,6 @@ struct ContactRow: View {
     let contact: Contact
     @Environment(\.showInviteButton) var showInvitee
     @Binding public var isInSelectionMode: Bool
-    private var searchVM: ThreadsSearchViewModel { AppState.shared.objectsContainer.searchVM }
 
     var body: some View {
         VStack {
@@ -33,6 +32,7 @@ struct ContactRow: View {
                     .clipShape(RoundedRectangle(cornerRadius:(22)))
 
                 VStack(alignment: .leading, spacing: 2) {
+                    let searchVM: ThreadsSearchViewModel = AppState.shared.objectsContainer.searchVM
                     if searchVM.isInSearchMode {
                         Text(searchVM.attributdTitle(for: "\(contact.firstName ?? "") \(contact.lastName ?? "")"))
                             .padding(.leading, 16)

@@ -86,6 +86,7 @@ struct ContactContentList: View {
             .listRowInsets(.zero)
         ForEach(viewModel.searchedContacts) { contact in
             ContactRowContainer(contact: .constant(contact), isSearchRow: true, enableSwipeAction: false)
+                .id("SEARCH-ROW-IN-CONTACT-LIST\(contact.id ?? -1)")
                 .environment(\.showInviteButton, true)
         }
         .padding()
@@ -100,6 +101,7 @@ struct ContactContentList: View {
     private var normalStateContacts: some View {
         ForEach(viewModel.contacts) { contact in
             ContactRowContainer(contact: .constant(contact), isSearchRow: false)
+                .id("NORMAL-ROW-IN-CONTACT-LIST\(contact.id ?? -1)")
                 .environment(\.showInviteButton, true)
         }
         .padding()
