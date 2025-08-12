@@ -60,8 +60,12 @@ public class UploadFileStateMediator {
             await historyVM.injectUploadsAndSort(elements)
             let tuple = historyVM.sections.indexPathsForUpload(requests: elements.compactMap{$0.viewModel.message}, beforeSectionCount: beforeSectionCount)
             threadVM.delegate?.inserted(tuple.sectionIndex ?? IndexSet(), tuple.indices, nil, nil, true)
+            
             // Sleep for better animation when we insert something at the end of the list in upload for multiple items.
-            try? await Task.sleep(for: .seconds(0.2))
+            // We have to wait because of the height of the send
+            // container to be settled and then it can scroll to the right position
+            // after setting the contentInset bottom.
+            try? await Task.sleep(for: .seconds(0.5))
             let sectionCount = historyVM.sections.count
             let rowCount = historyVM.sections.last?.vms.count ?? 0
             let indexPath = IndexPath(row: rowCount - 1, section: sectionCount - 1)
