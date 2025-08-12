@@ -322,7 +322,7 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
             
             /// Cancel a resumable download file.
             do {
-                try ChatManager.activeInstance?.file.cancel(hashCode: hashCode)
+                try ChatManager.activeInstance?.file.cancelResumableDownload(hashCode: hashCode)
             } catch {
                 print(error.localizedDescription)
             }

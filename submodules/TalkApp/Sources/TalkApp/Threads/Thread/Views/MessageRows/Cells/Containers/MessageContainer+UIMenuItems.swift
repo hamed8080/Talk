@@ -245,7 +245,7 @@ private extension MessageContainerStackView {
                 await threadVM.historyVM.reload(at: IndexPath(row: indexPath.row, section: indexPath.section), vm: newVM)
                 if let hashCode = message.fileMetaData?.hashCode {
                     Task { @ChatGlobalActor in
-                        try? await ChatManager.activeInstance?.file.cancel(hashCode: hashCode)
+                        try? await ChatManager.activeInstance?.file.cancelResumableDownload(hashCode: hashCode)
                     }
                 }
             }
