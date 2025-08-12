@@ -41,6 +41,13 @@ public final class ThreadSendMessageViewModel {
 
     /// It triggers when send button tapped
     public func sendTextMessage() async {
+        
+        /// Move to the bottom of the thread first then send.
+        let lastMsg = viewModel?.thread.lastMessageVO
+        if let id = lastMsg?.id, let time = lastMsg?.time {
+            await viewModel?.historyVM.moveToTime(time, id, highlight: false)
+        }
+        
         if isOriginForwardThread() { return }
         model = makeModel()
         switch true {
