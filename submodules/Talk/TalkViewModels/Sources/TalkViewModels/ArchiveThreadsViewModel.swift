@@ -27,7 +27,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var objectId = UUID().uuidString
     private let GET_ARCHIVES_KEY: String
     private var wasDisconnected = false
-    internal let incQueue = IncommingForwardMessagesQueue()
     public var isAppeared = false
     
     // MARK: Computed properties
@@ -110,8 +109,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         switch event {
         case .new(let chatResponse):
             onNewMessage(chatResponse)
-        case .forward(let chatResponse):
-            incQueue.onMessageEvent(chatResponse)
         case .seen(let response):
             onSeen(response)
         case .deleted(let response):
@@ -534,6 +531,22 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(archives[index])
             animateObjectWillChange()
+        }
+    }
+    
+    public func onNewForwardMessage(conversationId: Int, forwardMessage: Message) async {
+        if let index = firstIndex(conversationId) {
+            let reference = archives[index]
+            let old = reference.toStruct()
+            let updated = reference.updateOnNewMessage(forwardMessage, meId: myId)
+            archives[index] = updated
+            archives[index].animateObjectWillChange()
+            if updated.pin == false {
+                let sorted = await sort(threads: archives)
+                self.archives = sorted
+            }
+            recalculateAndAnimate(updated)
+            animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         }
     }
     

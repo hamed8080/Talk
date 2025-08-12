@@ -53,6 +53,7 @@ public class IncommingForwardMessagesQueue {
         /// thread to the top.
         /// If the thread is not inside the list it will try to fetch it from the server.
         await viewModel?.onNewForwardMessage(conversationId: subjectId, forwardMessage: sorted.last ?? .init())
+        await AppState.shared.objectsContainer.archivesVM.onNewForwardMessage(conversationId: subjectId, forwardMessage: sorted.last ?? .init())
         
         /// If result is false it means it ignored inserting the message,
         /// so we have to precess insertion by manullay.

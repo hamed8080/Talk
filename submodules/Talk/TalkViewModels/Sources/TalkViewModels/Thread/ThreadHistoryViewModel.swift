@@ -700,7 +700,7 @@ extension ThreadHistoryViewModel {
         await appendSort(viewModels)
         
         let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, viewModels)
-        delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
+        delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, true)
         if let lastSortedMessage = sortedMessages.last {
             viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(lastSortedMessage)
         }

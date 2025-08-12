@@ -15,6 +15,7 @@ public class GetMessageReactionsReuqester {
     private let KEY: String
     private var cancellableSet = Set<AnyCancellable>()
     private var threadId = 0
+    private var resumed: Bool = false
     
     enum ReactionError: Error {
         case failed(ChatResponse<Sendable>)
@@ -45,7 +46,9 @@ public class GetMessageReactionsReuqester {
             .compactMap { $0.object as? ReactionEventTypes }
             .sink { [weak self] event in
                 Task { [weak self] in
-                    if let result = await self?.handleEvent(event) {
+                    guard let self = self, !self.resumed else { return }
+                    if let result = await self.handleEvent(event) {
+                        self.resumed = true
                         continuation.resume(with: .success(result))
                     }
                 }
@@ -55,7 +58,9 @@ public class GetMessageReactionsReuqester {
         NotificationCenter.error.publisher(for: .error)
             .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] resp in
-                if let key = self?.KEY, resp.pop(prepend: key) != nil {
+                guard let self = self, !self.resumed else { return }
+                if resp.pop(prepend: self.KEY) != nil {
+                    self.resumed = true
                     continuation.resume(throwing: ReactionError.failed(resp))
                 }
             }
