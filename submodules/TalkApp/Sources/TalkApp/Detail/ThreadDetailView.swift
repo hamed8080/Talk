@@ -20,9 +20,10 @@ struct ThreadDetailView: View {
                 VStack(spacing: 0) {
                     DetailSectionContainer()
                         .id("DetailSectionContainer")
-                    
-                    DetailTabContainer(maxWidth: viewWidth)
-                        .id("DetailTabContainer")
+                    if viewWidth != 0 {
+                        DetailTabContainer(maxWidth: viewWidth)
+                            .id("DetailTabContainer")
+                    }
                 }
                 .frame(maxWidth: viewWidth == 0 ? .infinity : viewWidth)
             }

@@ -38,11 +38,15 @@ public struct CustomDetailTabView<T: View>: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            tabButtons()
-            if tabs.indices.contains(tabIndex) {
-                tabs[tabIndex].view
-                    .transition(.asymmetric(insertion: .push(from: .leading), removal: .move(edge: .trailing)))
+        LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+            Section {
+                if tabs.indices.contains(tabIndex) {
+                    tabs[tabIndex].view
+                        .transition(.asymmetric(insertion: .push(from: .leading), removal: .move(edge: .trailing)))
+                }
+            } header: {
+                tabButtons()
+                    .background(Color.App.bgPrimary)
             }
         }
     }

@@ -46,7 +46,9 @@ struct PicturesTabView: View {
         .padding(padding)
         .environmentObject(viewModel)
         .overlay(alignment: .top) {
-            emptyTabView
+            if isEmptyTab {
+                EmptyResultViewInTabs()
+            }
         }
         .onAppear {
             onLoad() //it is essential to kick of onload
@@ -77,18 +79,6 @@ struct PicturesTabView: View {
     private func onLoad() {
         if viewModel.messagesModels.count == 0 {
             viewModel.loadMore()
-        }
-    }
-
-    @ViewBuilder
-    private var emptyTabView: some View {
-        if isEmptyTab {
-            HStack {
-                Spacer()
-                EmptyResultViewInTabs()
-                    .padding(.top, 9)
-                Spacer()
-            }
         }
     }
 
