@@ -260,19 +260,9 @@ public final class ThreadViewModel: Identifiable {
             self.thread.lastMessage = thread.lastMessage
             self.thread.lastMessageVO = thread.lastMessageVO
             setUnreadCount(thread.unreadCount)
-            if let index = threadsViewModel?.firstIndex(id), let threadsVM = threadsViewModel {
-                threadsVM.threads[index].lastMessageVO = thread.lastMessageVO
-                threadsVM.threads[index].lastMessage = thread.lastMessage
-                threadsVM.threads[index].unreadCount = thread.unreadCount
-                let myId = AppState.shared.user?.id ?? -1
-                Task {
-                    await ThreadCalculators.reCalculate(threadsVM.threads[index], myId, AppState.shared.objectsContainer.navVM.selectedId)
-                    threadsVM.threads[index].animateObjectWillChange()
-                }
-            }
         }
     }
-
+    
     private func onEditedMessage(_ response: ChatResponse<Message>) async {
         guard
             let editedMessage = response.result,

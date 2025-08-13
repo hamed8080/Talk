@@ -84,10 +84,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             await onArchive(response)
         case .unArchive(let response):
             await onUNArchive(response)
-        case .lastMessageDeleted(let response):
-            onLastMessageDeleted(response)
-        case .lastMessageEdited(let response):
-            onLastMessageEdited(response)
+        case let .lastMessageDeleted(response), let .lastMessageEdited(response):
+            if let thread = response.result {
+                onLastMessageChanged(thread)
+            }
         case .left(let response):
             onLeave(response)
         case .closed(let response):
@@ -296,28 +296,14 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    private func onLastMessageChanged(_ response: ChatResponse<Conversation>) {
-        guard
-            let conversation = response.result,
-            let index = archives.firstIndex(where: {$0.id == conversation.id})
-        else { return }
-        var current = archives[index]
-        current.lastMessageVO = conversation.lastMessageVO
-        current.lastMessage = conversation.lastMessage
-        archives[index] = current
-        Task {
-            await ThreadCalculators.reCalculate(current, myId, AppState.shared.objectsContainer.navVM.selectedId)
+    public func onLastMessageChanged(_ thread: Conversation) {
+        if let index = firstIndex(thread.id) {
+            archives[index].lastMessage = thread.lastMessage
+            archives[index].lastMessageVO = thread.lastMessageVO
             archives[index].animateObjectWillChange()
+            recalculateAndAnimate(archives[index])
+            animateObjectWillChange()
         }
-        animateObjectWillChange()
-    }
-    
-    private func onLastMessageDeleted(_ response: ChatResponse<Conversation>) {
-        onLastMessageChanged(response)
-    }
-    
-    private func onLastMessageEdited(_ response: ChatResponse<Conversation>) {
-        onLastMessageChanged(response)
     }
     
     private func onLeave(_ response: ChatResponse<User>) {
@@ -389,15 +375,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    public func onLastMessageChanged(_ thread: Conversation) {
-        if let index = firstIndex(thread.id) {
-            archives[index].lastMessage = thread.lastMessage
-            archives[index].lastMessageVO = thread.lastMessageVO
-            archives[index].animateObjectWillChange()
-            recalculateAndAnimate(archives[index])
-            animateObjectWillChange()
-        }
-    }
+   
     
     func onUnreadCounts(_ response: ChatResponse<[String : Int]>) async {
         response.result?.forEach { key, value in
