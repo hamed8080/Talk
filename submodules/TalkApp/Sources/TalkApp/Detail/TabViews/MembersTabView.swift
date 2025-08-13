@@ -12,7 +12,6 @@ import TalkUI
 import TalkViewModels
 import ActionableContextMenu
 
-@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 struct MembersTabView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
     @EnvironmentObject var detailViewModel: ThreadDetailViewModel
@@ -60,7 +59,6 @@ struct MembersTabView: View {
     }
 }
 
-@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 struct ParticipantRowContainer: View {
     @State private var showPopover = false
     @EnvironmentObject var viewModel: ParticipantsViewModel
@@ -103,43 +101,51 @@ struct ParticipantRowContainer: View {
                 }
             }
             .popover(isPresented: $showPopover, attachmentAnchor: .point(.center), arrowEdge: .top) {
-                VStack(alignment: .leading, spacing: 0) {
-                    if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == false {
-                        ContextMenuButton(title: "Participant.addAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle) {
-                            viewModel.makeAdmin(participant)
-                            showPopover.toggle()
-                        }
-                    }
-
-                    if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == true {
-                        ContextMenuButton(title: "Participant.removeAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.minus", bundle: Language.preferedBundle) {
-                            viewModel.removeAdminRole(participant)
-                            showPopover.toggle()
-                        }
-                    }
-
-                    if !isMe, viewModel.thread?.admin == true {
-                        ContextMenuButton(title: "General.delete".bundleLocalized(), image: "trash", bundle: Language.preferedBundle) {
-                            let dialog = AnyView(
-                                DeleteParticipantDialog(participant: participant)
-                                    .environmentObject(viewModel)
-                            )
-                            AppState.shared.objectsContainer.appOverlayVM.dialogView = dialog
-                            showPopover.toggle()
-                        }
-                        .foregroundStyle(Color.App.red)
-                    }
+                if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
+                    popoverBody
+                    .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
+                } else {
+                    popoverBody
                 }
-                .foregroundColor(.primary)
-                .frame(width: 246)
-                .background(MixMaterialBackground())
-                .clipShape(RoundedRectangle(cornerRadius:((12))))
-                .presentationCompactAdaptation(horizontal: .popover, vertical: .popover)
             }
     }
     
     private var isMe: Bool {
         participant.id == AppState.shared.user?.id
+    }
+    
+    private var popoverBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == false {
+                ContextMenuButton(title: "Participant.addAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle) {
+                    viewModel.makeAdmin(participant)
+                    showPopover.toggle()
+                }
+            }
+
+            if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == true {
+                ContextMenuButton(title: "Participant.removeAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.minus", bundle: Language.preferedBundle) {
+                    viewModel.removeAdminRole(participant)
+                    showPopover.toggle()
+                }
+            }
+
+            if !isMe, viewModel.thread?.admin == true {
+                ContextMenuButton(title: "General.delete".bundleLocalized(), image: "trash", bundle: Language.preferedBundle) {
+                    let dialog = AnyView(
+                        DeleteParticipantDialog(participant: participant)
+                            .environmentObject(viewModel)
+                    )
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = dialog
+                    showPopover.toggle()
+                }
+                .foregroundStyle(Color.App.red)
+            }
+        }
+        .foregroundColor(.primary)
+        .frame(width: 246)
+        .background(MixMaterialBackground())
+        .clipShape(RoundedRectangle(cornerRadius:((12))))
     }
 }
 
@@ -201,7 +207,6 @@ struct AddParticipantButton: View {
     }
 }
 
-@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 struct ParticipantSearchView: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
     @EnvironmentObject var detailViewModel: ThreadDetailViewModel
@@ -247,28 +252,36 @@ struct ParticipantSearchView: View {
                 }
             }
             .popover(isPresented: $showPopover, arrowEdge: .bottom) {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(SearchParticipantType.allCases.filter({$0 != .admin })) { item in
-                        Button {
-                            withAnimation {
-                                viewModel.searchType = item
-                                showPopover.toggle()
-                            }
-                        } label: {
-                            Text(item.rawValue)
-                                .font(.fBoldCaption3)
-                                .foregroundColor(Color.App.textSecondary)
-                        }
-                        .padding(8)
-                    }
+                if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
+                    popoverBody
+                    .presentationCompactAdaptation(.popover)
+                } else {
+                    popoverBody
                 }
-                .padding(8)
-                .presentationCompactAdaptation(.popover)
             }
         }
         .padding(EdgeInsets(top: 8, leading: 8, bottom: 0, trailing: 8))
         .background(Color.App.dividerSecondary)
         .animation(.easeInOut, value: viewModel.searchText)
+    }
+    
+    private var popoverBody: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(SearchParticipantType.allCases.filter({$0 != .admin })) { item in
+                Button {
+                    withAnimation {
+                        viewModel.searchType = item
+                        showPopover.toggle()
+                    }
+                } label: {
+                    Text(item.rawValue)
+                        .font(.fBoldCaption3)
+                        .foregroundColor(Color.App.textSecondary)
+                }
+                .padding(8)
+            }
+        }
+        .padding(8)
     }
 }
 

@@ -19,6 +19,12 @@ struct DetailEditConversationButton: View {
                     EditGroup(threadVM: viewModel.threadVM)
                         .environmentObject(viewModel)
                         .navigationBarBackButtonHidden(true)
+                        .onAppear {
+                            AppState.shared.objectsContainer.navVM.presntedNavigationLinkId = viewModel.thread.id
+                        }
+                        .onDisappear {
+                            AppState.shared.objectsContainer.navVM.presntedNavigationLinkId = nil
+                        }
                 }
             } label: {
                 Image("ic_edit")

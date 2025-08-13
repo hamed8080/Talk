@@ -8,6 +8,11 @@ public final class NavigationModel: ObservableObject {
     @Published public var paths = NavigationPath()
     var pathsTracking: [Any] = []
     var detailsStack: [ThreadDetailViewModel] = []
+    
+    /// Once we navigate to a view with NavigationLink in SwiftUI
+    /// insted of appending to the paths.
+    public var presntedNavigationLinkId: Any?
+    
     public init() {}
 
     public func append<T: NavigaitonValueProtocol>(value: T) {

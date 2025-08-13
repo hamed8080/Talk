@@ -199,14 +199,10 @@ public final class ParticipantsViewModel: ObservableObject {
         lazyList.setLoading(false)
     }
 
-    public func refresh() {
-        clear()
-        getParticipants()
-    }
-
     public func clear() {
         lazyList.reset()
         participants = []
+        searchText = ""
     }
 
     public func removePartitipant(_ participant: Participant) {

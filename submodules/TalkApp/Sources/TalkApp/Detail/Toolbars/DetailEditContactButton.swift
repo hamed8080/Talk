@@ -19,6 +19,12 @@ struct DetailEditContactButton: View {
                     .environmentObject(viewModel)
                     .background(Color.App.bgSecondary)
                     .navigationBarBackButtonHidden(true)
+                    .onAppear {
+                        AppState.shared.objectsContainer.navVM.presntedNavigationLinkId = viewModel.partnerContact?.id
+                    }
+                    .onDisappear {
+                        AppState.shared.objectsContainer.navVM.presntedNavigationLinkId = nil
+                    }
             } label: {
                 Image("ic_edit")
                     .resizable()
