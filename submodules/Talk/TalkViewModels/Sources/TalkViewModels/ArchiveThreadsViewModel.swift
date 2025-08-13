@@ -296,32 +296,28 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    private func onLastMessageDeleted(_ response: ChatResponse<Conversation>) {
-        if let conversation = response.result, let index = archives.firstIndex(where: {$0.id == conversation.id}) {
-            var current = archives[index]
-            current.lastMessageVO = conversation.lastMessageVO
-            current.lastMessage = conversation.lastMessage
-            archives[index] = current
-            Task {
-                await ThreadCalculators.reCalculate(current, myId, AppState.shared.objectsContainer.navVM.selectedId)
-                archives[index].animateObjectWillChange()
-            }
-            animateObjectWillChange()
+    private func onLastMessageChanged(_ response: ChatResponse<Conversation>) {
+        guard
+            let conversation = response.result,
+            let index = archives.firstIndex(where: {$0.id == conversation.id})
+        else { return }
+        var current = archives[index]
+        current.lastMessageVO = conversation.lastMessageVO
+        current.lastMessage = conversation.lastMessage
+        archives[index] = current
+        Task {
+            await ThreadCalculators.reCalculate(current, myId, AppState.shared.objectsContainer.navVM.selectedId)
+            archives[index].animateObjectWillChange()
         }
+        animateObjectWillChange()
     }
-
+    
+    private func onLastMessageDeleted(_ response: ChatResponse<Conversation>) {
+        onLastMessageChanged(response)
+    }
+    
     private func onLastMessageEdited(_ response: ChatResponse<Conversation>) {
-        if let conversation = response.result, let index = archives.firstIndex(where: {$0.id == conversation.id}) {
-            var current = archives[index]
-            current.lastMessageVO = conversation.lastMessageVO
-            current.lastMessage = conversation.lastMessage
-            archives[index] = current
-            Task {
-                await ThreadCalculators.reCalculate(current, myId, AppState.shared.objectsContainer.navVM.selectedId)
-                archives[index].animateObjectWillChange()
-            }
-            animateObjectWillChange()
-        }
+        onLastMessageChanged(response)
     }
     
     private func onLeave(_ response: ChatResponse<User>) {
