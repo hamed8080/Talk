@@ -434,6 +434,8 @@ extension ThreadHistoryViewModel {
                 scrollIndexPath = indexPath
             }
             delegate?.inserted(tuple.sections, tuple.rows, scrollIndexPath, .top, false)
+            
+            delegate?.showMoveToBottom(show: true)
 
             /// Hide center loading
             showCenterLoading(false)
