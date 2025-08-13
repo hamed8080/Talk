@@ -302,6 +302,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             current.lastMessageVO = conversation.lastMessageVO
             current.lastMessage = conversation.lastMessage
             archives[index] = current
+            Task {
+                await ThreadCalculators.reCalculate(current, myId, AppState.shared.objectsContainer.navVM.selectedId)
+                archives[index].animateObjectWillChange()
+            }
             animateObjectWillChange()
         }
     }
@@ -312,6 +316,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             current.lastMessageVO = conversation.lastMessageVO
             current.lastMessage = conversation.lastMessage
             archives[index] = current
+            Task {
+                await ThreadCalculators.reCalculate(current, myId, AppState.shared.objectsContainer.navVM.selectedId)
+                archives[index].animateObjectWillChange()
+            }
             animateObjectWillChange()
         }
     }
