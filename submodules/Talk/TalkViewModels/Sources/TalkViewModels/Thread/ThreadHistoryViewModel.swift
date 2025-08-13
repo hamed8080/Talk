@@ -1395,7 +1395,7 @@ extension ThreadHistoryViewModel {
     }
     
     private func fixLastMessageIfNeeded() -> Int? {
-        if thread.unreadCount == 0 && thread.lastMessageVO?.id ?? 0 != thread.lastSeenMessageId {
+        if thread.unreadCount == 0 {
             viewModel?.thread.lastMessageVO = (sections.last?.vms.last?.message as? Message)?.toLastMessageVO
             viewModel?.thread.lastSeenMessageId = sections.last?.vms.last?.message.id
             viewModel?.scrollVM.isAtBottomOfTheList = true

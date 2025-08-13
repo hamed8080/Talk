@@ -51,7 +51,6 @@ public final class ThreadViewModel: Identifiable {
     public var model: AppSettingsModel = .init()
     public var canDownloadImages: Bool = false
     public var canDownloadFiles: Bool = false
-    public var isDeletingLastMessage = false
 
     public weak var delegate: ThreadViewDelegate?
     
@@ -258,14 +257,17 @@ public final class ThreadViewModel: Identifiable {
     
     private func onLastMessageDeleted(_ thread: Conversation) {
         if thread.id == id {
-            isDeletingLastMessage = true
             self.thread.lastMessage = thread.lastMessage
             self.thread.lastMessageVO = thread.lastMessageVO
             setUnreadCount(thread.unreadCount)
-            Task.detached {
-                try? await Task.sleep(for: .milliseconds(1000))
-                await MainActor.run {
-                    self.isDeletingLastMessage = false
+            if let index = threadsViewModel?.firstIndex(id), let threadsVM = threadsViewModel {
+                threadsVM.threads[index].lastMessageVO = thread.lastMessageVO
+                threadsVM.threads[index].lastMessage = thread.lastMessage
+                threadsVM.threads[index].unreadCount = thread.unreadCount
+                let myId = AppState.shared.user?.id ?? -1
+                Task {
+                    await ThreadCalculators.reCalculate(threadsVM.threads[index], myId, AppState.shared.objectsContainer.navVM.selectedId)
+                    threadsVM.threads[index].animateObjectWillChange()
                 }
             }
         }
