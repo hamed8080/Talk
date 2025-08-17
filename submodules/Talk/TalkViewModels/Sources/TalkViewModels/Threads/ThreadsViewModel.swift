@@ -25,7 +25,6 @@ public final class ThreadsViewModel: ObservableObject {
     public var serverSortedPins: [Int] = []
     public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     private var cache: Bool = true
-    var isInCacheMode = false
     public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
     private var wasDisconnected = false
@@ -35,7 +34,6 @@ public final class ThreadsViewModel: ObservableObject {
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
 
     internal var objectId = UUID().uuidString
-    internal let GET_THREADS_KEY: String
     internal let CHANNEL_TO_KEY: String
     internal let JOIN_TO_PUBLIC_GROUP_KEY: String
     internal let LEAVE_KEY: String
@@ -46,7 +44,6 @@ public final class ThreadsViewModel: ObservableObject {
     private var myId: Int { AppState.shared.user?.id ?? -1 }
 
     public init() {
-        GET_THREADS_KEY = "GET-THREADS-\(objectId)"
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
@@ -131,25 +128,48 @@ public final class ThreadsViewModel: ObservableObject {
             await refresh()
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
-            await getThreads()
+            await getCachedThreads()
+        }
+    }
+    
+    private func getCachedThreads() async {
+        let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
+        do {
+            let conversations = try await GetThreadsReuqester().getCalculated(req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
+            await onThreads(conversations)
+        } catch {
+            log("Failed to get cached threads with error: \(error.localizedDescription)")
         }
     }
 
-    public func getThreads(withQueue: Bool = false) async {
+    public func getThreads(withQueue: Bool = false, keepOrder: Bool = false) async {
         /// Check if user didn't logged out
         if !TokenManager.shared.isLoggedIn { return }
         if !firstSuccessResponse {
             shimmerViewModel.show()
         }
         lazyList.setLoading(true)
-        let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
-        RequestsManager.shared.append(prepend: GET_THREADS_KEY, value: req)
-        if withQueue {
-            AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getConversations(req: req))
-        } else {
-            Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.conversation.get(req)
+        do {
+            
+            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
+            let conversations = try await GetThreadsReuqester().getCalculated(req,
+                                                                              withCache: false,
+                                                                              queueable: withQueue,
+                                                                              myId: myId,
+                                                                              navSelectedId: navVM.selectedId,
+                                                                              keepOrder: keepOrder)
+            if wasDisconnected {
+                /// Clear and remove all threads
+                threads.removeAll()
             }
+                        
+            await onThreads(conversations)
+            
+            moveToTopIfWasDisconnected(topItemId: threads.first?.id)
+            
+            wasDisconnected = false
+        } catch {
+            log("Failed to get threads with error: \(error.localizedDescription)")
         }
     }
 
@@ -159,15 +179,14 @@ public final class ThreadsViewModel: ObservableObject {
         await getThreads()
     }
 
-    public func onThreads(_ response: ChatResponse<[Conversation]>) async {
-        let hasAnyResults = response.result?.count ?? 0 > 0
-        
+    public func onThreads(_ conversations: [CalculatedConversation]) async {
+        let hasAnyResults = conversations.count ?? 0 > 0
+       
         let beforeSortedPins = serverSortedPins
-        storeServerPins(response)
+        storeServerPins(conversations)
         
         let navSelectedId = navVM.selectedId
-        let calculatedThreads = await ThreadCalculators.calculate(response.result ?? [], myId, navSelectedId)
-        let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads:  wasDisconnected ? []
+        let newThreads = await appendThreads(newThreads: conversations, oldThreads:  wasDisconnected ? []
                                              : threads)
         let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
         let threshold = await splitThreshold(sorted)
@@ -187,30 +206,31 @@ public final class ThreadsViewModel: ObservableObject {
         objectWillChange.send()
         
         updateActiveThreadAfterDisconnect()
-        if !response.cache, wasDisconnected {
-            /// scroll To first sortedItem if we were way down in the list to show correct row
-            scrollToId = sorted.first?.id
+        
+        if wasDisconnected {
             beforeSortedPins.forEach { id in
                 updatePinAndSelectedAfterReconnect(oldThreadId: id)
             }
-            wasDisconnected = false
         }
     }
     
-    private func storeServerPins(_ response: ChatResponse<[Conversation]>) {
-        let pinThreads = response.result?.filter({$0.pin == true}).compactMap({$0.id}) ?? []
-        let isCache = response.cache
-        let isFirstPinsResponse = !isCache && !wasDisconnected && !pinThreads.isEmpty
-        let isFirstResponseAfterDisconnect = !isCache && wasDisconnected && !pinThreads.isEmpty
+    private func moveToTopIfWasDisconnected(topItemId: Int?) {
+        if wasDisconnected {
+            /// scroll To first if we were way down in the list to show correct row
+            scrollToId = topItemId
+        }
+    }
+    
+    private func storeServerPins(_ conversations: [CalculatedConversation]) {
+        let pinThreads = conversations.filter({$0.pin == true}).compactMap({$0.id}) ?? []
+        let isFirstPinsResponse = !wasDisconnected && !pinThreads.isEmpty
+        let isFirstResponseAfterDisconnect = wasDisconnected && !pinThreads.isEmpty
         
         /// It only sets sorted pins once because if we have 5 pins, they are in the first response. So when the user scrolls down the list will not be destroyed every time.
         if isFirstPinsResponse || isFirstResponseAfterDisconnect {
             serverSortedPins.removeAll()
             serverSortedPins.append(contentsOf: pinThreads)
             userDefaultSortedPins = serverSortedPins
-        } else if isCache {
-            serverSortedPins.removeAll()
-            serverSortedPins.append(contentsOf: userDefaultSortedPins)
         }
     }
     
@@ -252,7 +272,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func refresh() async {
         cache = false
         lazyList.reset()
-        await getThreads(withQueue: true)
+        await getThreads(withQueue: true, keepOrder: true)
         cache = true
     }
 
@@ -374,7 +394,6 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     public func clear() {
-        isInCacheMode = false
         lazyList.reset()
         threads = []
         firstSuccessResponse = false
@@ -711,7 +730,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     public func calculateAppendSortAnimate(_ thread: Conversation) async {
-        let calThreads = await ThreadCalculators.calculate([thread], myId)
+        let calThreads = await ThreadCalculators.calculate(conversations: [thread], myId: myId)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
         resetActiveThread()

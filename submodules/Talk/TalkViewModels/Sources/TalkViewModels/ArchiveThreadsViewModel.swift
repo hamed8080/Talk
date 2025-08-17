@@ -24,8 +24,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var canLoadMore: Bool { hasNext && !isLoading }
     public var archives: ContiguousArray<CalculatedConversation> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
-    private var objectId = UUID().uuidString
-    private let GET_ARCHIVES_KEY: String
     private var wasDisconnected = false
     public var isAppeared = false
     
@@ -34,7 +32,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var myId: Int { AppState.shared.user?.id ?? -1 }
     
     public init() {
-        GET_ARCHIVES_KEY = "GET-ARCHIVES-\(objectId)"
         NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
             .sink { [weak self] event in
@@ -78,8 +75,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
 
     private func onThreadEvent(_ event: ThreadEventTypes?) async {
         switch event {
-        case .threads(let response):
-            await onArchives(response)
         case .archive(let response):
             await onArchive(response)
         case .unArchive(let response):
@@ -147,12 +142,12 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
-        RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
-        Task { @ChatGlobalActor in
-            if withQueue {
-                await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getArchives(req: req))
-            } else {
-                ChatManager.activeInstance?.conversation.get(req)
+        Task {
+            do {
+                let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: withQueue, myId: myId, navSelectedId: navVM.selectedId)
+                await onArchives(calThreads)
+            } catch {
+                log("Failed to get archived threads with error: \(error.localizedDescription)")
             }
         }
         animateObjectWillChange()
@@ -162,26 +157,26 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
-        RequestsManager.shared.append(prepend: GET_ARCHIVES_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
+        Task {
+            do {
+                let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: true, myId: myId, navSelectedId: navVM.selectedId)
+                await onArchives(calThreads)
+            } catch {
+                log("Failed to get archived thread with id: \(threadId) error: \(error.localizedDescription)")
+            }
         }
         animateObjectWillChange()
     }
 
-    @AppBackgroundActor
-    public func onArchives(_ response: ChatResponse<[Conversation]>) async {
-        if !response.cache, let archivesResp = response.result, response.pop(prepend: GET_ARCHIVES_KEY) != nil {
-            let calculatedThreads = await ThreadCalculators.calculate(archivesResp, myId, navVM.selectedId, false)
-            let newThreads = await appendThreads(newThreads: calculatedThreads, oldThreads: self.archives)
-            let sorted = await sort(threads: newThreads)
-            await MainActor.run {
-                setHasNextOnResponse(response)
-                self.archives = sorted
-                isLoading = false
-                firstSuccessResponse = true
-                animateObjectWillChange()
-            }
+    public func onArchives(_ calThreads: [CalculatedConversation]) async {
+        let newThreads = await appendThreads(newThreads: calThreads, oldThreads: self.archives)
+        let sorted = await sort(threads: newThreads)
+        await MainActor.run {
+            hasNext = calThreads.count >= count
+            self.archives = sorted
+            isLoading = false
+            firstSuccessResponse = true
+            animateObjectWillChange()
         }
     }
 
@@ -252,12 +247,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
             await getArchivedThreads()
-        }
-    }
-
-    private func setHasNextOnResponse(_ response: ChatResponse<[Conversation]>) {
-        if !response.cache {
-            hasNext = response.hasNext
         }
     }
 
@@ -500,7 +489,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     public func calculateAppendSortAnimate(_ thread: Conversation) async {
-        let calThreads = await ThreadCalculators.calculate([thread], myId, navVM.selectedId, false)
+        let calThreads = await ThreadCalculators.calculate(conversations: [thread], myId: myId, navSelectedId: navVM.selectedId, nonArchives: false)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: archives)
         let sorted = await sort(threads: appendedThreads)
         archives = sorted
@@ -531,7 +520,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         }
     }
-    
+}
+
+private extension ArchiveThreadsViewModel {
     func log(_ string: String) {
         Logger.log(title: "ArchiveThreadsViewModel", message: string)
     }

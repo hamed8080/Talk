@@ -15,12 +15,25 @@ public class ThreadCalculators {
     private static let textDirectionMark = Language.isRTL ? "\u{200f}" : "\u{200e}"
     
     @AppBackgroundActor
-    public class func calculate(_ conversations: [Conversation],
-                                _ myId: Int,
-                                _ navSelectedId: Int? = nil,
-                                _ nonArchives: Bool = true
+    public class func calculate(conversations: [Conversation],
+                                myId: Int,
+                                navSelectedId: Int? = nil,
+                                nonArchives: Bool = true,
+                                keepOrder: Bool = false
     ) async -> [CalculatedConversation] {
+        if keepOrder {
+            return orderedCalculations(conversations: conversations, myId: myId, navSelectedId: navSelectedId)
+        }
         return await calculateWithGroup(conversations, myId, navSelectedId, nonArchives)
+    }
+    
+    private static func orderedCalculations(conversations: [Conversation], myId: Int, navSelectedId: Int? = nil) -> [CalculatedConversation] {
+        var calThreads: [CalculatedConversation] = []
+        for conversation in conversations {
+            let cal = calculate(conversation, myId, navSelectedId)
+            calThreads.append(cal)
+        }
+        return calThreads
     }
     
     private class func calculateWithGroup(_ conversations: [Conversation],

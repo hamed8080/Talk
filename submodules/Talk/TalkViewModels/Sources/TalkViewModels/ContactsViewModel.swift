@@ -12,6 +12,7 @@ import TalkModels
 import SwiftUI
 import Photos
 import TalkExtensions
+import Logger
 
 @MainActor
 public class ContactsViewModel: ObservableObject {
@@ -33,15 +34,11 @@ public class ContactsViewModel: ObservableObject {
     public var userNotFound: Bool = false
     public var lazyList = LazyListViewModel()
     private var objectId = UUID().uuidString
-    private let GET_CONTACTS_KEY: String
-    private let SEARCH_CONTACTS_KEY: String
     public var builderScrollProxy: ScrollViewProxy?
     @Published public var isTypinginSearchString: Bool = false
 
     public init(isBuilder: Bool = false) {
         self.isBuilder = isBuilder
-        GET_CONTACTS_KEY = "GET-CONTACTS\(isBuilder ? "-BUILDER" : "")-\(objectId)"
-        SEARCH_CONTACTS_KEY = "SEARCH-CONTACTS\(isBuilder ? "-BUILDER" : "")-\(objectId)"
         setupPublishers()
     }
 
@@ -112,9 +109,6 @@ public class ContactsViewModel: ObservableObject {
 
     private func onContactEvent(_ event: ContactEventTypes?) async {
         switch event {
-        case let .contacts(response):
-            await onSearchContacts(response)
-            await onContacts(response)
         case let .add(response):
             await onAddContacts(response)
         case let .delete(response, deleted):
@@ -139,54 +133,47 @@ public class ContactsViewModel: ObservableObject {
         }
     }
 
-    public func onContacts(_ response: ChatResponse<[Contact]>) {
-        if !response.cache, response.pop(prepend: GET_CONTACTS_KEY) != nil {
-            if let contacts = response.result {
-                firstSuccessResponse = !response.cache
-                appendOrUpdateContact(contacts)
-                setMaxContactsCountInServer(count: response.contentCount ?? 0)
-            }
-            lazyList.setHasNext(response.hasNext)
-            lazyList.setLoading(false)
-            lazyList.setThreasholdIds(ids: self.contacts.suffix(5).compactMap{$0.id})
-        }
-    }
-
     func onBlockedList(_ response: ChatResponse<[BlockedContactResponse]>) {
         blockedContacts = .init(response.result ?? [])
         animateObjectWillChange()
     }
-
+    
     public func getContacts() {
         lazyList.setLoading(true)
         let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
-        RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.contact.get(req)
+        Task {
+            do {
+                let contacts = try await GetContactsRequester().get(req, withCache: false, queueable: true)
+                firstSuccessResponse = true
+                appendOrUpdateContact(contacts)
+                lazyList.setHasNext(contacts.count >= lazyList.count)
+                lazyList.setLoading(false)
+                lazyList.setThreasholdIds(ids: self.contacts.suffix(5).compactMap{$0.id})
+            } catch {
+                log("Failed to get contacts with error: \(error.localizedDescription)")
+            }
         }
     }
     
     public func onConnectedGetContacts() async {
         await try? Task.sleep(200)
-        lazyList.setLoading(true)
-        let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
-        RequestsManager.shared.append(prepend: GET_CONTACTS_KEY, value: req)
-        AppState.shared.objectsContainer.chatRequestQueue.enqueue(.getContacts(req: req))
+        getContacts()
     }
-
-    public func searchContacts(_ searchText: String) {
+    
+    public func searchContacts(_ searchText: String) async {
         lazyList.setLoading(true)
-        let req: ContactsRequest
-        if searchType == .username {
-            req = ContactsRequest(userName: searchText)
-        } else if searchType == .cellphoneNumber {
-            req = ContactsRequest(cellphoneNumber: searchText)
-        } else {
-            req = ContactsRequest(query: searchText)
-        }
-        RequestsManager.shared.append(prepend: SEARCH_CONTACTS_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.contact.search(req)
+        let req = getSearchRequest(searchText)
+        do {
+            let contacts = try await GetSearchContactsRequester().get(req, withCache: false)
+            lazyList.setLoading(false)
+            searchedContacts = .init(contacts)
+            try? await Task.sleep(for: .milliseconds(200)) /// To scroll properly
+            withAnimation {
+                let scrollTo = contacts.isEmpty ? "General.noResult" : "SearchRow-\(searchedContacts.first?.id ?? 0)"
+                builderScrollProxy?.scrollTo(scrollTo, anchor: .top)
+            }
+        } catch {
+            log("Failed to get search contacts with error: \(error.localizedDescription)")
         }
     }
 
@@ -315,19 +302,7 @@ public class ContactsViewModel: ObservableObject {
         guard let index = selectedContacts.firstIndex(of: contact) else { return }
         selectedContacts.remove(at: index)
     }
-
-    public func onSearchContacts(_ response: ChatResponse<[Contact]>) async {
-        if !response.cache, response.pop(prepend: SEARCH_CONTACTS_KEY) != nil {
-            lazyList.setLoading(false)
-            searchedContacts = .init(response.result ?? [])
-            try? await Task.sleep(for: .milliseconds(200)) /// To scroll properly
-            withAnimation {
-                let scrollTo = response.result?.isEmpty == true ? "General.noResult" : "SearchRow-\(searchedContacts.first?.id ?? 0)"
-                builderScrollProxy?.scrollTo(scrollTo, anchor: .top)
-            }
-        }
-    }
-
+    
     public func addContact(contactValue: String, firstName: String?, lastName: String?) async {
         lazyList.setLoading(true)
         let isNumber = ContactsViewModel.isNumber(value: contactValue)
@@ -456,5 +431,25 @@ public class ContactsViewModel: ObservableObject {
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.contact.getBlockedList()
         }
+    }
+}
+
+private extension ContactsViewModel {
+    func getSearchRequest(_ searchText: String) -> ContactsRequest {
+        let req: ContactsRequest
+        if searchType == .username {
+            req = ContactsRequest(userName: searchText)
+        } else if searchType == .cellphoneNumber {
+            req = ContactsRequest(cellphoneNumber: searchText)
+        } else {
+            req = ContactsRequest(query: searchText)
+        }
+        return req
+    }
+}
+
+private extension ContactsViewModel {
+    func log(_ string: String) {
+        Logger.log(title: "ContactsViewModel", message: string)
     }
 }

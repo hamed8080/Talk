@@ -16,6 +16,7 @@ public class GetMessageReactionsReuqester {
     private var cancellableSet = Set<AnyCancellable>()
     private var threadId = 0
     private var resumed: Bool = false
+
     
     enum ReactionError: Error {
         case failed(ChatResponse<Sendable>)

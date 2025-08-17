@@ -15,6 +15,7 @@ public class GetHistoryReuqester {
     private var cancellableSet = Set<AnyCancellable>()
     public var mainData: MainRequirements?
     public weak var viewModel: ThreadViewModel?
+    private var resumed: Bool = false
     
     enum HistoryError: Error {
         case failed(ChatResponse<Sendable>)
@@ -49,7 +50,9 @@ public class GetHistoryReuqester {
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
                 Task { [weak self] in
-                    if let result = await self?.handleEvent(event) {
+                    guard let self = self, !self.resumed else { return }
+                    if let result = await self.handleEvent(event) {
+                        self.resumed = true
                         continuation.resume(with: .success(result))
                     }
                 }
@@ -59,7 +62,9 @@ public class GetHistoryReuqester {
         NotificationCenter.error.publisher(for: .error)
             .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] resp in
-                if let key = self?.KEY, resp.pop(prepend: key) != nil {
+                guard let self = self, !self.resumed else { return }
+                if resp.pop(prepend: self.KEY) != nil {
+                    self.resumed = true
                     continuation.resume(throwing: HistoryError.failed(resp))
                 }
             }

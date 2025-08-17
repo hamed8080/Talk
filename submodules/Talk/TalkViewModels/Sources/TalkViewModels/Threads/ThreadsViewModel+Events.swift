@@ -103,19 +103,6 @@ extension ThreadsViewModel {
 
     func onThreadEvent(_ event: ThreadEventTypes?) async {
         switch event {
-        case .threads(let response):
-            if !response.cache {
-                if isInCacheMode {
-                    await clear()
-                    log("Clear all SQLITE cached version of conversions")
-                }
-                if response.pop(prepend: GET_THREADS_KEY) != nil {
-                    await onThreads(response)
-                }
-            } else if response.cache && AppState.shared.connectionStatus != .connected {
-                isInCacheMode = true
-                await onThreads(response)
-            }
         case .created(let response):
             await onCreate(response)
         case .deleted(let response):

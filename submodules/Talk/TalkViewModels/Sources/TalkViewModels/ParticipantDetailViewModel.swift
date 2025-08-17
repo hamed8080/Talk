@@ -11,6 +11,7 @@ import Foundation
 import SwiftUI
 import TalkModels
 import TalkExtensions
+import Logger
 
 @MainActor
 public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency Hashable {
@@ -37,7 +38,6 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     @Published public var isLoading = false
     @Published public var successEdited: Bool = false
     private var objectId = UUID().uuidString
-    private let P2P_PARTNER_CONTACT_KEY: String
     private let PARTICIPANT_EDIT_CONTACT_KEY: String
     
     /// Computed Properties
@@ -53,7 +53,6 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     }
 
     public init(participant: Participant) {
-        P2P_PARTNER_CONTACT_KEY = "P2P-PARTNER-CONTACT-KEY-\(objectId)"
         PARTICIPANT_EDIT_CONTACT_KEY = "PARTICIPANT-EDIT-CONTACT-KEY-\(objectId)"
         self.participant = participant
         setup()
@@ -79,8 +78,6 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
             onAddContact(chatResponse)
         case .delete(let response, let deleted):
             onDeletedContact(response, deleted)
-        case .contacts(let response):
-            onP2PConatct(response)
         default:
             break
         }
@@ -156,33 +153,23 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
         if let localContact = AppState.shared.objectsContainer.contactsVM.contacts.first(where:({$0.id == partnerContactId})) {
             partnerContact = localContact
             animateObjectWillChange()
-        } else {
-            fetchPartnerContact()
+        } else if let req = getPartnerContactRequest() {
+            fetchPartnerContact(req)
         }
     }
 
-    private func fetchPartnerContact() {
-        var req: ContactsRequest?
-        if let contactId = partnerContactId {
-            req = ContactsRequest(id: contactId)
-        } else if let coreUserId = participant.coreUserId {
-            req = ContactsRequest(coreUserId: coreUserId)
-        } else if let userName = participant.username {
-            req = ContactsRequest(userName: userName)
-        }
-        guard let req = req else { return }
-        RequestsManager.shared.append(prepend: P2P_PARTNER_CONTACT_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.contact.get(req)
-        }
-    }
-
-    private func onP2PConatct(_ response: ChatResponse<[Contact]>) {
-        if !response.cache, response.pop(prepend: P2P_PARTNER_CONTACT_KEY) != nil, let contact = response.result?.first {
-            self.partnerContact = contact
-            participant.contactId = contact.id
-            participant.cellphoneNumber = participant.cellphoneNumber ?? contact.cellphoneNumber
-            animateObjectWillChange()
+    private func fetchPartnerContact(_ req: ContactsRequest) {
+        Task {
+            do {
+                if let contact = try await GetContactsRequester().get(req, withCache: false).first {
+                    self.partnerContact = contact
+                    participant.contactId = contact.id
+                    participant.cellphoneNumber = participant.cellphoneNumber ?? contact.cellphoneNumber
+                    animateObjectWillChange()
+                }
+            } catch {
+                log("Failed to get P2P contact with error: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -210,3 +197,21 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
 #endif
 }
 
+private extension ParticipantDetailViewModel {
+    func getPartnerContactRequest() -> ContactsRequest? {
+        if let contactId = partnerContactId {
+            return ContactsRequest(id: contactId)
+        } else if let coreUserId = participant.coreUserId {
+            return ContactsRequest(coreUserId: coreUserId)
+        } else if let userName = participant.username {
+            return ContactsRequest(userName: userName)
+        }
+        return nil
+    }
+}
+
+private extension ParticipantDetailViewModel {
+    func log(_ string: String) {
+        Logger.log(title: "ParticipantDetailViewModel", message: string)
+    }
+}

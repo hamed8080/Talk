@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import Chat
 import TalkModels
+import Logger
 
 @MainActor
 public class ThreadOrContactPickerViewModel: ObservableObject {
@@ -19,16 +20,12 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     private var isIsSearchMode = false
     public var contactsLazyList = LazyListViewModel()
     public var conversationsLazyList = LazyListViewModel()
-    private var objectId = UUID().uuidString
-    private let GET_THREADS_IN_SELECT_THREAD_KEY: String
-    private let GET_CONTCATS_IN_SELECT_CONTACT_KEY: String
     private var selfConversation: Conversation? = AppState.shared.objectsContainer.selfConversationBuilder.cachedSlefConversation
 
     public init() {
-        GET_THREADS_IN_SELECT_THREAD_KEY = "GET-THREADS-IN-SELECT-THREAD-\(objectId)"
-        GET_CONTCATS_IN_SELECT_CONTACT_KEY = "GET-CONTACTS-IN-SELECT-CONTACT-\(objectId)"
         getContacts()
-        getThreads()
+        let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
+        getThreads(req)
         setupObservers()
     }
 
@@ -65,28 +62,6 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellableSet)
-
-        NotificationCenter.thread.publisher(for: .thread)
-            .map({$0.object as? ThreadEventTypes})
-            .sink { [weak self] event in
-                Task { [weak self] in
-                    if case let .threads(response) = event {
-                        await self?.onConversations(response)
-                    }
-                }
-            }
-            .store(in: &cancellableSet)
-
-        NotificationCenter.contact.publisher(for: .contact)
-            .map({$0.object as? ContactEventTypes})
-            .sink { [weak self] event in
-                Task { [weak self] in
-                    if case let .contacts(response) = event {
-                        await self?.onContacts(response)
-                    }
-                }
-            }
-            .store(in: &cancellableSet)
     }
 
     func search(_ text: String) {
@@ -94,51 +69,48 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         contacts.removeAll()
         contactsLazyList.setLoading(true)
         conversationsLazyList.setLoading(true)
+        
         let req = ThreadsRequest(searchText: text)
-        RequestsManager.shared.append(prepend: GET_THREADS_IN_SELECT_THREAD_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
+        getThreads(req)
+        
+        Task {
+            await searchContacts(text)
         }
-
-        let contactsReq = ContactsRequest(query: text)
-        RequestsManager.shared.append(prepend: GET_CONTCATS_IN_SELECT_CONTACT_KEY, value: contactsReq)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.contact.get(contactsReq)
+    }
+    
+    private func searchContacts(_ text: String) async {
+        do {
+            let contactsReq = ContactsRequest(query: text)
+            let contacts = try await GetContactsRequester().get(contactsReq, withCache: false)
+            await hideContactsLoadingWithDelay()
+            contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
+            self.contacts.append(contentsOf: contacts)
+            animateObjectWillChange()
+        } catch {
+            log("Failed to search get contacts with error: \(error.localizedDescription)")
         }
     }
 
     public func loadMore() {
         if !conversationsLazyList.canLoadMore() { return }
         conversationsLazyList.prepareForLoadMore()
-        getThreads()
+        let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
+        getThreads(req)
     }
 
-    public func getThreads() {
+    public func getThreads(_ req: ThreadsRequest) {
         if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
-        let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
-        RequestsManager.shared.append(prepend: GET_THREADS_IN_SELECT_THREAD_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
-        }
-    }
-
-    private func onConversations(_ response: ChatResponse<[Conversation]>) async {
-        if !response.cache, response.pop(prepend: GET_THREADS_IN_SELECT_THREAD_KEY) != nil {
+        Task {
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = try await GetThreadsReuqester().getCalculated(req, withCache: false, myId: myId, navSelectedId: nil)
             await hideConversationsLoadingWithDelay()
-            conversationsLazyList.setHasNext(response.hasNext)
-            let filtered = (response.result ?? []).filter({$0.closed == false }).filter({$0.type != .selfThread})
-            var calculatedConversations: [CalculatedConversation] = []
-            let myId = AppState.shared.user?.id
-            for thread in filtered {
-                let calculated = await ThreadCalculators.calculate(thread, myId ?? -1)
-                calculatedConversations.append(calculated)
-            }
-            conversations.append(contentsOf: calculatedConversations)
-            
+            conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
+            let filtered = calThreads.filter({$0.closed == false }).filter({$0.type != .selfThread})
+            self.conversations.append(contentsOf: calThreads)
             if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
                 let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
-                conversations.append(calculated)
+                self.conversations.append(calculated)
             }
             animateObjectWillChange()
         }
@@ -153,18 +125,16 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public func getContacts() {
         contactsLazyList.setLoading(true)
         let req = ContactsRequest(count: contactsLazyList.count, offset: contactsLazyList.offset)
-        RequestsManager.shared.append(prepend: GET_CONTCATS_IN_SELECT_CONTACT_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.contact.get(req)
-        }
-    }
-
-    private func onContacts(_ response: ChatResponse<[Contact]>) async {
-        if !response.cache, response.pop(prepend: GET_CONTCATS_IN_SELECT_CONTACT_KEY) != nil {
-            await hideContactsLoadingWithDelay()
-            contactsLazyList.setHasNext(response.hasNext)
-            contacts.append(contentsOf: response.result ?? [])
-            animateObjectWillChange()
+        Task {
+            do {
+                let contacts = try await GetContactsRequester().get(req, withCache: false)
+                await hideContactsLoadingWithDelay()
+                contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
+                self.contacts.append(contentsOf: contacts)
+                animateObjectWillChange()
+            } catch {
+                log("Failed to get contacts with error: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -190,6 +160,15 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         conversations.removeAll()
         contacts.removeAll()
         getContacts()
-        getThreads()
+        
+        let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
+        getThreads(req)
     }
 }
+
+private extension ThreadOrContactPickerViewModel {
+    func log(_ string: String) {
+        Logger.log(title: "ThreadOrContactPickerViewModel", message: string)
+    }
+}
+

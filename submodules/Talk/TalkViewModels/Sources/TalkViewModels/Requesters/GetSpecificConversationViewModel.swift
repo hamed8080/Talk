@@ -15,6 +15,7 @@ public final class GetSpecificConversationViewModel {
     private var objectId = UUID().uuidString
     private let GET_NOT_ACTIVE_THREADS_KEY: String
     private var cancelable: AnyCancellable?
+    private var resumed: Bool = false
     
     public init() {
         GET_NOT_ACTIVE_THREADS_KEY = "GET-NOT-ACTIVE-THREADS-\(objectId)"
@@ -40,11 +41,13 @@ public final class GetSpecificConversationViewModel {
             .compactMap { $0.object as? ThreadEventTypes }
             .sink { [weak self] event in
                 Task {
-                    if let conversation = self?.handleThreadEvent(event) {
-                        self?.log("Calling continuation for get a conversation by id: \(conversation.id ?? -1)")
+                    guard let self = self, !self.resumed else { return }
+                    if let conversation = self.handleThreadEvent(event) {
+                        self.resumed = true
+                        self.log("Calling continuation for get a conversation by id: \(conversation.id ?? -1)")
                         continuation.resume(returning: conversation)
-                        self?.cancelable?.cancel() // ✅ Cancel after resuming
-                        self?.cancelable = nil
+                        self.cancelable?.cancel() // ✅ Cancel after resuming
+                        self.cancelable = nil
                     }
                 }
             }

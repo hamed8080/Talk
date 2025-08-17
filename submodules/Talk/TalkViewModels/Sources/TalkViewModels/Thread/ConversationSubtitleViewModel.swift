@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import Chat
 import TalkModels
+import Logger
 
 @MainActor
 public final class ConversationSubtitleViewModel {
@@ -20,7 +21,6 @@ public final class ConversationSubtitleViewModel {
     private var notSeenDurationViewModel: GetNotSeenDurationViewModel?
     public weak var viewModel: ThreadViewModel?
     private var cancellableSet: Set<AnyCancellable> = []
-    private let PARTICIPANTS_COUNT_KEY: String = "GET-PARTICIPANTS-COUNT-\(UUID().uuidString)"
     
     public init() {}
     
@@ -44,13 +44,6 @@ public final class ConversationSubtitleViewModel {
                 } else {
                     self?.updateTo(self?.getParticipantsCountOrLastSeen())
                 }
-            }
-            .store(in: &cancellableSet)
-        
-        NotificationCenter.thread.publisher(for: .thread)
-            .compactMap { $0.object as? ThreadEventTypes }
-            .sink { [weak self] event in
-                self?.onThreadEvent(event)
             }
             .store(in: &cancellableSet)
     }
@@ -146,20 +139,25 @@ public final class ConversationSubtitleViewModel {
     private func requestParticipantsCount() {
         guard let threadId = thread?.id, thread?.participantCount == nil else { return }
         let req = ThreadsRequest(threadIds: [threadId])
-        RequestsManager.shared.append(prepend: PARTICIPANTS_COUNT_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
-        }
-    }
-    
-    private func onThreadEvent(_ event: ThreadEventTypes?) {
-        if case .threads(let response) = event, response.cache == false, response.pop(prepend: PARTICIPANTS_COUNT_KEY) != nil {
-            viewModel?.thread.participantCount = response.result?.first?.participantCount
-            updateTo(getParticipantsCountOrLastSeen())
+        Task {
+            do {
+                if let conversation = try await GetThreadsReuqester().get(req, withCache: false).first {
+                    viewModel?.thread.participantCount = conversation.participantCount
+                    updateTo(getParticipantsCountOrLastSeen())
+                }
+            } catch {
+                log("Failed to get conversation to extract pariticipantsCount with error: \(error.localizedDescription)")
+            }
         }
     }
     
     public func updateSubtitle() {
         setParticipantsCountOnOpen()
+    }
+}
+
+private extension ConversationSubtitleViewModel {
+    func log(_ string: String) {
+        Logger.log(title: "ConversationSubtitleViewModel", message: string)
     }
 }

@@ -11,6 +11,7 @@ import Foundation
 import SwiftUI
 import TalkModels
 import TalkExtensions
+import Logger
 
 @MainActor
 public final class ThreadsSearchViewModel: ObservableObject {
@@ -23,37 +24,17 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private var cachedAttribute: [String: AttributedString] = [:]
     public var isInSearchMode: Bool { searchText.count > 0 || (!searchedConversations.isEmpty || !searchedContacts.isEmpty) }
     public private(set) var lazyList = LazyListViewModel()
-    private var objectId = UUID().uuidString
-    private let SEARCH_KEY: String
-    private let SEARCH_LOAD_MORE_KEY: String
-    private let SEARCH_PUBLIC_THREAD_KEY: String
-    private let SEARCH_CONTACTS_IN_THREADS_LIST_KEY: String
 
     public init() {
-        SEARCH_KEY = "SEARCH-\(objectId)"
-        SEARCH_LOAD_MORE_KEY = "SEARCH-LOAD-MORE-\(objectId)"
-        SEARCH_PUBLIC_THREAD_KEY = "SEARCH-PUBLIC-THREAD-\(objectId)"
-        SEARCH_CONTACTS_IN_THREADS_LIST_KEY = "SEARCH-CONTACTS-IN-THREADS-LIST-\(objectId)"
-
-        Task {
-            await setupObservers()
-        }
+        setupObservers()
     }
 
-    private func setupObservers() async {
+    private func setupObservers() {
         lazyList.objectWillChange.sink { [weak self] _ in
             self?.animateObjectWillChange()
         }
         .store(in: &cancelable)
 
-        NotificationCenter.thread.publisher(for: .thread)
-            .compactMap { $0.object as? ThreadEventTypes }
-            .sink { [weak self] event in
-                Task { [weak self] in
-                    await self?.onThreadEvent(event)
-                }
-            }
-            .store(in: &cancelable)
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
@@ -80,12 +61,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
-        NotificationCenter.contact.publisher(for: .contact)
-            .compactMap { $0.object as? ContactEventTypes }
-            .sink { [weak self] event in
-                self?.onContactEvent(event)
-            }
-            .store(in: &cancelable)
 
         $showUnreadConversations.sink { [weak self] newValue in
             Task { [weak self] in
@@ -97,16 +72,16 @@ public final class ThreadsSearchViewModel: ObservableObject {
 
     private func onSearchTextChanged(_ newValue: String) async {
         if newValue.first == "@", newValue.count > 2 {
-            await reset()
+            reset()
             let startIndex = newValue.index(newValue.startIndex, offsetBy: 1)
             let newString = newValue[startIndex..<newValue.endIndex]
-            searchPublicThreads(String(newString))
+            await searchPublicThreads(String(newString))
         } else if newValue.first != "@" && !newValue.isEmpty {
-            await reset()
+            reset()
             await searchThreads(newValue, new: showUnreadConversations)
-            searchContacts(newValue)
+            await searchContacts(newValue)
         } else if newValue.count == 0, await !lazyList.isLoading {
-            await reset()
+            reset()
         }
     }
 
@@ -124,18 +99,6 @@ public final class ThreadsSearchViewModel: ObservableObject {
         await searchThreads(searchText, new: showUnreadConversations, loadMore: true)
     }
 
-    private func onThreadEvent(_ event: ThreadEventTypes?) async {
-        switch event {
-        case .threads(let response):
-            await setHasNextOnResponse(response)
-            await onPublicThreadSearch(response)
-            await onSearch(response)
-            await onSearchLoadMore(response)
-        default:
-            break
-        }
-    }
-    
     private func onMessageEvent(_ event: MessageEventTypes?) async {
         switch event {
         case .new(let response):
@@ -145,94 +108,41 @@ public final class ThreadsSearchViewModel: ObservableObject {
         }
     }
 
-    private func onContactEvent(_ event: ContactEventTypes?) {
-        switch event {
-        case let .contacts(response):
-            onSearchContacts(response)
-        default:
-            break
-        }
-    }
-
-    private func searchThreads(_ text: String, new: Bool? = nil, loadMore: Bool = false) {
+    private func searchThreads(_ text: String, new: Bool? = nil, loadMore: Bool = false) async {
         if !lazyList.canLoadMore() { return }
         lazyList.setLoading(true)
-        let req = ThreadsRequest(searchText: text, count: lazyList.count, offset: lazyList.offset, new: new)
-        RequestsManager.shared.append(prepend: loadMore ? SEARCH_LOAD_MORE_KEY : SEARCH_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
+        do {
+            let calThreads = try await search(text: text, new: new, loadMore: loadMore)
+            lazyList.setLoading(false)
+            lazyList.setHasNext(calThreads.count >= lazyList.count)
+            searchedConversations.append(contentsOf: calThreads)
+        } catch {
+            log("Failed to get serach threads with error: \(error.localizedDescription)")
         }
     }
 
-    private func searchPublicThreads(_ text: String) {
+    private func searchPublicThreads(_ text: String) async {
         if !lazyList.canLoadMore() { return }
         lazyList.setLoading(true)
-        let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, name: text, type: .publicGroup)
-        RequestsManager.shared.append(prepend: SEARCH_PUBLIC_THREAD_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.get(req)
-        }
-    }
-
-    private func onSearch(_ response: ChatResponse<[Conversation]>) async {
-        lazyList.setLoading(false)
-        if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_KEY) != nil {
-            let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.calculate(threads, myId)
+        do {
+            let calThreads = try await publicConversations(text: text)
+            lazyList.setLoading(false)
+            lazyList.setHasNext(calThreads.count >= lazyList.count)
             searchedConversations.append(contentsOf: calThreads)
+        } catch {
+            log("Failed to get search public threads with error: \(error.localizedDescription)")
         }
     }
-
-    private func onSearchLoadMore(_ response: ChatResponse<[Conversation]>) async {
-        lazyList.setLoading(false)
-        if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_LOAD_MORE_KEY) != nil {
-            let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.calculate(threads, myId)
-            searchedConversations.append(contentsOf: calThreads)
-        }
-    }
-
-    private func onPublicThreadSearch(_ response: ChatResponse<[Conversation]>) async {
-        lazyList.setLoading(false)
-        if !response.cache, let threads = response.result, response.pop(prepend: SEARCH_PUBLIC_THREAD_KEY) != nil {
-            let myId = AppState.shared.user?.id ?? -1
-            let calThreads = await ThreadCalculators.calculate(threads, myId)
-            searchedConversations.append(contentsOf: calThreads)
-        }
-    }
-
-    private func setHasNextOnResponse(_ response: ChatResponse<[Conversation]>) async {
-        if !response.cache, response.result?.count ?? 0 > 0 {
-            lazyList.setHasNext(response.hasNext)
-        }
-    }
-
-    private func searchContacts(_ searchText: String) {
+    
+    private func searchContacts(_ searchText: String) async {
         if searchText.isEmpty { return }
-        let req: ContactsRequest
-        if searchText.lowercased().contains("uname:") {
-            let startIndex = searchText.index(searchText.startIndex, offsetBy: 6)
-            let searchResultValue = String(searchText[startIndex..<searchText.endIndex])
-            req = ContactsRequest(userName: searchResultValue)
-        } else if searchText.lowercased().contains("tel:") {
-            let startIndex = searchText.index(searchText.startIndex, offsetBy: 4)
-            let searchResultValue = String(searchText[startIndex..<searchText.endIndex])
-            req = ContactsRequest(cellphoneNumber: searchResultValue)
-        } else {
-            req = ContactsRequest(query: searchText)
-        }
-        RequestsManager.shared.append(prepend: SEARCH_CONTACTS_IN_THREADS_LIST_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.contact.search(req)
-        }
-    }
-
-    private func onSearchContacts(_ response: ChatResponse<[Contact]>) {
-        if !response.cache, response.pop(prepend: SEARCH_CONTACTS_IN_THREADS_LIST_KEY) != nil {
-            if let contacts = response.result {
-                self.searchedContacts.removeAll()
-                self.searchedContacts.append(contentsOf: contacts)
-            }
+        do {
+            let req = getContactRequest(searchText: searchText)
+            let contacts = try await GetSearchContactsRequester().get(req, withCache: false)
+            searchedContacts.removeAll()
+            searchedContacts.append(contentsOf: contacts)
+        } catch {
+            log("Failed to get search contacts with error: \(error.localizedDescription)")
         }
     }
 
@@ -249,16 +159,16 @@ public final class ThreadsSearchViewModel: ObservableObject {
         cachedAttribute.removeAll()
     }
 
-    private func getUnreadConversations() {
+    private func getUnreadConversations() async {
         reset()
-        searchThreads(searchText, new: true)
-        searchContacts(searchText)
+        await searchThreads(searchText, new: true)
+        await searchContacts(searchText)
     }
 
-    private func resetUnreadConversations() {
+    private func resetUnreadConversations() async {
         reset()
-        searchThreads(searchText, new: nil)
-        searchContacts(searchText)
+        await searchThreads(searchText, new: nil)
+        await searchContacts(searchText)
     }
 
     public func attributdTitle(for title: String) -> AttributedString {
@@ -295,5 +205,47 @@ public final class ThreadsSearchViewModel: ObservableObject {
             calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
             calculatedConversation.animateObjectWillChange()
         }
+    }
+}
+
+private extension ThreadsSearchViewModel {
+    
+    private func search(text: String, new: Bool?, loadMore: Bool) async throws -> [CalculatedConversation] {
+        let req = ThreadsRequest(searchText: text, count: lazyList.count, offset: lazyList.offset, new: new)
+        return try await doSearchAndCalculte(req: req)
+    }
+    
+    private func publicConversations(text: String) async throws -> [CalculatedConversation] {
+        let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, name: text, type: .publicGroup)
+        return try await doSearchAndCalculte(req: req)
+    }
+    
+    private func doSearchAndCalculte(req: ThreadsRequest)  async throws -> [CalculatedConversation] {
+        let myId = AppState.shared.user?.id ?? -1
+        let selectedId = AppState.shared.objectsContainer.navVM.selectedId
+        let calThreads = try await GetThreadsReuqester().getCalculated(req, withCache: false, queueable: true, myId: myId, navSelectedId: selectedId)
+        return calThreads
+    }
+    
+    private func getContactRequest(searchText: String) -> ContactsRequest {
+        let req: ContactsRequest
+        if searchText.lowercased().contains("uname:") {
+            let startIndex = searchText.index(searchText.startIndex, offsetBy: 6)
+            let searchResultValue = String(searchText[startIndex..<searchText.endIndex])
+            req = ContactsRequest(userName: searchResultValue)
+        } else if searchText.lowercased().contains("tel:") {
+            let startIndex = searchText.index(searchText.startIndex, offsetBy: 4)
+            let searchResultValue = String(searchText[startIndex..<searchText.endIndex])
+            req = ContactsRequest(cellphoneNumber: searchResultValue)
+        } else {
+            req = ContactsRequest(query: searchText)
+        }
+        return req
+    }
+}
+
+private extension ThreadsSearchViewModel {
+    func log(_ string: String) {
+        Logger.log(title: "ThreadsSearchViewModel", message: string)
     }
 }
