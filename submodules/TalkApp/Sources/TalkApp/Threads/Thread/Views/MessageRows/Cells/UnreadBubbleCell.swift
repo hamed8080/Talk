@@ -29,7 +29,7 @@ final class UnreadBubbleCell: UITableViewCell {
         label.textColor = Color.App.accentUIColor
         label.textAlignment = .center
         label.text = "Messages.unreadMessages".bundleLocalized()
-        label.backgroundColor = Color.App.bgPrimaryUIColor
+        label.backgroundColor = Color.App.bgChatUserUIColor
         label.accessibilityIdentifier = "labelUnreadBubbleCell"
 
         contentView.addSubview(label)

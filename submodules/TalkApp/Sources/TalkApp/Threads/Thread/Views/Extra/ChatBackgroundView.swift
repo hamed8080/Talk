@@ -36,6 +36,10 @@ class ChatBackgroundView: UIImageView {
         contentMode = .scaleAspectFill
 
         let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? (traitCollection.userInterfaceStyle == .dark)
+        if isDarkModeEnabled {
+            tintColor = UIColor.gray
+        }
+            
         gradinetLayer.colors = isDarkModeEnabled ? darkColors : lightColors
         gradinetLayer.startPoint = .init(x: 0, y: 0)
         gradinetLayer.endPoint = .init(x: 0, y: 1)
