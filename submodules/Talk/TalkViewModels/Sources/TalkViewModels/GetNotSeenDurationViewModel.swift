@@ -14,6 +14,7 @@ public final class GetNotSeenDurationViewModel {
     private let userId: Int
     private let KEY: String = "NOT_SEEN_KEY-\(UUID().uuidString)"
     private var cancelable: AnyCancellable?
+    private var resumed = false
     
     public init(userId: Int) {
         self.userId = userId
@@ -37,10 +38,12 @@ public final class GetNotSeenDurationViewModel {
             .compactMap { $0.object as? ContactEventTypes }
             .sink { [weak self] event in
                 Task {
-                    if let lastSeen = self?.handleEvent(event) {
+                    guard let self = self else { return }
+                    if let lastSeen = self.handleEvent(event), !self.resumed {
+                        self.resumed = true
                         continuation.resume(returning: lastSeen)
-                        self?.cancelable?.cancel() // ✅ Cancel after resuming
-                        self?.cancelable = nil
+                        self.cancelable?.cancel() // ✅ Cancel after resuming
+                        self.cancelable = nil
                     }
                 }
             }
