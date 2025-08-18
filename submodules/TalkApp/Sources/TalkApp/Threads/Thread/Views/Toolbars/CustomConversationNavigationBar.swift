@@ -201,11 +201,28 @@ public class CustomConversationNavigationBar: UIView {
         }
         return attributedString
     }
+    
+    private func subtilteAttributedStirng(text: String?, smt: SMT?) -> NSAttributedString {
+        let attributedString = NSMutableAttributedString(string: "")
+        
+        if let iconName = smt?.eventImage, smt != .isTyping {
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = UIImage(systemName: iconName)?.withRenderingMode(.alwaysTemplate).withTintColor(Color.App.accentUIColor ?? .orange)
+            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
+            let imageString = NSAttributedString(attachment: imageAttachment)
+            attributedString.append(imageString)
+        }
+        
+        attributedString.append(NSAttributedString(string: " \(text ?? "")")) // Space
+        
+        return attributedString
+    }
 
-    public func updateSubtitleTo(_ subtitle: String?) {
+    public func updateSubtitleTo(_ subtitle: String?, _ smt: SMT?) {
         let hide = subtitle == nil
         subtitleLabel.setIsHidden(hide)
-        self.subtitleLabel.text = subtitle
+        self.subtitleLabel.attributedText = subtilteAttributedStirng(text: subtitle, smt: smt)
+        subtitleLabel.textColor = smt != nil ? Color.App.accentUIColor : Color.App.textSecondaryUIColor
         self.centerYTitleConstraint.constant = hide ? 0 : -8
         UIView.animate(withDuration: 0.2) {
             self.layoutIfNeeded()

@@ -113,14 +113,14 @@ public final class ConversationSubtitleViewModel {
         thread?.group == false && thread?.type != .selfThread
     }
     
-    private func updateTo(_ newValue: String?) {
-        viewModel?.delegate?.updateSubtitleTo(newValue)
+    private func updateTo(_ newValue: String?, _ smt: SMT? = nil) {
+        viewModel?.delegate?.updateSubtitleTo(newValue, smt)
     }
     
     public func setEvent(smt: SMT?) {
         let hasEvent = smt != nil
         if hasEvent {
-            updateTo(smt?.stringEvent?.bundleLocalized())
+            updateTo(smt?.stringEvent?.bundleLocalized(), smt)
         } else {
             updateTo(getParticipantsCountOrLastSeen())
         }

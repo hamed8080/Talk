@@ -37,6 +37,10 @@ public final class UploadsManager: ObservableObject {
         if element.viewModel.state == .completed {
             onComplete(uniqueId: element.id)
         }
+        
+        if element.viewModel.state == .completed || element.viewModel.state == .paused {
+            stateMediator.stopSignalForActiveThread(threadId: element.threadId ?? -1)
+        }
     }
     
     private func onComplete(uniqueId: String) {

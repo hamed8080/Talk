@@ -19,7 +19,7 @@ struct ThreadLastMessageView: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            if eventViewModel.isShowingEvent {
+            if eventViewModel.isShowingEvent, eventViewModel.smt == .isTyping {
                 ThreadEventView()
                     .transition(.push(from: .leading))
             } else {

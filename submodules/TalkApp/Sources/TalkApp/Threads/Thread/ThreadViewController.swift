@@ -332,8 +332,8 @@ extension ThreadViewController: ThreadViewDelegate {
         topThreadToolbar.updateTitleTo(title)
     }
 
-    public func updateSubtitleTo(_ subtitle: String?) {
-        topThreadToolbar.updateSubtitleTo(subtitle)
+    public func updateSubtitleTo(_ subtitle: String?, _ smt: SMT?) {
+        topThreadToolbar.updateSubtitleTo(subtitle, smt)
     }
 
     public func updateImageTo(_ image: UIImage?) {

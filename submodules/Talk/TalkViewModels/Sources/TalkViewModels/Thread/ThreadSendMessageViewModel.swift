@@ -280,6 +280,10 @@ public final class ThreadSendMessageViewModel {
                 imageMessages.append(imageMessage)
             }
             uploadsManager.enqueue(with: imageMessages)
+            if !imageMessages.isEmpty {
+                viewModel?.sendSignal(.uploadPicture)
+            }
+            
             sendVideos(imageItems.filter({$0.isVideo}))
             attVM.clear()
         }
@@ -294,6 +298,9 @@ public final class ThreadSendMessageViewModel {
             videoMessages.append(videoMessage)
         }
         self.uploadsManager.enqueue(with: videoMessages)
+        if !videoMessages.isEmpty {
+            viewModel?.sendSignal(.uploadVideo)
+        }
     }
 
     /// add a upload messge entity to bottom of the messages in the thread and then the view start sending upload file
@@ -311,6 +318,8 @@ public final class ThreadSendMessageViewModel {
             }
             self.uploadsManager.enqueue(with: fileMessages)
             attVM.clear()
+            let allMusic = fileMessages.count(where: {$0.sendTextMessageRequest?.messageType != .podSpaceSound}) == 0
+            viewModel?.sendSignal(allMusic ? .uploadSound : .uploadFile)
         }
     }
 
@@ -326,6 +335,7 @@ public final class ThreadSendMessageViewModel {
             }
             self.uploadsManager.enqueue(with: fileMessages)
             attVM.clear()
+            viewModel?.sendSignal(.uploadFile)
         }
     }
 

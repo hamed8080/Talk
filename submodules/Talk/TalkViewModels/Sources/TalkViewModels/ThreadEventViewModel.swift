@@ -27,7 +27,7 @@ public final class ThreadEventViewModel: ObservableObject {
             self.smt = event.smt
             setActiveThreadSubtitle()
             Task.detached { [weak self] in
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(1.5))
                 await self?.handleTimer()
             }
         } else {

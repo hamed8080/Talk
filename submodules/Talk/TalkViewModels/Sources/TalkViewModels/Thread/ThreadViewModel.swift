@@ -44,6 +44,7 @@ public final class ThreadViewModel: Identifiable {
     public var seenVM: HistorySeenViewModel = .init()
     public var avatarManager: ThreadAvatarManager = .init()
     public var conversationSubtitle: ConversationSubtitleViewModel = .init()
+    private lazy var signalEmitter: ThreadSystemEventEmiter = { ThreadSystemEventEmiter(threadId: thread.id ?? -1) }()
     public weak var threadsViewModel: ThreadsViewModel?
     public var readOnly = false
     private var cancelable: Set<AnyCancellable> = []
@@ -109,23 +110,6 @@ public final class ThreadViewModel: Identifiable {
     }
 
     // MARK: Actions
-    public func sendStartTyping(_ newValue: String) {
-        if id == LocalId.emptyThread.rawValue, id != 0 { return }
-        Task { @ChatGlobalActor in
-            if newValue.isEmpty == false {
-                ChatManager.activeInstance?.system.sendStartTyping(threadId: id)
-            } else {
-                ChatManager.activeInstance?.system.sendStopTyping()
-            }
-        }
-    }
-
-    public func sendSignal(_ signalMessage: SignalMessageType) {
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: id))
-        }
-    }
-
     public func clearCacheFile(message: Message) {
         if let fileHashCode = message.fileMetaData?.fileHash {
             let spec = AppState.shared.spec
@@ -367,5 +351,32 @@ public final class ThreadViewModel: Identifiable {
         Task { @MainActor [weak self, title] in
             self?.log("deinit called in class ThreadViewModel: \(title)")
         }
+    }
+}
+
+// MARK: Signal messasges
+
+public extension ThreadViewModel {
+
+    func sendStartTyping(_ newValue: String) {
+        if id == LocalId.emptyThread.rawValue || id == 0 || thread.group == true { return }
+        if newValue.isEmpty == false {
+            signalEmitter.sendTyping()
+        } else {
+            signalEmitter.stopTyping()
+        }
+    }
+    
+    func cancelTypingSignal() {
+        signalEmitter.stopTyping()
+    }
+
+    func sendSignal(_ signalMessage: SignalMessageType) {
+        if id == LocalId.emptyThread.rawValue || id == 0 || thread.group == true { return }
+        signalEmitter.send(smt: signalMessage)
+    }
+    
+    func cancelSignal() {
+        signalEmitter.stopSignal()
     }
 }

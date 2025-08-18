@@ -102,3 +102,16 @@ extension UploadFileStateMediator {
         return viewModel
     }
 }
+
+extension UploadFileStateMediator {
+    func stopSignalForActiveThread(threadId: Int) {
+        let activeThread = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+        if !isUploading(threadId: threadId), activeThread?.threadId == threadId {
+            activeThread?.viewModel.cancelSignal()
+        }
+    }
+    
+    func isUploading(threadId: Int) -> Bool {
+        AppState.shared.objectsContainer.uploadsManager.elements.contains(where: {$0.threadId == threadId})
+    }
+}

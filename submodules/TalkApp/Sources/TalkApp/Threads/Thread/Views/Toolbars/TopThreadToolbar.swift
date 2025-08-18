@@ -11,6 +11,7 @@ import TalkViewModels
 import TalkUI
 import SwiftUI
 import Combine
+import ChatModels
 
 public final class TopThreadToolbar: UIStackView {
     private let navBarView: CustomConversationNavigationBar
@@ -89,8 +90,8 @@ public final class TopThreadToolbar: UIStackView {
         navBarView.updateTitleTo(title)
     }
 
-    public func updateSubtitleTo(_ subtitle: String?) {
-        navBarView.updateSubtitleTo(subtitle)
+    public func updateSubtitleTo(_ subtitle: String?, _ smt: SMT?) {
+        navBarView.updateSubtitleTo(subtitle, smt)
     }
 
     public func updateImageTo(_ image: UIImage?) {
