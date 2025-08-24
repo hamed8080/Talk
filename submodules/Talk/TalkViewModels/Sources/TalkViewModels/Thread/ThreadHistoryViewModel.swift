@@ -317,10 +317,12 @@ extension ThreadHistoryViewModel {
             /// Calculate appended sections and rows.
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
             
-            /// If the messageId paramter set to zero it we can not find the message,
-            /// so we use time to move to first message of the day.
-            let section = sections.sectionIndexByDate(time.date) ?? 0
-            let message = messageId == 0 ? sections[section].vms.first?.message : vms.first(where: {$0.id == messageId})?.message
+            let message = firstMessageInDayOrNextDay(time: time, messageId: messageId, appendedVMS: vms)
+            
+            /// Save scroll position for the first time after moving to a time.
+            if let message = message as? Message {
+                saveScrollPosition(message)
+            }
             
             /// Update UITableView and scroll to the disered indexPath.
             if let message = message, let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
@@ -1413,6 +1415,22 @@ extension ThreadHistoryViewModel {
             return thread.lastMessageVO?.id ?? -1
         }
         return nil
+    }
+    
+    private func firstMessageInDayOrNextDay(time: UInt, messageId: Int, appendedVMS: [MessageRowViewModel]) -> HistoryMessageType? {
+        /// If the messageId paramter set to zero, it means that we can not find the message,
+        /// so we use time to move to first message of the day,
+        /// or the next day if the day is not in the sections.
+        if messageId == 0 {
+            var section: Int = 0
+            if let index = sections.sectionIndexByDate(time.date) {
+                section = index
+            } else if let nextDate = sections.first(where: {$0.date > time.date})?.date, let index = sections.sectionIndexByDate(nextDate) {
+                section = index
+            }
+            return sections[section].vms.first?.message
+        }
+        return appendedVMS.first(where: {$0.id == messageId})?.message
     }
 }
 
