@@ -37,7 +37,7 @@ public final class SaveToAlbumViewModel {
             if status == .authorized {
                 try self.saveImageToAlbum()
             } else {
-                SaveToAlbumError.notAuthorized
+                throw SaveToAlbumError.notAuthorized
             }
         default:
             throw SaveToAlbumError.notAuthorized
