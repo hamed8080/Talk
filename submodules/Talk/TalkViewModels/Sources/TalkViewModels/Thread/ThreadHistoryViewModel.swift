@@ -112,6 +112,7 @@ extension ThreadHistoryViewModel {
         }
         tryFirstScenario()
         trySecondScenario()
+        tryOpenThreadWithUnreadMessagesForTheFirstTime()
         tryNinthScenario()
     }
 }
@@ -213,6 +214,54 @@ extension ThreadHistoryViewModel {
             /// In this scenario we do not have any unread messages,
             /// so there is no need to show bottom loading even once.
             setHasMoreBottom(false)
+        } catch {
+            showCenterLoading(false)
+        }
+    }
+    
+    private func tryOpenThreadWithUnreadMessagesForTheFirstTime() {
+        guard hasUnreadMessageNeverOpennedThread(),
+              thread.id != LocalId.emptyThread.rawValue
+        else { return }
+        
+        cancelTasks()
+        
+        task = Task {
+            await runOpenNewConverstionWithUnreadMessages()
+        }
+    }
+    
+    private func runOpenNewConverstionWithUnreadMessages() async {
+        do {
+            log("trySecondScenario")
+            
+            showCenterLoading(true)
+            
+            /// Appned to the list
+            var vms = try await onFirstMessage()
+            
+            /// Create unread banner
+            let sorted = vms.sorted(by: {$0.message.time ?? 0 < $1.message.time ?? 0 })
+            let unreadVM = await createUnreadBanner(time: sorted.first?.message.time?.advanced(by: -2) ?? 0, id: 0, viewModel: viewModel ?? .init(thread: thread))
+            
+            vms = vms + [unreadVM]
+            
+            appendSort(vms)
+            
+            /// Update delegate insertion
+            let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
+            viewModel?.scrollVM.disableExcessiveLoading()
+            
+            delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
+            
+            showCenterLoading(false)
+            
+            fetchReactionsAndAvatars(vms)
+            
+            setHasMoreBottom(vms.count >= count)
+            
+            let isLastMessageVisible = isLastMessageVisible()
+            changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
         } catch {
             showCenterLoading(false)
         }
@@ -1527,6 +1576,16 @@ extension ThreadHistoryViewModel {
         requester.setup(data: data, viewModel: viewModel)
         return try await requester.get(req)
     }
+    
+    private func onFirstMessage() async throws -> [MessageRowViewModel] {
+        /// fromTime = 0 is needed to force asc order to get top messages instead of bottom messages.
+        let req = makeRequest(fromTime: 0, offset: 0)
+        log("SendFirstMessageOfThread")
+        let requester = GetHistoryReuqester(key: keys.FIRST_MESSAGE_OF_THREAD)
+        let data = getMainData()
+        requester.setup(data: data, viewModel: viewModel)
+        return try await requester.get(req)
+    }
 }
 
 // MARK: Seen messages
@@ -1679,6 +1738,17 @@ extension ThreadHistoryViewModel {
         let thread = viewModel?.thread
         if thread?.unreadCount == 0 && (thread?.lastMessageVO?.id ?? 0) != (thread?.lastSeenMessageId ?? 0) { return true }
         return thread?.lastMessageVO?.id ?? 0 == thread?.lastSeenMessageId ?? 0
+    }
+    
+    /// A new thread with lots of new messages, so we have never opnned it up after creation/joining the thread.
+    private func hasUnreadMessageNeverOpennedThread() -> Bool {
+        /// If we have never openned a thread up,
+        /// though the creator or other participants send lots of messages,
+        /// in this case we don't know the top of the thread to move to it,
+        /// so we will move to bottom of the thread.
+        let thread = viewModel?.thread
+        if thread?.lastSeenMessageId == 0, thread?.lastMessageVO?.id ?? 0 > 0 { return true }
+        return false
     }
     
     private func isLastMessageExistInSortedMessages(_ sortedMessages: [HistoryMessageType]) -> Bool {
