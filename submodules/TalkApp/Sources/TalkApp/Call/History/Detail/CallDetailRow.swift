@@ -45,7 +45,7 @@ struct CallDetailRow: View {
 
                 Spacer()
 
-                Image(systemName: call.type == .videoCall ? "video.fill" : "phone.fill")
+                Image(systemName: call.type == .video ? "video.fill" : "phone.fill")
                     .resizable()
                     .scaledToFit()
                     .padding(12)

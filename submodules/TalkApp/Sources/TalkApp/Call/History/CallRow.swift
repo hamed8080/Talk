@@ -43,7 +43,7 @@ struct CallRow: View {
 
             Spacer()
 
-            Image(systemName: call.type == .videoCall ? "video.fill" : "phone.fill")
+            Image(systemName: call.type == .video ? "video.fill" : "phone.fill")
                 .resizable()
                 .scaledToFit()
                 .padding(12)
@@ -84,7 +84,7 @@ struct CallRow_Previews: PreviewProvider {
                                              chatProfileVO: nil)
         let call = Call(id: 1763,
                         creatorId: 18478,
-                        type: .voiceCall,
+                        type: .voice,
                         isGroup: false,
                         createTime: 1_626_173_608_000,
                         startTime: nil,

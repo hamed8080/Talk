@@ -8,6 +8,7 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Chat
 
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 struct DetailTopButtonsSection: View {
@@ -25,20 +26,14 @@ struct DetailTopButtonsSection: View {
                 .opacity(isArchive ? 0.4 : 1.0)
                 .disabled(isArchive)
                 .allowsHitTesting(!isArchive)
-
+                
                 DetailViewButton(accessibilityText: "", icon: "phone.and.waveform.fill") {
-
+                    requestCall(video: false)
                 }
-                .disabled(true)
-                .opacity(0.4)
-                .allowsHitTesting(false)
-
+                
                 DetailViewButton(accessibilityText: "", icon: "video.fill") {
-
+                    requestCall(video: true)
                 }
-                .disabled(true)
-                .opacity(0.4)
-                .allowsHitTesting(false)
             }
             //
             //            if viewModel.thread?.admin == true {
@@ -94,6 +89,15 @@ struct DetailTopButtonsSection: View {
         .buttonStyle(.plain)
         .disabled(viewModel.thread?.closed == true)
         .opacity(viewModel.thread?.closed == true ? 0.5 : 1.0)
+    }
+    
+    private func requestCall(video: Bool) {
+        let threadId = viewModel.thread?.id ?? -1
+        Task { @ChatGlobalActor in
+            let client = SendClient(type: .ios, mute: false, video: video)
+            let req = StartCallRequest(client: client, threadId: threadId, type: .video)
+            ChatManager.activeInstance?.call.requestCall(req)
+        }
     }
 }
 

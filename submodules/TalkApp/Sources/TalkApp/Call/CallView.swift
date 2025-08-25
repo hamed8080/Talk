@@ -219,7 +219,7 @@ struct StartCallActionsView: View {
                     .fontWeight(.bold)
 
                 HStack {
-                    if viewModel.call?.type == .videoCall {
+                    if viewModel.call?.type == .video {
                         Spacer()
                         CallControlItem(iconSfSymbolName: "video.fill", subtitle: "Answer", color: .green) {
                             viewModel.answerCall(video: true, audio: true)

@@ -55,7 +55,7 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     public var usersRTC: [CallParticipantUserRTC] {[]} // { ChatManager.activeInstance?.call.callParticipantsUserRTC ?? [] }
     public var activeUsers: [CallParticipantUserRTC] { [] } //usersRTC.filter { $0.callParticipant.active == true } }
     public var call: CreateCall?
-    public var callId: Int? { call?.callId ?? startCall?.callId }
+    public var callId: Int? { call?.callId ?? 0 }
     public var startCallRequest: StartCallRequest?
     public var answerType: AnswerType = .init(video: false, mute: true)
     public var isSpeakerOn: Bool = false
