@@ -202,7 +202,8 @@ struct ThreadRowActionMenu: View {
     }
 
     private var canPinUnPin: Bool {
-        !isDetailView && (thread.pin == true || viewModel.serverSortedPins.count < 5)
+        if thread.isArchive == true { return false }
+        return !isDetailView && (thread.pin == true || viewModel.serverSortedPins.count < 5)
     }
 
     private var canMuteUnmute: Bool {

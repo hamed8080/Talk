@@ -56,7 +56,7 @@ public final class SelectionView: UIStackView {
 
         lblStatic.text = "General.selected".bundleLocalized()
         lblStatic.font = UIFont.fBody
-        lblStatic.textColor = Color.App.textSecondaryUIColor
+        lblStatic.textColor = Color.App.textPrimaryUIColor
         lblStatic.accessibilityIdentifier = "lblStaticSelectionView"
         addArrangedSubview(lblStatic)
 
