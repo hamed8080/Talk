@@ -1070,11 +1070,19 @@ extension ThreadHistoryViewModel {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         await seenVM?.onAppear(message)
+        
+        if message.id == thread.lastMessageVO?.id {
+            changeLastMessageIfNeeded(isVisible: true)
+        }
     }
 
     public func didEndDisplay(_ indexPath: IndexPath) async {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message disappeared id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
+        
+        if message.id == thread.lastMessageVO?.id {
+            changeLastMessageIfNeeded(isVisible: false)
+        }
     }
 
     public func didScrollTo(_ contentOffset: CGPoint, _ contentSize: CGSize) {
@@ -1140,7 +1148,6 @@ extension ThreadHistoryViewModel {
         }
         
         let isLastMessageVisible = isLastMessageVisible()
-        changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
         if !isLastMessageVisible, let message = topVisibleMessage() {
             saveScrollPosition(message)
         }
@@ -1154,7 +1161,6 @@ extension ThreadHistoryViewModel {
             }
             
             let isLastMessageVisible = isLastMessageVisible()
-            changeLastMessageIfNeeded(isVisible: isLastMessageVisible)
             if !isLastMessageVisible, let message = topVisibleMessage() {
                 saveScrollPosition(message)
             }
@@ -1194,7 +1200,7 @@ extension ThreadHistoryViewModel {
         viewModel?.delegate?.lastMessageAppeared(isVisible)
         
         if isVisible {
-            removeSaveScrollPosition()
+            clearSavedScrollPosition()
         }
     }
 
@@ -1829,7 +1835,7 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     
     /// Clear save position if last message is visible.
-    private func removeSaveScrollPosition() {
+    private func clearSavedScrollPosition() {
         if let threadId = viewModel?.thread.id {
             viewModel?.threadsViewModel?.saveScrollPositionVM.remove(threadId)
         }
