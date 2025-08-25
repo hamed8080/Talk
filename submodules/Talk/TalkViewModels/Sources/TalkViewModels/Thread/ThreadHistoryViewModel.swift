@@ -21,6 +21,10 @@ public final class ThreadHistoryViewModel {
     public private(set) var sections: ContiguousArray<MessageSection> = .init()
     private var deleteQueue = DeleteMessagesQueue()
 
+    private var task: Task<Void, Error>?
+    private var reactionsTask: Task<Void, Error>?
+    private var avatarsTask: Task<Void, Error>?
+   
     private var threshold: CGFloat = 800
     private var topLoading = false
     private var centerLoading = false
@@ -46,14 +50,13 @@ public final class ThreadHistoryViewModel {
     private var threadId: Int = -1
     
     // MARK: Initializer
-    nonisolated public init(thread: Conversation, readOnly: Bool = false) {
+    public init(thread: Conversation, readOnly: Bool = false) {
         self.thread = thread
         threadId = thread.id ?? -1
-        Task { @MainActor in
-            highlightVM.setup(self)
-            setupNotificationObservers()
-            deleteQueue.viewModel = self
-        }
+        
+        highlightVM.setup(self)
+        setupNotificationObservers()
+        deleteQueue.viewModel = self
     }
 }
 
@@ -95,7 +98,10 @@ extension ThreadHistoryViewModel {
             self?.hasSentHistoryRequest = true
         }
         if let savedScrollModel = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId) {
-            Task {
+            
+            cancelTasks()
+            
+            task = Task {
                 do {
                     try await tryScrollPositionScenario(savedScrollModel)
                 } catch {
@@ -120,7 +126,9 @@ extension ThreadHistoryViewModel {
             let id = viewModel?.thread.lastSeenMessageId
         else { return }
 
-        Task {
+        cancelTasks()
+        
+        task = Task {
             await runFirstScenario(time: time, id: id)
         }
     }
@@ -157,7 +165,10 @@ extension ThreadHistoryViewModel {
         guard isLastMessageEqualToLastSeen(),
               thread.id != LocalId.emptyThread.rawValue
         else { return }
-        Task {
+        
+        cancelTasks()
+        
+        task = Task {
             await runSecondScenario()
         }
     }
@@ -389,7 +400,10 @@ extension ThreadHistoryViewModel {
     private func moveToMessageTimeOnOpenConversation() {
         let model = AppState.shared.appStateNavigationModel
         if let id = model.moveToMessageId, let time = model.moveToMessageTime {
-            Task {
+            
+            cancelTasks()
+            
+            task = Task {
                 await moveToTime(time, id, highlight: true)
             }
             AppState.shared.appStateNavigationModel = .init()
@@ -399,7 +413,10 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) {
         if time > thread.lastMessageVO?.time ?? 0 { return }
-        Task {
+        
+        cancelTasks()
+        
+        task = Task {
             await moveToTime(time, 0)
         }
     }
@@ -455,8 +472,11 @@ extension ThreadHistoryViewModel {
         let isLastSeenExist = isLastSeenMessageIsInSections()
         let unreadCount = thread.unreadCount ?? 0
         let lstIndex = delegate?.visibleIndexPaths().last
+        
+        cancelTasks()
+        
         if let lstIndex = lstIndex, sections[lstIndex.section].vms[lstIndex.row].message.id ?? 0 >= thread.lastSeenMessageId ?? 0 {
-            Task {
+            task = Task {
                 await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false)
             }
         } else if isLastSeenExist || unreadCount == 0 {
@@ -477,7 +497,10 @@ extension ThreadHistoryViewModel {
 
     public func loadMoreTop(message: HistoryMessageType) {
         if let time = message.time, canLoadMoreTop() {
-            Task {
+            
+            cancelTasks()
+            
+            task = Task {
                 await moreTop(prepend: keys.MORE_TOP_KEY, time)
             }
         }
@@ -538,8 +561,11 @@ extension ThreadHistoryViewModel {
 
     public func loadMoreBottom(message: HistoryMessageType) {
         if let time = message.time, canLoadMoreBottom() {
+            
+            cancelTasks()
+            
             // We add 1 milliseceond to prevent duplication and fetch the message itself.
-            Task {
+            task = Task {
                 await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
             }
         }
@@ -1709,13 +1735,14 @@ extension ThreadHistoryViewModel {
     
     private func fetchReactionsAndAvatars(_ vms: [MessageRowViewModel]) {
         /// A separate task to unblock the method.
-        Task {
+        reactionsTask = Task {
             /// Fetch and upated table view reactions
             try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
         }
         
         /// A separate task to unblock the method.
-        Task {
+        
+        avatarsTask = Task {
             await prepareAvatars(vms)
         }
     }
@@ -1812,5 +1839,18 @@ extension ThreadHistoryViewModel {
         let vm = viewModel?.threadsViewModel?.saveScrollPositionVM
         guard let threadId = viewModel?.id, let tb = delegate?.tb else { return }
         vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)
+    }
+}
+
+extension ThreadHistoryViewModel {
+    func cancelTasks() {
+        task?.cancel()
+        task = nil
+        
+        reactionsTask?.cancel()
+        reactionsTask = nil
+        
+        avatarsTask?.cancel()
+        avatarsTask = nil
     }
 }
