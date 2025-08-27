@@ -20,6 +20,7 @@ import SwiftUI
 public final class ChatDelegateImplementation: ChatDelegate {
     private var retryCount = 0
     public private(set) static var sharedInstance = ChatDelegateImplementation()
+    private let debug = ProcessInfo().environment["ENABLE_APP_ON_CHAT_SDK_LOG_EVENT"] == "1"
     
     public func initialize() {
         let manager = BundleManager.init()
@@ -208,11 +209,15 @@ public final class ChatDelegateImplementation: ChatDelegate {
         /// so to see them inside the LogViewModel we have to use this to save them on CDLog table
         /// and then refetch them in 5 seconds period.
         Task { @MainActor in
-            Logger.log(title: log.prefix ?? "", message: log.message ?? "", persist: ChatDelegateImplementation.isLogOnDisk)
+            if debug {
+                Logger.log(title: log.prefix ?? "", message: log.message ?? "", persist: ChatDelegateImplementation.isLogOnDisk)
+            }
         }
     }
 
     private func log(_ string: String) {
-        Logger.log(title: "ChatDelegateImplementation.onLog", message: string)
+        if debug {
+            Logger.log(title: "ChatDelegateImplementation.onLog", message: string)
+        }
     }
 }
