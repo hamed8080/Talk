@@ -145,6 +145,13 @@ extension ThreadHistoryViewModel {
             let vm = await createUnreadBanner(time: time, id: id, viewModel: viewModel ?? .init(thread: thread))
             let vms = topVMS + [vm] + bottomVMS
             
+            if Task.isCancelled {
+#if DEBUG
+                print("First scenario was canceled nothign will be updated")
+#endif
+                return
+            }
+            
             appendSort(vms)
             
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
@@ -188,6 +195,14 @@ extension ThreadHistoryViewModel {
             
             /// Appned to the list
             let vms = try await onMoreTopWithOffset()
+            
+            if Task.isCancelled {
+#if DEBUG
+                print("Second scenario was canceled nothign will be updated")
+#endif
+                return
+            }
+            
             appendSort(vms)
             
             /// Update delegate insertion
@@ -233,7 +248,7 @@ extension ThreadHistoryViewModel {
     
     private func runOpenNewConverstionWithUnreadMessages() async {
         do {
-            log("trySecondScenario")
+            log("onNewConversationWithUnreadMessagesScenario")
             
             showCenterLoading(true)
             
@@ -245,6 +260,14 @@ extension ThreadHistoryViewModel {
             let unreadVM = await createUnreadBanner(time: sorted.first?.message.time?.advanced(by: -2) ?? 0, id: 0, viewModel: viewModel ?? .init(thread: thread))
             
             vms = vms + [unreadVM]
+            
+            
+            if Task.isCancelled {
+#if DEBUG
+                print("On new covnersatoin with unread scenario was canceled nothign will be updated")
+#endif
+                return
+            }
             
             appendSort(vms)
             
@@ -315,6 +338,13 @@ extension ThreadHistoryViewModel {
             /// we will take care of this situation there too.
             vms.first?.calMessage.isFirstMessageOfTheUser = vms.first?.message.ownerId != oldVM?.message.ownerId
             
+            if Task.isCancelled {
+#if DEBUG
+                print("Fifth scenario was canceled nothign will be updated")
+#endif
+                return
+            }
+            
             /// Appned to the list.
             appendSort(vms)
             
@@ -370,6 +400,13 @@ extension ThreadHistoryViewModel {
             let topVMS = try await onTopToTime(toTime: time)
             let bottomVMS = try await onBottomFromTime(fromTime: time)
             let vms = topVMS + bottomVMS
+            
+            if Task.isCancelled {
+#if DEBUG
+                print("Move to time was canceled nothign will be updated")
+#endif
+                return
+            }
             
             /// Append it to the sections array.
             appendSort(vms)
@@ -490,6 +527,13 @@ extension ThreadHistoryViewModel {
             let bottomParts = try await onMoreBottomWithFromTime(fromTime: time, prepend: keys.SAVE_SCROOL_POSITION_KEY)
             let vms = topParts + bottomParts
             
+            if Task.isCancelled {
+#if DEBUG
+                print("Scroll to save position scenario was canceled nothign will be updated")
+#endif
+                return
+            }
+            
             appendSort(vms)
             
             /// Disable excessive loading
@@ -580,6 +624,13 @@ extension ThreadHistoryViewModel {
             let beforeSectionCount = sections.count
             let shouldUpdateOldTopSection = StitchAvatarCalculator.forTop(sections, vms)
             
+            if Task.isCancelled {
+#if DEBUG
+                print("More top scenario was canceled nothign will be updated")
+#endif
+                return
+            }
+            
             appendSort(vms)
             /// 4- Disable excessive loading on the top part.
             viewModel?.scrollVM.disableExcessiveLoading()
@@ -638,6 +689,13 @@ extension ThreadHistoryViewModel {
             /// We have to store section count  before appending them to the threads array
             let beforeSectionCount = sections.count
             let shouldUpdateOldBottomSection = StitchAvatarCalculator.forBottom(sections, vms)
+            
+            if Task.isCancelled {
+#if DEBUG
+                print("More bottom scenario was canceled nothign will be updated")
+#endif
+                return
+            }
             
             appendSort(vms)
 
@@ -1335,6 +1393,12 @@ extension ThreadHistoryViewModel {
             .compactMap({$0.id})
         if messageIds.isEmpty { return }
         let reactions = try await fetchReactions(messageIds)
+        if Task.isCancelled {
+#if DEBUG
+print("reactions updated was canceled nothign will be updated")
+#endif
+            return
+        }
         let indexPaths = attachReactionsToViewModel(reactions)
         await updateBatchReactions(indexPaths)
     }

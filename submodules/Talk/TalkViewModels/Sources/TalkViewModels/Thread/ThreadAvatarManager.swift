@@ -31,6 +31,13 @@ public class ThreadAvatarManager {
         let message = await viewModel.message
         guard let link = httpsImage(message.participant), let participantId = message.participant?.id else { return }
         
+        if Task.isCancelled {
+#if DEBUG
+            print("Avatar was canceled nothign will be updated")
+#endif
+            return
+        }
+        
         if let image = cachedAvatars[link] {
             updateRow(image, participantId)
         } else {
