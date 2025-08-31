@@ -10,6 +10,7 @@ import Chat
 import SwiftUI
 import ChatDTO
 import Additive
+import TalkModels
 
 public enum CameraType: String {
     case front
@@ -40,9 +41,7 @@ public protocol CallStateProtocol {
 
 @MainActor
 public class CallViewModel: ObservableObject, CallStateProtocol {
-    public static let shared: CallViewModel = .init()
-    var uuid: UUID = .init()
-    var startCall: StartCall?
+    @Published public var startCall: StartCall?
     @Published public var isLoading = false
     @Published public var activeLargeCall: CallParticipantUserRTC?
     @Published public var showCallView: Bool = false
@@ -63,24 +62,35 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     public var cancellableSet: Set<AnyCancellable> = []
     public var isReceiveCall: Bool { call?.creator.id != AppState.shared.user?.id }
     public var callTitle: String? { isReceiveCall ? call?.title : startCallRequest?.titleOfCalling }
+    public var recordingViewModel = RecordingViewModel(callId: 0)
 
-    private init() {
-//        NotificationCenter.default.addObserver(self, selector: #selector(callEvent(_:)), name: .callEventName, object: nil)
-//        AppState.shared.$connectionStatus
-//            .sink(receiveValue: onConnectionStatusChanged)
-//            .store(in: &cancellableSet)
+    public init() {
+        
+        NotificationCenter.call.publisher(for: .call)
+            .compactMap { $0.object as? CallEventTypes }
+            .sink { [weak self] event in
+                Task { @MainActor in
+                    await self?.onCallEvent(event)
+                }
+            }
+            .store(in: &cancellableSet)
+        
+        AppState.shared.$connectionStatus
+            .sink(receiveValue: onConnectionStatusChanged)
+            .store(in: &cancellableSet)
     }
 
     public func startCall(thread: Conversation? = nil, contacts: [Contact]? = nil, isVideoOn: Bool, groupName: String = "group") {
-//        startCallRequest = .init(client: .init(video: isVideoOn), contacts: contacts, thread: thread, type: isVideoOn ? .videoCall : .voiceCall, groupName: groupName)
-//        guard let req = startCallRequest else { return }
-//        toggleCallView(show: true)
-//        if req.isGroupCall {
-//            ChatManager.call?.requestGroupCall(req, completion: initCreateCall)
-//        } else {
-//            ChatManager.call?.requestCall(req, completion: initCreateCall)
-//        }
-//        AppState.shared.callMananger.startCall(req.titleOfCalling, video: req.isVideoOn, uuid: uuid)
+        startCallRequest = .init(client: .init(video: isVideoOn), contacts: contacts, thread: thread, type: isVideoOn ? .video : .voice, groupName: groupName)
+        guard let req = startCallRequest else { return }
+        toggleCallView(show: true)
+        Task { @ChatGlobalActor in
+            if req.isGroupCall {
+                ChatManager.activeInstance?.call.requestGroupCall(req)
+            } else {
+                ChatManager.activeInstance?.call.requestCall(req)
+            }
+        }
     }
 
     public func recall(_ participant: Participant?) {
@@ -132,17 +142,18 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
         objectWillChange.send()
     }
 
-//    public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) {
-////        if startCall != nil, status == .connected {
-////            callInquiry()
-////        }
-//    }
+    public func onConnectionStatusChanged(_ status: ConnectionStatus) {
+//        if startCall != nil, status == .connected {
+//            callInquiry()
+//        }
+    }
 
-    @objc public func callEvent(_ notification: NSNotification) {
-        guard let type = (notification.object as? CallEventTypes) else { return }
-        switch type {
+    public func onCallEvent(_ event: CallEventTypes) {
+        switch event {
         case let .callStarted(response):
-            onCallStarted(response.result)
+            if let startCall = response.result, let callId = response.subjectId {
+                onCallStarted(startCall, callId: callId)
+            }
         case let .callCreate(response):
             onCallCreated(response.result)
         case let .callReceived(response):
@@ -183,6 +194,10 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
             onCallSticker(response.result)
         case let .maxVideoSessionLimit(response):
             onMaxVideoSessionLimit(response.result)
+        case let .startCallRecording(response):
+            recordingViewModel.onCallStartRecording(response)
+        case let .stopCallRecording(response):
+            recordingViewModel.onCallStopRecording(response)
         default:
             break
         }
@@ -207,11 +222,13 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
         }
     }
 
-    public func onCallStarted(_ startCall: StartCall?) {
+    public func onCallStarted(_ startCall: StartCall, callId: Int) {
+        recordingViewModel = RecordingViewModel(callId: callId)
         self.startCall = startCall
         startCallDate = Date()
         startTimer()
         fetchCallParticipants(startCall)
+        
         objectWillChaneWithAnimation()
     }
 

@@ -62,6 +62,7 @@ struct LoginHomeView: View {
 struct SplitView: View {
     let container: ObjectsContainer
     @State private var isLoggedIn: Bool = TokenManager.shared.isLoggedIn
+    @State private var showFullScreenCall = false
 
     @ViewBuilder var body: some View {
         Group {
@@ -85,6 +86,16 @@ struct SplitView: View {
             if self.isLoggedIn != isLoggedIn {
                 self.isLoggedIn = isLoggedIn
             }
+        }
+        .fullScreenCover(isPresented: $showFullScreenCall) {
+            // Dismiss
+        } content: {
+            CallView()
+                .environmentObject(container.callViewModel)
+                .environmentObject(container.callViewModel.recordingViewModel)
+        }
+        .onReceive(container.callViewModel.$startCall) { startCall in
+            showFullScreenCall = startCall != nil
         }
     }
 

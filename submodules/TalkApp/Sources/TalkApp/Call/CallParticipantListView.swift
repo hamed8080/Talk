@@ -37,7 +37,7 @@ struct CallParticipantListView: View {
 
 struct CallParticipantContentList_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = CallViewModel.shared
+        let viewModel = CallViewModel()
         CallParticipantListView()
             .environmentObject(viewModel)
             .onAppear {

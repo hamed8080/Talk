@@ -12,24 +12,7 @@ import Foundation
 import SwiftUI
 import Chat
 
-public protocol RecordingProtocol {
-    var callId: Int? { get set }
-    var startRecodrdingDate: Date? { get set }
-    var recorder: Participant? { get set }
-    var isRecording: Bool { get set }
-    var recordingTimerString: String? { get set }
-    var recordingTimer: Timer? { get set }
-    var cancellableSet: Set<AnyCancellable> { get set }
-    func onCallStartRecording(_ response: ChatResponse<Participant>)
-    func onCallStopRecording(_ response: ChatResponse<Participant>)
-    func startRecordingTimer()
-    func callEvent(_ notification: NSNotification)
-    func toggleRecording()
-    func startRecording(_ callId: Int)
-    func stopRecording(_ callId: Int)
-}
-
-public class RecordingViewModel: ObservableObject, RecordingProtocol {
+public class RecordingViewModel: ObservableObject {
     public var callId: Int?
     public var isRecording: Bool = false
     public var recorder: Participant?
@@ -40,18 +23,8 @@ public class RecordingViewModel: ObservableObject, RecordingProtocol {
 
     public init(callId: Int?) {
         self.callId = callId
-//        NotificationCenter.default.addObserver(self, selector: #selector(callEvent(_:)), name: .callEventName, object: nil)
     }
-
-    @objc public func callEvent(_ notification: NSNotification) {
-        guard let type = (notification.object as? CallEventTypes) else { return }
-        if case let .startCallRecording(response) = type {
-            onCallStartRecording(response)
-        } else if case let .stopCallRecording(response) = type {
-            onCallStopRecording(response)
-        }
-    }
-
+    
     public func startRecordingTimer() {
         recordingTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
@@ -71,11 +44,15 @@ public class RecordingViewModel: ObservableObject, RecordingProtocol {
     }
 
     public func startRecording(_ callId: Int) {
-//        ChatManager.call?.startRecording(.init(subjectId: callId), completion: onCallStartRecording)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.call.startRecording(.init(subjectId: callId))
+        }
     }
 
     public func stopRecording(_ callId: Int) {
-//        ChatManager.call?.stopRecording(.init(subjectId: callId), completion: onCallStopRecording)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.call.stopRecording(.init(subjectId: callId))
+        }
     }
 
     public func onCallStartRecording(_ response: ChatResponse<Participant>) {

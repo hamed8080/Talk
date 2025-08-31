@@ -75,6 +75,6 @@ struct CallDetails_Previews: PreviewProvider {
         let viewModel = CallDetailViewModel(call: CallRow_Previews.call)
         CallDetails(viewModel: viewModel)
             .environmentObject(AppState.shared)
-            .environmentObject(CallViewModel.shared)
+            .environmentObject(CallViewModel())
     }
 }

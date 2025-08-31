@@ -12,10 +12,6 @@ import ChatModels
 import SwiftUI
 import WebRTC
 
-extension View {
-    var isIpad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
-}
-
 struct CallView: View {
     @EnvironmentObject var viewModel: CallViewModel
     @Environment(\.localStatusBarStyle) var statusBarStyle: LocalStatusBarStyle
@@ -65,7 +61,7 @@ struct CallView: View {
             RecordingDotView()
         }
         .animation(.easeInOut(duration: 0.5), value: viewModel.usersRTC.count)
-        .background(Color(named: "background").ignoresSafeArea())
+        .background(Color.App.bgPrimary.ignoresSafeArea())
         .onAppear {
             self.statusBarStyle.currentStyle = .lightContent
         }
@@ -137,6 +133,10 @@ struct CallView: View {
         }
         .frame(height: viewModel.defaultCellHieght + 25) // +25 for when a user start talking showing frame
     }
+}
+
+extension CallView {
+    var isIpad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
 }
 
 struct CenterAciveUserRTCView: View {
@@ -378,6 +378,12 @@ struct CallStartedActionsView: View {
     }
 }
 
+extension CallStartedActionsView {
+    var isIpad: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
+    }
+}
+
 struct CallControlItem: View {
     var iconSfSymbolName: String
     var subtitle: String
@@ -525,7 +531,7 @@ struct UserRTCView: View {
 struct CallControlsView_Previews: PreviewProvider {
     @State static var showDetailPanel: Bool = false
     @State static var showCallParticipants: Bool = false
-    @ObservedObject static var viewModel = CallViewModel.shared
+    @ObservedObject static var viewModel = CallViewModel()
     static var recordingVM = RecordingViewModel(callId: 1)
 
     static var previews: some View {
@@ -576,3 +582,4 @@ struct CallControlsView_Previews: PreviewProvider {
 //        return participants
 //    }
 }
+

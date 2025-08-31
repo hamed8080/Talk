@@ -70,6 +70,6 @@ struct CallsHistoryContentList_Previews: PreviewProvider {
         CallsHistoryContentList()
             .environmentObject(viewModel)
             .environmentObject(AppState.shared)
-            .environmentObject(CallViewModel.shared)
+            .environmentObject(CallViewModel())
     }
 }

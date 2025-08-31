@@ -27,6 +27,7 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var sizeClassObserver = SizeClassObserver()
     @Published public var downloadsManager = DownloadsManager()
     @Published public var uploadsManager = UploadsManager()
+    @Published public var callViewModel = CallViewModel()
     public let selfConversationBuilder = SelfThreadBuilder()
     public var chatRequestQueue = ChatRequestQueue()
 
