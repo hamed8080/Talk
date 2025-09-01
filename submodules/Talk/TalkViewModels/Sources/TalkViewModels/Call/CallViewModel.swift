@@ -427,16 +427,18 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     }
 
     public func endCall() {
-//        endCallKitCall()
-//        if isCallStarted == false {
-//            cancelCall()
-//        } else {
-//            // TODO: realease microphone and camera at the moument and dont need to wait and get response from server
-//            if let callId = callId {
-//                ChatManager.call?.endCall(.init(subjectId: callId)) { _ in }
-//            }
-//        }
-//        resetCall()
+        endCallKitCall()
+        if isCallStarted == false {
+            cancelCall()
+        } else {
+            // TODO: realease microphone and camera at the moument and dont need to wait and get response from server
+            if let callId = callId {
+                Task { @ChatGlobalActor in
+                    ChatManager.activeInstance?.call.endCall(.init(subjectId: callId))
+                }
+            }
+        }
+        resetCall()
     }
 
     public func answerCall(video: Bool, audio: Bool) {

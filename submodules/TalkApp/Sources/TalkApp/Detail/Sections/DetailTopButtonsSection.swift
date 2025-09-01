@@ -95,7 +95,7 @@ struct DetailTopButtonsSection: View {
         let threadId = viewModel.thread?.id ?? -1
         Task { @ChatGlobalActor in
             let client = SendClient(type: .ios, mute: false, video: video)
-            let req = StartCallRequest(client: client, threadId: threadId, type: .video)
+            let req = StartCallRequest(client: client, threadId: threadId, type: video ? .video : .voice)
             ChatManager.activeInstance?.call.requestCall(req)
         }
     }
