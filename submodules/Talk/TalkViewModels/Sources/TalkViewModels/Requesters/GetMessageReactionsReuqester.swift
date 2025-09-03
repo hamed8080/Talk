@@ -17,7 +17,6 @@ public class GetMessageReactionsReuqester {
     private var threadId = 0
     private var resumed: Bool = false
 
-    
     enum ReactionError: Error {
         case failed(ChatResponse<Sendable>)
     }
@@ -46,12 +45,15 @@ public class GetMessageReactionsReuqester {
         NotificationCenter.reaction.publisher(for: .reaction)
             .compactMap { $0.object as? ReactionEventTypes }
             .sink { [weak self] event in
-                Task { [weak self] in
-                    guard let self = self, !self.resumed else { return }
-                    if let result = await self.handleEvent(event) {
-                        self.resumed = true
-                        continuation.resume(with: .success(result))
-                    }
+                Task { @MainActor [weak self] in
+                    guard
+                        let self = self,
+                        let result = await self.handleEvent(event),
+                        !self.resumed
+                    else { return }
+                    continuation.resume(with: .success(result))
+                    self.resumed = true
+                    self.cancellableSet.removeAll()
                 }
             }
             .store(in: &cancellableSet)
@@ -59,11 +61,14 @@ public class GetMessageReactionsReuqester {
         NotificationCenter.error.publisher(for: .error)
             .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] resp in
-                guard let self = self, !self.resumed else { return }
-                if resp.pop(prepend: self.KEY) != nil {
-                    self.resumed = true
-                    continuation.resume(throwing: ReactionError.failed(resp))
-                }
+                guard
+                    let self = self,
+                    resp.pop(prepend: self.KEY) != nil,
+                    !self.resumed
+                else { return }
+                continuation.resume(throwing: ReactionError.failed(resp))
+                self.cancellableSet.removeAll()
+                self.resumed = true
             }
             .store(in: &cancellableSet)
     }

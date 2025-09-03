@@ -53,7 +53,7 @@ public final class ClosedBarView: UIView {
 
         // Center stackView horizontally and vertically in the parent view
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 72),
+            heightAnchor.constraint(equalToConstant: 48),
             stackView.centerXAnchor.constraint(equalTo: centerXAnchor),
             stackView.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])

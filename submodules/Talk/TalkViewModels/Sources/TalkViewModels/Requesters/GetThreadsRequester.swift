@@ -22,7 +22,11 @@ public class GetThreadsReuqester {
     
     public init() { }
     
-    public func get(_ req: ThreadsRequest, withCache: Bool, queueable: Bool = false) async throws -> [Conversation] {
+    public func get(_ req: ThreadsRequest,
+                    withCache: Bool,
+                    queueable: Bool = false,
+                    nonArchives: Bool
+    ) async throws -> [Conversation] {
         let key = KEY
         return try await withCheckedThrowingContinuation { [weak self] continuation in
             self?.sink(continuation, withCache: withCache)
@@ -37,9 +41,30 @@ public class GetThreadsReuqester {
         }
     }
     
-    public func getCalculated(_ req: ThreadsRequest, withCache: Bool, queueable: Bool = false, myId: Int, navSelectedId: Int?, keepOrder: Bool = false) async throws -> [CalculatedConversation] {
-        let conversations = try await get(req, withCache: withCache, queueable: queueable)
-        return await calculate(conversations, myId, navSelectedId, keepOrder)
+    public func getCalculated(
+        req: ThreadsRequest,
+        withCache: Bool,
+        queueable: Bool = false,
+        myId: Int,
+        navSelectedId: Int?,
+        keepOrder: Bool = false,
+        nonArchives: Bool = true
+    ) async throws -> [CalculatedConversation] {
+       
+        let conversations = try await get(
+            req,
+            withCache: withCache,
+            queueable: queueable,
+            nonArchives: nonArchives
+        )
+        
+        return await calculate(
+            conversations: conversations,
+            myId: myId,
+            navSelectedId: navSelectedId,
+            keepOrder: keepOrder,
+            nonArchives: nonArchives
+        )
     }
     
     private func sink(_ continuation: CheckedContinuation<[Conversation], any Error>, withCache: Bool) {
@@ -47,11 +72,13 @@ public class GetThreadsReuqester {
             .compactMap { $0.object as? ThreadEventTypes }
             .sink { [weak self] event in
                 Task { [weak self] in
-                    guard let self = self, !self.resumed else { return }
-                    if let result = await self.handleEvent(event, withCache: withCache) {
-                        self.resumed = true
-                        continuation.resume(with: .success(result))
-                    }
+                    guard
+                        let self = self,
+                        let result = await self.handleEvent(event, withCache: withCache),
+                        !self.resumed
+                    else { return }
+                    self.resumed = true
+                    continuation.resume(with: .success(result))
                 }
             }
             .store(in: &cancellableSet)
@@ -59,11 +86,13 @@ public class GetThreadsReuqester {
         NotificationCenter.error.publisher(for: .error)
             .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] resp in
-                guard let self = self, !self.resumed else { return }
-                if resp.pop(prepend: self.KEY) != nil {
-                    self.resumed = true
-                    continuation.resume(throwing: ThreadsError.failed(resp))
-                }
+                guard
+                    let self = self,
+                    resp.pop(prepend: self.KEY) != nil,
+                    !self.resumed
+                else { return }
+                self.resumed = true
+                continuation.resume(throwing: ThreadsError.failed(resp))
             }
             .store(in: &cancellableSet)
     }
@@ -79,11 +108,15 @@ public class GetThreadsReuqester {
         return threads
     }
     
-    private func calculate(_ conversations: [Conversation], _ myId: Int, _ navSelectedId: Int?, _ keepOrder: Bool) async -> [CalculatedConversation] {
+    private func calculate(conversations: [Conversation],
+                           myId: Int,
+                           navSelectedId: Int?,
+                           keepOrder: Bool,
+                           nonArchives: Bool = true) async -> [CalculatedConversation] {
         return await ThreadCalculators.calculate(conversations: conversations,
                                                  myId: myId,
                                                  navSelectedId: navSelectedId,
-                                                 nonArchives: true,
+                                                 nonArchives: nonArchives,
                                                  keepOrder: keepOrder)
     }
 }

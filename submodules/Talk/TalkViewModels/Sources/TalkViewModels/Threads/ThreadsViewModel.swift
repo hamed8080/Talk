@@ -135,7 +135,7 @@ public final class ThreadsViewModel: ObservableObject {
     private func getCachedThreads() async {
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
         do {
-            let conversations = try await GetThreadsReuqester().getCalculated(req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
             await onThreads(conversations)
         } catch {
             log("Failed to get cached threads with error: \(error.localizedDescription)")
@@ -152,7 +152,7 @@ public final class ThreadsViewModel: ObservableObject {
         do {
             
             let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
-            let conversations = try await GetThreadsReuqester().getCalculated(req,
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req,
                                                                               withCache: false,
                                                                               queueable: withQueue,
                                                                               myId: myId,

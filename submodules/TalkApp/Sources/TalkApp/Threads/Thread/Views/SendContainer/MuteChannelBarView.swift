@@ -34,7 +34,7 @@ public final class MuteChannelBarView: UIView {
 
         addSubview(btn)
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 72),
+            heightAnchor.constraint(equalToConstant: 48),
             btn.heightAnchor.constraint(equalToConstant: 48),
             btn.topAnchor.constraint(equalTo: topAnchor),
             btn.leadingAnchor.constraint(equalTo: leadingAnchor),
