@@ -416,7 +416,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func delete(_ threadId: Int?) {
         guard let threadId = threadId else { return }
-        let conversation = threads.first(where: { $0.id == threadId})
+        let conversation = threads.first(where: { $0.id == threadId}) ?? AppState.shared.objectsContainer.archivesVM.archives.first(where: { $0.id == threadId })
         let isGroup = conversation?.group == true
         if isGroup {
             Task { @ChatGlobalActor in
