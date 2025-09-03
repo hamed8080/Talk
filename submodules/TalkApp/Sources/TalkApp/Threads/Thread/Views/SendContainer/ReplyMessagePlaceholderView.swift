@@ -53,6 +53,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         messageLabel.isUserInteractionEnabled = true
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
         messageLabel.addGestureRecognizer(tapGesture)
+        messageLabel.textAlignment = Language.isRTL ? .right : .left
         
         replyImage.translatesAutoresizingMaskIntoConstraints = false
         replyImage.imageView.contentMode = .scaleAspectFit

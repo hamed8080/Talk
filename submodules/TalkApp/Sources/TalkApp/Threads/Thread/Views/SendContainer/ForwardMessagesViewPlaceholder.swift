@@ -53,6 +53,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelForwardMessagePlaceholderView"
+        messageLabel.textAlignment = Language.isRTL ? .right : .left
 
         vStack.addArrangedSubview(staticForwardLabel)
         vStack.addArrangedSubview(messageLabel)

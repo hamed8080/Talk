@@ -50,6 +50,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
+        messageLabel.textAlignment = Language.isRTL ? .right : .left
         messageLabel.accessibilityIdentifier = "messageLabelEditMessagePlaceholderView"
         messageLabel.isUserInteractionEnabled = true
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
