@@ -203,7 +203,11 @@ extension ThreadsViewModel {
                 let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
                 if let activeVM = activeVM, activeVM.id == response.subjectId {
                     activeVM.thread.reactionStatus = response.result?.reactionStatus
-                    activeVM.reactionViewModel.allowedReactions = response.result?.allowedReactions ?? []
+                    if activeVM.thread.reactionStatus == .enable {
+                        activeVM.reactionViewModel.allowedReactions = Sticker.allCases.filter({ $0 != .unknown})
+                    } else {
+                        activeVM.reactionViewModel.allowedReactions = response.result?.allowedReactions ?? []
+                    }
                 }
             }
         }

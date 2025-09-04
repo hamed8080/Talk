@@ -366,7 +366,8 @@ extension MessageContainerStackView {
                 viewModel?.threadVM?.delegate?.openReplyMode(viewModel?.message)
                 break
             case .specialEmoji(let sticker):
-                if let messageId = viewModel?.message.id {
+                let isReactionsDisabled = viewModel?.threadVM?.thread.reactionStatus == .disable
+                if let messageId = viewModel?.message.id, !isReactionsDisabled {
                     let myRow = viewModel?.reactionsModel.rows.first(where: {$0.isMyReaction})
                     viewModel?.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
                 }
