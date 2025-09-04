@@ -176,6 +176,7 @@ struct AddParticipantButton: View {
                     addParticipantsToThread(contacts)
                     presentSheet.toggle()
                 }
+                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
             }
         }
     }
