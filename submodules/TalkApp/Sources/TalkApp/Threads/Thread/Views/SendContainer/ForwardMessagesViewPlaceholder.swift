@@ -88,6 +88,11 @@ public final class ForwardMessagePlaceholderView: UIStackView {
     }
 
     public func set() {
+        if viewModel?.thread.notAdminInChannel == true {
+            removeFromSuperViewWithAnimation()
+            return
+        }
+        
         let model = AppState.shared.appStateNavigationModel
         let show = model.forwardMessageRequest != nil
         if !show {
