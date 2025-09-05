@@ -103,7 +103,13 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         conversationsLazyList.setLoading(true)
         Task {
             let myId = AppState.shared.user?.id ?? -1
-            let calThreads = try await GetThreadsReuqester().getCalculated(req, withCache: false, myId: myId, navSelectedId: nil)
+            let calThreads = try await GetThreadsReuqester().getCalculated(
+                req: req,
+                withCache: false,
+                myId: myId,
+                navSelectedId: nil,
+                nonArchives: false
+            )
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
             let filtered = calThreads.filter({$0.closed == false }).filter({$0.type != .selfThread})

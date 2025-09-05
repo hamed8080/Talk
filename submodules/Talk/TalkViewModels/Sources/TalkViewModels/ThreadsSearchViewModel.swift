@@ -223,7 +223,7 @@ private extension ThreadsSearchViewModel {
     private func doSearchAndCalculte(req: ThreadsRequest)  async throws -> [CalculatedConversation] {
         let myId = AppState.shared.user?.id ?? -1
         let selectedId = AppState.shared.objectsContainer.navVM.selectedId
-        let calThreads = try await GetThreadsReuqester().getCalculated(req, withCache: false, queueable: true, myId: myId, navSelectedId: selectedId)
+        let calThreads = try await GetThreadsReuqester().getCalculated(req: req, withCache: false, queueable: true, myId: myId, navSelectedId: selectedId)
         return calThreads
     }
     

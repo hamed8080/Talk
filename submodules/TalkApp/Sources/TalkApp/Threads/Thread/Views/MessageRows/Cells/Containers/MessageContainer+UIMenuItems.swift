@@ -79,8 +79,12 @@ extension MessageContainerStackView {
 
         if viewModel.calMessage.rowType.isVideo, viewModel.fileState.state == .completed {
             let saveVideoAction = ActionMenuItem(model: .saveVideo) { [weak self] in
-                self?.onSaveVideoAction(model)
-                onMenuClickedDismiss()
+                Task {
+                    if let url = await self?.getURL(message: model.message) {
+                        await PhotoLibrary.shared.onSaveVideoAction(url: url)
+                        onMenuClickedDismiss()
+                    }
+                }
             }
             menu.addItem(saveVideoAction)
         }
@@ -207,27 +211,10 @@ private extension MessageContainerStackView {
             }
         }
     }
-
-    func onSaveVideoAction(_ model: ActionModel) {
-        let message = model.viewModel.message
-        Task { @AppBackgroundActor in
-            guard let url = await message.makeTempURL() else { return }
-            PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-            }) { saved, error in
-                if saved {
-                    Task {
-                        try? FileManager.default.removeItem(at: url)
-                        await MainActor.run {
-                            let icon = Image(systemName: "externaldrive.badge.checkmark")
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.App.white)
-                            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.videoSaved", messageColor: Color.App.textPrimary)
-                        }
-                    }
-                }
-            }
-        }
+    
+    @AppBackgroundActor
+    private func getURL(message: any HistoryMessageProtocol) async -> URL? {
+        return await message.makeTempURL()
     }
 
     func onCopyAction(_ model: ActionModel) {

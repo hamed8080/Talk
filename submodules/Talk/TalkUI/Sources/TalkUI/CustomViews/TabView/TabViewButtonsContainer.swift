@@ -14,6 +14,7 @@ public struct TabViewButtonsContainer: View {
     @State private var width: CGFloat = 0
     @Environment(\.horizontalSizeClass) var sizeClass
     private let firstTabOnAppear: String?
+    @State private var movedToFirstTabOnAppear = false
 
     public init(selectedTabIndex: Binding<Int>, tabs: [Tab]) {
         self._selectedTabIndex = selectedTabIndex
@@ -38,9 +39,18 @@ public struct TabViewButtonsContainer: View {
             }
             .background(frameReader)
             .onChange(of: firstTabOnAppear) { newValue in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    reader.scrollTo(newValue, anchor: .leading)
-                }
+                focusOnFirstTab(reader)
+            }.onAppear {
+                focusOnFirstTab(reader)
+            }
+        }
+    }
+    
+    private func focusOnFirstTab(_ reader: ScrollViewProxy) {
+        if let firstTabOnAppear = firstTabOnAppear, !movedToFirstTabOnAppear {
+            movedToFirstTabOnAppear = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                reader.scrollTo(firstTabOnAppear, anchor: .leading)
             }
         }
     }

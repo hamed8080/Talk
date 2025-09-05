@@ -141,7 +141,9 @@ public final class ConversationSubtitleViewModel {
         let req = ThreadsRequest(threadIds: [threadId])
         Task {
             do {
-                if let conversation = try await GetThreadsReuqester().get(req, withCache: false).first {
+                if let conversation = try await GetThreadsReuqester().get(req,
+                                                                          withCache: false,
+                                                                          nonArchives: false).first {
                     viewModel?.thread.participantCount = conversation.participantCount
                     updateTo(getParticipantsCountOrLastSeen())
                 }

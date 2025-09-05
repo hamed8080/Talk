@@ -56,6 +56,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         messageLabel.font = UIFont.fCaption2
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
+        messageLabel.textAlignment = Language.isRTL ? .right : .left
         vStack.addArrangedSubview(messageLabel)
 
         addArrangedSubview(vStack)

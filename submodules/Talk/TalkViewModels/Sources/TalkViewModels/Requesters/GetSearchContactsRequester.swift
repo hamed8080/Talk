@@ -38,11 +38,13 @@ public class GetSearchContactsRequester {
             .compactMap { $0.object as? ContactEventTypes }
             .sink { [weak self] event in
                 Task { [weak self] in
-                    guard let self = self, !self.resumed else { return }
-                    if let result = await self.handleEvent(event, withCache: withCache) {
-                        self.resumed = true
-                        continuation.resume(with: .success(result))
-                    }
+                    guard
+                        let self = self,
+                        let result = await self.handleEvent(event, withCache: withCache),
+                        !self.resumed
+                    else { return }
+                    self.resumed = true
+                    continuation.resume(with: .success(result))
                 }
             }
             .store(in: &cancellableSet)
@@ -50,11 +52,13 @@ public class GetSearchContactsRequester {
         NotificationCenter.error.publisher(for: .error)
             .compactMap { $0.object as? ChatResponse<Sendable> }
             .sink { [weak self] resp in
-                guard let self = self, !self.resumed else { return }
-                if resp.pop(prepend: self.KEY) != nil {
-                    self.resumed = true
-                    continuation.resume(throwing: SearchContactsError.failed(resp))
-                }
+                guard
+                    let self = self,
+                    resp.pop(prepend: self.KEY) != nil,
+                    !self.resumed
+                else { return }
+                self.resumed = true
+                continuation.resume(throwing: SearchContactsError.failed(resp))
             }
             .store(in: &cancellableSet)
     }

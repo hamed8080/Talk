@@ -142,6 +142,11 @@ public extension Conversation {
 
         return thread
     }
+    
+    var notAdminInChannel: Bool {
+        let isAdmin = admin == true
+        return type?.isChannelType == true && !isAdmin
+    }
 }
 
 public extension CalculatedConversation {

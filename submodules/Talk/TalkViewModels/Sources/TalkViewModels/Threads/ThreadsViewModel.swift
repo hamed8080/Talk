@@ -135,7 +135,7 @@ public final class ThreadsViewModel: ObservableObject {
     private func getCachedThreads() async {
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
         do {
-            let conversations = try await GetThreadsReuqester().getCalculated(req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
             await onThreads(conversations)
         } catch {
             log("Failed to get cached threads with error: \(error.localizedDescription)")
@@ -152,7 +152,7 @@ public final class ThreadsViewModel: ObservableObject {
         do {
             
             let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
-            let conversations = try await GetThreadsReuqester().getCalculated(req,
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req,
                                                                               withCache: false,
                                                                               queueable: withQueue,
                                                                               myId: myId,
@@ -416,7 +416,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func delete(_ threadId: Int?) {
         guard let threadId = threadId else { return }
-        let conversation = threads.first(where: { $0.id == threadId})
+        let conversation = threads.first(where: { $0.id == threadId}) ?? AppState.shared.objectsContainer.archivesVM.archives.first(where: { $0.id == threadId })
         let isGroup = conversation?.group == true
         if isGroup {
             Task { @ChatGlobalActor in
