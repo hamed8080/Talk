@@ -11,6 +11,7 @@ import SwiftUI
 import ChatDTO
 import Additive
 import TalkModels
+import WebRTC
 
 public enum CameraType: String {
     case front
@@ -201,6 +202,10 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
             recordingViewModel.onCallStartRecording(response)
         case let .stopCallRecording(response):
             recordingViewModel.onCallStopRecording(response)
+        case let .videoTrackAdded(track, clientId):
+            onVideoTrackAdded(track, clientId)
+        case let .audioTrackAdded(track, clientId):
+            onAudioTrackAdded(track, clientId)
         default:
             break
         }
@@ -472,6 +477,14 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
                 newSticker = nil
             }
         }
+    }
+    
+    public func onVideoTrackAdded(_ track: RTCVideoTrack, _ clientId: Int) {
+        objectWillChaneWithAnimation()
+    }
+    
+    public func onAudioTrackAdded(_ track: RTCAudioTrack, _ clientId: Int) {
+        objectWillChaneWithAnimation()
     }
 }
 

@@ -13,10 +13,10 @@ struct UserRTCView: View {
     @EnvironmentObject var viewModel: CallViewModel
 
     var body: some View {
-        if let rendererView = userRTC.renderer as? UIView {
+        if let track = userRTC.videoTrack {
             ZStack {
                 if userRTC.isVideoTrackEnable {
-                    RTCVideoReperesentable(rendererView: rendererView)
+                    RTCVideoReperesentable(videoTrack: track)
                         .frame(width: 300, height: 300)
                         .background(.red)
                 } else {
