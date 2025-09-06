@@ -52,7 +52,7 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     public var timerCallString: String?
     public var isCallStarted: Bool { startCall != nil }
     public var usersRTC: [CallParticipantUserRTC] {[]} // { ChatManager.activeInstance?.call.callParticipantsUserRTC ?? [] }
-    public var activeUsers: [CallParticipantUserRTC] { [] } //usersRTC.filter { $0.callParticipant.active == true } }
+    public var activeUsers: [CallParticipantUserRTC] = [] //usersRTC.filter { $0.callParticipant.active == true } }
     public var call: CreateCall?
     public var callId: Int? { call?.callId ?? 0 }
     public var startCallRequest: StartCallRequest?
@@ -152,7 +152,10 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
         switch event {
         case let .callStarted(response):
             if let startCall = response.result, let callId = response.subjectId {
-                onCallStarted(startCall, callId: callId)
+                Task { @ChatGlobalActor in
+                    let callParticipants = await ChatManager.activeInstance?.call.activeCallParticipants(callId: callId) ?? []
+                    await onCallStarted(startCall, callId, callParticipants)
+                }
             }
         case let .callCreate(response):
             onCallCreated(response.result)
@@ -222,7 +225,8 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
         }
     }
 
-    public func onCallStarted(_ startCall: StartCall, callId: Int) {
+    public func onCallStarted(_ startCall: StartCall, _ callId: Int, _ callParticipants: [CallParticipantUserRTC]) async {        
+        self.activeUsers = callParticipants
         recordingViewModel = RecordingViewModel(callId: callId)
         self.startCall = startCall
         startCallDate = Date()
