@@ -52,7 +52,7 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     public var timerCallString: String?
     public var isCallStarted: Bool { startCall != nil }
     public var usersRTC: [CallParticipantUserRTC] {[]} // { ChatManager.activeInstance?.call.callParticipantsUserRTC ?? [] }
-    public var activeUsers: [CallParticipantUserRTC] = [] //usersRTC.filter { $0.callParticipant.active == true } }
+    public var activeUsers: [CallParticipantUserRTC] = []
     public var call: CreateCall?
     public var callId: Int? { call?.callId ?? 0 }
     public var startCallRequest: StartCallRequest?
@@ -315,11 +315,6 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
 //        }
 //        ChatManager.call?.reCalculateActiveVideoSessionLimit()
 //        objectWillChaneWithAnimation()
-    }
-
-    public func isVideoActive(_ userRTC: CallParticipantUserRTC) -> Bool {
-//        userRTC.callParticipant.video == true && userRTC.videoRTC.isVideoTrackEnable
-        return false
     }
 
     public func onMaxVideoSessionLimit(_ callParticipant: CallParticipant?) {
