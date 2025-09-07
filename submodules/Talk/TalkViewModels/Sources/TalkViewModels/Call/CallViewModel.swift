@@ -19,29 +19,8 @@ public enum CameraType: String {
     case unknown
 }
 
-public struct AnswerType {
-    let video: Bool
-    let mute: Bool
-}
-
 @MainActor
-public protocol CallStateProtocol {
-    var startCallRequest: StartCallRequest? { get set }
-    var usersRTC: [CallParticipantUserRTC] { get }
-    var cameraType: CameraType { get set }
-    var answerType: AnswerType { get set }
-    var call: CreateCall? { get set }
-    var callId: Int? { get }
-    var callTitle: String? { get }
-    var isCallStarted: Bool { get }
-    var newSticker: StickerResponse? { get set }
-    static func joinToCall(_ callId: Int)
-    func startCall(thread: Conversation?, contacts: [Contact]?, isVideoOn: Bool, groupName: String)
-    func sendSticker(_ sticker: CallSticker)
-}
-
-@MainActor
-public class CallViewModel: ObservableObject, CallStateProtocol {
+public class CallViewModel: ObservableObject {
     @Published public var startCall: StartCall?
     @Published public var isLoading = false
     @Published public var activeLargeCall: CallParticipantUserRTC?
@@ -57,7 +36,6 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     public var call: CreateCall?
     public var callId: Int? { call?.callId ?? 0 }
     public var startCallRequest: StartCallRequest?
-    public var answerType: AnswerType = .init(video: false, mute: true)
     public var isSpeakerOn: Bool = false
     public var cameraType: CameraType = .unknown
     public var cancellableSet: Set<AnyCancellable> = []
@@ -322,6 +300,7 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
         startCallTimer?.invalidate()
         startCallTimer = nil
         startCallRequest = nil
+        activeUsers = []
         endCallKitCall()
         printCallLogsFile()
     }
