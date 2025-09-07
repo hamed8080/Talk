@@ -64,11 +64,11 @@ struct CallStartedActionsView: View {
 //                    }
 //                }
 //
-//                if let videoEnable = viewModel.activeUsers.first(where: { $0.isMe })?.callParticipant.video {
-//                    CallControlItem(iconSfSymbolName: videoEnable ? "video.fill" : "video.slash.fill", subtitle: "Video", color: videoEnable ? .green : .gray) {
-//                        viewModel.toggleCamera()
-//                    }
-//                }
+                let me = viewModel.activeUsers.first(where: { $0.callParticipant.userId == AppState.shared.user?.id })
+                let isOn = me?.isVideoTrackEnable == true
+                CallControlItem(iconSfSymbolName: isOn ? "video.fill" : "video.slash.fill", subtitle: "Video", color: isOn ? .green : .gray) {
+                    viewModel.setCamera(on: isOn ? false : true)
+                }
 
                 CallControlItem(iconSfSymbolName: viewModel.isSpeakerOn ? "speaker.wave.2.fill" : "speaker.slash.fill", subtitle: "Speaker", color: viewModel.isSpeakerOn ? .green : .gray) {
                     viewModel.toggleSpeaker()

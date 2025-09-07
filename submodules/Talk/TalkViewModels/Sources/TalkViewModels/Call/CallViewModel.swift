@@ -66,7 +66,6 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     public var recordingViewModel = RecordingViewModel(callId: 0)
 
     public init() {
-        
         NotificationCenter.call.publisher(for: .call)
             .compactMap { $0.object as? CallEventTypes }
             .sink { [weak self] event in
@@ -281,45 +280,19 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     }
 
     public func onMute(_ callParticipants: [CallParticipant]?) {
-//        callParticipants?.forEach { callParticipant in
-//            if let callParticipantUserRTC = usersRTC.first(where: { $0.callParticipant == callParticipant }) {
-//                callParticipantUserRTC.callParticipant.mute = true
-//                callParticipantUserRTC.audioRTC.setTrackEnable(false)
-//            }
-//        }
-//        objectWillChaneWithAnimation()
+        objectWillChaneWithAnimation()
     }
 
     public func onUNMute(_ callParticipants: [CallParticipant]?) {
-//        callParticipants?.forEach { callParticipant in
-//            if let callParticipantUserRTC = usersRTC.first(where: { $0.callParticipant == callParticipant }) {
-//                callParticipantUserRTC.callParticipant.mute = false
-//                callParticipantUserRTC.audioRTC.setTrackEnable(true)
-//            }
-//        }
-//        objectWillChaneWithAnimation()
+        objectWillChaneWithAnimation()
     }
 
     public func onVideoOn(_ callParticipants: [CallParticipant]?) {
-//        callParticipants?.forEach { callParticipant in
-//            if let callParticipantUserRTC = usersRTC.first(where: { $0.callParticipant == callParticipant }) {
-//                callParticipantUserRTC.callParticipant.video = true
-//                callParticipantUserRTC.videoRTC.setTrackEnable(true)
-//            }
-//        }
-//        ChatManager.call?.reCalculateActiveVideoSessionLimit()
-//        objectWillChaneWithAnimation()
+        objectWillChaneWithAnimation()
     }
 
     public func onVideoOff(_ callParticipants: [CallParticipant]?) {
-//        callParticipants?.forEach { callParticipant in
-//            if let callParticipantUserRTC = usersRTC.first(where: { $0.callParticipant == callParticipant }) {
-//                callParticipantUserRTC.callParticipant.video = false
-//                callParticipantUserRTC.videoRTC.setTrackEnable(false)
-//            }
-//        }
-//        ChatManager.call?.reCalculateActiveVideoSessionLimit()
-//        objectWillChaneWithAnimation()
+        objectWillChaneWithAnimation()
     }
 
     public func onMaxVideoSessionLimit(_ callParticipant: CallParticipant?) {
@@ -373,8 +346,14 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
     }
 
     public func toggleSpeaker() {
-//        ChatManager.call?.toggleSpeaker()
-//        isSpeakerOn.toggle()
+        guard let callId = callId else { return }
+        let on = isSpeakerOn ? false : true
+        Task { @ChatGlobalActor in
+            await ChatManager.activeInstance?.call.setSpeaker(on: on, callId: callId)
+            await MainActor.run {
+                isSpeakerOn.toggle()
+            }
+        }
     }
 
     public func toggleMute() {
@@ -386,13 +365,15 @@ public class CallViewModel: ObservableObject, CallStateProtocol {
 //        }
     }
 
-    public func toggleCamera() {
-//        guard let callId = startCall?.callId else { return }
-//        if usersRTC.first(where: { $0.isMe })?.callParticipant.video == true {
-//            ChatManager.call?.turnOffVideoCall(callId: callId)
-//        } else {
-//            ChatManager.call?.turnOnVideoCall(callId: callId)
-//        }
+    public func setCamera(on: Bool) {
+        guard let callId = callId else { return }
+        Task { @ChatGlobalActor in
+            if on {
+                ChatManager.activeInstance?.call.turnOnVideoCall(.init(subjectId: callId))
+            } else {
+                ChatManager.activeInstance?.call.turnOffVideoCall(.init(subjectId: callId))
+            }
+        }
     }
 
     public func switchCamera() {
