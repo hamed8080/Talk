@@ -14,6 +14,7 @@ public enum RequestEnqueueType: Comparable {
     case history(req: GetHistoryRequest)
     case mentions(req: GetHistoryRequest)
     case reactionCount(req: ReactionCountRequest)
+    case callsToJoin(req: GetJoinCallsRequest)
     
     // Define priority for each request type
     var priority: Int {
@@ -23,6 +24,7 @@ public enum RequestEnqueueType: Comparable {
         case .getContacts: return 1
         case .history: return 3
         case .mentions: return -1
+        case .callsToJoin: return -3
         case .reactionCount: return 2
         }
     }
@@ -35,6 +37,7 @@ public enum RequestEnqueueType: Comparable {
         case .history(let value): return value.uniqueId
         case .mentions(let value): return value.uniqueId
         case .reactionCount(let value): return value.uniqueId
+        case .callsToJoin(let value): return value.uniqueId
         }
     }
     

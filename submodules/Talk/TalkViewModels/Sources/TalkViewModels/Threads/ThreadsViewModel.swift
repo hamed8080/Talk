@@ -212,6 +212,7 @@ public final class ThreadsViewModel: ObservableObject {
                 updatePinAndSelectedAfterReconnect(oldThreadId: id)
             }
         }
+        getActiveCallsToJoin(threadIds: conversations.compactMap({$0.id}))
     }
     
     private func moveToTopIfWasDisconnected(topItemId: Int?) {
@@ -757,6 +758,18 @@ public final class ThreadsViewModel: ObservableObject {
         if let index = threads.firstIndex(where: {$0.isSelected}) {
             threads[index].isSelected = false
             threads[index].animateObjectWillChange()
+        }
+    }
+    
+    private func getActiveCallsToJoin(threadIds: [Int]) {
+        let req = GetJoinCallsRequest(threadIds: threadIds, offset: 0, count: lazyList.count)
+        Task {
+            do {
+                let callsToJoin = try await GetCallsToJoinRequester().get(req, withCache: false)
+                activeCallThreads = callsToJoin.compactMap({ .init(threadId: $0.conversation?.id ?? -1, callId: $0.id) })
+            } catch {
+                log("Failed to get calls to join")
+            }
         }
     }
 }

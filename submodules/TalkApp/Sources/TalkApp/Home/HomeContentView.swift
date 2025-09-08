@@ -94,6 +94,9 @@ struct SplitView: View {
                 .environmentObject(container.callViewModel)
                 .environmentObject(container.callViewModel.recordingViewModel)
         }
+        .onReceive(container.callViewModel.$showCallView) { show in
+            showFullScreenCall = show
+        }
         .onReceive(container.callViewModel.$startCall) { startCall in
             showFullScreenCall = startCall != nil
         }

@@ -10,16 +10,12 @@ import SwiftUI
 struct CenterArriveStickerView: View {
     @EnvironmentObject var viewModel: CallViewModel
     @State var animate = false
-//    @StateObject var imageLoader = ImageLoader()
 
     var body: some View {
         if let sticker = viewModel.newSticker {
             HStack(spacing: 4) {
                 Text(sticker.participant.name ?? "")
                     .font(.caption2)
-//                ImageLaoderView(url: sticker.participant.image, userName: sticker.participant.name)
-//                    .frame(width: 28, height: 28)
-//                    .cornerRadius(18)
                 sticker.sticker.systemImage
                     .resizable()
                     .scaledToFit()

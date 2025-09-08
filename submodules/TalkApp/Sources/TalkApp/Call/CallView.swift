@@ -18,47 +18,22 @@ struct CallView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @EnvironmentObject var recordingViewModel: RecordingViewModel
     @State var showRecordingToast = false
-    @State var location: CGPoint = .init(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height - 164)
     @State var showDetailPanel: Bool = false
     @State var showCallParticipants: Bool = false
 
-    var gridColumns: [GridItem] {
-        let videoCount = viewModel.activeUsers.count
-        return Array(repeating: GridItem(.flexible(), spacing: 16), count: videoCount <= 2 ? 1 : 2)
-    }
-
-    var simpleDrag: some Gesture {
-        DragGesture()
-            .onChanged { value in
-                self.location = value.location
-            }
-    }
-
     var body: some View {
         ZStack {
-            CenterAciveUserRTCView()
-            if viewModel.isCallStarted, isIpad {
-                listLargeIpadParticipants
-                GeometryReader { reader in
-                    CallStartedActionsView(showDetailPanel: $showDetailPanel)
-                        .position(location)
-                        .gesture(
-                            simpleDrag.simultaneously(with: simpleDrag)
-                        )
-                        .onAppear {
-                            location = CGPoint(x: reader.size.width / 2, y: reader.size.height - 128)
-                        }
-                }
-            } else if viewModel.isCallStarted {
-                VStack {
-                    Spacer()
-                    listSmallCallParticipants
-                    CallStartedActionsView(showDetailPanel: $showDetailPanel)
-                }
+            if viewModel.isCallStarted {
+                StartedCallView(showDetailPanel: $showDetailPanel)
             }
             CenterArriveStickerView()
-            StartCallActionsView()
-            RecordingDotView()
+            if viewModel.isCallStarted == false {
+                StartingCallView()
+            }
+            
+            if recordingViewModel.isRecording {
+                RecordingDotView()
+            }
         }
         .animation(.easeInOut(duration: 0.5), value: viewModel.usersRTC.count)
         .background(Color.App.bgPrimary.ignoresSafeArea())
@@ -95,48 +70,6 @@ struct CallView: View {
             CallParticipantListView()
         }
     }
-
-    @ViewBuilder var listLargeIpadParticipants: some View {
-        if viewModel.activeUsers.count <= 2 {
-            HStack(spacing: 16) {
-                ForEach(viewModel.activeUsers) { userrtc in
-                    UserRTCView(userRTC: userrtc)
-                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                }
-            }
-            .padding([.leading, .trailing], 12)
-        } else {
-            ScrollView {
-                LazyVGrid(columns: gridColumns, spacing: 16) {
-                    ForEach(viewModel.activeUsers) { userrtc in
-                        UserRTCView(userRTC: userrtc)
-                            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                    }
-                }
-                .padding([.leading, .trailing], 12)
-            }
-        }
-    }
-
-    @ViewBuilder var listSmallCallParticipants: some View {
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: [GridItem(.flexible(), spacing: 0)], spacing: 0) {
-                ForEach(viewModel.activeUsers) { userrtc in
-                    UserRTCView(userRTC: userrtc)
-                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                        .onTapGesture {
-                            viewModel.activeLargeCall = userrtc
-                        }
-                }
-                .padding([.all], isIpad ? 8 : 6)
-            }
-        }
-        .frame(height: viewModel.defaultCellHieght + 25) // +25 for when a user start talking showing frame
-    }
-    
-    var isIpad: Bool {
-        UIDevice.current.userInterfaceIdiom == .pad
-    }
 }
 
 struct CallControlsView_Previews: PreviewProvider {
@@ -149,8 +82,8 @@ struct CallControlsView_Previews: PreviewProvider {
         Group {
             CallView()
                 .previewDisplayName("CallContent")
-            StartCallActionsView()
-                .previewDisplayName("StartCallActionsView")
+            StartingCallView()
+                .previewDisplayName("StartingCallView")
             CallControlItem(iconSfSymbolName: "trash", subtitle: "Delete")
                 .previewDisplayName("CallControlItem")
             CallStartedActionsView(showDetailPanel: $showDetailPanel)

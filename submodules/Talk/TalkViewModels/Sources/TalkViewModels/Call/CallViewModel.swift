@@ -31,7 +31,7 @@ public class CallViewModel: ObservableObject {
     public var startCallTimer: Timer?
     public var timerCallString: String?
     public var isCallStarted: Bool { startCall != nil }
-    public var usersRTC: [CallParticipantUserRTC] {[]} // { ChatManager.activeInstance?.call.callParticipantsUserRTC ?? [] }
+    public var usersRTC: [CallParticipantUserRTC] {[]}
     public var activeUsers: [CallParticipantUserRTC] = []
     public var call: CreateCall?
     public var callId: Int? { call?.callId ?? 0 }
@@ -190,19 +190,18 @@ public class CallViewModel: ObservableObject {
 
     public func onCallCreated(_ createCall: CreateCall?) {
         call = createCall
+        toggleCallView(show: true)
     }
 
     public func onReceiveCall(_ createCall: CreateCall?) {
-//        toggleCallView(show: true)
-//        call = createCall
-//        AppState.shared.providerDelegate?.reportIncomingCall(uuid: uuid, handle: createCall?.title ?? "", hasVideo: createCall?.type == .videoCall, completion: nil)
+        call = createCall
+        toggleCallView(show: true)
     }
 
     // maybe reject or canceled after a time out
     public func onCallCanceled(_: Call?) {
         // don't remove showCallView == true leads to show callViewControls again in receiver of call who rejected call
         if showCallView {
-            endCallKitCall()
             resetCall()
         }
     }
@@ -301,7 +300,6 @@ public class CallViewModel: ObservableObject {
         startCallTimer = nil
         startCallRequest = nil
         activeUsers = []
-        endCallKitCall()
         printCallLogsFile()
     }
 
@@ -368,10 +366,6 @@ public class CallViewModel: ObservableObject {
         }
     }
 
-    public func endCallKitCall() {
-//        AppState.shared.callMananger.endCall(uuid)
-    }
-
     public func addCallParicipants(_ callParticipants: [CallParticipant]? = nil) {
 //        guard let callParticipants = callParticipants else { return }
 //        ChatManager.call?.addCallParticipants(callParticipants)
@@ -380,18 +374,18 @@ public class CallViewModel: ObservableObject {
 
     /// You can use this method to reject or cancel a call not startrd yet.
     public func cancelCall() {
-//        toggleCallView(show: false)
-//        guard let callId = call?.callId,
-//              let creatorId = call?.creatorId,
-//              let type = call?.type,
-//              let isGroup = call?.group else { return }
-//        let cancelCall = Call(id: callId, creatorId: creatorId, type: type, isGroup: isGroup)
-//        ChatManager.call?.cancelCall(.init(call: cancelCall))
-//        endCallKitCall()
+        toggleCallView(show: false)
+        guard let callId = call?.callId,
+              let creatorId = call?.creatorId,
+              let type = call?.type,
+              let isGroup = call?.group else { return }
+        let cancelCall = Call(id: callId, creatorId: creatorId, type: type, isGroup: isGroup)
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.call.cancelCall(.init(call: cancelCall))
+        }
     }
 
     public func endCall() {
-        endCallKitCall()
         if isCallStarted == false {
             cancelCall()
         } else {
@@ -406,20 +400,28 @@ public class CallViewModel: ObservableObject {
     }
 
     public func answerCall(video: Bool, audio: Bool) {
-//        if video {
-//            toggleCamera()
-//        }
-//        answerType = AnswerType(video: video, mute: !audio)
-//        AppState.shared.callMananger.callAnsweredFromCusomUI()
+        guard let callId = callId else { return }
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.call.acceptCall(
+                AcceptCallRequest(
+                    callId: callId,
+                    client: SendClient(
+                        id: nil,
+                        type: .ios,
+                        deviceId: nil,
+                        mute: audio,
+                        video: video,
+                        desc: nil
+                    )
+                )
+            )
+        }
     }
 
     public static func joinToCall(_ callId: Int) {
-//        Task { @ChatGlobalActor in
-//            ChatManager.activeInstance?.call.acceptCall(.init(callId: callId, client: .init(mute: true, video: false)))
-//            CallViewModel.shared.toggleCallView(show: true)
-//            CallViewModel.shared.answerType = AnswerType(video: false, mute: true)
-//            AppState.shared.callMananger.callAnsweredFromCusomUI()
-//        }
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.call.acceptCall(.init(callId: callId, client: .init(mute: true, video: false)))
+        }
     }
 
     public func sendSticker(_ sticker: CallSticker) {

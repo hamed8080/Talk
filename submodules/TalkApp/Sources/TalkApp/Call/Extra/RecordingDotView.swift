@@ -13,23 +13,19 @@ struct RecordingDotView: View {
     @State var showRecordingIndicator: Bool = false
 
     var body: some View {
-        if recordingViewModel.isRecording {
-            Image(systemName: "record.circle")
-                .resizable()
-                .frame(width: 16, height: 16)
-                .foregroundColor(Color.red)
-                .position(x: 32, y: 24)
-                .opacity(showRecordingIndicator ? 1 : 0)
-                .animation(.easeInOut, value: showRecordingIndicator)
-                .onAppear {
-                    Timer.scheduledTimer(withTimeInterval: showRecordingIndicator ? 0.7 : 1, repeats: true) { _ in
-                        Task { @MainActor in
-                            showRecordingIndicator.toggle()
-                        }
+        Image(systemName: "record.circle")
+            .resizable()
+            .frame(width: 16, height: 16)
+            .foregroundColor(Color.red)
+            .position(x: 32, y: 24)
+            .opacity(showRecordingIndicator ? 1 : 0)
+            .animation(.easeInOut, value: showRecordingIndicator)
+            .onAppear {
+                Timer.scheduledTimer(withTimeInterval: showRecordingIndicator ? 0.7 : 1, repeats: true) { _ in
+                    Task { @MainActor in
+                        showRecordingIndicator.toggle()
                     }
                 }
-        } else {
-            EmptyView()
-        }
+            }
     }
 }

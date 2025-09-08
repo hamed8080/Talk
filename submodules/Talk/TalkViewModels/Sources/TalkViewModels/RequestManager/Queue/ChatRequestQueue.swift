@@ -60,6 +60,8 @@ public class ChatRequestQueue {
             ChatManager.activeInstance?.message.history(req)
         case .reactionCount(let req):
             ChatManager.activeInstance?.reaction.count(req)
+        case .callsToJoin(req: let req):
+            ChatManager.activeInstance?.call.callsToJoin(req)
         }
     }
     
@@ -77,6 +79,7 @@ public class ChatRequestQueue {
                 (.getContacts, .getContacts),
                 (.history, .history),
                 (.mentions, .mentions),
+                (.callsToJoin, .callsToJoin),
                 (.reactionCount, .reactionCount):
                 return true
             default:
