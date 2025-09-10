@@ -82,17 +82,21 @@ public class CallViewModel: ObservableObject {
     }
 
     public func getActiveParticipants() {
-//        guard let callId = callId else { return }
-//        isLoading = true
-//        ChatManager.call?.activeCallParticipants(.init(subjectId: callId)) { [weak self] response in
-//            response.result?.forEach { callParticipant in
-//                if let callParticipantUserRTC = self?.usersRTC.first(where: { $0.callParticipant == callParticipant }) {
-//                    callParticipantUserRTC.callParticipant.update(callParticipant)
-//                }
-//            }
-//            self?.isLoading = false
-//            self?.objectWillChaneWithAnimation()
-//        }
+        guard let callId = callId else { return }
+        isLoading = true
+        Task {
+            do {
+                let callParticipants = try await GetActiveCallParticipantsRequester().get(callId)
+                for i in activeUsers.indices {
+                    if let participant = callParticipants.first(where: { $0.userId == activeUsers[i].callParticipant.userId })?.participant {
+                        activeUsers[i].callParticipant.participant = participant
+                    }
+                }
+                objectWillChaneWithAnimation()
+            } catch {
+                print("Failed to get active call participants")
+            }
+        }
     }
 
     public func getThreadParticipants() {
@@ -124,9 +128,10 @@ public class CallViewModel: ObservableObject {
         case let .callStarted(response):
             if let startCall = response.result, let callId = response.subjectId {
                 Task { @ChatGlobalActor in
-                    let callParticipants = await ChatManager.activeInstance?.call.activeCallParticipants(callId: callId) ?? []
+                    let callParticipants = await ChatManager.activeInstance?.call.currentUserRTCList(callId: callId) ?? []
                     await onCallStarted(startCall, callId, callParticipants)
                 }
+                getParticipants()
             }
         case let .callCreate(response):
             onCallCreated(response.result)
@@ -250,19 +255,44 @@ public class CallViewModel: ObservableObject {
     }
 
     public func onMute(_ callParticipants: [CallParticipant]?) {
-        objectWillChaneWithAnimation()
+        syncUserRTCs()
     }
 
     public func onUNMute(_ callParticipants: [CallParticipant]?) {
-        objectWillChaneWithAnimation()
+        syncUserRTCs()
     }
 
     public func onVideoOn(_ callParticipants: [CallParticipant]?) {
-        objectWillChaneWithAnimation()
+        syncUserRTCs()
     }
 
     public func onVideoOff(_ callParticipants: [CallParticipant]?) {
-        objectWillChaneWithAnimation()
+        syncUserRTCs()
+    }
+    
+    private func syncUserRTCs() {
+        guard let callId = callId else { return }
+        let copy = activeUsers
+        Task { @ChatGlobalActor in
+            /// Sync Chat SDK instances with itself
+            let chatSDKInstances = ChatManager.activeInstance?.call.currentUserRTCList(callId: callId) ?? []
+            await MainActor.run {
+                activeUsers = chatSDKInstances
+                
+                /// We will do this to prevent deleting the participant inside the CallParticipantUserRTC.callParticipnat.participant
+                /// beacuse once session is created this property is nil by the server,
+                /// the client app will fetch it later with 110 and the keep those in this.
+                for i in activeUsers.indices {
+                    let oldRTC = copy.first(where: { $0.callParticipant.userId == activeUsers[i].callParticipant.userId })
+                    
+                    if let participant = oldRTC?.callParticipant.participant {
+                        activeUsers[i].callParticipant.participant = participant
+                    }
+                }
+                
+                objectWillChaneWithAnimation()
+            }
+        }
     }
 
     public func onMaxVideoSessionLimit(_ callParticipant: CallParticipant?) {
@@ -435,11 +465,11 @@ public class CallViewModel: ObservableObject {
     }
     
     public func onVideoTrackAdded(_ track: RTCVideoTrack, _ clientId: Int) {
-        objectWillChaneWithAnimation()
+        syncUserRTCs()
     }
     
     public func onAudioTrackAdded(_ track: RTCAudioTrack, _ clientId: Int) {
-        objectWillChaneWithAnimation()
+        syncUserRTCs()
     }
 }
 
