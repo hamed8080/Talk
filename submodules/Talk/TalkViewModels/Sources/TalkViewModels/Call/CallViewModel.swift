@@ -96,17 +96,10 @@ public class CallViewModel: ObservableObject {
     }
 
     public func getThreadParticipants() {
-//        guard let threadId = call?.conversation?.id else { return }
-//        isLoading = true
-//        ChatManager.activeInstance?.getThreadParticipants(.init(threadId: threadId)) { [weak self] response in
-//            response.result?.forEach { participant in
-//                let isInAcitveUsers = self?.activeUsers.contains(where: { $0.callParticipant.participant == participant }) ?? false
-//                let isInOfflineUsers = self?.offlineParticipants.contains(where: { $0.id == participant.id }) ?? false
-//                if !isInAcitveUsers, !isInOfflineUsers {
-//                    self?.offlineParticipants.append(participant)
-//                }
-//            }
-//            self?.isLoading = false
+        guard let threadId = call?.conversation?.id else { return }
+        isLoading = true
+//        Task { @ChatGlobalActor in
+//            ChatManager.activeInstance?.conversation.participant.get(.init(threadId: threadId, offset: 0, count: 50))
 //        }
     }
 
