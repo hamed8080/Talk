@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AdditiveUI
 
 struct CallControlItem: View {
     var iconSfSymbolName: String
@@ -30,7 +31,7 @@ struct CallControlItem: View {
                 }
             }
         })
-//        .buttonStyle(DeepButtonStyle(backgroundColor: Color.clear, shadow: 12))
+        .buttonStyle(DeepButtonStyle(backgroundColor: Color.clear, shadow: 0, cornerRadius: 0))
     }
 
     @ViewBuilder var content: some View {
@@ -45,9 +46,11 @@ struct CallControlItem: View {
                     .padding(2)
             )
             .frame(width: 52, height: 52)
-        Text(subtitle)
-            .fontWeight(.bold)
-            .font(.system(size: 10))
-            .fixedSize()
+        if !subtitle.isEmpty {
+            Text(subtitle)
+                .fontWeight(.bold)
+                .font(.system(size: 10))
+                .fixedSize()
+        }
     }
 }

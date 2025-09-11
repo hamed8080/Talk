@@ -9,7 +9,6 @@ import SwiftUI
 
 struct StartedCallView: View {
     @EnvironmentObject var viewModel: CallViewModel
-    @Binding var showDetailPanel: Bool
     @State var location: CGPoint = .init(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height - 164)
     
     private var gridColumns: [GridItem] {
@@ -29,7 +28,7 @@ struct StartedCallView: View {
         if isIpad {
             listLargeIpadParticipants
             GeometryReader { reader in
-                CallStartedActionsView(showDetailPanel: $showDetailPanel)
+                CallStartedActionsView()
                     .position(location)
                     .gesture(
                         simpleDrag.simultaneously(with: simpleDrag)
@@ -40,27 +39,25 @@ struct StartedCallView: View {
             }
         } else {
             VStack {
-                Spacer()
                 listSmallCallParticipants
-                CallStartedActionsView(showDetailPanel: $showDetailPanel)
+                Spacer()
+                CallStartedActionsView()
             }
         }
     }
     
     @ViewBuilder var listSmallCallParticipants: some View {
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: [GridItem(.flexible(), spacing: 0)], spacing: 0) {
-                ForEach(viewModel.activeUsers) { userrtc in
-                    UserRTCView(userRTC: userrtc)
-                        .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                        .onTapGesture {
-                            viewModel.activeLargeCall = userrtc
-                        }
-                }
-                .padding([.all], isIpad ? 8 : 6)
+        VStack(spacing: 0) {
+            ForEach(viewModel.activeUsers) { userrtc in
+                UserRTCView(userRTC: userrtc)
+                    .padding(4)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .trailing),
+                        removal: .move(edge: .leading)
+                    ))
             }
         }
-        .frame(height: viewModel.defaultCellHieght + 25) // +25 for when a user start talking showing frame
+        .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
     }
     
     @ViewBuilder var listLargeIpadParticipants: some View {

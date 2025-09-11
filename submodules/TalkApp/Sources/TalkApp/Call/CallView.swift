@@ -24,7 +24,7 @@ struct CallView: View {
     var body: some View {
         ZStack {
             if viewModel.isCallStarted {
-                StartedCallView(showDetailPanel: $showDetailPanel)
+                StartedCallView()
             }
             CenterArriveStickerView()
             if viewModel.isCallStarted == false {
@@ -64,7 +64,7 @@ struct CallView: View {
             }
         }
         .sheet(isPresented: $showDetailPanel) {
-            MoreControlsView(showDetailPanel: $showDetailPanel, showCallParticipants: $showCallParticipants)
+            MoreControlsView(showCallParticipants: $showCallParticipants)
         }
         .sheet(isPresented: $showCallParticipants) {
             CallParticipantListView()
@@ -73,7 +73,6 @@ struct CallView: View {
 }
 
 struct CallControlsView_Previews: PreviewProvider {
-    @State static var showDetailPanel: Bool = false
     @State static var showCallParticipants: Bool = false
     @ObservedObject static var viewModel = CallViewModel()
     static var recordingVM = RecordingViewModel(callId: 1)
@@ -86,9 +85,9 @@ struct CallControlsView_Previews: PreviewProvider {
                 .previewDisplayName("StartingCallView")
             CallControlItem(iconSfSymbolName: "trash", subtitle: "Delete")
                 .previewDisplayName("CallControlItem")
-            CallStartedActionsView(showDetailPanel: $showDetailPanel)
+            CallStartedActionsView()
                 .previewDisplayName("CallStartedActionsView")
-            MoreControlsView(showDetailPanel: $showDetailPanel, showCallParticipants: $showCallParticipants)
+            MoreControlsView(showCallParticipants: $showCallParticipants)
                 .previewDisplayName("MoreControlsView")
         }
         .environmentObject(AppState.shared)
@@ -126,5 +125,3 @@ struct CallControlsView_Previews: PreviewProvider {
 //        return participants
 //    }
 }
-
-

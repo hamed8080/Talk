@@ -19,6 +19,26 @@ public enum CameraType: String {
     case unknown
 }
 
+public class CallTimerViewModel: ObservableObject {
+    public var startCallTimer: Timer?
+    public var startCallDate: Date?
+    @Published public var timerCallString: String?
+    
+    public func startTimer() {
+        startCallDate = Date()
+        startCallTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.timerCallString = (self?.startCallDate?.timerString)
+            }
+        }
+    }
+    
+    public func reset() {
+        startCallTimer?.invalidate()
+        startCallTimer = nil
+    }
+}
+
 @MainActor
 public class CallViewModel: ObservableObject {
     @Published public var startCall: StartCall?
@@ -27,9 +47,9 @@ public class CallViewModel: ObservableObject {
     @Published public var showCallView: Bool = false
     @Published public var offlineParticipants: [Participant] = []
     @Published public var newSticker: StickerResponse?
-    public var startCallDate: Date?
-    public var startCallTimer: Timer?
-    public var timerCallString: String?
+    @Published public var raiseHand = false
+    public var timerViewModel = CallTimerViewModel()
+    
     public var isCallStarted: Bool { startCall != nil }
     public var usersRTC: [CallParticipantUserRTC] {[]}
     public var activeUsers: [CallParticipantUserRTC] = []
@@ -208,8 +228,7 @@ public class CallViewModel: ObservableObject {
         self.activeUsers = callParticipants
         recordingViewModel = RecordingViewModel(callId: callId)
         self.startCall = startCall
-        startCallDate = Date()
-        startTimer()
+        timerViewModel.startTimer()
         fetchCallParticipants(startCall)
         
         objectWillChaneWithAnimation()
@@ -319,8 +338,7 @@ public class CallViewModel: ObservableObject {
         call = nil
         startCall = nil
         toggleCallView(show: false)
-        startCallTimer?.invalidate()
-        startCallTimer = nil
+        timerViewModel.reset()
         startCallRequest = nil
         activeUsers = []
         printCallLogsFile()
@@ -357,12 +375,18 @@ public class CallViewModel: ObservableObject {
     }
 
     public func toggleMute() {
-//        guard let currentUserId = ChatManager.activeInstance?.userInfo?.id, let callId = startCall?.callId else { return }
-//        if usersRTC.first(where: { $0.isMe })?.callParticipant.mute == true {
-//            ChatManager.call?.unmuteCall(.init(callId: callId, userIds: [currentUserId]))
-//        } else {
-//            ChatManager.call?.muteCall(.init(callId: callId, userIds: [currentUserId]))
-//        }
+        guard
+            let mute = myUserRTC?.callParticipant.mute,
+            let callId = callId,
+            let userId = myUserRTC?.callParticipant.userId
+        else { return }
+        Task { @ChatGlobalActor in
+            if mute {
+                ChatManager.activeInstance?.call.unmuteCallParticipants(.init(callId: callId, userIds: [userId]))
+            } else {
+                ChatManager.activeInstance?.call.muteCallParticipants(.init(callId: callId, userIds: [userId]))
+            }
+        }
     }
 
     public func setCamera(on: Bool) {
@@ -378,15 +402,6 @@ public class CallViewModel: ObservableObject {
 
     public func switchCamera() {
 //        ChatManager.call?.switchCamera()
-    }
-
-    public func startTimer() {
-        startCallTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.timerCallString = (self?.startCallDate?.timerString)
-                self?.objectWillChaneWithAnimation()
-            }
-        }
     }
 
     public func addCallParicipants(_ callParticipants: [CallParticipant]? = nil) {
@@ -422,7 +437,7 @@ public class CallViewModel: ObservableObject {
         resetCall()
     }
 
-    public func answerCall(video: Bool, audio: Bool) {
+    public func answerCall(video: Bool, mute: Bool) {
         guard let callId = callId else { return }
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.call.acceptCall(
@@ -432,7 +447,7 @@ public class CallViewModel: ObservableObject {
                         id: nil,
                         type: .ios,
                         deviceId: nil,
-                        mute: audio,
+                        mute: mute,
                         video: video,
                         desc: nil
                     )
@@ -471,6 +486,40 @@ public class CallViewModel: ObservableObject {
     public func onAudioTrackAdded(_ track: RTCAudioTrack, _ clientId: Int) {
         syncUserRTCs()
     }
+    
+    public func openConversation() {
+        guard let conversation = call?.conversation else { return }
+        AppState.shared.objectsContainer.navVM.append(thread: conversation)
+    }
+    
+    public func toggleRaiseHand() {
+        let raiseHand = raiseHand
+        if !raiseHand {
+            /// we are going to raise our hand
+            /// Play sound
+            
+        }
+        guard let callId = callId else { return }
+        let req = GeneralSubjectIdRequest(subjectId: callId)
+        Task { @ChatGlobalActor in
+            if raiseHand {
+                ChatManager.activeInstance?.call.lowerHand(req)
+            } else {
+                ChatManager.activeInstance?.call.raiseHand(req)
+            }
+            await MainActor.run {
+                self.raiseHand.toggle()
+            }
+        }
+    }
+    
+    public func addToCallContacts(_ contacts: [Contact]) {
+        guard let callId = callId else { return }
+        let req = AddCallParticipantsRequest(callId: callId, contactIds: contacts.compactMap({$0.id}))
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.call.addCallPartcipant(req)
+        }
+    }
 }
 
 /// Size of the each cell in different size like iPad vs iPhone.
@@ -481,5 +530,9 @@ public extension CallViewModel {
         let ipadHieghtForTwoParticipant = (UIScreen.main.bounds.height / 2) - 32
         let ipadSize = isMoreThanTwoParticipant ? 350 : ipadHieghtForTwoParticipant
         return isIpad ? ipadSize : 150
+    }
+    
+    public var myUserRTC: CallParticipantUserRTC? {
+        activeUsers.first(where: { $0.callParticipant.userId == AppState.shared.user?.id })
     }
 }

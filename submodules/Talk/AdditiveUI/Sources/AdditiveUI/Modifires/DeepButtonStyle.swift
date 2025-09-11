@@ -6,12 +6,18 @@
 
 #if canImport(SwiftUI)
 import SwiftUI
-struct DeepButtonStyle: ButtonStyle {
+public struct DeepButtonStyle: ButtonStyle {
     var backgroundColor: Color = .primary
     var shadow: CGFloat = 6
     var cornerRadius: CGFloat = 0
+    
+    public init(backgroundColor: Color, shadow: CGFloat, cornerRadius: CGFloat) {
+        self.backgroundColor = backgroundColor
+        self.shadow = shadow
+        self.cornerRadius = cornerRadius
+    }
 
-    func makeBody(configuration: Configuration) -> some View {
+    public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(backgroundColor)
             .cornerRadius(cornerRadius)

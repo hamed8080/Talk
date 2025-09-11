@@ -10,7 +10,6 @@ import SwiftUI
 struct MoreControlsView: View {
     @EnvironmentObject var viewModel: CallViewModel
     @EnvironmentObject var recordingViewModel: RecordingViewModel
-    @Binding var showDetailPanel: Bool
     @Binding var showCallParticipants: Bool
 
     var body: some View {
@@ -36,7 +35,6 @@ struct MoreControlsView: View {
 
                 CallControlItem(iconSfSymbolName: "person.fill.badge.plus", subtitle: "prticipants", color: .gray, vertical: true) {
                     withAnimation {
-                        showDetailPanel.toggle()
                         showCallParticipants.toggle()
                     }
                 }

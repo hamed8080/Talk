@@ -2,6 +2,8 @@ import Chat
 import Foundation
 import TalkModels
 import Chat
+import TalkViewModels
+import Logger
 
 #if DEBUG
 public struct MockDataModel: Decodable {
@@ -242,6 +244,86 @@ public final class MockData {
             callPrticipants.append(callParticipant)
         }
         return callPrticipants
+    }
+    
+    @MainActor
+    public static func initObjectsContainer() {
+        AppState.shared.objectsContainer = ObjectsContainer(delegate: MockDelegate())
+        AppState.shared.user = userInfo
+    }
+    
+    @MainActor
+    public static func callViewModel() -> CallViewModel {
+        initObjectsContainer()
+        let vm = CallViewModel()
+        let conversation = Conversation(
+            id: 1,
+            title: "Jeff James",
+            type: .normal
+        )
+        
+        vm.call = CreateCall(
+            invitees: [],
+            type: .video,
+            creatorId: 12,
+            creator:  myParticipant,
+            conversation: conversation,
+            threadId: conversation.id ?? -1,
+            callId: 0,
+            group: false
+        )
+        return vm
+    }
+    
+    private static var userInfo: User {
+        User(
+            cellphoneNumber: "",
+            coreUserId: 12,
+            email: nil,
+            id: 12,
+            image: "https://podspace.pod.ir/nzh/drive/downloadFile/?hash=BG6BLD6RFM1MO7N7",
+            lastSeen: nil,
+            name: "Hamed Hosseini",
+            nickname: nil,
+            receiveEnable: nil,
+            sendEnable: nil,
+            username: "h.hosseini",
+            ssoId: nil,
+            firstName: "Hamed",
+            lastName: "Hosseini",
+            profile: nil
+        )
+    }
+    
+    private static var myParticipant: Participant {
+        return Participant(
+            admin: false,
+            auditor: nil,
+            cellphoneNumber: "",
+            contactFirstName: "Hamed",
+            contactId: 0,
+            contactName: "Hamed Hosseini",
+            contactLastName: "Hosseini",
+            coreUserId: 12,
+            id: 12,
+            image: "https://podspace.pod.ir/nzh/drive/downloadFile/?hash=BG6BLD6RFM1MO7N7",
+            name: "Hamed Hosseini"
+        )
+    }
+    
+    @MainActor
+    class MockDelegate: ChatDelegate {
+        nonisolated func chatState(state: ChatCore.ChatState, currentUser: ChatModels.User?, error: ChatCore.ChatError?) {
+            
+        }
+        
+        nonisolated func chatEvent(event: ChatEventType) {
+            
+        }
+        
+        nonisolated func onLog(log: Log) {
+            
+        }
     }
 }
 #endif
