@@ -201,6 +201,10 @@ public class CallViewModel: ObservableObject {
             onVideoTrackAdded(track, clientId)
         case let .audioTrackAdded(track, clientId):
             onAudioTrackAdded(track, clientId)
+        case let .startScreenShare(resp):
+            syncUserRTCs()
+        case let .endScreenShare(resp):
+            onEndScreenShare(resp)
         default:
             break
         }
@@ -518,6 +522,13 @@ public class CallViewModel: ObservableObject {
         let req = AddCallParticipantsRequest(callId: callId, contactIds: contacts.compactMap({$0.id}))
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.call.addCallPartcipant(req)
+        }
+    }
+    
+    private func onEndScreenShare(_ resp: ChatResponse<EndScreenShareResponse>) {
+        if resp.subjectId == callId, let index = activeUsers.firstIndex(where: { $0.topic == resp.result?.topicSend }) {
+            activeUsers[index].screenShareTrack = nil
+            syncUserRTCs()
         }
     }
 }

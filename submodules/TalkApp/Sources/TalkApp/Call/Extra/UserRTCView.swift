@@ -17,6 +17,8 @@ struct UserRTCView: View {
         ZStack {
             if userRTC.isVideoTrackEnable, let track = userRTC.videoTrack {
                 RTCVideoReperesentable(videoTrack: track)
+            } else if let screenShareTrack = userRTC.screenShareTrack {
+                RTCVideoReperesentable(videoTrack: screenShareTrack)
             } else if let participant = userRTC.callParticipant.participant {
                 audioOnlyParticipant(participant: participant)
             }
