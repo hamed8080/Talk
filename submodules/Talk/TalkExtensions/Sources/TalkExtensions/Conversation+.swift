@@ -109,40 +109,6 @@ public extension Conversation {
         return inviter?.coreUserId == Conversation.talkId
     }
 
-    func updateOnNewMessage(_ response: ChatResponse<Message>, meId: Int?) -> Conversation {
-        let message = response.result
-        var thread = self
-        let isMe = response.result?.participant?.id == meId
-        if !isMe {
-            thread.unreadCount = (thread.unreadCount ?? 0) + 1
-        } else if isMe {
-            thread.unreadCount = 0
-        }
-        thread.time = message?.time
-        thread.lastMessageVO = message?.toLastMessageVO
-
-        /*
-         We have to set it, because in server chat response when we send a message Message.Conversation.lastSeenMessageId / Message.Conversation.lastSeenMessageTime / Message.Conversation.lastSeenMessageNanos are wrong.
-         Although in message object Message.id / Message.time / Message.timeNanos are right.
-         We only do this for ourselves, because the only person who can change these values is ourselves.
-         */
-        if isMe {
-            thread.lastSeenMessageId = message?.id
-            thread.lastSeenMessageTime = message?.time
-            thread.lastSeenMessageNanos = message?.timeNanos
-        }
-        thread.lastMessage = response.result?.message
-        /* We only set the mentioned to "true" because if the user sends multiple
-         messages inside a thread but one message has been mentioned.
-         The list will set it to false which is wrong.
-         */
-        if response.result?.mentioned == true {
-            thread.mentioned = true
-        }
-
-        return thread
-    }
-    
     var notAdminInChannel: Bool {
         let isAdmin = admin == true
         return type?.isChannelType == true && !isAdmin
@@ -264,7 +230,7 @@ public extension CalculatedConversation {
          messages inside a thread but one message has been mentioned.
          The list will set it to false which is wrong.
          */
-        if message.mentioned == true {
+        if message.mentioned == true && !isMe {
             thread.mentioned = true
         }
 
