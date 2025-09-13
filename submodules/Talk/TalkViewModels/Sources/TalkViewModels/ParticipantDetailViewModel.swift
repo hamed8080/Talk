@@ -118,10 +118,18 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     /// because it uses global ContactsViewModel, so after adding for the first time we should show the edit button.
     private func onAddContact(_ response: ChatResponse<[Contact]>) {
         response.result?.forEach{ contact in
-            if contact.user?.username == participant.username {
+            let sameContactId = participant.contactId != nil && participant.contactId == contact.id
+            let sameUserName = contact.user?.username == participant.username
+            if sameUserName || sameContactId {
                 participant.contactId = contact.id
                 if let firstName = contact.firstName, let lastName = contact.lastName {
                     participant.contactName = "\(firstName) \(lastName)"
+                    
+                    let active = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+                    if active?.threadId == viewModel?.thread.id {
+                        active?.viewModel.thread.title = participant.contactName
+                        active?.viewModel.delegate?.updateTitleTo(participant.contactName)
+                    }
                 }
             }
             partnerContact = response.result?.first
