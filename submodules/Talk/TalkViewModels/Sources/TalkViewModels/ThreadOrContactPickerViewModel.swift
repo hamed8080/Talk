@@ -107,8 +107,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 req: req,
                 withCache: false,
                 myId: myId,
-                navSelectedId: nil,
-                nonArchives: false
+                navSelectedId: nil
             )
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)

@@ -137,7 +137,8 @@ public final class ThreadsViewModel: ObservableObject {
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
         do {
             let conversations = try await GetThreadsReuqester().getCalculated(req: req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
-            await onThreads(conversations)
+            let filtered = conversations.filter({ $0.isArchive == false || $0.isArchive == nil })
+            await onThreads(filtered)
         } catch {
             log("Failed to get cached threads with error: \(error.localizedDescription)")
         }
@@ -159,12 +160,13 @@ public final class ThreadsViewModel: ObservableObject {
                                                                               myId: myId,
                                                                               navSelectedId: navVM.selectedId,
                                                                               keepOrder: keepOrder)
+            let filtered = conversations.filter({ $0.isArchive == false || $0.isArchive == nil })
             if wasDisconnected {
                 /// Clear and remove all threads
                 threads.removeAll()
             }
                         
-            await onThreads(conversations)
+            await onThreads(filtered)
             
             moveToTopIfWasDisconnected(topItemId: threads.first?.id)
             

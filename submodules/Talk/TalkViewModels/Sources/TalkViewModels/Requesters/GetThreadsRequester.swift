@@ -24,8 +24,7 @@ public class GetThreadsReuqester {
     
     public func get(_ req: ThreadsRequest,
                     withCache: Bool,
-                    queueable: Bool = false,
-                    nonArchives: Bool
+                    queueable: Bool = false
     ) async throws -> [Conversation] {
         let key = KEY
         return try await withCheckedThrowingContinuation { [weak self] continuation in
@@ -47,23 +46,20 @@ public class GetThreadsReuqester {
         queueable: Bool = false,
         myId: Int,
         navSelectedId: Int?,
-        keepOrder: Bool = false,
-        nonArchives: Bool = true
+        keepOrder: Bool = false
     ) async throws -> [CalculatedConversation] {
        
         let conversations = try await get(
             req,
             withCache: withCache,
-            queueable: queueable,
-            nonArchives: nonArchives
+            queueable: queueable
         )
         
         return await calculate(
             conversations: conversations,
             myId: myId,
             navSelectedId: navSelectedId,
-            keepOrder: keepOrder,
-            nonArchives: nonArchives
+            keepOrder: keepOrder
         )
     }
     
@@ -111,12 +107,11 @@ public class GetThreadsReuqester {
     private func calculate(conversations: [Conversation],
                            myId: Int,
                            navSelectedId: Int?,
-                           keepOrder: Bool,
-                           nonArchives: Bool = true) async -> [CalculatedConversation] {
+                           keepOrder: Bool) async -> [CalculatedConversation] {
         return await ThreadCalculators.calculate(conversations: conversations,
                                                  myId: myId,
                                                  navSelectedId: navSelectedId,
-                                                 nonArchives: nonArchives,
+                                                 nonArchives: false,
                                                  keepOrder: keepOrder)
     }
 }

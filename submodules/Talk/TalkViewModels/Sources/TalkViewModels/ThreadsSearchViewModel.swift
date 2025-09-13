@@ -224,7 +224,7 @@ private extension ThreadsSearchViewModel {
         let myId = AppState.shared.user?.id ?? -1
         let selectedId = AppState.shared.objectsContainer.navVM.selectedId
         let calThreads = try await GetThreadsReuqester().getCalculated(req: req, withCache: false, queueable: true, myId: myId, navSelectedId: selectedId)
-        return calThreads
+        return calThreads.filter({ $0.isArchive == false || $0.isArchive == nil })
     }
     
     private func getContactRequest(searchText: String) -> ContactsRequest {
