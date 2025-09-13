@@ -1168,7 +1168,11 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     public func willDisplay(_ indexPath: IndexPath) async {
         /// To set the initial state of the move to bottom visibility once opening the thread.
-        if !isFetchedServerFirstResponse, let tb = delegate?.tb, !tb.isDragging && !tb.isDecelerating {
+        if !isFetchedServerFirstResponse,
+           let tb = delegate?.tb,
+           !tb.isDragging && !tb.isDecelerating,
+           isSectionAndRowExist(indexPath)
+        {
             let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id
             let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModel?.thread.lastMessageVO?.id ?? 0
             changeLastMessageIfNeeded(isVisible: isSame || isGreater)
@@ -1919,6 +1923,7 @@ extension ThreadHistoryViewModel {
     
     public func reload(at: IndexPath, vm: MessageRowViewModel) {
         log("reload")
+        if !isSectionAndRowExist(at) { return }
         sections[at.section].vms[at.row] = vm
         delegate?.reloadData(at: at)
     }
