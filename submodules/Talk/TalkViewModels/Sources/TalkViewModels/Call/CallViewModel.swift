@@ -209,6 +209,8 @@ public class CallViewModel: ObservableObject {
             onReconnect(resp)
         case let .connect(resp):
             onConnect(resp)
+        case let .receiveMetadata(resp):
+            onReceiveMetadata(resp)
         default:
             break
         }
@@ -542,6 +544,10 @@ public class CallViewModel: ObservableObject {
     
     private func onConnect(_ resp: ChatResponse<CallConnect>) {
         syncUserRTCs()
+    }
+    
+    private func onReceiveMetadata(_ resp: ReceiveCallMetadata) {
+      
     }
 }
 
