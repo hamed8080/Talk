@@ -246,6 +246,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             wasDisconnected = true
             /// We sleep for 1 second to prevent getting banned by the server after reconnecting.
             try? await Task.sleep(for: .seconds(1))
+            deselectActiveThread()
             await refresh()
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
@@ -300,6 +301,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     private func onLeave(_ response: ChatResponse<User>) {
         if response.result?.id == myId {
+            deselectActiveThread()
             archives.removeAll(where: {$0.id == response.subjectId})
             animateObjectWillChange()
         }
@@ -355,6 +357,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     private func onDeleteThread(_ response: ChatResponse<Participant>) {
         if let threadId = response.subjectId, let index = archives.firstIndex(where: {$0.id == threadId }) {
+            deselectActiveThread()
             archives.remove(at: index)
             animateObjectWillChange()
         }
@@ -366,8 +369,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             thread.animateObjectWillChange()
         }
     }
-    
-   
     
     func onUnreadCounts(_ response: ChatResponse<[String : Int]>) async {
         response.result?.forEach { key, value in
@@ -501,6 +502,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
+            deselectActiveThread()
             archives.remove(at: index)
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(archives[index])
@@ -521,6 +523,15 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             }
             recalculateAndAnimate(updated)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+        }
+    }
+    
+    /// Deselect a selected thread will force the SwiftUI to
+    /// remove the selected color before removing the row reference.
+    private func deselectActiveThread() {
+        if let index = archives.firstIndex(where: {$0.isSelected}) {
+            archives[index].isSelected = false
+            archives[index].animateObjectWillChange()
         }
     }
 }

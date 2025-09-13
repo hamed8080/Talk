@@ -125,6 +125,7 @@ public final class ThreadsViewModel: ObservableObject {
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
             wasDisconnected = true
+            deselectActiveThread()
             await refresh()
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
@@ -191,7 +192,6 @@ public final class ThreadsViewModel: ObservableObject {
         let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
         let threshold = await splitThreshold(sorted)
       
-        resetActiveThread()
         self.threads = sorted
         updatePresentedViewModels(threads)
         lazyList.setHasNext(hasAnyResults)
@@ -389,11 +389,11 @@ public final class ThreadsViewModel: ObservableObject {
     
     public func sortInPlace() async {
         let sorted = await sort(threads: threads, serverSortedPins: serverSortedPins)
-        resetActiveThread()
         threads = sorted
     }
 
     public func clear() {
+        deselectActiveThread()
         lazyList.reset()
         threads = []
         firstSuccessResponse = false
@@ -409,7 +409,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func removeThread(_ thread: CalculatedConversation) {
         guard let index = firstIndex(thread.id) else { return }
-        resetActiveThread()
+        deselectActiveThread()
         _ = threads.remove(at: index)
         animateObjectWillChange()
     }
@@ -555,7 +555,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
-            resetActiveThread()
+            deselectActiveThread()
             threads.remove(at: index)
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(threads[index])
@@ -733,7 +733,6 @@ public final class ThreadsViewModel: ObservableObject {
         let calThreads = await ThreadCalculators.calculate(conversations: [thread], myId: myId)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
-        resetActiveThread()
         threads = sorted
         animateObjectWillChange()
     }
@@ -751,9 +750,9 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
     
-    /// Reset active thread will force the SwiftUI to
+    /// Deselect a selected thread will force the SwiftUI to
     /// remove the selected color before removing the row reference.
-    private func resetActiveThread() {
+    private func deselectActiveThread() {
         if let index = threads.firstIndex(where: {$0.isSelected}) {
             threads[index].isSelected = false
             threads[index].animateObjectWillChange()
