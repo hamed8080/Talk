@@ -20,7 +20,7 @@ struct UserRTCView: View {
             } else if let screenShareTrack = userRTC.screenShareTrack {
                 RTCVideoReperesentable(videoTrack: screenShareTrack)
             } else if let participant = userRTC.callParticipant.participant {
-                audioOnlyParticipant(participant: participant)
+                imageProfile(participant: participant)
             }
 //            muteAndVideoState
         }
@@ -37,10 +37,15 @@ struct UserRTCView: View {
                 .font(Font.fBody)
                 .opacity(0.8)
         }
+        .overlay(alignment: .center) {
+            if userRTC.isReconnecting {
+                RotationDotsLoading()
+            }
+        }
     }
     
     @ViewBuilder
-    private func audioOnlyParticipant(participant: Participant) -> some View {
+    private func imageProfile(participant: Participant) -> some View {
         ImageLoaderView(participant: participant)
             .id("\(participant.image ?? "")\(participant.id ?? 0)")
             .font(.fBoldBody)
@@ -48,6 +53,12 @@ struct UserRTCView: View {
             .frame(width: 96, height: 96)
             .background(Color(uiColor:String.getMaterialColorByCharCode(str: participant.name ?? participant.username ?? "")))
             .clipShape(RoundedRectangle(cornerRadius:(36)))
+            .overlay(alignment: .center) {
+                if userRTC.isReconnecting {
+                    Color.black.opacity(0.6)
+                        .clipShape(RoundedRectangle(cornerRadius:(36)))
+                }
+            }
     }
     
     private var muteAndVideoState: some View {

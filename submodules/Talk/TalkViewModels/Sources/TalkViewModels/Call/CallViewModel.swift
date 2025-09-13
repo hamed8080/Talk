@@ -205,6 +205,8 @@ public class CallViewModel: ObservableObject {
             syncUserRTCs()
         case let .endScreenShare(resp):
             onEndScreenShare(resp)
+        case let .reconnect(resp):
+            onReconnect(resp)
         default:
             break
         }
@@ -530,6 +532,10 @@ public class CallViewModel: ObservableObject {
             activeUsers[index].screenShareTrack = nil
             syncUserRTCs()
         }
+    }
+    
+    private func onReconnect(_ resp: ChatResponse<CallReconnect>) {
+        syncUserRTCs()
     }
 }
 
