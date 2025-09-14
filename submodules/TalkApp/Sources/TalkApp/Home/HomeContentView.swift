@@ -124,7 +124,11 @@ struct SplitViewContent: View {
                 )
             ],
             config: .init(alignment: .bottom, scrollable: false), onSelectedTab: { selectedTabId in
-                if selectedTabId != "Tab.chats", !AppState.shared.objectsContainer.searchVM.searchText.isEmpty {
+                if selectedTabId != "Tab.chats", !AppState.shared.objectsContainer.searchVM.searchText.isEmpty {                    
+                    /// We call closedSearchUI because the searchText = "" sink will be called on a New Task,
+                    /// So, we have to call it synchronosly to froce the tab wait until all searches are clear and then computed property
+                    /// isInSearchMode turn into false then the new tab if its a contact tab it will see this value as false.
+                    AppState.shared.objectsContainer.searchVM.closedSearchUI()
                     AppState.shared.objectsContainer.searchVM.searchText = ""
                     AppState.shared.objectsContainer.contactsVM.searchContactString = ""
                     NotificationCenter.cancelSearch.post(name: .cancelSearch, object: true)
