@@ -129,7 +129,8 @@ public final class ThreadBottomToolbar: UIStackView {
     public func updateHeightWithDelay() {
         Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
             guard let self = self else { return }
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 onUpdateHeight?(frame.height)
             }
         }

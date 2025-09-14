@@ -22,8 +22,9 @@ public final class UploadsManager: ObservableObject {
     
     public func enqueue(element: UploadManagerElement) {
         element.viewModel.objectWillChange.sink { [weak self] in
-            Task {
-                await self?.onUploadStateChanged(element)
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.onUploadStateChanged(element)
             }
         }.store(in: &cancellableSet)
         elements.append(element)
@@ -107,7 +108,8 @@ public final class UploadsManager: ObservableObject {
 extension UploadsManager {
     
     public func enqueue(with uploadMessages: [UploadFileMessage]) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             var elements: [UploadManagerElement] = []
             for message in uploadMessages {
                 let element = await UploadManagerElement(message: message)

@@ -365,7 +365,8 @@ final class SearchViewModel: NSObject, ObservableObject, AVSpeechSynthesizerDele
     }
 
     nonisolated func speechSynthesizer(_: AVSpeechSynthesizer, didFinish _: AVSpeechUtterance) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             if hasNext() == true {
                 timerTask()
             } else {

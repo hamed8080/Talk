@@ -79,8 +79,9 @@ extension MessageContainerStackView {
 
         if viewModel.calMessage.rowType.isVideo, viewModel.fileState.state == .completed {
             let saveVideoAction = ActionMenuItem(model: .saveVideo) { [weak self] in
-                Task {
-                    if let url = await self?.getURL(message: model.message) {
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    if let url = await self.getURL(message: model.message) {
                         await PhotoLibrary.shared.onSaveVideoAction(url: url)
                         onMenuClickedDismiss()
                     }
@@ -195,7 +196,8 @@ private extension MessageContainerStackView {
     }
 
     func onSaveAction(_ model: ActionModel) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if let fileURL = await model.message.fileURL {
                 do {
                     try await SaveToAlbumViewModel(fileURL: fileURL).save()

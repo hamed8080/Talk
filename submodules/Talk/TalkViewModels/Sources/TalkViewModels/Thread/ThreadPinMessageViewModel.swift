@@ -152,11 +152,16 @@ public final class ThreadPinMessageViewModel {
                 }
                 return
             }
-
-            let req = ImageRequest(hashCode: hashCode, quality: 0.1, size: .SMALL, thumbnail: true)
-            requestUniqueId = req.uniqueId
-            Task { @ChatGlobalActor in
-                ChatManager.activeInstance?.file.get(req)
+            
+            if let scaledImage = await getScaledCachePinImage(hashCode: file.file?.hashCode) {
+                image = scaledImage
+                viewModel?.delegate?.onUpdatePinMessage()
+            } else {
+                let req = ImageRequest(hashCode: hashCode, quality: 0.1, size: .SMALL, thumbnail: true)
+                requestUniqueId = req.uniqueId
+                Task { @ChatGlobalActor in
+                    ChatManager.activeInstance?.file.get(req)
+                }
             }
         }
     }
@@ -184,7 +189,8 @@ public final class ThreadPinMessageViewModel {
 
     public func moveToPinnedMessage() {
         if let time = message?.time, let messageId = message?.messageId {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await historyVM?.moveToTime(time, messageId, highlight: true)
             }
         }
@@ -194,5 +200,23 @@ public final class ThreadPinMessageViewModel {
         cancelable.forEach { cancelable in
             cancelable.cancel()
         }
+    }
+    
+    private func getScaledCachePinImage(hashCode: String?) async -> UIImage? {
+        guard let hashCode = hashCode,
+              let fileURL = await getFileURL(hashCode: hashCode),
+              let scaledImage = fileURL.imageScale(width: 24)?.image
+        else { return nil }
+        return UIImage(cgImage: scaledImage)
+    }
+    
+    @ChatGlobalActor
+    private func getFileURL(hashCode: String) -> URL? {
+        guard
+            let url = ChatManager.activeInstance?.file.hashCodeToImageURL(hashCode: hashCode),
+            ChatManager.activeInstance?.file.isFileExist(url) == true
+        else { return nil }
+        let fileURL = ChatManager.activeInstance?.file.filePath(url)
+        return fileURL
     }
 }

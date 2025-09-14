@@ -258,7 +258,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
 
     private func onError() {
         toastView.setIsHidden(false)
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { _ in
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in
                 withAnimation {
                     self?.locationManager.error = nil
@@ -342,9 +342,10 @@ final class LocationManager: NSObject, @preconcurrency CLLocationManagerDelegate
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         if manager.authorizationStatus == .denied {
             Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-                Task { @MainActor in
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
                     withAnimation {
-                        self?.error = AppErrorTypes.location_access_denied
+                        self.error = AppErrorTypes.location_access_denied
                     }
                 }
             }

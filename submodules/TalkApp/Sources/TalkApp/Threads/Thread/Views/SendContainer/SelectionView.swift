@@ -98,7 +98,8 @@ public final class SelectionView: UIStackView {
 
     private func deleteSelectedMessageTapped() {
         guard let viewModel = viewModel else { return }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let deleteVM = DeleteMessagesViewModelModel()
             await deleteVM.setup(viewModel: viewModel)
             let dialog = DeleteMessageDialog(viewModel: deleteVM)

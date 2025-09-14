@@ -26,7 +26,8 @@ final class FirstMessageOfTheDayViewModel {
         self.readOnly = readOnly
         let objectId = UUID().uuidString
         FIRST_MESSAGE_KEY = "FIRST-MESSAGE-OF-DAY-\(objectId)"
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await registerObservers()
         }
     }

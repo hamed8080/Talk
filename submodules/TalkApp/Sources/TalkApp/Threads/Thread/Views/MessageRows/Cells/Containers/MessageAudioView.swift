@@ -177,7 +177,8 @@ final class MessageAudioView: UIView {
             unregisterObservers()
             registerObservers()
         }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await updateArtwork()
             await setAudioDurationAndWaveform()
         }
@@ -227,7 +228,8 @@ final class MessageAudioView: UIView {
     public func downloadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await recalculate()
             await updateArtwork()
             registerObservers()
@@ -251,7 +253,8 @@ final class MessageAudioView: UIView {
     public func uploadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isAudio { return }
         updateProgress(viewModel: viewModel)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await recalculate()
             await updateArtwork()
             registerObservers()

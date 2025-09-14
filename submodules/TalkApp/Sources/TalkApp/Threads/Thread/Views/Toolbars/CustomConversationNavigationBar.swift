@@ -33,7 +33,8 @@ public class CustomConversationNavigationBar: UIView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await registerObservers()
         }
     }
@@ -230,7 +231,8 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func refetchImageOnUpdateInfo() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await fetchImageOnUpdateInfo()
         }
     }

@@ -118,7 +118,8 @@ public final class ReplyMessagePlaceholderView: UIStackView {
             replyImage.isHidden = true
         }
         
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let message = replyMessage?.fileMetaData?.name ?? replyMessage?.message ?? ""
             await MainActor.run {
                 messageLabel.text = message
@@ -139,7 +140,8 @@ public final class ReplyMessagePlaceholderView: UIStackView {
     }
     
     private func setImage(_ replyMessage: Message) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             guard let url = await replyMessage.url else { return }
             let req = ImageRequest(hashCode: replyMessage.fileHashCode, quality: 0.5, size: .SMALL, thumbnail: true)
             guard let data = await ThumbnailDownloadManagerViewModel().downloadThumbnail(req: req, url: url) else { return }

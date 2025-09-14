@@ -72,7 +72,8 @@ public class GalleryImageItemViewModel: ObservableObject, @preconcurrency Identi
             let messageId = message.id,
             let tuple = threadVM.historyVM.sections.viewModelAndIndexPath(for: messageId)
         else { return }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await tuple.vm.recalculate(mainData: threadVM.historyVM.getMainData())
             threadVM.historyVM.delegate?.reload(at: tuple.indexPath)
         }
@@ -204,16 +205,17 @@ public final class GalleryViewModel: ObservableObject {
         let message = selectedVM?.message
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             if let time = message?.time, let id = message?.id {
-                Task {
+                Task { [weak self] in
+                    guard let self = self else { return }
                     await AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.historyVM.moveToTime(time, id)
                 }
             }
         }
     }
     
-#if DEBUG
     deinit {
+#if DEBUG
         print("GalleryViewModel deinit called")
-    }
 #endif    
+    }
 }

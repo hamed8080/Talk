@@ -108,7 +108,8 @@ public final class RecordedAudioView: UIStackView {
         self.item = item
         addProgressView()
         registerObservers(item: item)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let image = try await item.createWaveform(height: AudioRecordingView.height - 4)
             self.waveView.alpha = 0
             self.waveView.setImage(to: image)

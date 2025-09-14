@@ -56,7 +56,8 @@ final class MessageLocationView: UIImageView {
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         if let fileURL = viewModel.calMessage.fileURL {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await self.setImage(fileURL: fileURL)
             }
         } else {
@@ -76,7 +77,8 @@ final class MessageLocationView: UIImageView {
     
     public func downloadCompleted(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isMap { return }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await setImage(fileURL: viewModel.calMessage.fileURL, withAnimation: true)
         }
     }

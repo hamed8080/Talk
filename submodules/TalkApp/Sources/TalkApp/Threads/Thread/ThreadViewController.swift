@@ -48,7 +48,8 @@ final class ThreadViewController: UIViewController {
         super.viewWillAppear(animated)
         isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await viewModel?.historyVM.start()
         }
     }
@@ -85,11 +86,12 @@ final class ThreadViewController: UIViewController {
         }
     }
 
-#if DEBUG
     deinit {
+        NotificationCenter.default.removeObserver(self)
+#if DEBUG
         print("deinit ThreadViewController")
-    }
 #endif
+    }
 }
 
 // MARK: Configure Views
@@ -703,14 +705,16 @@ struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
 extension ThreadViewController {
     private func registerKeyboard() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            Task { @MainActor in
-                self?.willShowKeyboard(notif: notif)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.willShowKeyboard(notif: notif)
             }
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] notif in
-            Task { @MainActor in
-                self?.willHidekeyboard(notif: notif)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.willHidekeyboard(notif: notif)
             }
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))

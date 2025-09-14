@@ -78,6 +78,7 @@ public final class ThreadViewModel: Identifiable {
         self.thread = thread
         self.readOnly = readOnly
         setup()
+        print("created class ThreadViewModel: \(thread.computedTitle)")
     }
 
     private func setup() {
@@ -147,7 +148,7 @@ public final class ThreadViewModel: Identifiable {
             let ext = item.registeredContentTypes.first?.preferredFilenameExtension ?? ""
             let iconName = ext.systemImageNameForFileExtension
             _ = item.loadDataRepresentation(for: .item) { data, _ in
-                DispatchQueue.main.async {  [weak self] in
+                DispatchQueue.main.async { [weak self] in
                     let item = DropItem(data: data, name: name, iconName: iconName, ext: ext)
                     self?.attachmentsViewModel.append(attachments: [.init(type: .drop, request: item)])
                 }
@@ -213,8 +214,8 @@ public final class ThreadViewModel: Identifiable {
     private func onMessageEvent(_ event: MessageEventTypes?) {
         switch event {
         case .edited(let response):
-            Task {
-                await onEditedMessage(response)
+            Task { [weak self] in
+                await self?.onEditedMessage(response)
             }
         default:
             break
@@ -288,7 +289,6 @@ public final class ThreadViewModel: Identifiable {
         unreadMentionsViewModel.cancelAllObservers()
         participantsViewModel.cancelAllObservers()
         mentionListPickerViewModel.cancelAllObservers()
-        sendContainerViewModel.cancelAllObservers()
         historyVM.cancelAllObservers()
         threadPinMessageViewModel.cancelAllObservers()
 //        scrollVM.cancelAllObservers()
@@ -361,11 +361,10 @@ public final class ThreadViewModel: Identifiable {
         delegate?.onConversationClosed()
     }
    
-
     deinit {
         let title = thread.title ?? ""
-        Task { @MainActor [weak self, title] in
-            self?.log("deinit called in class ThreadViewModel: \(title)")
-        }
+#if DEBUG
+        print("deinit called in class ThreadViewModel: \(title)")
+#endif
     }
 }

@@ -88,8 +88,9 @@ public final class AppState: ObservableObject, Sendable {
             self.error = error
             Timer.scheduledTimer(withTimeInterval: 5, repeats: false) {
                 [weak self] _ in
-                Task { @MainActor in
-                    self?.error = nil
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    self.error = nil
                 }
             }
         }

@@ -91,7 +91,8 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         let replyMessage = AppState.shared.appStateNavigationModel.replyPrivately
         nameLabel.text = replyMessage?.participant?.name
         nameLabel.setIsHidden(replyMessage?.participant?.name == nil)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let message = replyMessage?.fileMetaData?.name ?? replyMessage?.message ?? ""
             await MainActor.run {
                 messageLabel.text = message

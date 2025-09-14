@@ -53,7 +53,8 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
             fileState.showDownload = false
             fileState.iconState = await message.iconName ?? ""
         }
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             self.calMessage = calMessage
             self.fileState = fileState
         }
@@ -84,7 +85,8 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
 public extension MessageRowViewModel {
     func swapUploadMessageWith(_ message: HistoryMessageType) {
         self.message = message
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             calMessage.fileURL = await message.fileURL
         }
     }
@@ -105,7 +107,8 @@ public extension MessageRowViewModel {
 
     private func manageDownload() {
         guard let message = message as? Message else { return }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let manager = AppState.shared.objectsContainer.downloadsManager
                 if let element = manager.element(for: message.id ?? -1), element.viewModel.state == .error {

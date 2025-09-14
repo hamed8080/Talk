@@ -61,7 +61,8 @@ final class AvatarView: UIImageView {
             isUserInteractionEnabled = false
             setIsHidden(true)
         } else if viewModel.calMessage.isLastMessageOfTheUser {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 if let image = await avManager?.getImage(viewModel) {
                     setImage(image: image)
                 } else {

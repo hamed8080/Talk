@@ -192,7 +192,8 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     private func prepareUIForPlayback(url: URL) {
         showDownloadProgress(show: false)
         playIcon.setIsHidden(false)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await makeViewModel(url: url, message: message)
             if let player = videoPlayerVM?.player {
                 setVideo(player: player)

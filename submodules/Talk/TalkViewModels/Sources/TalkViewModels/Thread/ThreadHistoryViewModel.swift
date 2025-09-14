@@ -101,11 +101,11 @@ extension ThreadHistoryViewModel {
             
             cancelTasks()
             
-            task = Task {
+            task = Task { [weak self] in
                 do {
-                    try await tryScrollPositionScenario(savedScrollModel)
+                    try await self?.tryScrollPositionScenario(savedScrollModel)
                 } catch {
-                    log("An exception happened during move to the saved scroll position!")
+                    self?.log("An exception happened during move to the saved scroll position!")
                 }
             }
             return
@@ -129,8 +129,8 @@ extension ThreadHistoryViewModel {
 
         cancelTasks()
         
-        task = Task {
-            await runFirstScenario(time: time, id: id)
+        task = Task { [weak self] in
+            await self?.runFirstScenario(time: time, id: id)
         }
     }
     
@@ -176,8 +176,8 @@ extension ThreadHistoryViewModel {
         
         cancelTasks()
         
-        task = Task {
-            await runSecondScenario()
+        task = Task { [weak self] in
+            await self?.runSecondScenario()
         }
     }
     
@@ -241,8 +241,8 @@ extension ThreadHistoryViewModel {
         
         cancelTasks()
         
-        task = Task {
-            await runOpenNewConverstionWithUnreadMessages()
+        task = Task { [weak self] in
+            await self?.runOpenNewConverstionWithUnreadMessages()
         }
     }
     
@@ -489,8 +489,8 @@ extension ThreadHistoryViewModel {
             
             cancelTasks()
             
-            task = Task {
-                await moveToTime(time, id, highlight: true)
+            task = Task { [weak self] in
+                await self?.moveToTime(time, id, highlight: true)
             }
             AppState.shared.appStateNavigationModel = .init()
         }
@@ -502,8 +502,8 @@ extension ThreadHistoryViewModel {
         
         cancelTasks()
         
-        task = Task {
-            await moveToTime(time, 0)
+        task = Task { [weak self] in
+            await self?.moveToTime(time, 0)
         }
     }
     
@@ -569,14 +569,16 @@ extension ThreadHistoryViewModel {
         cancelTasks()
         
         if let lstIndex = lstIndex, sections[lstIndex.section].vms[lstIndex.row].message.id ?? 0 >= thread.lastSeenMessageId ?? 0 {
-            task = Task {
+            task = Task { [weak self] in
+                guard let self = self else { return }
                 await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false)
             }
         } else if isLastSeenExist || unreadCount == 0 {
             /// Move to last seen message.
             /// We have to set it to true to prevent load more bottom get called and cancel the below task.
             viewModel?.scrollVM.disableExcessiveLoading()
-            task = Task {
+            task = Task { [weak self] in
+                guard let self = self else { return }
                 clearSavedScrollPosition()
                 await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false, moveToBottom: true)
             }
@@ -598,7 +600,8 @@ extension ThreadHistoryViewModel {
             
             cancelTasks()
             
-            task = Task {
+            task = Task { [weak self] in
+                guard let self = self else { return }
                 await moreTop(prepend: keys.MORE_TOP_KEY, time)
             }
         }
@@ -670,7 +673,8 @@ extension ThreadHistoryViewModel {
             cancelTasks()
             
             // We add 1 milliseceond to prevent duplication and fetch the message itself.
-            task = Task {
+            task = Task { [weak self] in
+                guard let self = self else { return }
                 await moreBottom(prepend: keys.MORE_BOTTOM_KEY, time.advanced(by: 1))
             }
         }
@@ -1259,8 +1263,8 @@ extension ThreadHistoryViewModel {
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
         }
         
-        Task {
-            await fetchInvalidVisibleReactions()
+        Task { [weak self] in
+            await self?.fetchInvalidVisibleReactions()
         }
         
         let isLastMessageVisible = isLastMessageVisible()
@@ -1329,7 +1333,7 @@ extension ThreadHistoryViewModel {
 extension ThreadHistoryViewModel {
     private func setupNotificationObservers() {
         observe(AppState.shared.$connectionStatus) { [weak self] status in
-            Task {
+            Task { [weak self] in
                 await self?.onConnectionStatusChanged(status)
             }
         }
@@ -1362,7 +1366,7 @@ extension ThreadHistoryViewModel {
     private func observe<P: Publisher>(_ publisher: P, action: @escaping (P.Output) async -> Void) where P.Failure == Never {
         publisher
             .sink { [weak self] value in
-                Task {
+                Task { [weak self] in
                     await action(value)
                 }
             }
@@ -1886,15 +1890,15 @@ extension ThreadHistoryViewModel {
     
     private func fetchReactionsAndAvatars(_ vms: [MessageRowViewModel]) {
         /// A separate task to unblock the method.
-        reactionsTask = Task {
+        reactionsTask = Task { [weak self] in
             /// Fetch and upated table view reactions
-            try await fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
+            try await self?.fetchUpdateReactions(vms.flatMap({$0.message as? Message}))
         }
         
         /// A separate task to unblock the method.
         
-        avatarsTask = Task {
-            await prepareAvatars(vms)
+        avatarsTask = Task { [weak self] in
+            await self?.prepareAvatars(vms)
         }
     }
 }
@@ -1946,7 +1950,8 @@ extension ThreadHistoryViewModel {
     public func reattachUploads() {
         if isReattachedUploads == true { return }
         isReattachedUploads = true
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let elements = AppState.shared.objectsContainer.uploadsManager.elements.filter { $0.threadId  == threadId }
             if elements.isEmpty { return }
             await AppState.shared.objectsContainer.uploadsManager.stateMediator.append(elements: elements)

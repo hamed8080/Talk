@@ -26,7 +26,8 @@ public final class ThreadPinMessageView: UIStackView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureView()
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             viewModel?.downloadImageThumbnail()
             await viewModel?.calculate()
         }

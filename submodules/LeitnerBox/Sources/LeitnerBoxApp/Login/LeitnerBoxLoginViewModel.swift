@@ -45,7 +45,8 @@ class LeitnerBoxLoginViewModel: ObservableObject {
             sh()
             return
         }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let resp = try await URLSession.shared.data(for: urlReq)
                 let decodecd = try JSONDecoder().decode(LeitnerBoxLoginResponse.self, from: resp.0)

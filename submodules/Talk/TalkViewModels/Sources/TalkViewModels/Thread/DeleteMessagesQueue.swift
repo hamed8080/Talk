@@ -32,8 +32,9 @@ public class DeleteMessagesQueue {
             subject
                 .collect(.byTimeOrCount(RunLoop.main, .seconds(batchInterval), maxBatchSize)) // Batch messages
                 .sink { [weak self] messages in
-                    Task {
-                        await self?.processBatch(messages, for: subjectId)
+                    Task { [weak self] in
+                        guard let self = self else { return }
+                        await self.processBatch(messages, for: subjectId)
                     }
                 }
                 .store(in: &cancellables)

@@ -76,9 +76,9 @@ public final class ParticipantsViewModel: ObservableObject {
     private func onParticipantEvent(_ event: ParticipantEventTypes) {
         switch event {
         case .participants(let chatResponse):
-            Task {
-                await onParticipants(chatResponse)
-                await onSearchedParticipants(chatResponse)
+            Task { [weak self] in
+                await self?.onParticipants(chatResponse)
+                await self?.onSearchedParticipants(chatResponse)
             }
         case .deleted(let chatResponse):
             onDelete(chatResponse)
@@ -104,19 +104,19 @@ public final class ParticipantsViewModel: ObservableObject {
 
     private func onDelete(_ response: ChatResponse<[Participant]>) {
         if let participants = response.result {
-            withAnimation {
+            withAnimation { [weak self] in
                 participants.forEach { participant in
                     /// We decrease the participant count in the ThreadsViewModel and because the thread in this class is a reference it will update automatically.
-                    removeParticipant(participant)
+                    self?.removeParticipant(participant)
                 }
             }
         }
     }
 
     public func onAdded(_ participants: [Participant]) {
-        withAnimation {
-            self.participants.insert(contentsOf: participants, at: 0)
-            animateObjectWillChange()
+        withAnimation { [weak self] in
+            self?.participants.insert(contentsOf: participants, at: 0)
+            self?.animateObjectWillChange()
         }
     }
 
@@ -124,7 +124,7 @@ public final class ParticipantsViewModel: ObservableObject {
         if lastRequestTime + 0.5 > .now {
             timerRequestQueue?.invalidate()
             timerRequestQueue = nil
-            timerRequestQueue = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            timerRequestQueue = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
                 Task { [weak self] in
                     await self?.loadByTimerQueue()
                 }
@@ -307,9 +307,9 @@ public final class ParticipantsViewModel: ObservableObject {
         }
     }
 
-#if DEBUG
     deinit {
+#if DEBUG
         print("deinit called for ParticipantsViewModel")
-    }
 #endif
+    }
 }

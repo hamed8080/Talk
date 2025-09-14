@@ -73,7 +73,8 @@ public final class TabRowModel: ObservableObject {
     }
     
     public func onTap(viewModel: ThreadDetailViewModel) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if message.isImage {
                 showPictureInGallery(viewModel)
                 return
@@ -252,7 +253,8 @@ extension TabRowModel {
 /// Move to the Message
 extension TabRowModel {
     public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await detailVM.threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
             detailVM.dismiss = true
         }

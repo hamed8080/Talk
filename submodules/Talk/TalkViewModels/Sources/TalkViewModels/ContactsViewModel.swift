@@ -141,7 +141,8 @@ public class ContactsViewModel: ObservableObject {
     public func getContacts() {
         lazyList.setLoading(true)
         let req = ContactsRequest(count: lazyList.count, offset: lazyList.offset)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let contacts = try await GetContactsRequester().get(req, withCache: false, queueable: true)
                 firstSuccessResponse = true

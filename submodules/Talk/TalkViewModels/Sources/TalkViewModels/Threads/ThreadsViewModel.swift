@@ -89,7 +89,8 @@ public final class ThreadsViewModel: ObservableObject {
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.viewModel(for: updatedConversation.id ?? -1)
         if updatedConversation.id == activeVM?.id {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
         }
@@ -497,7 +498,8 @@ public final class ThreadsViewModel: ObservableObject {
         response.result?.forEach { key, value in
             if let index = firstIndex(Int(key)) {
                 threads[index].unreadCount = value
-                Task {
+                Task { [weak self] in
+                    guard let self = self else { return }
                     await ThreadCalculators.reCalculateUnreadCount(threads[index])
                     threads[index].animateObjectWillChange()
                 }
@@ -597,7 +599,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func onCancelTimer(key: String) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             if lazyList.isLoading {
                 lazyList.setLoading(false)
             }
@@ -725,7 +728,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     private func recalculateAndAnimate(_ thread: CalculatedConversation) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
             thread.animateObjectWillChange()
         }

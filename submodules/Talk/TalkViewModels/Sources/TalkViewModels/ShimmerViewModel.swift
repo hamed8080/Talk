@@ -34,7 +34,8 @@ public class ShimmerViewModel: ObservableObject {
     }
 
     public func hide() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if delayToHide != 0 {
                 try? await Task.sleep(for: .seconds(0.2))
             }

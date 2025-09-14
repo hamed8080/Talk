@@ -104,7 +104,8 @@ final class MessageImageView: UIImageView {
         self.viewModel = viewModel
         let canShow = viewModel.fileState.state != .completed
         if let fileURL = viewModel.calMessage.fileURL {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await setImage(fileURL: fileURL)
             }
         } else {
@@ -199,7 +200,8 @@ final class MessageImageView: UIImageView {
         if let image = viewModel.fileState.preloadImage {
             self.image = image
         } else {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 let image = await viewModel.downloadThumbnailImage()
                 self.image = image
             }
@@ -227,7 +229,8 @@ final class MessageImageView: UIImageView {
             updateProgress(viewModel: viewModel)
             removeProgressViewByHidingAnimation()
             removeEffectViewByHidingAnimation()
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await setImage(fileURL: fileURL, animate: true)
             }
         }
@@ -239,7 +242,8 @@ final class MessageImageView: UIImageView {
             updateProgress(viewModel: viewModel)
             removeProgressViewByHidingAnimation()
             removeEffectViewByHidingAnimation()
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await setImage(fileURL: fileURL)
             }
         }

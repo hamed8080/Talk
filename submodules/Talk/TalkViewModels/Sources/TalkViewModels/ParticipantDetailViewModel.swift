@@ -167,7 +167,8 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     }
 
     private func fetchPartnerContact(_ req: ContactsRequest) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 if let contact = try await GetContactsRequester().get(req, withCache: false).first {
                     self.partnerContact = contact
@@ -198,11 +199,11 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
         }
     }
 
-#if DEBUG
     deinit {
+#if DEBUG
         print("deinit ParticipantDetailViewModel")
-    }
 #endif
+    }
 }
 
 private extension ParticipantDetailViewModel {

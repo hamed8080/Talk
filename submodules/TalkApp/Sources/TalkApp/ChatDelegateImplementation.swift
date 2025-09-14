@@ -28,7 +28,8 @@ public final class ChatDelegateImplementation: ChatDelegate {
                 Language.setLanguageTo(bundle: manager.getBundle(), language: language)
             }
             setup(spec: spec, bundle: manager.getBundle())
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 do {
                     let updated = try await manager.shouldUpdate()
                     if updated {
@@ -40,7 +41,8 @@ public final class ChatDelegateImplementation: ChatDelegate {
             }
         } else {
             /// Download Spec and Bundle
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await dlReload(manager: manager)
             }
         }
@@ -85,7 +87,8 @@ public final class ChatDelegateImplementation: ChatDelegate {
     }
 
     nonisolated public func chatState(state: ChatState, currentUser: User?, error _: ChatError?) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await MainActor.run {
                 NotificationCenter.connect.post(name: .connect, object: state)
                 switch state {
@@ -115,7 +118,8 @@ public final class ChatDelegateImplementation: ChatDelegate {
 
     nonisolated public func chatEvent(event: ChatEventType) {
         let copy = event
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             NotificationCenter.post(event: copy)
             switch event {
             case let .system(systemEventTypes):
@@ -171,7 +175,8 @@ public final class ChatDelegateImplementation: ChatDelegate {
     }
 
     private func tryRefreshToken() {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()
                 // If the chat was connected and we refresh token during 10 seconds period successfully, it means we are still connected to the server so the sate is connected even after refreshing the token. However, if we weren't connected during refresh token it means that we weren't connected so we will move to the connecting stage.

@@ -51,13 +51,15 @@ public class ThreadAvatarManager {
     }
 
     private func updateRow(_ image: UIImage, _ participantId: Int) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await viewModel?.delegate?.updateAvatar(image: image, participantId: participantId)
         }
     }
 
     private func fetchImage(for viewModel: MessageRowViewModel, url: String, participantId: Int) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             guard await self.viewModel?.thread.group == true, !viewModel.calMessage.isMe, !isInQueue(url) else { return }
             await removeOldestEntry()
         
@@ -65,10 +67,11 @@ public class ThreadAvatarManager {
             avatarsViewModelsQueue.append(vm)
 
             vm.onImage = { [weak self, weak vm] image in
-                Task {
-                    await self?.onOnImage(url: url, image: image, participantId: participantId)
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.onOnImage(url: url, image: image, participantId: participantId)
                     if let vm = vm {
-                        await self?.removeViewModel(vm)
+                        await self.removeViewModel(vm)
                     }
                 }
             }

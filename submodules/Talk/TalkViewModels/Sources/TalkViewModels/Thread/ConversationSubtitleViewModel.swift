@@ -96,7 +96,8 @@ public final class ConversationSubtitleViewModel {
     private func getLastSeenByUserId() {
         guard let userId = AppState.shared.appStateNavigationModel.userToCreateThread?.id else { return }
         notSeenDurationViewModel = .init(userId: userId)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let notSeenDuration = await notSeenDurationViewModel?.get()
             if let lastSeenByUserId = notSeenDuration?.time, let threadId = viewModel?.id {
                 lastSeenPartnerTime = lastSeenByUserId
@@ -127,7 +128,8 @@ public final class ConversationSubtitleViewModel {
     }
     
     private func setParticipantsCountOnOpen() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             // We will wait to delegate inside the ThreadViewModel set by viewController then set the participants count.
             try? await Task.sleep(for: .milliseconds(200))
             await MainActor.run { [weak self] in
@@ -139,7 +141,8 @@ public final class ConversationSubtitleViewModel {
     private func requestParticipantsCount() {
         guard let threadId = thread?.id, thread?.participantCount == nil else { return }
         let req = ThreadsRequest(threadIds: [threadId])
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 if let conversation = try await GetThreadsReuqester().get(req, withCache: false).first {
                     viewModel?.thread.participantCount = conversation.participantCount

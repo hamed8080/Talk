@@ -16,7 +16,6 @@ public final class SendContainerViewModel: ObservableObject {
     private var thread: Conversation { viewModel?.thread ?? .init() }
     public var threadId: Int { thread.id ?? -1 }
     private var textMessage: String = ""
-    private var cancelable: Set<AnyCancellable> = []
     /// We will need this for UserDefault purposes because ViewModel.thread is nil when the view appears.
     @Published private var mode: SendcContainerMode = .init(type: .voice)
     public var height: CGFloat = 0
@@ -97,12 +96,6 @@ public final class SendContainerViewModel: ObservableObject {
 
     public func getEditMessage() -> Message? {
         return mode.editMessage
-    }
-
-    public func cancelAllObservers() {
-        cancelable.forEach { cancelable in
-            cancelable.cancel()
-        }
     }
 
     public func setDraft(newText: String) {

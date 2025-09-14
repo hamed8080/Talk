@@ -73,7 +73,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         let req = ThreadsRequest(searchText: text)
         getThreads(req)
         
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await searchContacts(text)
         }
     }
@@ -101,7 +102,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public func getThreads(_ req: ThreadsRequest) {
         if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let myId = AppState.shared.user?.id ?? -1
             let calThreads = try await GetThreadsReuqester().getCalculated(
                 req: req,
@@ -130,7 +132,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public func getContacts() {
         contactsLazyList.setLoading(true)
         let req = ContactsRequest(count: contactsLazyList.count, offset: contactsLazyList.offset)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let contacts = try await GetContactsRequester().get(req, withCache: false)
                 await hideContactsLoadingWithDelay()

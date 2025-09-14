@@ -295,9 +295,9 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         }
     }
     
-#if DEBUG
     deinit {
+#if DEBUG
         print("deinit ConversationBuilderViewModel")
-    }
 #endif
+    }
 }

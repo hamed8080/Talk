@@ -281,9 +281,9 @@ public final class ThreadDetailViewModel: ObservableObject {
         }
     }
 
-#if DEBUG
     deinit {
+#if DEBUG
         print("deinit ThreadDetailViewModel")
-    }
 #endif
+    }
 }

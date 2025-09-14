@@ -99,7 +99,7 @@ public final class RecordingAudioView: UIStackView {
     }
 
     func startCircleAnimation() {
-        dotTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+        dotTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.onAnimationCycle()
             }

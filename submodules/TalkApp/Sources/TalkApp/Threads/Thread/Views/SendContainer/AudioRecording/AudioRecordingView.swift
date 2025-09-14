@@ -83,7 +83,8 @@ public final class AudioRecordingView: UIStackView {
             self.recordingAudioView.setIsHidden(true)
             self.recordedAudioView.alpha = 1.0
             self.recordedAudioView.setIsHidden(false)
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 try? await self.recordedAudioView.setup()
             }
         }

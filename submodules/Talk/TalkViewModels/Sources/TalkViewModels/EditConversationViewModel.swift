@@ -262,14 +262,16 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
 
     private func delayEnableReactionEventForASecond() {
         enableReactionEvent = false
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             try? await Task.sleep(for: .milliseconds(1000))
             enableReactionEvent = true
         }
     }
+    
+    deinit {
 #if DEBUG
-    deinit{
         print("deinit EditConversationViewModel")
-    }
 #endif
+    }
 }

@@ -119,7 +119,8 @@ public final class HistorySeenViewModel {
             setLastSeenMessageId(messageId: messageId)
             let threadId = self.threadId
             
-            Task { @ChatGlobalActor in
+            Task { @ChatGlobalActor [weak self] in
+                guard let self = self else { return }
                 await log("send seen for message:\(message.messageTitle) with id:\(messageId)")
                 await ChatManager.activeInstance?.message.seen(.init(threadId: threadId, messageId: messageId))
             }
@@ -190,5 +191,9 @@ public final class HistorySeenViewModel {
     
     private func log(_ string: String) {
         Logger.log(title: "HistorySeenViewModel", message: string)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }

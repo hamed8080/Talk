@@ -31,7 +31,8 @@ class LeitnerBoxForgetViewModel: ObservableObject {
         urlReq.httpBody = data
         urlReq.httpMethod = "POST"
         urlReq.allHTTPHeaderFields = ["Content-Type": "application/json"]
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let resp = try await URLSession.shared.data(for: urlReq)
                 if let httpResp = resp.1 as? HTTPURLResponse, httpResp.statusCode == 200 {

@@ -116,7 +116,8 @@ extension MentionTableView: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if indexPath.row == viewModel?.mentionList.indices.last {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await viewModel?.loadMore()
             }
         }

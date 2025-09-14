@@ -60,7 +60,8 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
             guard let self = self else { return }
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 self.timerString = self.startDate.distance(to: Date()).timerString(locale: Language.preferredLocale) ?? ""
             }
         }
@@ -69,16 +70,16 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         guard let url = recordingOutputPath else { return }
         deleteFile()
         do {
-            Task { [self] in
-                await try activateSession()
+            Task { [weak self] in
+                await try self?.activateSession()
                 let settings = [
                     AVFormatIDKey: Int(kAudioFormatLinearPCM),
                     AVSampleRateKey: 44100,
                     AVNumberOfChannelsKey: 2,
                     AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
                 ]
-                audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-                audioRecorder.record()
+                self?.audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+                self?.audioRecorder.record()
             }
         } catch {
             stop()

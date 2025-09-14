@@ -137,7 +137,8 @@ public final class ThreadReactionViewModel {
             .filter({$0.reactionableType})
             .compactMap({$0.id})
         inQueueToGetReactions.append(contentsOf: messageIds)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await getReactionSummary(messageIds, conversationId: threadId, withQueue: withQueue)
         }
     }

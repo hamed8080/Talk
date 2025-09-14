@@ -37,7 +37,7 @@ public final class GetNotSeenDurationViewModel {
         cancelable = NotificationCenter.contact.publisher(for: .contact)
             .compactMap { $0.object as? ContactEventTypes }
             .sink { [weak self] event in
-                Task {
+                Task { [weak self] in
                     guard let self = self else { return }
                     if let lastSeen = self.handleEvent(event), !self.resumed {
                         self.resumed = true

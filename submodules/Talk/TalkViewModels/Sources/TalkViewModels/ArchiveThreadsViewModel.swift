@@ -142,7 +142,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: withQueue, myId: myId, navSelectedId: navVM.selectedId)
                 await onArchives(calThreads)
@@ -157,7 +158,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: true, myId: myId, navSelectedId: navVM.selectedId)
                 await onArchives(calThreads)
@@ -283,7 +285,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
         if updatedConversation.id == activeVM?.id {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
         }
@@ -364,7 +367,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     private func recalculateAndAnimate(_ thread: CalculatedConversation) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
             thread.animateObjectWillChange()
         }
@@ -374,7 +378,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         response.result?.forEach { key, value in
             if let index = firstIndex(Int(key)) {
                 archives[index].unreadCount = value
-                Task {
+                Task { [weak self] in
+                    guard let self = self else { return }
                     await ThreadCalculators.reCalculateUnreadCount(archives[index])
                     archives[index].animateObjectWillChange()
                 }

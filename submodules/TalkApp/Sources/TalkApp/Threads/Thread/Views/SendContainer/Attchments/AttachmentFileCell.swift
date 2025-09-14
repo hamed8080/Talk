@@ -138,7 +138,8 @@ public final class AttachmentFileCell: UITableViewCell {
             let image = UIImage(systemName: isVideo ? "film.fill" : icon ?? "")
             imgIcon.set(image: image ?? .init(), inset: .init(all: 6))
         } else if !isVideo {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 if let scaledImage = await scaledImage(data: imageItem?.data) {
                     imgIcon.set(image: scaledImage, inset: .init(all: 0))
                 }
@@ -187,7 +188,8 @@ public final class AttachmentFileCell: UITableViewCell {
             else { return }
             (self.attachment.request as? ImageItem)?.data = data
             self.lblSubtitle.text = self.attachment.subtitle
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 if let scaledImage = await self.scaledImage(data: data) {
                     self.imgIcon.set(image: scaledImage, inset: .init(all: 0))
                 }

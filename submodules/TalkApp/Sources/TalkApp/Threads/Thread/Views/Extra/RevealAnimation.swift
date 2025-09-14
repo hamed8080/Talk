@@ -32,9 +32,10 @@ class RevealAnimation {
         
         if revealTimer == nil {
             revealTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false) { [weak self] _ in
-                Task { @MainActor in
-                    self?.shouldAnimateCellsOnAppear = false // stop to reanimate
-                    self?.revealTimer = nil
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    self.shouldAnimateCellsOnAppear = false // stop to reanimate
+                    self.revealTimer = nil
                 }
             }
         }

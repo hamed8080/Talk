@@ -160,7 +160,8 @@ final class ReplyInfoView: UIView {
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {
         if viewModel?.message.replyInfo?.deleted == true { return }
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if isReplyPrivately {
                 moveToReplyPrivately()
             } else {
@@ -205,7 +206,8 @@ final class ReplyInfoView: UIView {
     /// Get reply image from the disk or get thumbnail from the server,
     /// and then store it into fileState
     private func setReplyImage() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let image = await viewModel?.getReplyImage()
             await MainActor.run { [weak self] in
                 /// Set imageView
