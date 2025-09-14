@@ -574,9 +574,14 @@ extension ThreadHistoryViewModel {
             }
         } else if isLastSeenExist || unreadCount == 0 {
             /// Move to last seen message.
-            viewModel?.scrollVM.scrollToBottom()
+            /// We have to set it to true to prevent load more bottom get called and cancel the below task.
+            viewModel?.scrollVM.disableExcessiveLoading()
+            task = Task {
+                clearSavedScrollPosition()
+                await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false, moveToBottom: true)
+            }
             
-            /// Once user hit the jump to bottom Table view delegates like didEndDecelerating for scroll view won't be called
+            /// Once user hit the jump to bottom Table view delegate methods like didEndDecelerating for scroll view won't be called
             /// So we have to make sure we are in a right state in the app and isAtBottomOfList is set to true.
             viewModel?.scrollVM.isAtBottomOfTheList = true
             viewModel?.delegate?.lastMessageAppeared(true)
