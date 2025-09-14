@@ -194,6 +194,7 @@ public extension MessageRowViewModel {
     }
     
     func setReactionRowsModel(model: ReactionRowsCalculated) {
+        isInvalid = false
         self.reactionsModel = model
     }
     
