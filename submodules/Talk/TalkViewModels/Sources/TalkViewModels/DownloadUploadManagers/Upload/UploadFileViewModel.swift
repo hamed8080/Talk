@@ -2,6 +2,7 @@ import Chat
 import Combine
 import TalkModels
 import Foundation
+import Logger
 
 @MainActor
 public final class UploadFileViewModel: ObservableObject {
@@ -76,6 +77,7 @@ public final class UploadFileViewModel: ObservableObject {
     private func updateProgress(_ uniqueId: String, _ uploadFileProgress: UploadFileProgress?) {
         if uniqueId == uploadUniqueId {
             uploadPercent = uploadFileProgress?.percent ?? 0
+            log("file upload progress :\(uploadFileProgress?.percent ?? 0) for uniqueId: \(uniqueId)")
         }
     }
     
@@ -83,18 +85,21 @@ public final class UploadFileViewModel: ObservableObject {
         self.fileMetaData = metaData
         if uniqueId == uploadUniqueId {
             state = .completed
+            log("file upload completed for uniqueId: \(uniqueId)")
         }
     }
     
     private func uploadFailed(_ uniqueId: String, _ error: ChatError?) {
         if uniqueId == uploadUniqueId {
             state = .error
+            log("file upload failed for uniqueId: \(uniqueId) with error message: \(error?.message) and error code: \(error?.code ?? 0)")
         }
     }
     
     private func updateState(_ uniqueId: String, to newState: UploadFileState) {
         if uniqueId == uploadUniqueId {
             state = newState
+            log("file upload state changed to :\(newState) for uniqueId: \(uniqueId)")
         }
     }
     
@@ -138,5 +143,9 @@ public final class UploadFileViewModel: ObservableObject {
             case .location(let request): messageManager.send(request)
             }
         }
+    }
+    
+    private func log(_ string: String) {
+        Logger.log(title: "UploadFileViewModel", message: string, persist: false)
     }
 }
