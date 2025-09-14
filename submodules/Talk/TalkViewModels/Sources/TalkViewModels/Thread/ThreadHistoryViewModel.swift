@@ -1454,7 +1454,9 @@ print("reactions updated was canceled nothign will be updated")
                 }
             }
         }
-        return list
+        
+        // filter > 0 to prevent sending upload file messages because they don't have id while they are downloading
+        return list.filter({ $0 > 0 })
     }
     
     private func clearReactionsOnReconnect() async {
