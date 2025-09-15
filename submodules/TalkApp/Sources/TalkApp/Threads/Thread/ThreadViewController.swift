@@ -211,6 +211,10 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func setSelection(_ value: Bool) {
+        if !value {
+            viewModel?.selectedMessagesViewModel.clearSelection()
+        }
+        
         tapGetsure.isEnabled = !value
         viewModel?.selectedMessagesViewModel.setInSelectionMode(value)
         tableView.allowsMultipleSelection = value
@@ -238,10 +242,6 @@ extension ThreadViewController: ThreadViewDelegate {
             Task { [weak self] in
                 await self?.moveTolastMessageIfVisible()
             }
-        }
-
-        if !value {
-            tableView.resetSelection()
         }
     }
 
@@ -560,6 +560,8 @@ extension ThreadViewController: HistoryScrollDelegate {
         if let scrollToIndexPath = scrollTo, let at = at {
             tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: animate)
         }
+        
+        viewModel?.selectedMessagesViewModel.reSelectTableView()
     }
     
     func insertedWithContentOffsset(_ sections: IndexSet, _ rows: [IndexPath]) {
@@ -590,6 +592,8 @@ extension ThreadViewController: HistoryScrollDelegate {
             
             // 3. Adjust content offset to preserve visual position
             tableView.setContentOffset(CGPoint(x: previousOffset.x, y: previousOffset.y + heightDifference), animated: false)
+            
+            viewModel?.selectedMessagesViewModel.reSelectTableView()
         }
     }
     
