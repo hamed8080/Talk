@@ -24,12 +24,7 @@ public final class UploadFileViewModel: ObservableObject {
         fileSizeString = (message as? UploadFileMessage)?.fileSize?.toSizeStringShort(locale: Language.preferredLocale) ?? ""
         fileNameString = (message as? UploadFileMessage)?.fileName ?? message.messageTitle
         uploadUniqueId = (message as? UploadFileMessage)?.uploadRequestUniuqeId
-        NotificationCenter.upload.publisher(for: .upload)
-            .compactMap { $0.object as? UploadEventTypes }
-            .sink { [weak self] event in
-                self?.onUploadEvent(event)
-            }
-            .store(in: &cancelable)
+        setupSubscriptions()
     }
     
     private func onUploadEvent(_ event: UploadEventTypes) {
@@ -47,10 +42,7 @@ public final class UploadFileViewModel: ObservableObject {
     public func startUpload() {
         guard state != .uploading, state != .completed, let threadId = threadId, let fileMessage = message as? UploadFileMessage else { return }
         state = .uploading
-        
-        let textMessageType: ChatModels.MessageType = message.isImage ? .podSpacePicture : (message.messageType ?? .podSpaceFile)
-        let sendRequest = SendTextMessageRequest(threadId: threadId, textMessage: message.message ?? "", messageType: textMessageType)
-        handleFileUpload(for: fileMessage, sendRequest: sendRequest)
+        handleFileUpload(for: fileMessage, sendRequest: normalTextMessageRequest)
     }
     
     private func handleFileUpload(for fileMessage: UploadFileMessage, sendRequest: SendTextMessageRequest) {
@@ -84,10 +76,7 @@ public final class UploadFileViewModel: ObservableObject {
     
     private func uploadCompleted(_ uniqueId: String, _ metaData: FileMetaData?) {
         self.fileMetaData = metaData
-        if uniqueId == uploadUniqueId {
-            state = .completed
-            log("file upload completed for uniqueId: \(uniqueId)")
-        }
+        log("file upload completed for uniqueId: \(uniqueId)")
     }
     
     private func uploadFailed(_ uniqueId: String, _ error: ChatError?) {
@@ -154,5 +143,133 @@ public final class UploadFileViewModel: ObservableObject {
     
     private func log(_ string: String) {
         Logger.log(title: "UploadFileViewModel", message: string, persist: false)
+    }
+}
+
+// MARK: On ban error
+extension UploadFileViewModel {
+    
+    fileprivate enum SendTypeTextWithMetadata {
+        case image(SendTextMessageRequest)
+        case file(SendTextMessageRequest)
+        case replyImage(ReplyMessageRequest)
+        case replyFile(ReplyMessageRequest)
+        case replyPrivately(ReplyPrivatelyRequest)
+        case location(LocationMessageRequest)
+    }
+    
+    private func onError(_ error: ChatError) {
+        if let banError = error.banError, let uniqueId = uploadUniqueId, let duration = banError.duration {
+            Task {
+                try? await Task.sleep(for: .milliseconds(Double(duration) + 1000.0))
+                sendMessageOnBanned()
+            }
+        }
+    }
+    
+    private func sendTextMessageWithMetadata(_ send: SendTypeTextWithMetadata) {
+        Task { @ChatGlobalActor in
+            guard let messageManager = ChatManager.activeInstance?.message else { return }
+            switch send {
+            case .image(let message): messageManager.send(message)
+            case .file(let message): messageManager.send(message)
+            case .replyImage(let replyRequest): messageManager.reply(replyRequest)
+            case .replyFile(let replyRequest): messageManager.reply(replyRequest)
+            case .replyPrivately(let replyPrivatelyRequest): messageManager.replyPrivately(replyPrivatelyRequest)
+            case .location(let request): messageManager.send(request)
+            }
+        }
+    }
+    
+    private func sendMessageOnBanned() {
+        guard
+            let metaData = fileMetaData?.string,
+            let uniqueId = uploadUniqueId,
+            let fileMessage = message as? UploadFileMessage
+        else { return }
+        handleSendWithMetadata(for: fileMessage, uniqueId: uniqueId, metadata: metaData)
+    }
+    
+    /// Bound the upload uniqueId to the text message again,
+    /// it will happen automatiaclly inside the Chat SDK, though in this case the send failed by ban
+    private func handleSendWithMetadata(for fileMessage: UploadFileMessage, uniqueId: String, metadata: String) {
+        
+        if let request = fileMessage.uploadFileRequest {
+            if var replyPrivately = fileMessage.replyPrivatelyRequest {
+                replyPrivately.uniqueId = uniqueId
+                replyPrivately.metadata = metadata
+                sendTextMessageWithMetadata(.replyPrivately(replyPrivately))
+            } else if var reply = fileMessage.replyRequest {
+                reply.uniqueId = uniqueId
+                reply.metadata = metadata
+                sendTextMessageWithMetadata(.replyFile(reply))
+            } else {
+                var normalTextMessageRequest = normalTextMessageRequest
+                normalTextMessageRequest.uniqueId = uniqueId
+                normalTextMessageRequest.metadata = metadata
+                sendTextMessageWithMetadata(.file(normalTextMessageRequest))
+            }
+        } else if let request = fileMessage.uploadImageRequest {
+            if var replyPrivately = fileMessage.replyPrivatelyRequest {
+                replyPrivately.uniqueId = uniqueId
+                replyPrivately.metadata = metadata
+                sendTextMessageWithMetadata(.replyPrivately(replyPrivately))
+            } else if var reply = fileMessage.replyRequest {
+                reply.uniqueId = uniqueId
+                reply.metadata = metadata
+                sendTextMessageWithMetadata(.replyImage(reply))
+            } else {
+                var normalTextMessageRequest = normalTextMessageRequest
+                normalTextMessageRequest.uniqueId = uniqueId
+                normalTextMessageRequest.metadata = metadata
+                sendTextMessageWithMetadata(.image(normalTextMessageRequest))
+            }
+        } else if let locationRequest = fileMessage.locationRequest {
+            sendTextMessageWithMetadata(.location(locationRequest))
+        }
+    }
+}
+
+extension UploadFileViewModel {
+    private func setupSubscriptions() {
+        NotificationCenter.upload.publisher(for: .upload)
+            .compactMap { $0.object as? UploadEventTypes }
+            .sink { [weak self] event in
+                self?.onUploadEvent(event)
+            }
+            .store(in: &cancelable)
+        
+        NotificationCenter.error.publisher(for: .error)
+            .compactMap { $0.object as? ChatResponse<any Sendable> }
+            .filter { $0?.uniqueId == self.uploadUniqueId }
+            .compactMap { $0?.error }
+            .sink { [weak self] error in
+                Task { @MainActor [weak self] in
+                    self?.onError(error)
+                }
+            }
+            .store(in: &cancelable)
+        
+        NotificationCenter.message.publisher(for: .message)
+            .compactMap { $0.object as? MessageEventTypes }
+            .sink { [weak self] event in
+                if case .sent(let resp) = event, let uniqueId = self?.uploadUniqueId, resp.uniqueId == uniqueId {
+                    Task { [weak self] in
+                        self?.setStateToCompleteAfterDeliverResponse()
+                    }
+                }
+            }
+            .store(in: &cancelable)
+    }
+    
+    private func setStateToCompleteAfterDeliverResponse() {
+        state = .completed
+        log("file has been uploaded completely and delivered sucessfully also set state to .completed for uniqueId: \(uploadUniqueId ?? "")")
+    }
+    
+    private var normalTextMessageRequest: SendTextMessageRequest {
+        let textMessageType: ChatModels.MessageType = message.isImage ? .podSpacePicture : (message.messageType ?? .podSpaceFile)
+        let sendRequest = SendTextMessageRequest(threadId: threadId ?? -1, textMessage: message.message ?? "", messageType: textMessageType)
+        return sendRequest
     }
 }
