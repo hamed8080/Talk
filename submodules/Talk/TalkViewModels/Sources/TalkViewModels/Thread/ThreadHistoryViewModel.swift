@@ -808,7 +808,7 @@ extension ThreadHistoryViewModel {
                 /// Insert into the proper section or update if needed.
                 _ = await insertOrUpdateMessageViewModelOnNewMessage(message, viewModel)
                 
-                /// Scroll to the last message if it was upload.
+                /// Scroll to the last message if it wasn't an upload message.
                 if !isUplaod {
                     viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
                 }

@@ -27,6 +27,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     @Published public var fullScreenImageLoader: ImageLoaderViewModel
     @Published public var cachedImage: UIImage?
     @Published public var showDownloading: Bool = false
+    private var isDismissed = false
     
     // MARK: Computed properties
     
@@ -293,8 +294,11 @@ public final class ThreadDetailViewModel: ObservableObject {
 
 public extension ThreadDetailViewModel {
     func dismissBySwipe() {
+        if isDismissed { return }
+        isDismissed = true
         threadVM?.scrollVM.disableExcessiveLoading()
         clearObjects()
+        
         
         /// In Swipe action we don't remove an item directly from the path, the os will do it itself
         /// we just need to clear out path trackings.
@@ -303,6 +307,9 @@ public extension ThreadDetailViewModel {
     }
     
     func dismissByBackButton() {
+        if isDismissed { return }
+        isDismissed = true
+        
         threadVM?.scrollVM.disableExcessiveLoading()
         clearObjects()
         
@@ -310,6 +317,9 @@ public extension ThreadDetailViewModel {
     }
     
     func dismissBothDetailAndThreadProgramatically() {
+        if isDismissed { return }
+        isDismissed = true
+        
         let threadId = thread?.id
         threadVM?.scrollVM.disableExcessiveLoading()
         clearObjects()
@@ -322,6 +332,9 @@ public extension ThreadDetailViewModel {
     }
     
     func dismisByMoveToAMessage() {
+        if isDismissed { return }
+        isDismissed = true
+        
         clearObjects()
        
         /// Firstly, remove ThreadDetailViewModel path and pop it up.
