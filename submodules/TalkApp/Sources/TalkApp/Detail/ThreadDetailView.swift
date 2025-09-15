@@ -37,11 +37,6 @@ struct ThreadDetailView: View {
         .background(frameReader)
         .safeAreaInset(edge: .top, spacing: 0) { DetailToolbarContainer() }
         .background(DetailAddOrEditContactSheetView())
-        .onReceive(viewModel.$dismiss) { newValue in
-            if newValue {
-                prepareToDismiss()
-            }
-        }
         .onDisappear {
             Task(priority: .background) {
                 viewModel.threadVM?.searchedMessagesViewModel.reset()
@@ -49,16 +44,9 @@ struct ThreadDetailView: View {
             
             /// We make sure user is not moving to edit thread detail or contact
             if AppState.shared.objectsContainer.navVM.presntedNavigationLinkId == nil {
-                viewModel.threadVM?.participantsViewModel.clear()
+                viewModel.dismissBySwipe()
             }
         }
-    }
-
-    private func prepareToDismiss() {
-        AppState.shared.objectsContainer.navVM.remove(innerBack: false)
-        AppState.shared.objectsContainer.navVM.popLastDetail()
-        AppState.shared.appStateNavigationModel.userToCreateThread = nil
-        dismiss()
     }
     
     private var frameReader: some View {

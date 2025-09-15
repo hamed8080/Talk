@@ -13,14 +13,7 @@ struct DetailLeadingToolbarViews: View {
     
     var body: some View {
         NavigationBackButton(automaticDismiss: false) {
-            Task { @MainActor in
-                viewModel.threadVM?.scrollVM.disableExcessiveLoading()
-                AppState.shared.objectsContainer.contactsVM.editContact = nil
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    AppState.shared.appStateNavigationModel.userToCreateThread = nil
-                }
-                AppState.shared.objectsContainer.navVM.removeDetail()
-            }
+            viewModel.dismissByBackButton()
         }
     }
 }

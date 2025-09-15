@@ -117,7 +117,7 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
     /// even if it has been called by other methods such as the user clicks on add contact in thread detail
     /// because it uses global ContactsViewModel, so after adding for the first time we should show the edit button.
     private func onAddContact(_ response: ChatResponse<[Contact]>) {
-        response.result?.forEach{ contact in
+        response.result?.forEach { contact in
             let sameContactId = participant.contactId != nil && participant.contactId == contact.id
             let sameUserName = contact.user?.username == participant.username
             if sameUserName || sameContactId {

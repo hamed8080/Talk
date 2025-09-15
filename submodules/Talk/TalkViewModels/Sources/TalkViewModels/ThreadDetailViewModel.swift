@@ -17,7 +17,6 @@ public final class ThreadDetailViewModel: ObservableObject {
     private(set) var cancellable: Set<AnyCancellable> = []
     public var thread: Conversation?
     public weak var threadVM: ThreadViewModel?
-    @Published public var dismiss = false
     @Published public var isLoading = false
     public var canShowEditConversationButton: Bool { thread?.group == true && thread?.admin == true && thread?.type != .selfThread }
     public var participantDetailViewModel: ParticipantDetailViewModel?
@@ -28,7 +27,11 @@ public final class ThreadDetailViewModel: ObservableObject {
     @Published public var fullScreenImageLoader: ImageLoaderViewModel
     @Published public var cachedImage: UIImage?
     @Published public var showDownloading: Bool = false
-    private var appOverlayVM: AppOverlayViewModel { AppState.shared.objectsContainer.appOverlayVM }
+    
+    // MARK: Computed properties
+    
+    private var objs: ObjectsContainer { AppState.shared.objectsContainer }
+    private var appOverlayVM: AppOverlayViewModel { objs.appOverlayVM }
 
     public init() {
         let emptyConfig = ImageLoaderConfig(url: "",
@@ -50,7 +53,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
     
     public var avatarVM: ImageLoaderViewModel {
-        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        let threadsVM = objs.threadsVM
         let avatarVM = threadsVM.avatars(for: imageLink, metaData: thread?.metadata, userName: String.splitedCharacter(thread?.title ?? ""))
         return avatarVM
     }
@@ -181,13 +184,13 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     private func onDeleteThread(_ response: ChatResponse<Participant>) {
         if response.subjectId == thread?.id {
-            dismiss = true
+            dismissBothDetailAndThreadProgramatically()
         }
     }
 
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if response.result == thread?.id {
-            dismiss = true
+            dismissBothDetailAndThreadProgramatically()
         }
     }
 
@@ -195,7 +198,6 @@ public final class ThreadDetailViewModel: ObservableObject {
         cancelObservers()
         thread = nil
         threadVM = nil
-        dismiss = false
         isLoading = false
         participantDetailViewModel = nil
         editConversationViewModel = nil
@@ -282,8 +284,59 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
 
     deinit {
+        let threadName = thread?.computedTitle ?? ""
 #if DEBUG
-        print("deinit ThreadDetailViewModel")
+        print("deinit ThreadDetailViewModel title: \(threadName)")
 #endif
+    }
+}
+
+public extension ThreadDetailViewModel {
+    func dismissBySwipe() {
+        threadVM?.scrollVM.disableExcessiveLoading()
+        clearObjects()
+        
+        /// In Swipe action we don't remove an item directly from the path, the os will do it itself
+        /// we just need to clear out path trackings.
+        objs.navVM.popLastPathTracking()
+        objs.navVM.popLastDetail()
+    }
+    
+    func dismissByBackButton() {
+        threadVM?.scrollVM.disableExcessiveLoading()
+        clearObjects()
+        
+        objs.navVM.removeDetail()
+    }
+    
+    func dismissBothDetailAndThreadProgramatically() {
+        let threadId = thread?.id
+        threadVM?.scrollVM.disableExcessiveLoading()
+        clearObjects()
+       
+        /// Firstly, remove ThreadDetailViewModel path and pop it up.
+        objs.navVM.removeDetail()
+      
+        /// Secondly, remove ThreadViewModel path and pop it up.
+        objs.navVM.remove(threadId: threadId)
+    }
+    
+    func dismisByMoveToAMessage() {
+        clearObjects()
+       
+        /// Firstly, remove ThreadDetailViewModel path and pop it up.
+        objs.navVM.removeDetail()
+    }
+    
+    private func clearObjects() {
+        objs.contactsVM.editContact = nil
+        editConversationViewModel = nil
+        participantDetailViewModel = nil
+        threadVM = nil
+        threadVM?.participantsViewModel.clear()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            AppState.shared.appStateNavigationModel.userToCreateThread = nil
+        }
     }
 }

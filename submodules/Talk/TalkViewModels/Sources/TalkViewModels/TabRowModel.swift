@@ -195,7 +195,7 @@ extension TabRowModel {
     private func showPictureInGallery(_ viewModel: ThreadDetailViewModel) {
         AppState.shared.objectsContainer.appOverlayVM.galleryMessage = .init(message: message, goToHistoryTapped: {
             /// Dismiss Detail View if it is showing
-            viewModel.dismiss = true
+            viewModel.dismisByMoveToAMessage()
         })
     }
     
@@ -255,8 +255,9 @@ extension TabRowModel {
     public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
         Task { [weak self] in
             guard let self = self else { return }
-            await detailVM.threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
-            detailVM.dismiss = true
+            let historyVM = detailVM.threadVM?.historyVM
+            detailVM.dismisByMoveToAMessage()
+            await historyVM?.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
         }
     }
 }
