@@ -293,7 +293,7 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 3 or 4 more top/bottom.
     
     // MARK: Scenario 5
-    private func tryFifthScenario(status: ConnectionStatus) async {
+    private func tryFifthScenario() async {
         do {
             /// Show bottom loading.
             showBottomLoading(true)
@@ -448,8 +448,8 @@ extension ThreadHistoryViewModel {
             reattachUploads()
             
             /// Set we have more top or bottom rows.
-            setHasMoreTop(topVMS.count >= count)
-            setHasMoreBottom(bottomVMS.count >= count)
+            setHasMoreTop(topVMS.count > 0)
+            setHasMoreBottom(bottomVMS.count > 0)
             
             /// If requested messageId to move to is equal to last message of the thread
             /// it means that we don't have more bottom.
@@ -565,6 +565,9 @@ extension ThreadHistoryViewModel {
         let isLastSeenExist = isLastSeenMessageIsInSections()
         let unreadCount = thread.unreadCount ?? 0
         let lstIndex = delegate?.visibleIndexPaths().last
+        
+        setHasMoreTop(true)
+        setHasMoreBottom(true)
         
         cancelTasks()
         
@@ -975,9 +978,17 @@ extension ThreadHistoryViewModel {
         changeStitchOnDeleteMessages(indicies: indicies)
         
         deleteIndices(indicies)
+        
+        /// We have to wait here because deletion lead to call didEndDisplay
+        /// and it will lead to show the last message.
+        try? await Task.sleep(for: .milliseconds(500))
+        viewModel?.scrollVM.isAtBottomOfTheList = isLastMessageVisible()
+        viewModel?.delegate?.showMoveToBottom(show: viewModel?.scrollVM.isAtBottomOfTheList == false)
+        
         if sections.isEmpty {
             showEmptyThread(show: true)
         }
+        
         for message in messages {
             await setDeletedIfWasReply(messageId: message.id ?? -1)
         }
@@ -1474,21 +1485,6 @@ print("reactions updated was canceled nothign will be updated")
 
 // MARK: Scenarios utilities
 extension ThreadHistoryViewModel {
-    private func setHasMoreTop(_ response: ChatResponse<[Message]>) {
-        if !response.cache {
-            hasNextTop = response.hasNext
-            isFetchedServerFirstResponse = true
-            showTopLoading(false)
-        }
-    }
-    
-    private func setHasMoreTopNonAsync(_ response: ChatResponse<[Message]>) {
-        if !response.cache {
-            hasNextTop = response.hasNext
-            isFetchedServerFirstResponse = true
-        }
-    }
-    
     private func setHasMoreTop(_ hasNext: Bool) {
         hasNextTop = hasNext
         isFetchedServerFirstResponse = true
@@ -1711,7 +1707,7 @@ extension ThreadHistoryViewModel {
     public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
         if canGetNewMessagesAfterConnectionEstablished(status) {
             // After connecting again get latest messages.
-            await tryFifthScenario(status: status)
+            await tryFifthScenario()
         }
         
         if status == .connected, hasSentHistoryRequest {
@@ -1760,7 +1756,7 @@ extension ThreadHistoryViewModel {
 
 public extension ThreadHistoryViewModel {
     func getMainData() -> MainRequirements {
-        return MainRequirements(appUserId: AppState.shared.user?.id,
+        return MainRequirements(appUserId: appUserId,
                                 thread: viewModel?.thread,
                                 participantsColorVM: viewModel?.participantsColorVM,
                                 isInSelectMode: viewModel?.selectedMessagesViewModel.isInSelectMode ?? false,
@@ -1846,15 +1842,6 @@ extension ThreadHistoryViewModel {
     private func hasThreadNeverOpened() -> Bool {
         (thread.lastSeenMessageId ?? 0 == 0) && thread.lastSeenMessageTime == nil
     }
-
-    private func newThreadLastMessageTimeId() -> (time: UInt, lastMSGId: Int)? {
-        guard
-            hasThreadNeverOpened(),
-            let lastMSGId = thread.lastMessageVO?.id,
-            let time = thread.lastMessageVO?.time
-        else { return nil }
-        return (time, lastMSGId)
-    }
     
     public func isSimulated() -> Bool {
         let createThread = AppState.shared.appStateNavigationModel.userToCreateThread != nil
@@ -1863,10 +1850,6 @@ extension ThreadHistoryViewModel {
     
     private var appUserId: Int? {
         return AppState.shared.user?.id
-    }
-    
-    private var isConnected: Bool {
-        AppState.shared.connectionStatus == .connected
     }
     
     private func findDeletedIndicies(_ messages: [Message]) -> [IndexPath] {
