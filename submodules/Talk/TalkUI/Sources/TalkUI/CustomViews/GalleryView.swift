@@ -155,7 +155,7 @@ public struct PageItem: View {
     
     @ViewBuilder
     private var progress: some View {
-        if viewModel.state == .downloading {
+        if viewModel.state != .completed {
             CircularProgressView(percent: $viewModel.percent, config: .normal)
                 .frame(maxWidth: 128)
                 .frame(height: 96)
