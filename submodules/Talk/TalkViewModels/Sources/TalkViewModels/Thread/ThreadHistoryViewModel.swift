@@ -58,6 +58,10 @@ public final class ThreadHistoryViewModel {
         setupNotificationObservers()
         deleteQueue.viewModel = self
     }
+    
+    public func updateThreadId(id: Int) {
+        self.threadId = id
+    }
 }
 
 // MARK: Setup/Start

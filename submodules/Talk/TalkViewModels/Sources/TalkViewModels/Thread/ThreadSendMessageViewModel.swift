@@ -363,6 +363,13 @@ public final class ThreadSendMessageViewModel {
     }
 
     public func onCreateP2PThread(_ conversation: Conversation) {
+        let navVM = AppState.shared.objectsContainer.navVM
+        
+        if navVM.presentedThreadViewModel?.viewModel.id == LocalId.emptyThread.rawValue {
+            viewModel?.thread.id = conversation.id
+            viewModel?.id = conversation.id ?? -1
+            viewModel?.historyVM.updateThreadId(id: conversation.id ?? -1)
+        }
         self.viewModel?.updateConversation(conversation)
         DraftManager.shared.clear(contactId: navModel.userToCreateThread?.contactId ?? -1)
         navModel.userToCreateThread = nil

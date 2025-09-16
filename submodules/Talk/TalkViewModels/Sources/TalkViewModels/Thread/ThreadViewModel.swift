@@ -12,7 +12,7 @@ import TalkModels
 import Logger
 
 @MainActor
-public final class ThreadViewModel: Identifiable {
+public final class ThreadViewModel: ObservableObject {
     public static func == (lhs: ThreadViewModel, rhs: ThreadViewModel) -> Bool {
         rhs.id == lhs.id
     }
@@ -58,7 +58,7 @@ public final class ThreadViewModel: Identifiable {
     public var participant: Participant?
 
     // MARK: Computed Properties
-    public nonisolated let id: Int
+    public var id: Int
     public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.id == id }
     public var isSimulatedThared: Bool {
         AppState.shared.appStateNavigationModel.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
@@ -112,6 +112,7 @@ public final class ThreadViewModel: Identifiable {
     // MARK: Actions
     public func sendStartTyping(_ newValue: String) {
         if id == LocalId.emptyThread.rawValue, id != 0 { return }
+        let id = id
         Task { @ChatGlobalActor in
             if newValue.isEmpty == false {
                 ChatManager.activeInstance?.system.sendStartTyping(threadId: id)
@@ -122,6 +123,7 @@ public final class ThreadViewModel: Identifiable {
     }
 
     public func sendSignal(_ signalMessage: SignalMessageType) {
+        let id = id
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.system.sendSignalMessage(.init(signalType: signalMessage, threadId: id))
         }
