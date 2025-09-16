@@ -16,6 +16,7 @@ struct ContactRow: View {
     let contact: Contact
     @Environment(\.showInviteButton) var showInvitee
     @Binding public var isInSelectionMode: Bool
+    let isInSearchMode: Bool
 
     var body: some View {
         VStack {
@@ -32,8 +33,8 @@ struct ContactRow: View {
                     .clipShape(RoundedRectangle(cornerRadius:(22)))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    let searchVM: ThreadsSearchViewModel = AppState.shared.objectsContainer.searchVM
-                    if searchVM.isInSearchMode {
+                    if isInSearchMode {
+                        let searchVM: ThreadsSearchViewModel = AppState.shared.objectsContainer.searchVM
                         Text(searchVM.attributdTitle(for: "\(contact.firstName ?? "") \(contact.lastName ?? "")"))
                             .padding(.leading, 16)
                             .foregroundColor(Color.App.textPrimary)
@@ -151,7 +152,7 @@ struct ContactRow_Previews: PreviewProvider {
 
     static var previews: some View {
         Group {
-            ContactRow(contact: MockData.contact, isInSelectionMode: $isInSelectionMode)
+            ContactRow(contact: MockData.contact, isInSelectionMode: $isInSelectionMode, isInSearchMode: false)
                 .environmentObject(ContactsViewModel())
                 .preferredColorScheme(.dark)
         }

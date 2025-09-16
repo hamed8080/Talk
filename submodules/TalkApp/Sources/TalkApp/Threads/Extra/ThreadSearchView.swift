@@ -47,7 +47,7 @@ struct ThreadSearchView: View {
                 }
 
                 ForEach(viewModel.searchedContacts.prefix(5)) { contact in
-                    ContactRow(contact: contact, isInSelectionMode: .constant(false))
+                    ContactRow(contact: contact, isInSelectionMode: .constant(false), isInSearchMode: true)
                         .environment(\.showInviteButton, true)
                         .listRowInsets(.init(top: 16, leading: 16, bottom: 16, trailing: 8)) /// We usre 16 leading due to in ThreadRow we have a yellow bar and it causes spacing in VStack to add 16 pixels, so we have to keep Contacts and Threads row in same alignmen.
                         .listRowBackground(Color.App.bgPrimary)

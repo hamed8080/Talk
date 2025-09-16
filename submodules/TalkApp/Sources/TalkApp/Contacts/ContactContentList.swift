@@ -196,7 +196,7 @@ struct ContactRowContainer: View {
     }
 
     var body: some View {
-        ContactRow(contact: contact, isInSelectionMode: $viewModel.isInSelectionMode)
+        ContactRow(contact: contact, isInSelectionMode: $viewModel.isInSelectionMode, isInSearchMode: isSearchRow)
             .animation(.spring(), value: viewModel.isInSelectionMode)
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(separatorColor)
