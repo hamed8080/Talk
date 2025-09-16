@@ -560,9 +560,10 @@ public final class ThreadsViewModel: ObservableObject {
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
             deselectActiveThread()
-            threads.remove(at: index)
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(threads[index])
+            
+            threads.remove(at: index)
             animateObjectWillChange()
             AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }

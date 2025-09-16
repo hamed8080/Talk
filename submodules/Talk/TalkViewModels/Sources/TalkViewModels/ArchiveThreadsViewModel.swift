@@ -508,9 +508,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
             deselectActiveThread()
-            archives.remove(at: index)
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(archives[index])
+            
+            archives.remove(at: index)
             animateObjectWillChange()
         }
     }
