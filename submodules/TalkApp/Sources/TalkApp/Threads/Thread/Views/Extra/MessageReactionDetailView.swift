@@ -122,12 +122,12 @@ struct ReactionParticipantRow: View {
                     .padding(.leading, 4)
                     .lineLimit(1)
                     .font(.fBody)
-                if let time = reaction.time {
-                    Text(time.date.localFormattedTime ?? "")
-                        .padding(.leading, 4)
-                        .font(.fCaption3)
-                        .foregroundColor(Color.App.textSecondary)
-                }
+//                if let time = reaction.time {
+//                    Text(time.date.localFormattedTime ?? "")
+//                        .padding(.leading, 4)
+//                        .font(.fCaption3)
+//                        .foregroundColor(Color.App.textSecondary)
+//                }
             }
         }
     }
