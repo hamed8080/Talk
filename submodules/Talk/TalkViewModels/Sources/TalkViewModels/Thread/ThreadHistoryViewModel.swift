@@ -428,7 +428,7 @@ extension ThreadHistoryViewModel {
             
             /// Animate to show hightlight if is needed.
             let uniqueId = message?.uniqueId ?? ""
-            highlightVM.showHighlighted(uniqueId, message?.id ?? -1, highlight: highlight, position: .middle)
+            highlightVM.showHighlighted(uniqueId, message?.id ?? -1, highlight: highlight, position: .top)
             
             /// Force to show move to bottom button,
             /// because we know that we are not at the end of the thread.
