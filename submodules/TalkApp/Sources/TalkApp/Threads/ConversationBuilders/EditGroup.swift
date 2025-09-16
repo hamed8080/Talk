@@ -155,7 +155,6 @@ struct EditGroup: View {
                         }
                     } else {
                         ImageLoaderView(conversation: viewModel.thread)
-                            .scaledToFit()
                             .id(viewModel.thread.id)
                             .font(.fBoldCaption2)
                             .foregroundColor(.white)
