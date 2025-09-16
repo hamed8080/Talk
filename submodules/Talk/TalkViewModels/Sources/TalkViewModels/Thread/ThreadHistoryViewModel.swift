@@ -1961,7 +1961,7 @@ extension ThreadHistoryViewModel {
                 return indexPath
             }
         }
-        return nil
+        return visibleRows.first
     }
 }
 
