@@ -119,39 +119,85 @@ struct SelectedContactsView: View {
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            LazyVGrid(columns: columns, alignment: .center) {
+            FlowLayout(spacing: 8) {
                 ForEach(viewModel.selectedContacts) { contact in
                     SelectedContact(viewModel: viewModel, contact: contact)
                 }
             }
         }
         .padding(.vertical, viewModel.selectedContacts.count == 0 ? 0 : 4 )
-        .background(frameReader)
         .frame(height: height)
         .clipped()
-    }
-
-    private var frameReader: some View {
-        GeometryReader { reader in
-            Color.clear.onAppear {
-                width = reader.size.width
-            }
-        }
     }
 
     private var height: CGFloat {
         if viewModel.selectedContacts.count == 0 { return 0 }
         let MAX: CGFloat = 126
-        let rows: CGFloat = ceil(CGFloat(viewModel.selectedContacts.count) / CGFloat(2))
+        let rows: CGFloat = ceil(CGFloat(viewModel.selectedContacts.count) / CGFloat(2.0))
         if rows >= 4 { return MAX }
         return max(48, rows * 42)
     }
+}
 
-    private var columns: Array<GridItem> {
-        let numberOfColumns = width / 2
-        let flexible = GridItem.Size.flexible(minimum: numberOfColumns, maximum: numberOfColumns)
-        let item = GridItem(flexible,spacing: 8)
-        return Array(repeating: item, count: 2)
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    var alignment: HorizontalAlignment = .leading
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+        var rowHeight: CGFloat = 0
+
+        let maxWidth = proposal.width ?? .infinity
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+
+            if width + size.width + spacing > maxWidth {
+                width = 0
+                height += rowHeight + spacing
+                rowHeight = 0
+            }
+
+            rowHeight = max(rowHeight, size.height)
+            width += size.width + spacing
+        }
+
+        return CGSize(width: maxWidth, height: height + rowHeight)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        var x: CGFloat = bounds.minX
+        var y: CGFloat = bounds.minY
+        var rowHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+
+            if x + size.width > bounds.maxX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+
+            subview.place(
+                at: CGPoint(x: x, y: y),
+                anchor: .topLeading,
+                proposal: ProposedViewSize(size)
+            )
+
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }
 

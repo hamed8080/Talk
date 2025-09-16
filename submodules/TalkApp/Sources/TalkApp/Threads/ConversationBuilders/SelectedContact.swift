@@ -42,8 +42,9 @@ struct SelectedContact: View {
             } label: {
                 Image(systemName: "xmark")
                     .resizable()
+                    .padding(2)
                     .scaledToFit()
-                    .frame(width: 16, height: 16)
+                    .frame(width: 22, height: 22)
                     .foregroundStyle(Color.App.white)
                     .contentShape(Rectangle())
             }
