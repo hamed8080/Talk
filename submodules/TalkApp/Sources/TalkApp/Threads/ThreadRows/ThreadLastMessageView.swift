@@ -72,9 +72,9 @@ struct NormalLastMessageContainer: View {
         if let addOrRemoveParticipant = thread.addRemoveParticipant {
             Text(addOrRemoveParticipant)
                 .font(.fCaption2)
-                .fontWeight(.medium)
+                .fontWeight(.regular)
                 .lineLimit(1)
-                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
+                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
         }
     }
 
@@ -83,7 +83,7 @@ struct NormalLastMessageContainer: View {
         if let participantName = thread.participantName {
             Text(participantName)
                 .font(.fCaption2)
-                .fontWeight(.medium)
+                .fontWeight(.regular)
                 .lineLimit(1)
                 .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
         }
