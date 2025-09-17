@@ -566,35 +566,32 @@ extension ThreadHistoryViewModel {
     
     // MARK: Scenario 13
     public func handleJumpToButtom() {
-        let isLastSeenExist = isLastSeenMessageIsInSections()
-        let unreadCount = thread.unreadCount ?? 0
-        let lstIndex = delegate?.visibleIndexPaths().last
+        let unreadCount = viewModel?.thread.unreadCount ?? 0
         
         setHasMoreTop(true)
-        setHasMoreBottom(true)
         
         cancelTasks()
         
-        if let lstIndex = lstIndex, sections[lstIndex.section].vms[lstIndex.row].message.id ?? 0 >= thread.lastSeenMessageId ?? 0 {
-            task = Task { [weak self] in
-                guard let self = self else { return }
-                await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false)
-            }
-        } else if isLastSeenExist || unreadCount == 0 {
-            /// Move to last seen message.
-            /// We have to set it to true to prevent load more bottom get called and cancel the below task.
+        let lastMsgId = thread.lastMessageVO?.id ?? 0
+        let lastMsgTime = thread.lastMessageVO?.time ?? 0
+        
+        if canJumpToLastMessageLocally() || unreadCount == 0 {
+            /// Block loadMoreBottom, if not it will cancel this task and it will stop immediately scrolling,
+            /// if we have some new unread messages
             viewModel?.scrollVM.disableExcessiveLoading()
+            
             task = Task { [weak self] in
                 guard let self = self else { return }
+                await moveToTime(lastMsgTime, lastMsgId, highlight: false, moveToBottom: true)
                 clearSavedScrollPosition()
-                await moveToTime(thread.lastMessageVO?.time ?? 0, thread.lastMessageVO?.id ?? 0, highlight: false, moveToBottom: true)
             }
             
-            /// Once user hit the jump to bottom Table view delegate methods like didEndDecelerating for scroll view won't be called
+            /// Once user hit the jump to bottom Table view delegate methods
+            /// like didEndDecelerating for scroll view won't be called
             /// So we have to make sure we are in a right state in the app and isAtBottomOfList is set to true.
             viewModel?.scrollVM.isAtBottomOfTheList = true
             viewModel?.delegate?.lastMessageAppeared(true)
-        } else if unreadCount > 0, let time = thread.lastSeenMessageTime, let id = thread.lastSeenMessageId {
+        } else if unreadCount > 0, thread.lastSeenMessageTime != nil, thread.lastSeenMessageId != nil {
             /// Move to last seen message
             hasNextBottom = true
             removeAllSections()
@@ -1195,6 +1192,7 @@ extension ThreadHistoryViewModel {
         if !isFetchedServerFirstResponse,
            let tb = delegate?.tb,
            !tb.isDragging && !tb.isDecelerating,
+           !isLastMessageVisible(),
            isSectionAndRowExist(indexPath)
         {
             let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id
@@ -1268,7 +1266,6 @@ extension ThreadHistoryViewModel {
     }
     
     private func isLastSeenMessageIsInSections() -> Bool {
-        let lastSeenId = thread.lastSeenMessageId ?? 0
         return sections.isLastSeenMessageExist(thread: thread)
     }
     
@@ -1887,6 +1884,16 @@ extension ThreadHistoryViewModel {
         avatarsTask = Task { [weak self] in
             await self?.prepareAvatars(vms)
         }
+    }
+    
+    private func lastIndexPathInSections() -> IndexPath? {
+        guard let lastVM = sections.last?.vms.last else { return nil }
+        return sections.indexPath(for: lastVM)
+    }
+    
+    private func canJumpToLastMessageLocally() -> Bool {
+        guard let index = lastIndexPathInSections() else { return false }
+        return sections[index.section].vms[index.row].message.id ?? 0 >= thread.lastSeenMessageId ?? 0
     }
 }
 
