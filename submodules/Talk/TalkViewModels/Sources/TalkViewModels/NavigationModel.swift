@@ -11,7 +11,10 @@ public final class NavigationModel: ObservableObject {
     
     /// Once we navigate to a view with NavigationLink in SwiftUI
     /// insted of appending to the paths.
-    public var presntedNavigationLinkId: Any?
+    private var presntedNavigationLinkId: Any?
+    
+    // MARK: Persist old navId to be restored on pop.
+    private var prevLinkId: Any? = nil
     
     public init() {}
 
@@ -69,17 +72,17 @@ public extension NavigationModel {
 
     var previousTitle: String {
         if let thread = previousItem as? Conversation {
-            return thread.computedTitle
+            thread.computedTitle
         } else if let threadVM = previousItem as? ThreadViewModel {
-            return threadVM.thread.computedTitle
+            threadVM.thread.computedTitle
         } else if let detail = previousItem as? ThreadDetailViewModel {
-            return detail.thread?.title ?? ""
+            detail.thread?.title ?? ""
         } else if let detail = previousItem as? ParticipantDetailViewModel {
-            return detail.participant.name ?? ""
+            detail.participant.name ?? ""
         } else if let navTitle = previousItem as? NavigationTitle {
-            return navTitle.title
+            navTitle.title
         } else {
-            return ""
+            ""
         }
     }
 
@@ -100,6 +103,7 @@ public extension NavigationModel {
     }
 
     func append(thread: Conversation) {
+        pushToLinkId(id: "Thread-\(thread.id)")
         let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
         let value = ConversationNavigationValue(viewModel: viewModel)
         // Pop until the same thread if exist
@@ -190,10 +194,7 @@ public extension NavigationModel {
     }
     
     func detailViewModel(threadId: Int) -> ThreadDetailViewModel? {
-        if let detailVM = detailsStack.first(where: {$0.thread?.id == threadId}) {
-            return detailVM
-        }
-        return nil
+        return detailsStack.first(where: {$0.thread?.id == threadId})
     }
 }
 
@@ -202,5 +203,25 @@ public extension NavigationModel {
         if let vm = threadStack.first(where: {$0.viewModel.id == conversation.id})?.viewModel {
             vm.updateConversation(conversation.toStruct())
         }
+    }
+}
+
+public extension NavigationModel {
+    func pushToLinkId(id: Any) {
+        /// Save current link id
+        prevLinkId = presntedNavigationLinkId
+        
+        presntedNavigationLinkId = id
+    }
+    
+    func popLinkId() {
+        /// Restore previous linkId.
+        presntedNavigationLinkId = prevLinkId
+        
+        prevLinkId = nil
+    }
+    
+    func getLinkId() -> Any? {
+        return presntedNavigationLinkId
     }
 }

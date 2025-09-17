@@ -37,13 +37,17 @@ struct ThreadDetailView: View {
         .background(frameReader)
         .safeAreaInset(edge: .top, spacing: 0) { DetailToolbarContainer() }
         .background(DetailAddOrEditContactSheetView())
+        .onAppear {
+            AppState.shared.objectsContainer.navVM.pushToLinkId(id: "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)")
+        }
         .onDisappear {
             Task(priority: .background) {
                 viewModel.threadVM?.searchedMessagesViewModel.reset()
             }
             
             /// We make sure user is not moving to edit thread detail or contact
-            if AppState.shared.objectsContainer.navVM.presntedNavigationLinkId == nil {
+            let linkId = AppState.shared.objectsContainer.navVM.getLinkId() as? String ?? ""
+            if linkId == "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)" {
                 viewModel.dismissBySwipe()
             }
         }
