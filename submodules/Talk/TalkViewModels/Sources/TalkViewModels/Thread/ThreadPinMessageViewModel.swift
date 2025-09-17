@@ -187,15 +187,6 @@ public final class ThreadPinMessageViewModel {
         }
     }
 
-    public func moveToPinnedMessage() {
-        if let time = message?.time, let messageId = message?.messageId {
-            Task { [weak self] in
-                guard let self = self else { return }
-                await historyVM?.moveToTime(time, messageId, highlight: true)
-            }
-        }
-    }
-
     internal func cancelAllObservers() {
         cancelable.forEach { cancelable in
             cancelable.cancel()

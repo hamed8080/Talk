@@ -598,6 +598,17 @@ extension ThreadHistoryViewModel {
             tryFirstScenario()
         }
     }
+    
+    // MARK: Scenario 14
+    public func moveToPinMessage(_ message: PinMessage) {
+        if let time = message.time, let messageId = message.messageId {
+            cancelTasks()
+            task = Task { [weak self] in
+                guard let self = self else { return }
+                await moveToTime(time, messageId, highlight: true)
+            }
+        }
+    }
 
     public func loadMoreTop(message: HistoryMessageType) {
         if let time = message.time, canLoadMoreTop() {

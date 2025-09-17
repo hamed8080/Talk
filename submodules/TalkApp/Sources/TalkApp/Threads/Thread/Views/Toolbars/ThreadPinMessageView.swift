@@ -105,7 +105,9 @@ public final class ThreadPinMessageView: UIStackView {
     }
 
     @objc func onPinMessageTapped(_ sender: UIButton) {
-        viewModel?.moveToPinnedMessage()
+        if let pinMessage = viewModel?.message {
+            viewModel?.historyVM?.moveToPinMessage(pinMessage)
+        }
     }
 
     @objc func onUnpinMessageTapped() {
