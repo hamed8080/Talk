@@ -99,12 +99,6 @@ public final class AppState: ObservableObject, Sendable {
 // Observers.
 extension AppState {
     private func registerObservers() {
-        NotificationCenter.thread.publisher(for: .thread)
-            .compactMap { $0.object as? ThreadEventTypes }
-            .sink { [weak self] value in
-                self?.onThreadEvent(value)
-            }
-            .store(in: &cancelable)
         UIApplication.shared.connectedScenes.first(where: {
             $0.activationState == .foregroundActive
         }).publisher.sink { [weak self] newValue in
@@ -114,54 +108,8 @@ extension AppState {
     }
 }
 
-// Event handlers.
-extension AppState {
-    private func onThreadEvent(_ event: ThreadEventTypes) {
-        switch event {
-        case .left(let response):
-            onLeft(response)
-        default:
-            break
-        }
-    }
-}
-
 // Conversation
 extension AppState {
-    
-    private func onLeft(_ response: ChatResponse<User>) {
-        let deletedUserId = response.result?.id
-        let myId = AppState.shared.user?.id
-        let threadsVM = AppState.shared.objectsContainer.threadsVM
-        let conversation = threadsVM.threads.first(where: {
-            $0.id == response.subjectId
-        })
-        
-        if deletedUserId == myId {
-            if let conversation = conversation {
-                threadsVM.removeThread(conversation)
-            }
-            
-            /// If I am in the detail view and press leave thread I should remove first DetailViewModel -> ThreadViewModel
-            if objectsContainer.navVM.pathsTracking.firstIndex(where: {
-                ($0 as? ConversationDetailNavigationValue)?.viewModel.thread?.id
-                == response.subjectId
-            }) != nil {
-                objectsContainer.navVM.popLastPath()
-            }
-            
-            /// Remove Thread View model and pop ThreadView
-            if let index = objectsContainer.navVM.pathsTracking.firstIndex(
-                where: {
-                    ($0 as? ConversationNavigationValue)?.viewModel.id
-                    == response.subjectId
-                })
-            {
-                objectsContainer.navVM.popLastPath()
-                objectsContainer.navVM.popPathTrackingAt(at: index)
-            }
-        }
-    }
     
     public func showThread(_ conversation: Conversation, created: Bool = false)
     {

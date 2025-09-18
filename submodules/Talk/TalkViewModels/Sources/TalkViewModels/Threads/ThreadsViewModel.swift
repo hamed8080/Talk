@@ -656,6 +656,14 @@ public final class ThreadsViewModel: ObservableObject {
         let participant = threadVM?.participantsViewModel.participants.first(where: {$0.id == deletedUserId})
         if isMe, let conversationId = response.subjectId {
             removeThread(.init(id: conversationId))
+            
+            /// Pop detail view and thread view at the same time
+            if navVM.detailsStack.last?.threadVM?.id == conversationId {
+                navVM.detailsStack.last?.dismissBothDetailAndThreadProgramatically()
+            } else if navVM.presentedThreadViewModel?.threadId == conversationId {
+                /// Pop only the thread view if the presented is the thread.
+                navVM.remove(threadId: conversationId)
+            }
         } else if let participant = participant {
             threadVM?.participantsViewModel.removeParticipant(participant)
         }
