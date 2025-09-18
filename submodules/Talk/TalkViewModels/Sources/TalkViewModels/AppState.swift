@@ -44,6 +44,8 @@ public final class AppState: ObservableObject, Sendable {
         }
     }
     
+    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+    
     private init() {
         registerObservers()
         updateWindowMode()
@@ -112,9 +114,9 @@ extension AppState {
         let coreUserId = contact.user?.coreUserId ?? contact.user?.id ?? -1
         appStateNavigationModel.userToCreateThread = contact.toParticipant
         if let conversation = checkForP2POffline(coreUserId: coreUserId ?? -1) {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            navVM.append(thread: conversation)
         } else if let conversation = try await GetThreadsReuqester().get(coreUserId: coreUserId) {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            navVM.append(thread: conversation)
         } else {
             showEmptyThread(userName: nil)
         }
@@ -125,9 +127,9 @@ extension AppState {
         guard let coreUserId = participant.coreUserId else { return }
         
         if let conversation = checkForP2POffline(coreUserId: coreUserId ?? -1) {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            navVM.append(thread: conversation)
         } else if let conversation = try await GetThreadsReuqester().get(coreUserId: coreUserId) {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            navVM.append(thread: conversation)
         } else {
             showEmptyThread(userName: participant.username)
         }
@@ -137,7 +139,7 @@ extension AppState {
         appStateNavigationModel.userToCreateThread = .init(username: userName)
         
         if let conversation = try await GetThreadsReuqester().get(userName: userName) {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            navVM.append(thread: conversation)
         } else {
             showEmptyThread(userName: userName)
         }
@@ -148,25 +150,21 @@ extension AppState {
     public func openForwardThread(from: Int, conversation: Conversation, messages: [Message]) {
         let dstId = conversation.id ?? -1
         setupForwardRequest(from: from, to: dstId, messages: messages)
-        AppState.shared.objectsContainer.navVM.append(thread: conversation)
+        navVM.append(thread: conversation)
     }
     
-    public func openForwardThread(from: Int, contact: Contact, messages: [Message]) {
-        if let conv = localConversationWith(contact) {
-            setupForwardRequest(
-                from: from, to: conv.id ?? -1, messages: messages)
-            AppState.shared.objectsContainer.navVM.append(thread: conv)
+    public func openForwardThread(from: Int, contact: Contact, messages: [Message]) async throws {
+        if let conversation = checkForP2POffline(coreUserId: contact.user?.coreUserId ?? -1) {
+            setupForwardRequest(from: from, to: conversation.id ?? -1, messages: messages)
+            navVM.append(thread: conversation)
+        } else if let conversation = try await GetThreadsReuqester().get(coreUserId: contact.user?.coreUserId ?? -1) {
+            setupForwardRequest(from: from, to: conversation.id ?? -1, messages: messages)
+            navVM.append(thread: conversation)
         } else {
-            Task {
-                try await openEmptyForwardThread(from: from, contact: contact, messages: messages)
-            }
+            let dstId = LocalId.emptyThread.rawValue
+            setupForwardRequest(from: from, to: dstId, messages: messages)
+            try await openThread(contact: contact)
         }
-    }
-    
-    private func openEmptyForwardThread(from: Int, contact: Contact, messages: [Message]) async throws {
-        let dstId = LocalId.emptyThread.rawValue
-        setupForwardRequest(from: from, to: dstId, messages: messages)
-        try await openThread(contact: contact)
     }
     
     public func setupForwardRequest(from: Int, to: Int, messages: [Message]) {
@@ -177,19 +175,12 @@ extension AppState {
         let req = ForwardMessageRequest(fromThreadId: from, threadId: to, messageIds: messageIds)
         appStateNavigationModel.forwardMessageRequest = req
     }
-    
-    private func localConversationWith(_ contact: Contact) -> Conversation? {
-        guard let coreUserId = contact.user?.coreUserId,
-              let conversation = checkForP2POffline(coreUserId: coreUserId)
-        else { return nil }
-        return conversation
-    }
         
     public func searchForGroupThread(threadId: Int, moveToMessageId: Int, moveToMessageTime: UInt) async throws {
         if let thread = checkForGroupOffline(tharedId: threadId) {
-            AppState.shared.objectsContainer.navVM.append(thread: thread)
+            navVM.append(thread: thread)
         } else if let conversation = try await GetThreadsReuqester().get(.init(threadIds: [threadId])).first {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            navVM.append(thread: conversation)
         }
     }
     
@@ -204,16 +195,6 @@ extension AppState {
             && $0.group == false && $0.type == .normal
         }
         )?.toStruct()
-    }
-    
-    private func updateThreadIdIfIsInForwarding(_ thread: Conversation?) {
-        if let req = appStateNavigationModel.forwardMessageRequest {
-            let forwardReq = ForwardMessageRequest(
-                fromThreadId: req.fromThreadId,
-                threadId: thread?.id ?? LocalId.emptyThread.rawValue,
-                messageIds: req.messageIds)
-            appStateNavigationModel.forwardMessageRequest = forwardReq
-        }
     }
     
     /// It will search through the Conversation array to prevent creation of new refrence.
@@ -237,7 +218,7 @@ extension AppState {
             image: participant.image,
             title: participant.name ?? userName,
             participants: particpants)
-        AppState.shared.objectsContainer.navVM.append(thread: conversation)
+        navVM.append(thread: conversation)
     }
     
     public func openThreadAndMoveToMessage(conversationId: Int, messageId: Int, messageTime: UInt) async throws {

@@ -230,7 +230,9 @@ public final class ThreadSendMessageViewModel {
             /// To call the publisher and activate the send button
             viewModel?.sendContainerViewModel.clear()
         } else if let contact = contact {
-            appState.openForwardThread(from: threadId, contact: contact, messages: messages)
+            Task {
+                try await appState.openForwardThread(from: threadId, contact: contact, messages: messages)
+            }
         } else if let destinationConversation = destinationConversation {
             appState.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
         }
