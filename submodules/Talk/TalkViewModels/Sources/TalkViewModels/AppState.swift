@@ -110,13 +110,6 @@ extension AppState {
 
 // Conversation
 extension AppState {
-    
-    public func showThread(_ conversation: Conversation, created: Bool = false)
-    {
-        isLoading = false
-        objectsContainer.navVM.append(thread: conversation)
-    }
-    
     public func openThread(contact: Contact) {
         let coreUserId = contact.user?.coreUserId ?? contact.user?.id ?? -1
         appStateNavigationModel.userToCreateThread = contact.toParticipant
@@ -140,7 +133,7 @@ extension AppState {
     ) {
         let dstId = conversation.id ?? -1
         setupForwardRequest(from: from, to: dstId, messages: messages)
-        showThread(conversation)
+        AppState.shared.objectsContainer.navVM.append(thread: conversation)
     }
     
     public func openForwardThread(
@@ -149,7 +142,7 @@ extension AppState {
         if let conv = localConversationWith(contact) {
             setupForwardRequest(
                 from: from, to: conv.id ?? -1, messages: messages)
-            showThread(conv)
+            AppState.shared.objectsContainer.navVM.append(thread: conv)
         } else {
             openEmptyForwardThread(
                 from: from, contact: contact, messages: messages)
@@ -198,13 +191,13 @@ extension AppState {
         threadId: Int, moveToMessageId: Int, moveToMessageTime: UInt
     ) {
         if let thread = checkForGroupOffline(tharedId: threadId) {
-            showThread(thread)
+            AppState.shared.objectsContainer.navVM.append(thread: thread)
             return
         }
         searchThreadById = SearchConversationById()
         searchThreadById?.search(id: threadId) { [weak self] conversations in
             if let thread = conversations?.first {
-                self?.showThread(thread)
+                AppState.shared.objectsContainer.navVM.append(thread: thread)
             }
             self?.searchThreadById = nil
         }
@@ -216,7 +209,7 @@ extension AppState {
         let thread = getRefrenceObject(thread) ?? thread
         updateThreadIdIfIsInForwarding(thread)
         if let thread = thread {
-            showThread(thread)
+            AppState.shared.objectsContainer.navVM.append(thread: thread)
         } else {
             showEmptyThread(userName: userName)
         }
@@ -267,7 +260,7 @@ extension AppState {
             image: participant.image,
             title: participant.name ?? userName,
             participants: particpants)
-        showThread(conversation)
+        AppState.shared.objectsContainer.navVM.append(thread: conversation)
     }
     
     public func openThreadAndMoveToMessage(

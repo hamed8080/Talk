@@ -105,7 +105,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else { return }
         if let threadId = url.widgetThreaId {
-            AppState.shared.showThread(.init(id: threadId))
+            AppState.shared.objectsContainer.navVM.append(thread: .init(id: threadId))
         } else if let userName = url.openThreadUserName {
             AppState.shared.openThreadWith(userName: userName)
         } else if let decodedOpenURL = url.decodedOpenURL {

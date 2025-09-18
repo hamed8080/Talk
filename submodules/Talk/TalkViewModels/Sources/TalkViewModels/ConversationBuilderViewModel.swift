@@ -153,12 +153,12 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
     private func navigateToTheConversation(_ conversation: Conversation) {
         clear()
         if #available(iOS 17, *) {
-            AppState.shared.showThread(conversation, created: true)
+            AppState.shared.objectsContainer.navVM.append(thread: conversation)
         } else {
             /// It will prevent a bug on small deveice can not click on the back button after creation.
             Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { _ in
                 Task { @MainActor in
-                    AppState.shared.showThread(conversation, created: true)
+                    AppState.shared.objectsContainer.navVM.append(thread: conversation)
                 }
             }
         }

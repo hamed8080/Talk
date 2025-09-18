@@ -640,7 +640,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) async {
         if let conversation = response.result {
             if conversation.participants?.first?.id == myId, response.pop(prepend: JOIN_TO_PUBLIC_GROUP_KEY) != nil {
-                AppState.shared.showThread(conversation)
+                AppState.shared.objectsContainer.navVM.append(thread: conversation)
             }
             
             if let id = conversation.id, let conversation = await threadFinder.getNotActiveThreads(id) {
