@@ -120,9 +120,11 @@ final class ForwardInfoView: UIView {
         let isMe = viewModel?.message.forwardInfo?.participant?.id == AppState.shared.user?.id
         if let participant = viewModel?.message.forwardInfo?.participant, !isMe {
             participantLabel.backgroundColor = Color.App.textPlaceholderUIColor?.withAlphaComponent(0.8)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                AppState.shared.openThread(participant: participant)
-                self.participantLabel.backgroundColor = .clear
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                Task { [weak self] in
+                    try await AppState.shared.openThread(participant: participant)
+                    self?.participantLabel.backgroundColor = .clear
+                }
             }
         }
     }

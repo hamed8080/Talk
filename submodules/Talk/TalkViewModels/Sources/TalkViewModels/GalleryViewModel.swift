@@ -203,7 +203,7 @@ public final class GalleryViewModel: ObservableObject {
     
     public func goToHistory() {
         let message = selectedVM?.message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             if let time = message?.time, let id = message?.id {
                 let task: Task<Void, any Error> = Task { [weak self] in
                     guard let self = self else { return }

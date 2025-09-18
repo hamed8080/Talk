@@ -167,7 +167,9 @@ private extension MessageContainerStackView {
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         guard let participant = model.message.participant else { return }
         AppState.shared.appStateNavigationModel.replyPrivately = message
-        AppState.shared.openThread(participant: participant)
+        Task {
+            try await AppState.shared.openThread(participant: participant)
+        }
     }
 
     func onForwardAction(_ model: ActionModel) {

@@ -92,7 +92,9 @@ struct ParticipantRowContainer: View {
             }
             .onTapGesture {
                 if !isMe {
-                    AppState.shared.openThread(participant: participant)
+                    Task {
+                        try await AppState.shared.openThread(participant: participant)
+                    }
                 }
             }
             .onLongPressGesture {
