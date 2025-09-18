@@ -250,7 +250,7 @@ struct ContactRowContainer: View {
                     viewModel.toggleSelectedContact(contact: contact)
                 } else if contact.hasUser == true {
                     Task {
-                        try await AppState.shared.openThread(contact: contact)
+                        try await AppState.shared.objectsContainer.navVM.openThread(contact: contact)
                     }
                 }
             }

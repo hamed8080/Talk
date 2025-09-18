@@ -53,7 +53,7 @@ struct ThreadSearchView: View {
                         .listRowBackground(Color.App.bgPrimary)
                         .onTapGesture {
                             Task {
-                                try await AppState.shared.openThread(contact: contact)
+                                try await AppState.shared.objectsContainer.navVM.openThread(contact: contact)
                             }
                         }
                 }

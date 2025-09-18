@@ -166,14 +166,14 @@ private extension MessageContainerStackView {
         guard let message = model.message as? Message else { return }
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         guard let participant = model.message.participant else { return }
-        AppState.shared.appStateNavigationModel.replyPrivately = message
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(message)
         Task {
-            try await AppState.shared.openThread(participant: participant)
+            try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
         }
     }
 
     func onForwardAction(_ model: ActionModel) {
-        AppState.shared.appStateNavigationModel.replyPrivately = nil
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(nil)
         model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
@@ -296,7 +296,7 @@ private extension MessageContainerStackView {
     }
 
     func onSelectAction(_ model: ActionModel) {
-        AppState.shared.appStateNavigationModel.replyPrivately = nil
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(nil)
         model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward

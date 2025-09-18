@@ -122,7 +122,7 @@ final class ForwardInfoView: UIView {
             participantLabel.backgroundColor = Color.App.textPlaceholderUIColor?.withAlphaComponent(0.8)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 Task { [weak self] in
-                    try await AppState.shared.openThread(participant: participant)
+                    try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
                     self?.participantLabel.backgroundColor = .clear
                 }
             }

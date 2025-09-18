@@ -93,7 +93,7 @@ struct ParticipantRowContainer: View {
             .onTapGesture {
                 if !isMe {
                     Task {
-                        try await AppState.shared.openThread(participant: participant)
+                        try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
                     }
                 }
             }

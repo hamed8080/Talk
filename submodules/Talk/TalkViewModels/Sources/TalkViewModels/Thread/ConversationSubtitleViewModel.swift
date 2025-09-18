@@ -94,7 +94,7 @@ public final class ConversationSubtitleViewModel {
     }
     
     private func getLastSeenByUserId() {
-        guard let userId = AppState.shared.appStateNavigationModel.userToCreateThread?.id else { return }
+        guard let userId = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread?.id else { return }
         notSeenDurationViewModel = .init(userId: userId)
         Task { [weak self] in
             guard let self = self else { return }

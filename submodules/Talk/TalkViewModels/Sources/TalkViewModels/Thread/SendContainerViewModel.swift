@@ -27,7 +27,7 @@ public final class SendContainerViewModel: ObservableObject {
 
     public func setup(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
-        let contactId = AppState.shared.appStateNavigationModel.userToCreateThread?.contactId ?? -1
+        let contactId = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread?.contactId ?? -1
         let textMessage = draftManager.get(threadId: threadId) ?? draftManager.get(contactId: contactId) ?? ""
         setText(newValue: textMessage)
         if let editMessage = getDraftEditMessage() {
@@ -101,7 +101,7 @@ public final class SendContainerViewModel: ObservableObject {
     public func setDraft(newText: String) {
         if !isSimulated() {
             draftManager.set(draftValue: newText, threadId: threadId)
-        } else if let contactId = AppState.shared.appStateNavigationModel.userToCreateThread?.contactId {
+        } else if let contactId = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread?.contactId {
             draftManager.set(draftValue: newText, contactId: contactId)
         }
     }
@@ -149,7 +149,7 @@ public final class SendContainerViewModel: ObservableObject {
     }
 
     private func hasForward() -> Bool {
-        AppState.shared.appStateNavigationModel.forwardMessageRequest != nil
+        AppState.shared.objectsContainer.navVM.navigationProperties.forwardMessageRequest != nil
     }
     
     public func showCamera(mode: SendcContainerMode) -> Bool {

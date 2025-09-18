@@ -78,7 +78,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
     }
 
     public func set() {
-        let show = AppState.shared.appStateNavigationModel.replyPrivately != nil
+        let show = AppState.shared.objectsContainer.navVM.navigationProperties.replyPrivately != nil
         if !show {
             removeFromSuperViewWithAnimation()
         } else if superview == nil {
@@ -88,7 +88,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
                 self.alpha = 1.0
             }
         }
-        let replyMessage = AppState.shared.appStateNavigationModel.replyPrivately
+        let replyMessage = AppState.shared.objectsContainer.navVM.navigationProperties.replyPrivately
         nameLabel.text = replyMessage?.participant?.name
         nameLabel.setIsHidden(replyMessage?.participant?.name == nil)
         Task { [weak self] in
@@ -102,7 +102,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
 
     private func close() {
         viewModel?.scrollVM.disableExcessiveLoading()
-        AppState.shared.appStateNavigationModel = .init()
+        AppState.shared.objectsContainer.navVM.resetNavigationProperties()
         UIView.animate(withDuration: 0.3) {
             self.set()
         }

@@ -86,7 +86,7 @@ extension ThreadHistoryViewModel {
         /// We check this to prevent recalling these methods when the view reappears again.
         /// If centerLoading is true it is mean theat the array has gotten clear for Scenario 6 to move to a time.
         let isSimulatedThread = viewModel?.isSimulatedThared == true
-        let hasAnythingToLoadOnOpen = AppState.shared.appStateNavigationModel.moveToMessageId != nil
+        let hasAnythingToLoadOnOpen = AppState.shared.objectsContainer.navVM.navigationProperties.moveToMessageId != nil
         moveToMessageTimeOnOpenConversation()
         showEmptyThread(show: false)
         if isSimulatedThread {
@@ -492,7 +492,7 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 10
     private func moveToMessageTimeOnOpenConversation() {
-        let model = AppState.shared.appStateNavigationModel
+        let model = AppState.shared.objectsContainer.navVM.navigationProperties
         if let id = model.moveToMessageId, let time = model.moveToMessageTime {
             
             cancelTasks()
@@ -500,7 +500,7 @@ extension ThreadHistoryViewModel {
             task = Task { [weak self] in
                 await self?.moveToTime(time, id, highlight: true)
             }
-            AppState.shared.appStateNavigationModel = .init()
+            AppState.shared.objectsContainer.navVM.resetNavigationProperties()
         }
     }
 
@@ -1860,7 +1860,7 @@ extension ThreadHistoryViewModel {
     }
     
     public func isSimulated() -> Bool {
-        let createThread = AppState.shared.appStateNavigationModel.userToCreateThread != nil
+        let createThread = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil
         return createThread && thread.id == LocalId.emptyThread.rawValue
     }
     

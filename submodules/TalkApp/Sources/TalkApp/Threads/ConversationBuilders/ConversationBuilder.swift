@@ -401,7 +401,7 @@ struct BuilderContactRowContainer: View {
                         viewModel.toggleSelectedContact(contact: contact)
                     } else {
                         await viewModel.clear()
-                        try await AppState.shared.openThread(contact: contact)
+                        try await AppState.shared.objectsContainer.navVM.openThread(contact: contact)
                     }
                 }
             }

@@ -231,7 +231,7 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     private func setupParticipantDetailViewModel(participant: Participant?) {
         let partner = threadVM?.participantsViewModel.participants.first(where: {$0.auditor == false && $0.id != AppState.shared.user?.id})
-        let threadP2PParticipant = AppState.shared.appStateNavigationModel.userToCreateThread
+        let threadP2PParticipant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread
         let participant = participant ?? threadP2PParticipant ?? partner
         if let participant = participant {
             setupP2PParticipant(participant)
@@ -349,7 +349,7 @@ public extension ThreadDetailViewModel {
         threadVM?.participantsViewModel.clear()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            AppState.shared.appStateNavigationModel.userToCreateThread = nil
+            AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(nil)
         }
     }
 }

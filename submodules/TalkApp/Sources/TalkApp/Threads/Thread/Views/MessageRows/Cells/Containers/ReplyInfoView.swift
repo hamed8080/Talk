@@ -177,7 +177,7 @@ final class ReplyInfoView: UIView {
 
     private func moveToReplyPrivately() {
         Task {
-            try await AppState.shared.openThreadAndMoveToMessage(
+            try await AppState.shared.objectsContainer.navVM.openThreadAndMoveToMessage(
                 conversationId: sourceConversationId,
                 messageId: replyId,
                 messageTime: replyTime

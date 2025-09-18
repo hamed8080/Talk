@@ -50,7 +50,7 @@ struct SearchMessageRow: View {
         let task: Task<Void, any Error> = Task { @MainActor in
             if let time = message.time, let messageId = message.id {
                 AppState.shared.objectsContainer.navVM.popLastDetail()
-                AppState.shared.appStateNavigationModel.userToCreateThread = nil
+                AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(nil)
                 AppState.shared.objectsContainer.navVM.remove(innerBack: true)
                 threadVM?.scrollVM.disableExcessiveLoading()
                 await threadVM?.historyVM.moveToTime(time, messageId)

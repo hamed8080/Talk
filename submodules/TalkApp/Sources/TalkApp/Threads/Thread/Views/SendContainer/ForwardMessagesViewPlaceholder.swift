@@ -18,7 +18,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
     weak var stack: UIStackView?
 
     private var isSingleForward: Bool {
-        return AppState.shared.appStateNavigationModel.forwardMessageRequest?.messageIds.count == 1
+        return AppState.shared.objectsContainer.navVM.navigationProperties.forwardMessageRequest?.messageIds.count == 1
     }
 
     public init(viewModel: ThreadViewModel?) {
@@ -93,7 +93,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
             return
         }
         
-        let model = AppState.shared.appStateNavigationModel
+        let model = AppState.shared.objectsContainer.navVM.navigationProperties
         let show = model.forwardMessageRequest != nil
         if !show {
             removeFromSuperViewWithAnimation()
@@ -121,7 +121,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
     private func close() {
         UIView.animate(withDuration: 0.3) { [weak self] in
             guard let self = self else { return }
-            AppState.shared.appStateNavigationModel = .init()
+            AppState.shared.objectsContainer.navVM.resetNavigationProperties()
             viewModel?.selectedMessagesViewModel.clearSelection()
             viewModel?.sendContainerViewModel.clear()
             set()

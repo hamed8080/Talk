@@ -23,10 +23,7 @@ public final class ThreadSendMessageViewModel {
     private var sendVM: SendContainerViewModel { viewModel?.sendContainerViewModel ?? .init() }
     private var selectVM: ThreadSelectedMessagesViewModel { viewModel?.selectedMessagesViewModel ?? .init() }
     private var appState: AppState { AppState.shared }
-    private var navModel: AppStateNavigationModel {
-        get { appState.appStateNavigationModel }
-        set { appState.appStateNavigationModel = newValue }
-    }
+    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var delegate: ThreadViewDelegate? { viewModel?.delegate }
     private var historyVM: ThreadHistoryViewModel? { viewModel?.historyVM }
     
@@ -67,9 +64,9 @@ public final class ThreadSendMessageViewModel {
         }
         
         switch true {
-        case navModel.forwardMessageRequest?.threadId == threadId:
+        case navVM.navigationProperties.forwardMessageRequest?.threadId == threadId:
             sendForwardMessages()
-        case navModel.replyPrivately != nil:
+        case navVM.navigationProperties.replyPrivately != nil:
             sendReplyPrivatelyMessage()
         case viewModel?.replyMessage != nil:
             sendReplyMessage()
@@ -93,7 +90,7 @@ public final class ThreadSendMessageViewModel {
     }
 
     private func isOriginForwardThread() -> Bool {
-        navModel.forwardMessageRequest != nil && (threadId != navModel.forwardMessageRequest?.threadId)
+        navVM.navigationProperties.forwardMessageRequest != nil && (threadId != navVM.navigationProperties.forwardMessageRequest?.threadId)
     }
 
     public func sendAttachmentsMessage() {
@@ -147,7 +144,7 @@ public final class ThreadSendMessageViewModel {
         var uploads = uploadMesasages(isReplyPrivatelyRequest: true)
         
         /// Set ReplyInfo and inner replyPrivatelyInfo before upload to show when we are uploading
-        if let replyMessage = navModel.replyPrivately {
+        if let replyMessage = navVM.navigationProperties.replyPrivately {
             for index in uploads.indices {
                 uploads[index].replyInfo = replyMessage.toReplyInfo
             }
@@ -165,7 +162,7 @@ public final class ThreadSendMessageViewModel {
         recorderVM.cancel()
         
         attVM.clear()
-        navModel = .init()
+        navVM.resetNavigationProperties()
         viewModel?.replyMessage = nil
         /// Close Reply UI after reply
         delegate?.showReplyPrivatelyPlaceholder(show: false)
@@ -224,24 +221,24 @@ public final class ThreadSendMessageViewModel {
         
         /// Check if we are forwarding to the same thread
         if destinationConversation?.id == threadId || (contact?.userId != nil && contact?.userId == thread.partner) {
-            appState.setupForwardRequest(from: threadId, to: threadId, messages: messages)
+            navVM.setupForwardRequest(from: threadId, to: threadId, messages: messages)
             delegate?.showMainButtons(true)
             delegate?.showForwardPlaceholder(show: true)
             /// To call the publisher and activate the send button
             viewModel?.sendContainerViewModel.clear()
         } else if let contact = contact {
             Task {
-                try await appState.openForwardThread(from: threadId, contact: contact, messages: messages)
+                try await navVM.openForwardThread(from: threadId, contact: contact, messages: messages)
             }
         } else if let destinationConversation = destinationConversation {
-            appState.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
+            navVM.openForwardThread(from: threadId, conversation: destinationConversation, messages: messages)
         }
         selectVM.clearSelection()
         delegate?.setSelection(false)
     }
 
     private func sendForwardMessages() {
-        guard let req = navModel.forwardMessageRequest else { return }
+        guard let req = navVM.navigationProperties.forwardMessageRequest else { return }
         if viewModel?.isSimulatedThared == true {
             createAndSend(req)
         } else {
@@ -263,7 +260,7 @@ public final class ThreadSendMessageViewModel {
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 self.send(.forward(req))
-                self.navModel = .init()
+                self.navVM.resetNavigationProperties()
                 self.delegate?.showForwardPlaceholder(show: false)
                 self.sendVM.clear()
             }
@@ -335,7 +332,7 @@ public final class ThreadSendMessageViewModel {
     }
     
     public func createP2PThreadIfNeeded() async {
-        if viewModel?.isSimulatedThared == true, let coreUserId = navModel.userToCreateThread?.coreUserId {
+        if viewModel?.isSimulatedThared == true, let coreUserId = navVM.navigationProperties.userToCreateThread?.coreUserId {
             do {
                 let conversation = try await CreateConversationRequester().create(coreUserId: coreUserId)
                 onCreateP2PThread(conversation)
@@ -356,8 +353,8 @@ public final class ThreadSendMessageViewModel {
             viewModel?.historyVM.updateThreadId(id: conversation.id ?? -1)
         }
         self.viewModel?.updateConversation(conversation)
-        DraftManager.shared.clear(contactId: navModel.userToCreateThread?.contactId ?? -1)
-        navModel.userToCreateThread = nil
+        DraftManager.shared.clear(contactId: navVM.navigationProperties.userToCreateThread?.contactId ?? -1)
+        navVM.setParticipantToCreateThread(nil)
         // It is essential to fill it again if we create a new conversation, if we don't do that it will send the wrong threadId.
         model.threadId = conversation.id ?? -1
     }
@@ -370,7 +367,7 @@ public final class ThreadSendMessageViewModel {
                                 threadId: threadId,
                                 userGroupHash: thread.userGroupHash,
                                 uploadFileIndex: uploadFileIndex,
-                                replyPrivatelyMessage: navModel.replyPrivately
+                                replyPrivatelyMessage: navVM.navigationProperties.replyPrivately
         )
     }
     
