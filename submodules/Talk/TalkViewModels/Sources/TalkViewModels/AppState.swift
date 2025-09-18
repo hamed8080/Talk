@@ -38,7 +38,6 @@ public final class AppState: ObservableObject, Sendable {
     public var lifeCycleState: AppLifeCycleState?
     public var objectsContainer: ObjectsContainer!
     public var appStateNavigationModel: AppStateNavigationModel = .init()
-    public var selfThreadBuilder: SelfThreadBuilder?
     public var searchP2PThread: SearchP2PConversation?
     public var searchThreadById: SearchConversationById?
     @Published public var connectionStatus: ConnectionStatus = .connecting {
@@ -203,16 +202,6 @@ extension AppState {
     public func openThreadWith(userName: String) {
         appStateNavigationModel.userToCreateThread = .init(username: userName)
         searchForP2PThread(coreUserId: nil, userName: userName)
-    }
-    
-    public func openSelfThread() {
-        /// We cannot use saved self conversation in UserDefaults, dut to the fact that it has old lastMessageVO
-        /// so on opening the conversation it will scroll to nowhere.
-        selfThreadBuilder = SelfThreadBuilder()
-        selfThreadBuilder?.create { [weak self] conversation in
-            self?.showThread(conversation)
-            self?.selfThreadBuilder = nil
-        }
     }
     
     /// Forward messages from a thread to a destination thread.

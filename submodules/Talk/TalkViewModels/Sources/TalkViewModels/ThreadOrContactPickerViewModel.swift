@@ -20,7 +20,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     private var isIsSearchMode = false
     public var contactsLazyList = LazyListViewModel()
     public var conversationsLazyList = LazyListViewModel()
-    private var selfConversation: Conversation? = AppState.shared.objectsContainer.selfConversationBuilder.cachedSlefConversation
+    private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
 
     public init() {
         getContacts()

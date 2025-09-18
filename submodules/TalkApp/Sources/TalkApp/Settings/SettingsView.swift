@@ -321,11 +321,32 @@ struct SavedMessageSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "bookmark.fill", title: "Settings.savedMessage", color: Color.App.color5, showDivider: false) {
-            AppState.shared.openSelfThread()
+            Task {
+                do {
+                    let conversation = try await create()
+                    storeInUserDefaults(conversation)
+                    AppState.shared.objectsContainer.navVM.append(thread: conversation)
+                } catch {
+                    
+                }
+            }
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
+    }
+    
+    private func create() async throws -> Conversation {
+        let title = "Thread.selfThread".bundleLocalized()
+        let req = CreateThreadRequest(title: title, type: StrictThreadTypeCreation.selfThread.threadType)
+        let conversation = try await CreateConversationRequester().create(req)
+        
+        return conversation
+    }
+    
+    private func storeInUserDefaults(_ conversation: Conversation) {
+        UserDefaults.standard.setValue(codable: conversation, forKey: "SELF_THREAD")
+        UserDefaults.standard.synchronize()
     }
 }
 

@@ -22,18 +22,21 @@ public class CreateConversationRequester {
     
     public init() { }
     
-    public func create(coreUserId: Int) async throws -> Conversation {
+    public func create(_ req: CreateThreadRequest) async throws -> Conversation {
         let key = KEY
         return try await withCheckedThrowingContinuation { [weak self] continuation in
             self?.sink(continuation)
             Task { @ChatGlobalActor [weak self] in
-                let invitee = Invitee(id: "\(coreUserId)", idType: .coreUserId)
-                let req = CreateThreadRequest(invitees: [invitee], title: "", type: StrictThreadTypeCreation.p2p.threadType)
-                
                 RequestsManager.shared.append(prepend: key, value: req)
                 await ChatManager.activeInstance?.conversation.create(req)
             }
         }
+    }
+    
+    public func create(coreUserId: Int) async throws -> Conversation {
+        let invitee = Invitee(id: "\(coreUserId)", idType: .coreUserId)
+        let req = CreateThreadRequest(invitees: [invitee], title: "", type: StrictThreadTypeCreation.p2p.threadType)
+        return try await create(req)
     }
     
     private func sink(_ continuation: CheckedContinuation<Conversation, any Error>) {
