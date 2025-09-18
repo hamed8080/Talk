@@ -11,18 +11,6 @@ import SwiftUI
 import TalkExtensions
 import TalkModels
 
-/// Properties that can transfer between each navigation page and stay alive unless manually destroyed.
-public struct AppStateNavigationModel: Sendable {
-    public var userToCreateThread: Participant?
-    public var replyPrivately: Message?
-    public var forwardMessages: [Message]?
-    public var forwardMessageRequest: ForwardMessageRequest?
-    public var moveToMessageId: Int?
-    public var moveToMessageTime: UInt?
-    public var openURL: URL?
-    public init() {}
-}
-
 @MainActor
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
@@ -175,38 +163,20 @@ extension AppState {
         let req = ForwardMessageRequest(fromThreadId: from, threadId: to, messageIds: messageIds)
         appStateNavigationModel.forwardMessageRequest = req
     }
-        
-    public func searchForGroupThread(threadId: Int, moveToMessageId: Int, moveToMessageTime: UInt) async throws {
-        if let thread = checkForGroupOffline(tharedId: threadId) {
-            navVM.append(thread: thread)
-        } else if let conversation = try await GetThreadsReuqester().get(.init(threadIds: [threadId])).first {
-            navVM.append(thread: conversation)
-        }
-    }
     
-    public func checkForP2POffline(coreUserId: Int) -> Conversation? {
+    private func checkForP2POffline(coreUserId: Int) -> Conversation? {
         let threads = objectsContainer.threadsVM.threads + objectsContainer.archivesVM.archives
         
         return threads.first(where: {
-            ($0.partner == coreUserId
-             || ($0.participants?.contains(where: {
-                $0.coreUserId == coreUserId
-            }) ?? false))
-            && $0.group == false && $0.type == .normal
+            ($0.partner == coreUserId || ($0.participants?.contains(where: { $0.coreUserId == coreUserId }) ?? false)) &&
+            $0.group == false && $0.type == .normal
         }
         )?.toStruct()
     }
     
-    /// It will search through the Conversation array to prevent creation of new refrence.
-    /// If we don't use object refrence in places that needs to open the thread there will be a inconsistensy in data such as reply privately.
-    private func getRefrenceObject(_ conversation: Conversation?) -> Conversation? {
-        objectsContainer.threadsVM.threads.first { $0.id == conversation?.id }?
-            .toStruct()
-    }
-    
-    public func checkForGroupOffline(tharedId: Int) -> Conversation? {
-        objectsContainer.threadsVM.threads
-            .first(where: { $0.group == true && $0.id == tharedId })?.toStruct()
+    private func checkForOffline(threadId: Int) -> Conversation? {
+        let threads = objectsContainer.threadsVM.threads + objectsContainer.archivesVM.archives
+        return threads.first(where: { $0.id == threadId })?.toStruct()
     }
     
     public func showEmptyThread(userName: String? = nil) {
@@ -230,8 +200,10 @@ extension AppState {
         let navVM = objectsContainer.navVM
         if navVM.viewModel(for: conversationId) != nil, let currentThreadId = navVM.presentedThreadViewModel?.threadId {
             navVM.remove(threadId: currentThreadId)
-        } else {
-            try await searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
+        } else if let conversation = checkForOffline(threadId: conversationId) {
+            navVM.append(thread: conversation)
+        } else if let conversation = try await GetThreadsReuqester().get(.init(threadIds: [conversationId])).first {
+            navVM.append(thread: conversation)
         }
     }
 }
