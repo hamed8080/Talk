@@ -1,5 +1,5 @@
 //
-//  P2PConversationBuilder.swift
+//  SelfThreadBuilder.swift
 //  TalkViewModels
 //
 //  Created by hamed on 10/22/22.
