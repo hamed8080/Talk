@@ -33,11 +33,7 @@ public final class AppState: ObservableObject, Sendable {
     }
 
     public func updateUserCache(user: User?) {
-        Task { @ChatGlobalActor in
-            await MainActor.run {
-                self.user = user
-            }
-        }
+        self.user = user
     }
     
     public func updateWindowMode() {
