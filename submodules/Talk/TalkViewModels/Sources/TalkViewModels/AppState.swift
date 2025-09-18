@@ -131,13 +131,18 @@ extension AppState {
         } else if let conversation = try await GetThreadsReuqester().get(coreUserId: coreUserId) {
             AppState.shared.objectsContainer.navVM.append(thread: conversation)
         } else {
-            showEmptyThread(userName: nil)
+            showEmptyThread(userName: participant.username)
         }
     }
     
-    public func openThreadWith(userName: String) {
+    public func openThreadWith(userName: String) async throws {
         appStateNavigationModel.userToCreateThread = .init(username: userName)
-        searchForP2PThread(coreUserId: nil, userName: userName)
+        
+        if let conversation = try await GetThreadsReuqester().get(userName: userName) {
+            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+        } else {
+            showEmptyThread(userName: userName)
+        }
     }
     
     /// Forward messages from a thread to a destination thread.

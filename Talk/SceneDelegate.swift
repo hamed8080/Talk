@@ -107,7 +107,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         if let threadId = url.widgetThreaId {
             AppState.shared.objectsContainer.navVM.append(thread: .init(id: threadId))
         } else if let userName = url.openThreadUserName {
-            AppState.shared.openThreadWith(userName: userName)
+            Task {
+                try await AppState.shared.openThreadWith(userName: userName)
+            }
         } else if let decodedOpenURL = url.decodedOpenURL {
             let talk = AppState.shared.spec.server.talk
             let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"

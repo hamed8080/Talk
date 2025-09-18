@@ -44,6 +44,10 @@ public class GetThreadsReuqester {
         try await get(.init(partnerCoreUserId: coreUserId)).first
     }
     
+    func get(userName: String) async throws -> Conversation? {
+        try await get(.init(userName: userName)).first
+    }
+    
     public func getCalculated(
         req: ThreadsRequest,
         withCache: Bool,
