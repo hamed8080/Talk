@@ -110,10 +110,16 @@ extension AppState {
 
 // Conversation
 extension AppState {
-    public func openThread(contact: Contact) {
+    public func openThread(contact: Contact) async throws {
         let coreUserId = contact.user?.coreUserId ?? contact.user?.id ?? -1
         appStateNavigationModel.userToCreateThread = contact.toParticipant
-        searchForP2PThread(coreUserId: coreUserId)
+        if let conversation = checkForP2POffline(coreUserId: coreUserId ?? -1) {
+            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+        } else if let conversation = try await GetThreadsReuqester().get(coreUserId: coreUserId) {
+            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+        } else {
+            showEmptyThread(userName: nil)
+        }
     }
     
     public func openThread(participant: Participant) {
@@ -136,25 +142,22 @@ extension AppState {
         AppState.shared.objectsContainer.navVM.append(thread: conversation)
     }
     
-    public func openForwardThread(
-        from: Int, contact: Contact, messages: [Message]
-    ) {
+    public func openForwardThread(from: Int, contact: Contact, messages: [Message]) {
         if let conv = localConversationWith(contact) {
             setupForwardRequest(
                 from: from, to: conv.id ?? -1, messages: messages)
             AppState.shared.objectsContainer.navVM.append(thread: conv)
         } else {
-            openEmptyForwardThread(
-                from: from, contact: contact, messages: messages)
+            Task {
+                try await openEmptyForwardThread(from: from, contact: contact, messages: messages)
+            }
         }
     }
     
-    private func openEmptyForwardThread(
-        from: Int, contact: Contact, messages: [Message]
-    ) {
+    private func openEmptyForwardThread(from: Int, contact: Contact, messages: [Message]) async throws {
         let dstId = LocalId.emptyThread.rawValue
         setupForwardRequest(from: from, to: dstId, messages: messages)
-        openThread(contact: contact)
+        try await openThread(contact: contact)
     }
     
     public func setupForwardRequest(from: Int, to: Int, messages: [Message]) {
@@ -216,15 +219,16 @@ extension AppState {
     }
     
     public func checkForP2POffline(coreUserId: Int) -> Conversation? {
-        objectsContainer.threadsVM.threads
-            .first(where: {
-                ($0.partner == coreUserId
-                 || ($0.participants?.contains(where: {
-                    $0.coreUserId == coreUserId
-                }) ?? false))
-                && $0.group == false && $0.type == .normal
-            }
-            )?.toStruct()
+        let threads = objectsContainer.threadsVM.threads + objectsContainer.archivesVM.archives
+        
+        return threads.first(where: {
+            ($0.partner == coreUserId
+             || ($0.participants?.contains(where: {
+                $0.coreUserId == coreUserId
+            }) ?? false))
+            && $0.group == false && $0.type == .normal
+        }
+        )?.toStruct()
     }
     
     private func updateThreadIdIfIsInForwarding(_ thread: Conversation?) {

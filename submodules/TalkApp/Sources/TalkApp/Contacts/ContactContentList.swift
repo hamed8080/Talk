@@ -249,7 +249,9 @@ struct ContactRowContainer: View {
                 if viewModel.isInSelectionMode {
                     viewModel.toggleSelectedContact(contact: contact)
                 } else if contact.hasUser == true {
-                    AppState.shared.openThread(contact: contact)
+                    Task {
+                        try await AppState.shared.openThread(contact: contact)
+                    }
                 }
             }
     }

@@ -23,7 +23,7 @@ public class GetThreadsReuqester {
     public init() { }
     
     public func get(_ req: ThreadsRequest,
-                    withCache: Bool,
+                    withCache: Bool = false,
                     queueable: Bool = false
     ) async throws -> [Conversation] {
         let key = KEY
@@ -38,6 +38,10 @@ public class GetThreadsReuqester {
                 }
             }
         }
+    }
+    
+    func get(coreUserId: Int) async throws -> Conversation? {
+        try await get(.init(partnerCoreUserId: coreUserId)).first
     }
     
     public func getCalculated(
