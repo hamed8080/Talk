@@ -363,6 +363,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             deselectActiveThread()
             archives.remove(at: index)
             animateObjectWillChange()
+            
+            if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
+                AppState.shared.objectsContainer.navVM.remove(threadId: threadId)
+            }
         }
     }
     

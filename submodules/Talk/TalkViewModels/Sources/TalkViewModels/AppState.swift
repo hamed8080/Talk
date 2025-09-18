@@ -118,10 +118,6 @@ extension AppState {
 extension AppState {
     private func onThreadEvent(_ event: ThreadEventTypes) {
         switch event {
-        case .threads(let response):
-            onGetThreads(response)
-        case .deleted(let response):
-            onDeleted(response)
         case .left(let response):
             onLeft(response)
         default:
@@ -132,21 +128,6 @@ extension AppState {
 
 // Conversation
 extension AppState {
-    private func onGetThreads(_ response: ChatResponse<[Conversation]>) {
-        if RequestsManager.shared.contains(key: response.uniqueId ?? ""),
-           let thraed = response.result?.first
-        {
-            showThread(thraed)
-        }
-    }
-    
-    private func onDeleted(_ response: ChatResponse<Participant>) {
-        if let index = objectsContainer.navVM.pathsTracking.firstIndex(where: {
-            ($0 as? ThreadViewModel)?.id == response.subjectId
-        }) {
-            objectsContainer.navVM.popPathTrackingAt(at: index)
-        }
-    }
     
     private func onLeft(_ response: ChatResponse<User>) {
         let deletedUserId = response.result?.id

@@ -24,7 +24,6 @@ public final class ThreadViewModel: ObservableObject {
     // MARK: Stored Properties
     public var thread: Conversation
     public var replyMessage: Message?
-    @Published public var dismiss = false
     public var exportMessagesViewModel: ExportMessagesViewModel = .init()
     public var unsentMessagesViewModel: ThreadUnsentMessagesViewModel = .init()
     public var searchedMessagesViewModel: ThreadSearchMessagesViewModel = .init()
@@ -226,13 +225,11 @@ public final class ThreadViewModel: ObservableObject {
 
     private func onDeleteThread(_ response: ChatResponse<Participant>) {
         if response.subjectId == id {
-            dismiss = true
         }
     }
 
     private func onLeftThread(_ response: ChatResponse<User>) {
         if response.subjectId == id, response.result?.id == AppState.shared.user?.id {
-            dismiss = true
         } else {
             thread.participantCount = (thread.participantCount ?? 0) - 1
         }
@@ -240,7 +237,6 @@ public final class ThreadViewModel: ObservableObject {
 
     private func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if response.result == id {
-            dismiss = true
         }
     }
 

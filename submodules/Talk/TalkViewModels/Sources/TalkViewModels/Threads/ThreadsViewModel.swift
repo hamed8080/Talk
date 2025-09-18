@@ -436,6 +436,10 @@ public final class ThreadsViewModel: ObservableObject {
     func onDeleteThread(_ response: ChatResponse<Participant>) {
         if let threadId = response.subjectId, let thread = threads.first(where: { $0.id == threadId }) {
             removeThread(thread)
+            
+            if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
+                AppState.shared.objectsContainer.navVM.remove(threadId: threadId)
+            }
         }
     }
 
