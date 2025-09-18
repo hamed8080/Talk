@@ -147,9 +147,7 @@ extension AppState {
     
     /// Forward messages from a thread to a destination thread.
     /// If the conversation is nil it try to use contact. Firstly it opens a conversation using the given contact core user id then send messages to the conversation.
-    public func openForwardThread(
-        from: Int, conversation: Conversation, messages: [Message]
-    ) {
+    public func openForwardThread(from: Int, conversation: Conversation, messages: [Message]) {
         let dstId = conversation.id ?? -1
         setupForwardRequest(from: from, to: dstId, messages: messages)
         AppState.shared.objectsContainer.navVM.append(thread: conversation)
@@ -175,10 +173,10 @@ extension AppState {
     
     public func setupForwardRequest(from: Int, to: Int, messages: [Message]) {
         self.appStateNavigationModel.forwardMessages = messages
-        let messageIds = messages.sorted { $0.time ?? 0 < $1.time ?? 0 }
+        let messageIds = messages
+            .sorted { $0.time ?? 0 < $1.time ?? 0 }
             .compactMap { $0.id }
-        let req = ForwardMessageRequest(
-            fromThreadId: from, threadId: to, messageIds: messageIds)
+        let req = ForwardMessageRequest(fromThreadId: from, threadId: to, messageIds: messageIds)
         appStateNavigationModel.forwardMessageRequest = req
     }
     
@@ -188,21 +186,7 @@ extension AppState {
         else { return nil }
         return conversation
     }
-    
-    public func searchForP2PThread(coreUserId: Int?, userName: String? = nil) {
-        if let thread = checkForP2POffline(coreUserId: coreUserId ?? -1) {
-            onSearchP2PThreads(thread)
-            return
-        }
-        searchP2PThread = SearchP2PConversation()
-        searchP2PThread?.searchForP2PThread(
-            coreUserId: coreUserId, userName: userName
-        ) { [weak self] conversation in
-            self?.onSearchP2PThreads(conversation, userName: userName)
-            self?.searchP2PThread = nil
-        }
-    }
-    
+        
     public func searchForGroupThread(
         threadId: Int, moveToMessageId: Int, moveToMessageTime: UInt
     ) {
@@ -289,14 +273,10 @@ extension AppState {
         /// Check if destiation thread is already inside NavigationPath stack,
         /// If it is exist we will pop and remove current Path, to show the viewModel
         let navVM = objectsContainer.navVM
-        if navVM.viewModel(for: conversationId) != nil,
-           let currentThreadId = navVM.presentedThreadViewModel?.threadId
-        {
+        if navVM.viewModel(for: conversationId) != nil, let currentThreadId = navVM.presentedThreadViewModel?.threadId {
             navVM.remove(threadId: currentThreadId)
         } else {
-            searchForGroupThread(
-                threadId: conversationId, moveToMessageId: messageId,
-                moveToMessageTime: messageTime)
+            searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
         }
     }
 }
