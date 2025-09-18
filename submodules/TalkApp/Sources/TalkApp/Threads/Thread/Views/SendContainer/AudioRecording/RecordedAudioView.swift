@@ -55,9 +55,10 @@ public final class RecordedAudioView: UIStackView {
         btnSend.accessibilityIdentifier = "btnSendRecordedAudioView"
         btnSend.action = { [weak self] in
             self?.onSendOrClose?()
-            Task { [weak self] in
+            let task: Task<Void, any Error> = Task { [weak self] in
                 await self?.viewModel?.sendMessageViewModel.sendTextMessage()
             }
+            self?.viewModel?.historyVM.setTask(task)
         }
 
         let btnDelete = UIButton(type: .system)

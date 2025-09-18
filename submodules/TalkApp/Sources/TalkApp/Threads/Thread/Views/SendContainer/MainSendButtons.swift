@@ -290,13 +290,14 @@ public final class MainSendButtons: UIStackView {
     }
 
     @objc private func onBtnSendTapped() {
-        Task { [weak self] in
+        let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
             await threadVM?.sendMessageViewModel.sendTextMessage()
             threadVM?.mentionListPickerViewModel.text = ""
             threadVM?.delegate?.openReplyMode(nil)
             threadVM?.delegate?.openEditMode(nil)
         }
+        threadVM?.historyVM.setTask(task)
     }
 
     @objc private func onBtnToggleAttachmentButtonsTapped() {

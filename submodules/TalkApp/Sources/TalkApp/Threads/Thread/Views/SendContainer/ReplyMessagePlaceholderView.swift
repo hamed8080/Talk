@@ -156,8 +156,9 @@ public final class ReplyMessagePlaceholderView: UIStackView {
             let time = viewModel?.replyMessage?.time,
             let id = viewModel?.replyMessage?.id
         else { return }
-        Task { [weak self] in
+        let task: Task<Void, any Error> = Task { [weak self] in
             await self?.viewModel?.historyVM.moveToTime(time, id)
         }
+        viewModel?.historyVM.setTask(task)
     }
 }

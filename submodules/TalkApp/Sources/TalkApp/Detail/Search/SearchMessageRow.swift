@@ -47,7 +47,7 @@ struct SearchMessageRow: View {
     }
 
     private func onTap() {
-        Task { @MainActor in
+        let task: Task<Void, any Error> = Task { @MainActor in
             if let time = message.time, let messageId = message.id {
                 AppState.shared.objectsContainer.navVM.popLastDetail()
                 AppState.shared.appStateNavigationModel.userToCreateThread = nil
@@ -57,6 +57,7 @@ struct SearchMessageRow: View {
                 threadVM?.searchedMessagesViewModel.cancel()
             }
         }
+        threadVM?.historyVM.setTask(task)
     }
 }
 

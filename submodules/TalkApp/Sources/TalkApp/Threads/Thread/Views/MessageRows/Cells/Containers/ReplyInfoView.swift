@@ -160,7 +160,7 @@ final class ReplyInfoView: UIView {
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {
         if viewModel?.message.replyInfo?.deleted == true { return }
-        Task { [weak self] in
+        let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
             if isReplyPrivately {
                 moveToReplyPrivately()
@@ -168,6 +168,7 @@ final class ReplyInfoView: UIView {
                 await moveToReply()
             }
         }
+        historyVM?.setTask(task)
     }
 
     private func moveToReply() async {

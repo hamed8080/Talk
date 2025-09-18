@@ -21,7 +21,7 @@ public final class ThreadHistoryViewModel {
     public private(set) var sections: ContiguousArray<MessageSection> = .init()
     private var deleteQueue = DeleteMessagesQueue()
 
-    private var task: Task<Void, Error>?
+    private var task: Task<Void, any Error>?
     private var reactionsTask: Task<Void, Error>?
     private var avatarsTask: Task<Void, Error>?
    
@@ -118,6 +118,10 @@ extension ThreadHistoryViewModel {
         trySecondScenario()
         tryOpenThreadWithUnreadMessagesForTheFirstTime()
         tryNinthScenario()
+    }
+    
+    public func setTask(_ task: Task<Void, any Error>) {
+        self.task = task
     }
 }
 

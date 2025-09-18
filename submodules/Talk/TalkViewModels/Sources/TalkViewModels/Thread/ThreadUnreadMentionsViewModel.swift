@@ -38,11 +38,6 @@ public final class ThreadUnreadMentionsViewModel {
             .store(in: &cancelable)
     }
 
-    public func scrollToMentionedMessage() async {
-        await viewModel?.scrollVM.scrollingUP = false//open sending unread counts if we scrolled up and there is a new messge where we have mentiond
-        await viewModel?.moveToFirstUnreadMessage()
-    }
-
     public func fetchAllUnreadMentions() {
         guard let threadId = thread?.id else { return }
         let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)

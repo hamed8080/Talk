@@ -253,7 +253,7 @@ extension TabRowModel {
 /// Move to the Message
 extension TabRowModel {
     public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
-        Task { [weak self] in
+        let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
             let historyVM = detailVM.threadVM?.historyVM
             detailVM.dismisByMoveToAMessage()
