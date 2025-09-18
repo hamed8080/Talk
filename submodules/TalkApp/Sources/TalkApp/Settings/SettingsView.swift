@@ -222,7 +222,7 @@ struct UserInformationSection: View {
                 }
 
                 if case .setProfile(let updatedUser) = event {
-                    AppState.shared.user?.chatProfileVO?.bio = updatedUser.result?.bio
+                    AppState.shared.setUserBio(bio: updatedUser.result?.bio)
                     updateUI(user: AppState.shared.user)
                 }
             }

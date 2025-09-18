@@ -137,7 +137,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
         case let .user(response):
             if let user = response.result {
                 UserConfigManagerVM.instance.onUser(user)
-                AppState.shared.updateUserCache(user: user)
+                AppState.shared.setUser(user)
             }
         default:
             break
@@ -190,7 +190,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
     }
     
     public func logout() async {
-        AppState.shared.user = nil
+        AppState.shared.setUser(nil)
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.user.logOut()
         }

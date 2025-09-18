@@ -15,7 +15,7 @@ import TalkModels
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
     public var spec: Spec = Spec.empty
-    public var user: User?
+    public private(set) var user: User?
     @Published public var error: ChatError?
     @Published public var isLoading: Bool = false
     @Published public var callLogs: [URL]?
@@ -29,11 +29,15 @@ public final class AppState: ObservableObject, Sendable {
     private init() {
         registerObservers()
         updateWindowMode()
-        updateUserCache(user: UserConfigManagerVM.instance.currentUserConfig?.user)
+        user = UserConfigManagerVM.instance.currentUserConfig?.user
     }
 
-    public func updateUserCache(user: User?) {
+    public func setUser(_ user: User?) {
         self.user = user
+    }
+    
+    public func setUserBio(bio: String?) {
+        user?.chatProfileVO?.bio = bio
     }
     
     public func updateWindowMode() {
