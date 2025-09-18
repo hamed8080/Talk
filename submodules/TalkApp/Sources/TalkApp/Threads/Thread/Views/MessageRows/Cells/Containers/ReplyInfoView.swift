@@ -176,10 +176,13 @@ final class ReplyInfoView: UIView {
     }
 
     private func moveToReplyPrivately() {
-        AppState.shared.openThreadAndMoveToMessage(conversationId: sourceConversationId,
-                                                   messageId: replyId,
-                                                   messageTime: replyTime
-        )
+        Task {
+            try await AppState.shared.openThreadAndMoveToMessage(
+                conversationId: sourceConversationId,
+                messageId: replyId,
+                messageTime: replyTime
+            )
+        }
     }
 
     private var historyVM: ThreadHistoryViewModel? { viewModel?.threadVM?.historyVM }

@@ -38,8 +38,6 @@ public final class AppState: ObservableObject, Sendable {
     public var lifeCycleState: AppLifeCycleState?
     public var objectsContainer: ObjectsContainer!
     public var appStateNavigationModel: AppStateNavigationModel = .init()
-    public var searchP2PThread: SearchP2PConversation?
-    public var searchThreadById: SearchConversationById?
     @Published public var connectionStatus: ConnectionStatus = .connecting {
         didSet {
             setConnectionStatus(connectionStatus)
@@ -187,31 +185,11 @@ extension AppState {
         return conversation
     }
         
-    public func searchForGroupThread(
-        threadId: Int, moveToMessageId: Int, moveToMessageTime: UInt
-    ) {
+    public func searchForGroupThread(threadId: Int, moveToMessageId: Int, moveToMessageTime: UInt) async throws {
         if let thread = checkForGroupOffline(tharedId: threadId) {
             AppState.shared.objectsContainer.navVM.append(thread: thread)
-            return
-        }
-        searchThreadById = SearchConversationById()
-        searchThreadById?.search(id: threadId) { [weak self] conversations in
-            if let thread = conversations?.first {
-                AppState.shared.objectsContainer.navVM.append(thread: thread)
-            }
-            self?.searchThreadById = nil
-        }
-    }
-    
-    private func onSearchP2PThreads(
-        _ thread: Conversation?, userName: String? = nil
-    ) {
-        let thread = getRefrenceObject(thread) ?? thread
-        updateThreadIdIfIsInForwarding(thread)
-        if let thread = thread {
-            AppState.shared.objectsContainer.navVM.append(thread: thread)
-        } else {
-            showEmptyThread(userName: userName)
+        } else if let conversation = try await GetThreadsReuqester().get(.init(threadIds: [threadId])).first {
+            AppState.shared.objectsContainer.navVM.append(thread: conversation)
         }
     }
     
@@ -240,9 +218,7 @@ extension AppState {
     
     /// It will search through the Conversation array to prevent creation of new refrence.
     /// If we don't use object refrence in places that needs to open the thread there will be a inconsistensy in data such as reply privately.
-    private func getRefrenceObject(_ conversation: Conversation?)
-    -> Conversation?
-    {
+    private func getRefrenceObject(_ conversation: Conversation?) -> Conversation? {
         objectsContainer.threadsVM.threads.first { $0.id == conversation?.id }?
             .toStruct()
     }
@@ -264,9 +240,7 @@ extension AppState {
         AppState.shared.objectsContainer.navVM.append(thread: conversation)
     }
     
-    public func openThreadAndMoveToMessage(
-        conversationId: Int, messageId: Int, messageTime: UInt
-    ) {
+    public func openThreadAndMoveToMessage(conversationId: Int, messageId: Int, messageTime: UInt) async throws {
         self.appStateNavigationModel.moveToMessageId = messageId
         self.appStateNavigationModel.moveToMessageTime = messageTime
         
@@ -276,7 +250,7 @@ extension AppState {
         if navVM.viewModel(for: conversationId) != nil, let currentThreadId = navVM.presentedThreadViewModel?.threadId {
             navVM.remove(threadId: currentThreadId)
         } else {
-            searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
+            try await searchForGroupThread(threadId: conversationId, moveToMessageId: messageId, moveToMessageTime: messageTime)
         }
     }
 }

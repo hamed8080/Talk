@@ -153,7 +153,8 @@ class ThreadNavigationPlayer: UIView {
             } else {
                 /// Open thread and move to the message directly if we are outside of the thread and player is still plying
                 let threadId = message.conversation?.id ?? -1
-                AppState.shared.openThreadAndMoveToMessage(conversationId: threadId, messageId: id, messageTime: time)
+                
+                try await AppState.shared.openThreadAndMoveToMessage(conversationId: threadId, messageId: id, messageTime: time)
             }
         }
         viewModel?.historyVM.setTask(task)
