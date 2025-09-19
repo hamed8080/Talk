@@ -48,6 +48,7 @@ struct PicturesTabView: View {
         .overlay(alignment: .top) {
             if isEmptyTab {
                 EmptyResultViewInTabs()
+                    .padding(.top, 10)
             }
         }
         .onAppear {
@@ -66,7 +67,7 @@ struct PicturesTabView: View {
     }
 
     private var padding: CGFloat {
-        return 16
+        return isEmptyTab ? 0 : 16
     }
 
     private var itemWidth: CGFloat {

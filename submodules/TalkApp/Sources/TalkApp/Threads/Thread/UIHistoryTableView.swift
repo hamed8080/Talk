@@ -137,12 +137,6 @@ extension UIHistoryTableView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         return sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
     }
-
-    public func resetSelection() {
-        indexPathsForSelectedRows?.forEach{ indexPath in
-            deselectRow(at: indexPath, animated: false)
-        }
-    }
 }
 
 // MARK: Prefetch

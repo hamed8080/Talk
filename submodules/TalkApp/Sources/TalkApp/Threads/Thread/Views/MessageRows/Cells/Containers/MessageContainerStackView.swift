@@ -61,6 +61,7 @@ public final class MessageContainerStackView: UIStackView {
         configureView(isMe: isMe)
 
         addMenus()
+        addDoubleTapGesture()
     }
 
     required init(coder: NSCoder) {
@@ -341,5 +342,38 @@ extension MessageContainerStackView {
         textMessageView.isSelectable = true
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+    }
+}
+
+// MARK: Double Tap gesture
+extension MessageContainerStackView {
+    private func addDoubleTapGesture() {
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(onDoubleTapped))
+        doubleTapGesture.numberOfTapsRequired = 2
+        addGestureRecognizer(doubleTapGesture)
+    }
+    
+    @objc private func onDoubleTapped() {
+        if let action = AppSettingsModel.restore().doubleTapAction {
+            switch action {
+            case .reply:
+                if viewModel?.threadVM?.thread.closed == true { return }
+                
+                let isChannel = viewModel?.threadVM?.thread.type?.isChannelType == true
+                let isAdmin = viewModel?.threadVM?.thread.admin == true
+                if isChannel && !isAdmin { return }
+                
+                viewModel?.threadVM?.delegate?.openReplyMode(viewModel?.message)
+                break
+            case .specialEmoji(let sticker):
+                if let messageId = viewModel?.message.id {
+                    let myRow = viewModel?.reactionsModel.rows.first(where: {$0.isMyReaction})
+                    viewModel?.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
+                }
+                break
+            default:
+                break
+            }
+        }
     }
 }

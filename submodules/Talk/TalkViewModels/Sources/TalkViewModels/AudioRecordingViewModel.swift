@@ -35,6 +35,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
     public var startDate: Date = .init()
     @Published public var timerString: String = ""
     @Published public var isRecording: Bool = false
+    @Published public var onRejectPermission: ( () -> Void )? = nil
     private var timer: Timer?
     public var isPermissionGranted: Bool { AVAudioSession.sharedInstance().recordPermission == .granted }
     public var recordingFileName: String = ""
@@ -60,7 +61,8 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
             guard let self = self else { return }
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 self.timerString = self.startDate.distance(to: Date()).timerString(locale: Language.preferredLocale) ?? ""
             }
         }
@@ -69,16 +71,16 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         guard let url = recordingOutputPath else { return }
         deleteFile()
         do {
-            Task { [self] in
-                await try activateSession()
+            Task { [weak self] in
+                await try self?.activateSession()
                 let settings = [
                     AVFormatIDKey: Int(kAudioFormatLinearPCM),
                     AVSampleRateKey: 44100,
                     AVNumberOfChannelsKey: 2,
                     AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
                 ]
-                audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-                audioRecorder.record()
+                self?.audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+                self?.audioRecorder.record()
             }
         } catch {
             stop()
@@ -134,8 +136,9 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         } else {
             let error = AppErrorTypes.microphone_access_denied
             let chatError = ChatError(code: error.rawValue, hasError: true)
-            AppState.shared.animateAndShowError(chatError)
-            stop()
+            AppState.shared.objectsContainer.appOverlayVM.showErrorToast(chatError)
+            onRejectPermission?()
+            cancel()
         }
     }
 }

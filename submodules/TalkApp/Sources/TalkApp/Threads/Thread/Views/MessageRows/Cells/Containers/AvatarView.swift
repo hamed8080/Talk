@@ -61,7 +61,8 @@ final class AvatarView: UIImageView {
             isUserInteractionEnabled = false
             setIsHidden(true)
         } else if viewModel.calMessage.isLastMessageOfTheUser {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 if let image = await avManager?.getImage(viewModel) {
                     setImage(image: image)
                 } else {
@@ -91,8 +92,10 @@ final class AvatarView: UIImageView {
 
     @objc func onTap(_ sender: UIGestureRecognizer) {
         if let participant = viewModel?.message.participant {
-            AppState.shared.appStateNavigationModel = .init()
-            AppState.shared.openThread(participant: participant)
+            AppState.shared.objectsContainer.navVM.resetNavigationProperties()
+            Task {
+                try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
+            }
         }
     }
 

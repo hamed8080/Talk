@@ -80,7 +80,8 @@ public final class DeleteMessagesViewModelModel {
     }
 
     public func deleteMessagesForMe() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let selectedMessages = await getSelectedMessages()
             await viewModel?.historyVM.deleteMessages(selectedMessages)
             viewModel?.selectedMessagesViewModel.setInSelectionMode(false)
@@ -91,7 +92,8 @@ public final class DeleteMessagesViewModelModel {
     }
 
     public func deleteForAll() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let selectedMessages = await getSelectedMessages()
             viewModel?.historyVM.deleteMessages(selectedMessages, forAll: true)
             viewModel?.selectedMessagesViewModel.setInSelectionMode(false)

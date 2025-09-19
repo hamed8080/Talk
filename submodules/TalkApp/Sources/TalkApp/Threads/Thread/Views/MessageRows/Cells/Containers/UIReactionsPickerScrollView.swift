@@ -74,6 +74,7 @@ class UIReactionsPickerScrollView: UIView {
         cv.allowsSelection = true
         cv.contentInset = .init(top: 0, left: 0, bottom: 0, right: 0)
         cv.showsHorizontalScrollIndicator = false
+        cv.isScrollEnabled = false
 
         cv.translatesAutoresizingMaskIntoConstraints = false
         addSubview(cv)

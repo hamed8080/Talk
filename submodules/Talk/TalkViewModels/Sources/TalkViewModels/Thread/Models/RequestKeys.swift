@@ -17,6 +17,7 @@ struct RequestKeys {
     public let MORE_TOP_SECOND_SCENARIO_KEY: String
     public let MORE_BOTTOM_FIFTH_SCENARIO_KEY: String
     public let SAVE_SCROOL_POSITION_KEY: String
+    public let FIRST_MESSAGE_OF_THREAD: String
 
     init() {
         let objectId = UUID().uuidString
@@ -28,6 +29,7 @@ struct RequestKeys {
         MORE_TOP_SECOND_SCENARIO_KEY = "MORE-TOP-SECOND-SCENARIO-\(objectId)"
         MORE_BOTTOM_FIFTH_SCENARIO_KEY = "MORE-BOTTOM-FIFTH-SCENARIO-\(objectId)"
         SAVE_SCROOL_POSITION_KEY = "SAVE-SCROOL-POSITION-\(objectId)"
+        FIRST_MESSAGE_OF_THREAD = "FIRST-MESSAGE-OF-THREAD-\(objectId)"
         self.objectId = objectId
     }
 }

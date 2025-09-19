@@ -28,7 +28,7 @@ struct MutualsTabView: View {
                             }
                         }
                         .onTapGesture {
-                            AppState.shared.showThread(thread)
+                            AppState.shared.objectsContainer.navVM.append(thread: thread)
                         }
                 }
             }

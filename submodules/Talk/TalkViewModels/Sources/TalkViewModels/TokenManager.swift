@@ -23,8 +23,8 @@ public final class TokenManager: ObservableObject {
     
     private init(session: URLSession = .shared) {
         self.session = session
-        Task {
-            await self.startRefreshTokenTimerWhenIsInForeground()
+        Task { [weak self] in
+            await self?.startRefreshTokenTimerWhenIsInForeground()
         }
     }
     
@@ -164,7 +164,8 @@ public final class TokenManager: ObservableObject {
         UserConfigManagerVM.instance.updateToken(ssoToken)
         refreshCreateTokenDate()
         if let encodedData = try? JSONEncoder().encode(ssoToken) {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await MainActor.run {
                     UserDefaults.standard.set(encodedData, forKey: TokenManager.ssoTokenKey)
                     UserDefaults.standard.synchronize()
@@ -205,9 +206,10 @@ public final class TokenManager: ObservableObject {
     private func startRefreshTokenTimerWhenIsInForeground() async {
         guard let timeToTrigger: TimeInterval = await expireIn() else { return }
         Timer.scheduledTimer(withTimeInterval: max(1, timeToTrigger - 50), repeats: false) { [weak self] timer in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 if AppState.shared.isInForeground {
-                    try? await self?.getNewTokenWithRefreshToken()
+                    try? await self.getNewTokenWithRefreshToken()
                 }
             }
         }
@@ -225,8 +227,9 @@ public final class TokenManager: ObservableObject {
 #if DEBUG
     public func startTokenTimer() {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @AppBackgroundActor in
-                await self?.handleTimer()
+            Task { @AppBackgroundActor [weak self] in
+                guard let self = self else { return }
+                await self.handleTimer()
             }
         }
     }

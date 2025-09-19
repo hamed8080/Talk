@@ -20,7 +20,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     private var isIsSearchMode = false
     public var contactsLazyList = LazyListViewModel()
     public var conversationsLazyList = LazyListViewModel()
-    private var selfConversation: Conversation? = AppState.shared.objectsContainer.selfConversationBuilder.cachedSlefConversation
+    private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
 
     public init() {
         getContacts()
@@ -73,7 +73,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         let req = ThreadsRequest(searchText: text)
         getThreads(req)
         
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await searchContacts(text)
         }
     }
@@ -101,9 +102,15 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public func getThreads(_ req: ThreadsRequest) {
         if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let myId = AppState.shared.user?.id ?? -1
-            let calThreads = try await GetThreadsReuqester().getCalculated(req, withCache: false, myId: myId, navSelectedId: nil)
+            let calThreads = try await GetThreadsReuqester().getCalculated(
+                req: req,
+                withCache: false,
+                myId: myId,
+                navSelectedId: nil
+            )
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
             let filtered = calThreads.filter({$0.closed == false }).filter({$0.type != .selfThread})
@@ -125,7 +132,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public func getContacts() {
         contactsLazyList.setLoading(true)
         let req = ContactsRequest(count: contactsLazyList.count, offset: contactsLazyList.offset)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let contacts = try await GetContactsRequester().get(req, withCache: false)
                 await hideContactsLoadingWithDelay()

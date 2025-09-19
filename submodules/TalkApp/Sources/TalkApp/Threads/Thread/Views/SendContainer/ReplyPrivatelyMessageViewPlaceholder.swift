@@ -56,6 +56,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         messageLabel.font = UIFont.fCaption2
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
+        messageLabel.textAlignment = Language.isRTL ? .right : .left
         vStack.addArrangedSubview(messageLabel)
 
         addArrangedSubview(vStack)
@@ -77,7 +78,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
     }
 
     public func set() {
-        let show = AppState.shared.appStateNavigationModel.replyPrivately != nil
+        let show = AppState.shared.objectsContainer.navVM.navigationProperties.replyPrivately != nil
         if !show {
             removeFromSuperViewWithAnimation()
         } else if superview == nil {
@@ -87,10 +88,11 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
                 self.alpha = 1.0
             }
         }
-        let replyMessage = AppState.shared.appStateNavigationModel.replyPrivately
+        let replyMessage = AppState.shared.objectsContainer.navVM.navigationProperties.replyPrivately
         nameLabel.text = replyMessage?.participant?.name
         nameLabel.setIsHidden(replyMessage?.participant?.name == nil)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let message = replyMessage?.fileMetaData?.name ?? replyMessage?.message ?? ""
             await MainActor.run {
                 messageLabel.text = message
@@ -100,7 +102,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
 
     private func close() {
         viewModel?.scrollVM.disableExcessiveLoading()
-        AppState.shared.appStateNavigationModel = .init()
+        AppState.shared.objectsContainer.navVM.resetNavigationProperties()
         UIView.animate(withDuration: 0.3) {
             self.set()
         }

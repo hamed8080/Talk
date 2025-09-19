@@ -53,7 +53,8 @@ public final class LoginViewModel: ObservableObject {
                                                   refreshToken: nil,
                                                   scope: nil,
                                                   tokenType: nil)
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await saveTokenAndCreateChatObject(ssoToken)
             }
             isLoading = false
@@ -71,7 +72,8 @@ public final class LoginViewModel: ObservableObject {
         var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.httpBody = req.parameterData
         urlReq.method = .post
-        Task { @AppBackgroundActor in
+        Task { @AppBackgroundActor [weak self] in
+            guard let self = self else { return }
             do {
                 let resp = try await session.data(for: urlReq)
                 let decodecd = try JSONDecoder().decode(HandshakeResponse.self, from: resp.0)
@@ -101,7 +103,8 @@ public final class LoginViewModel: ObservableObject {
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
-        Task { @AppBackgroundActor in
+        Task { @AppBackgroundActor [weak self] in
+            guard let self = self else { return }
             do {
                 let resp = try await session.data(for: urlReq)
                 let result = try JSONDecoder().decode(AuthorizeResponse.self, from: resp.0)
@@ -146,7 +149,8 @@ public final class LoginViewModel: ObservableObject {
         urlReq.url?.append(queryItems: [.init(name: "identity", value: text.replaceRTLNumbers()), .init(name: "otp", value: codes)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let resp = try await session.data(for: urlReq)
                 var ssoToken = try await decodeSSOToken(data: resp.0)

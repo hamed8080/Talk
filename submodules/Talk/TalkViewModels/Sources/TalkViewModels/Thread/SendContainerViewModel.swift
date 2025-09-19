@@ -16,7 +16,6 @@ public final class SendContainerViewModel: ObservableObject {
     private var thread: Conversation { viewModel?.thread ?? .init() }
     public var threadId: Int { thread.id ?? -1 }
     private var textMessage: String = ""
-    private var cancelable: Set<AnyCancellable> = []
     /// We will need this for UserDefault purposes because ViewModel.thread is nil when the view appears.
     @Published private var mode: SendcContainerMode = .init(type: .voice)
     public var height: CGFloat = 0
@@ -28,7 +27,7 @@ public final class SendContainerViewModel: ObservableObject {
 
     public func setup(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
-        let contactId = AppState.shared.appStateNavigationModel.userToCreateThread?.contactId ?? -1
+        let contactId = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread?.contactId ?? -1
         let textMessage = draftManager.get(threadId: threadId) ?? draftManager.get(contactId: contactId) ?? ""
         setText(newValue: textMessage)
         if let editMessage = getDraftEditMessage() {
@@ -99,16 +98,10 @@ public final class SendContainerViewModel: ObservableObject {
         return mode.editMessage
     }
 
-    public func cancelAllObservers() {
-        cancelable.forEach { cancelable in
-            cancelable.cancel()
-        }
-    }
-
     public func setDraft(newText: String) {
         if !isSimulated() {
             draftManager.set(draftValue: newText, threadId: threadId)
-        } else if let contactId = AppState.shared.appStateNavigationModel.userToCreateThread?.contactId {
+        } else if let contactId = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread?.contactId {
             draftManager.set(draftValue: newText, contactId: contactId)
         }
     }
@@ -156,7 +149,7 @@ public final class SendContainerViewModel: ObservableObject {
     }
 
     private func hasForward() -> Bool {
-        AppState.shared.appStateNavigationModel.forwardMessageRequest != nil
+        AppState.shared.objectsContainer.navVM.navigationProperties.forwardMessageRequest != nil
     }
     
     public func showCamera(mode: SendcContainerMode) -> Bool {

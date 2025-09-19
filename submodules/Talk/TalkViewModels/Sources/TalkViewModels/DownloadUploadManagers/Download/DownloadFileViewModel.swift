@@ -37,7 +37,8 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
     public init(message: Message) {
         self.message = message
         setObservers()
-        Task { @AppBackgroundActor in
+        Task { @AppBackgroundActor [weak self] in
+            guard let self = self else { return }
             await prepare()
         }
     }
@@ -100,13 +101,15 @@ public final class DownloadFileViewModel: ObservableObject, DownloadFileViewMode
         case .file(let chatResponse, let url):
             onResponse(chatResponse, url)
         case .downloadFile(let chatResponse):
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await onResponse(chatResponse)
             }
         case .image(let chatResponse, let url):
             onResponse(chatResponse, url)
         case .downloadImage(let chatResponse):
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await onResponse(chatResponse)
             }
         case .suspended(let uniqueId):

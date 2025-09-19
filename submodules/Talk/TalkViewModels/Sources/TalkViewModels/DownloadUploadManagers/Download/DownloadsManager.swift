@@ -29,8 +29,9 @@ public final class DownloadsManager: ObservableObject {
         if element.viewModel.isInCache { return } 
         if elements.contains(where: {$0.viewModel.message.id == element.viewModel.message.id}) { throw DownloadsManagerError.duplicate }
         element.viewModel.objectWillChange.sink { [weak self] in
-            Task {
-                await self?.onDownloadStateChanged(element)
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.onDownloadStateChanged(element)
             }
         }.store(in: &cancellableSet)
         elements.append(element)
@@ -117,7 +118,8 @@ extension DownloadsManager {
                 resume(element: element)
             }
         } else {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 try? enqueue(element: await .init(message: message))
             }
         }

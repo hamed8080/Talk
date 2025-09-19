@@ -48,7 +48,8 @@ final class ThreadViewController: UIViewController {
         super.viewWillAppear(animated)
         isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await viewModel?.historyVM.start()
         }
     }
@@ -85,11 +86,12 @@ final class ThreadViewController: UIViewController {
         }
     }
 
-#if DEBUG
     deinit {
+        NotificationCenter.default.removeObserver(self)
+#if DEBUG
         print("deinit ThreadViewController")
-    }
 #endif
+    }
 }
 
 // MARK: Configure Views
@@ -209,6 +211,10 @@ extension ThreadViewController: ThreadViewDelegate {
     }
 
     func setSelection(_ value: Bool) {
+        if !value {
+            viewModel?.selectedMessagesViewModel.clearSelection()
+        }
+        
         tapGetsure.isEnabled = !value
         viewModel?.selectedMessagesViewModel.setInSelectionMode(value)
         tableView.allowsMultipleSelection = value
@@ -236,10 +242,6 @@ extension ThreadViewController: ThreadViewDelegate {
             Task { [weak self] in
                 await self?.moveTolastMessageIfVisible()
             }
-        }
-
-        if !value {
-            tableView.resetSelection()
         }
     }
 
@@ -558,6 +560,8 @@ extension ThreadViewController: HistoryScrollDelegate {
         if let scrollToIndexPath = scrollTo, let at = at {
             tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: animate)
         }
+        
+        viewModel?.selectedMessagesViewModel.reSelectTableView()
     }
     
     func insertedWithContentOffsset(_ sections: IndexSet, _ rows: [IndexPath]) {
@@ -588,6 +592,8 @@ extension ThreadViewController: HistoryScrollDelegate {
             
             // 3. Adjust content offset to preserve visual position
             tableView.setContentOffset(CGPoint(x: previousOffset.x, y: previousOffset.y + heightDifference), animated: false)
+            
+            viewModel?.selectedMessagesViewModel.reSelectTableView()
         }
     }
     
@@ -703,14 +709,16 @@ struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
 extension ThreadViewController {
     private func registerKeyboard() {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            Task { @MainActor in
-                self?.willShowKeyboard(notif: notif)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.willShowKeyboard(notif: notif)
             }
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] notif in
-            Task { @MainActor in
-                self?.willHidekeyboard(notif: notif)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.willHidekeyboard(notif: notif)
             }
         }
         tapGetsure.addTarget(self, action: #selector(hideKeyboard))

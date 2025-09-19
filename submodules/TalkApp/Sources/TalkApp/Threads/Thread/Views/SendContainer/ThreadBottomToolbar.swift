@@ -16,7 +16,7 @@ import TalkModels
 public final class ThreadBottomToolbar: UIStackView {
     private weak var viewModel: ThreadViewModel?
     private let mainSendButtons: MainSendButtons
-    private let audioRecordingView: AudioRecordingView
+    private let audioRecordingContainerView: AudioRecordingContainerView
     private let pickerButtons: PickerButtonsView
     private let attachmentFilesTableView: AttachmentFilesTableView
     private let replyPrivatelyPlaceholderView: ReplyPrivatelyMessagePlaceholderView
@@ -32,7 +32,7 @@ public final class ThreadBottomToolbar: UIStackView {
     public init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
         self.mainSendButtons = MainSendButtons(viewModel: viewModel)
-        self.audioRecordingView = AudioRecordingView(viewModel: viewModel)
+        self.audioRecordingContainerView = AudioRecordingContainerView(viewModel: viewModel)
         self.pickerButtons = PickerButtonsView(viewModel: viewModel?.sendContainerViewModel, threadVM: viewModel)
         self.attachmentFilesTableView = AttachmentFilesTableView(viewModel: viewModel)
         self.replyPlaceholderView = ReplyMessagePlaceholderView(viewModel: viewModel)
@@ -129,7 +129,8 @@ public final class ThreadBottomToolbar: UIStackView {
     public func updateHeightWithDelay() {
         Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
             guard let self = self else { return }
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 onUpdateHeight?(frame.height)
             }
         }
@@ -154,7 +155,7 @@ public final class ThreadBottomToolbar: UIStackView {
     public func openRecording(_ show: Bool) {
         viewModel?.attachmentsViewModel.clear()
         showMainButtons(!show, withRemoveAnimaiton: false)
-        audioRecordingView.show(show, stack: self) // Reset to show RecordingView again
+        audioRecordingContainerView.show(show, stack: self) // Reset to show RecordingView again
     }
 
     public func onConversationClosed() {

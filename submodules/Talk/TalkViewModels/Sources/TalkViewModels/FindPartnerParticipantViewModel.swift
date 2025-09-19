@@ -53,9 +53,9 @@ public final class FindPartnerParticipantViewModel {
         }
     }
 
-#if DEBUG
     deinit {
+#if DEBUG
         print("deinit FindPartnerParticipantViewModel")
-    }
 #endif
+    }
 }

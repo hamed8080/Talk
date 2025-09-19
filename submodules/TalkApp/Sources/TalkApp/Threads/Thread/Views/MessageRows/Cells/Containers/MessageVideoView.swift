@@ -192,7 +192,8 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     private func prepareUIForPlayback(url: URL) {
         showDownloadProgress(show: false)
         playIcon.setIsHidden(false)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await makeViewModel(url: url, message: message)
             if let player = videoPlayerVM?.player {
                 setVideo(player: player)
@@ -253,6 +254,9 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     
     private func enterFullScreen() {
         guard let rootVC = viewModel?.threadVM?.delegate as? UIViewController else { return }
+        
+        configureAudioSessionForPlayback()
+        
         if fullScreenPlayerVC == nil {
             fullScreenPlayerVC = AVPlayerViewController()
         }
@@ -346,5 +350,14 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     override func layoutSubviews() {
         super.layoutSubviews()
         topGradientView.layer.sublayers?.first?.frame = topGradientView.bounds
+    }
+    
+    private func configureAudioSessionForPlayback() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to set audio session category: \(error)")
+        }
     }
 }

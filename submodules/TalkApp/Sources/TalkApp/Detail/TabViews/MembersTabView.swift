@@ -92,7 +92,9 @@ struct ParticipantRowContainer: View {
             }
             .onTapGesture {
                 if !isMe {
-                    AppState.shared.openThread(participant: participant)
+                    Task {
+                        try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
+                    }
                 }
             }
             .onLongPressGesture {
@@ -176,6 +178,7 @@ struct AddParticipantButton: View {
                     addParticipantsToThread(contacts)
                     presentSheet.toggle()
                 }
+                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
             }
         }
     }

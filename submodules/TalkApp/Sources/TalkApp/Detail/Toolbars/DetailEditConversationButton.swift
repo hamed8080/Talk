@@ -20,10 +20,10 @@ struct DetailEditConversationButton: View {
                         .environmentObject(viewModel)
                         .navigationBarBackButtonHidden(true)
                         .onAppear {
-                            AppState.shared.objectsContainer.navVM.presntedNavigationLinkId = viewModel.thread.id
+                            AppState.shared.objectsContainer.navVM.pushToLinkId(id: "DetailEditConversation-\(viewModel.thread.id ?? 0)" )
                         }
                         .onDisappear {
-                            AppState.shared.objectsContainer.navVM.presntedNavigationLinkId = nil
+                            AppState.shared.objectsContainer.navVM.popLinkId()
                         }
                 }
             } label: {

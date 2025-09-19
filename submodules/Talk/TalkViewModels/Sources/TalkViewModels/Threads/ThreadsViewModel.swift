@@ -89,7 +89,8 @@ public final class ThreadsViewModel: ObservableObject {
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.viewModel(for: updatedConversation.id ?? -1)
         if updatedConversation.id == activeVM?.id {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
         }
@@ -125,6 +126,7 @@ public final class ThreadsViewModel: ObservableObject {
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
             wasDisconnected = true
+            deselectActiveThread()
             await refresh()
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
@@ -135,8 +137,9 @@ public final class ThreadsViewModel: ObservableObject {
     private func getCachedThreads() async {
         let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
         do {
-            let conversations = try await GetThreadsReuqester().getCalculated(req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
-            await onThreads(conversations)
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req, withCache: true, queueable: false, myId: myId, navSelectedId: navVM.selectedId)
+            let filtered = conversations.filter({ $0.isArchive == false || $0.isArchive == nil })
+            await onThreads(filtered)
         } catch {
             log("Failed to get cached threads with error: \(error.localizedDescription)")
         }
@@ -152,18 +155,19 @@ public final class ThreadsViewModel: ObservableObject {
         do {
             
             let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
-            let conversations = try await GetThreadsReuqester().getCalculated(req,
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req,
                                                                               withCache: false,
                                                                               queueable: withQueue,
                                                                               myId: myId,
                                                                               navSelectedId: navVM.selectedId,
                                                                               keepOrder: keepOrder)
+            let filtered = conversations.filter({ $0.isArchive == false || $0.isArchive == nil })
             if wasDisconnected {
                 /// Clear and remove all threads
                 threads.removeAll()
             }
                         
-            await onThreads(conversations)
+            await onThreads(filtered)
             
             moveToTopIfWasDisconnected(topItemId: threads.first?.id)
             
@@ -191,7 +195,6 @@ public final class ThreadsViewModel: ObservableObject {
         let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
         let threshold = await splitThreshold(sorted)
       
-        resetActiveThread()
         self.threads = sorted
         updatePresentedViewModels(threads)
         lazyList.setHasNext(hasAnyResults)
@@ -389,11 +392,11 @@ public final class ThreadsViewModel: ObservableObject {
     
     public func sortInPlace() async {
         let sorted = await sort(threads: threads, serverSortedPins: serverSortedPins)
-        resetActiveThread()
         threads = sorted
     }
 
     public func clear() {
+        deselectActiveThread()
         lazyList.reset()
         threads = []
         firstSuccessResponse = false
@@ -409,14 +412,14 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func removeThread(_ thread: CalculatedConversation) {
         guard let index = firstIndex(thread.id) else { return }
-        resetActiveThread()
+        deselectActiveThread()
         _ = threads.remove(at: index)
         animateObjectWillChange()
     }
 
     public func delete(_ threadId: Int?) {
         guard let threadId = threadId else { return }
-        let conversation = threads.first(where: { $0.id == threadId})
+        let conversation = threads.first(where: { $0.id == threadId}) ?? AppState.shared.objectsContainer.archivesVM.archives.first(where: { $0.id == threadId })
         let isGroup = conversation?.group == true
         if isGroup {
             Task { @ChatGlobalActor in
@@ -433,6 +436,10 @@ public final class ThreadsViewModel: ObservableObject {
     func onDeleteThread(_ response: ChatResponse<Participant>) {
         if let threadId = response.subjectId, let thread = threads.first(where: { $0.id == threadId }) {
             removeThread(thread)
+            
+            if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
+                AppState.shared.objectsContainer.navVM.remove(threadId: threadId)
+            }
         }
     }
 
@@ -495,7 +502,8 @@ public final class ThreadsViewModel: ObservableObject {
         response.result?.forEach { key, value in
             if let index = firstIndex(Int(key)) {
                 threads[index].unreadCount = value
-                Task {
+                Task { [weak self] in
+                    guard let self = self else { return }
                     await ThreadCalculators.reCalculateUnreadCount(threads[index])
                     threads[index].animateObjectWillChange()
                 }
@@ -555,10 +563,11 @@ public final class ThreadsViewModel: ObservableObject {
 
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
-            resetActiveThread()
-            threads.remove(at: index)
+            deselectActiveThread()
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(threads[index])
+            
+            threads.remove(at: index)
             animateObjectWillChange()
             AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }
@@ -595,7 +604,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func onCancelTimer(key: String) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             if lazyList.isLoading {
                 lazyList.setLoading(false)
             }
@@ -630,7 +640,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) async {
         if let conversation = response.result {
             if conversation.participants?.first?.id == myId, response.pop(prepend: JOIN_TO_PUBLIC_GROUP_KEY) != nil {
-                AppState.shared.showThread(conversation)
+                AppState.shared.objectsContainer.navVM.append(thread: conversation)
             }
             
             if let id = conversation.id, let conversation = await threadFinder.getNotActiveThreads(id) {
@@ -646,6 +656,14 @@ public final class ThreadsViewModel: ObservableObject {
         let participant = threadVM?.participantsViewModel.participants.first(where: {$0.id == deletedUserId})
         if isMe, let conversationId = response.subjectId {
             removeThread(.init(id: conversationId))
+            
+            /// Pop detail view and thread view at the same time
+            if navVM.detailsStack.last?.threadVM?.id == conversationId {
+                navVM.detailsStack.last?.dismissBothDetailAndThreadProgramatically()
+            } else if navVM.presentedThreadViewModel?.threadId == conversationId {
+                /// Pop only the thread view if the presented is the thread.
+                navVM.remove(threadId: conversationId)
+            }
         } else if let participant = participant {
             threadVM?.participantsViewModel.removeParticipant(participant)
         }
@@ -723,7 +741,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     private func recalculateAndAnimate(_ thread: CalculatedConversation) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
             thread.animateObjectWillChange()
         }
@@ -733,7 +752,6 @@ public final class ThreadsViewModel: ObservableObject {
         let calThreads = await ThreadCalculators.calculate(conversations: [thread], myId: myId)
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
-        resetActiveThread()
         threads = sorted
         animateObjectWillChange()
     }
@@ -751,9 +769,9 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
     
-    /// Reset active thread will force the SwiftUI to
+    /// Deselect a selected thread will force the SwiftUI to
     /// remove the selected color before removing the row reference.
-    private func resetActiveThread() {
+    private func deselectActiveThread() {
         if let index = threads.firstIndex(where: {$0.isSelected}) {
             threads[index].isSelected = false
             threads[index].animateObjectWillChange()

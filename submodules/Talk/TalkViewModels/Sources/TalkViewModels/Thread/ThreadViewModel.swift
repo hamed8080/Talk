@@ -12,7 +12,7 @@ import TalkModels
 import Logger
 
 @MainActor
-public final class ThreadViewModel: Identifiable {
+public final class ThreadViewModel: ObservableObject {
     public static func == (lhs: ThreadViewModel, rhs: ThreadViewModel) -> Bool {
         rhs.id == lhs.id
     }
@@ -24,7 +24,6 @@ public final class ThreadViewModel: Identifiable {
     // MARK: Stored Properties
     public var thread: Conversation
     public var replyMessage: Message?
-    @Published public var dismiss = false
     public var exportMessagesViewModel: ExportMessagesViewModel = .init()
     public var unsentMessagesViewModel: ThreadUnsentMessagesViewModel = .init()
     public var searchedMessagesViewModel: ThreadSearchMessagesViewModel = .init()
@@ -59,10 +58,10 @@ public final class ThreadViewModel: Identifiable {
     public var participant: Participant?
 
     // MARK: Computed Properties
-    public nonisolated let id: Int
+    public var id: Int
     public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.id == id }
     public var isSimulatedThared: Bool {
-        AppState.shared.appStateNavigationModel.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
+        AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
     nonisolated(unsafe) public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth - (38 + MessageRowSizes.avatarSize)
     nonisolated(unsafe) public static var threadWidth: CGFloat = 0 {
@@ -79,10 +78,11 @@ public final class ThreadViewModel: Identifiable {
         self.thread = thread
         self.readOnly = readOnly
         setup()
+        print("created class ThreadViewModel: \(thread.computedTitle)")
     }
 
     private func setup() {
-        participant = AppState.shared.appStateNavigationModel.userToCreateThread
+        participant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread
         seenVM.setup(viewModel: self)
         unreadMentionsViewModel.setup(viewModel: self)
         mentionListPickerViewModel.setup(viewModel: self)
@@ -110,6 +110,7 @@ public final class ThreadViewModel: Identifiable {
     }
 
     // MARK: Actions
+
     public func clearCacheFile(message: Message) {
         if let fileHashCode = message.fileMetaData?.fileHash {
             let spec = AppState.shared.spec
@@ -131,7 +132,7 @@ public final class ThreadViewModel: Identifiable {
             let ext = item.registeredContentTypes.first?.preferredFilenameExtension ?? ""
             let iconName = ext.systemImageNameForFileExtension
             _ = item.loadDataRepresentation(for: .item) { data, _ in
-                DispatchQueue.main.async {  [weak self] in
+                DispatchQueue.main.async { [weak self] in
                     let item = DropItem(data: data, name: name, iconName: iconName, ext: ext)
                     self?.attachmentsViewModel.append(attachments: [.init(type: .drop, request: item)])
                 }
@@ -197,8 +198,8 @@ public final class ThreadViewModel: Identifiable {
     private func onMessageEvent(_ event: MessageEventTypes?) {
         switch event {
         case .edited(let response):
-            Task {
-                await onEditedMessage(response)
+            Task { [weak self] in
+                await self?.onEditedMessage(response)
             }
         default:
             break
@@ -207,13 +208,11 @@ public final class ThreadViewModel: Identifiable {
 
     private func onDeleteThread(_ response: ChatResponse<Participant>) {
         if response.subjectId == id {
-            dismiss = true
         }
     }
 
     private func onLeftThread(_ response: ChatResponse<User>) {
         if response.subjectId == id, response.result?.id == AppState.shared.user?.id {
-            dismiss = true
         } else {
             thread.participantCount = (thread.participantCount ?? 0) - 1
         }
@@ -221,7 +220,6 @@ public final class ThreadViewModel: Identifiable {
 
     private func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if response.result == id {
-            dismiss = true
         }
     }
 
@@ -272,7 +270,6 @@ public final class ThreadViewModel: Identifiable {
         unreadMentionsViewModel.cancelAllObservers()
         participantsViewModel.cancelAllObservers()
         mentionListPickerViewModel.cancelAllObservers()
-        sendContainerViewModel.cancelAllObservers()
         historyVM.cancelAllObservers()
         threadPinMessageViewModel.cancelAllObservers()
 //        scrollVM.cancelAllObservers()
@@ -345,19 +342,18 @@ public final class ThreadViewModel: Identifiable {
         delegate?.onConversationClosed()
     }
    
-
     deinit {
         let title = thread.title ?? ""
-        Task { @MainActor [weak self, title] in
-            self?.log("deinit called in class ThreadViewModel: \(title)")
-        }
+#if DEBUG
+        print("deinit called in class ThreadViewModel: \(title)")
+#endif
     }
 }
 
 // MARK: Signal messasges
 
 public extension ThreadViewModel {
-
+    
     func sendStartTyping(_ newValue: String) {
         if id == LocalId.emptyThread.rawValue || id == 0 || thread.group == true { return }
         if newValue.isEmpty == false {
@@ -370,7 +366,7 @@ public extension ThreadViewModel {
     func cancelTypingSignal() {
         signalEmitter.stopTyping()
     }
-
+    
     func sendSignal(_ signalMessage: SignalMessageType) {
         if id == LocalId.emptyThread.rawValue || id == 0 || thread.group == true { return }
         signalEmitter.send(smt: signalMessage)

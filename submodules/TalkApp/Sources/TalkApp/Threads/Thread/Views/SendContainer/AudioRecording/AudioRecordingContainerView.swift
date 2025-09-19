@@ -1,5 +1,5 @@
 //
-//  AudioRecordingView.swift
+//  AudioRecordingContainerView.swift
 //  TalkUI
 //
 //  Created by hamed on 10/22/22.
@@ -11,9 +11,9 @@ import DSWaveformImage
 import Combine
 import TalkUI
 
-public final class AudioRecordingView: UIStackView {
+public final class AudioRecordingContainerView: UIStackView {
     private let recordedAudioView: RecordedAudioView
-    private let recordingAudioView: RecordingAudioView
+    private let inRecordingAudioView: InRecordingAudioView
     private weak var viewModel: ThreadViewModel?
     static let height: CGFloat = 36
 
@@ -21,8 +21,8 @@ public final class AudioRecordingView: UIStackView {
         self.viewModel = viewModel
         recordedAudioView = RecordedAudioView(viewModel: viewModel)
         recordedAudioView.accessibilityIdentifier = "recordedAudioViewAudioRecordingView"
-        recordingAudioView = RecordingAudioView(viewModel: viewModel?.audioRecoderVM)
-        recordingAudioView.accessibilityIdentifier = "recordingAudioViewAudioRecordingView"
+        inRecordingAudioView = InRecordingAudioView(viewModel: viewModel?.audioRecoderVM)
+        inRecordingAudioView.accessibilityIdentifier = "inRecordingAudioViewAudioRecordingView"
         super.init(frame: .zero)
         configureView()
     }
@@ -36,11 +36,11 @@ public final class AudioRecordingView: UIStackView {
         spacing = 0
         
         recordedAudioView.setIsHidden(false)
-        recordingAudioView.setIsHidden(false)
+        inRecordingAudioView.setIsHidden(false)
         addArrangedSubview(recordedAudioView)
-        addArrangedSubview(recordingAudioView)
+        addArrangedSubview(inRecordingAudioView)
 
-        recordingAudioView.onSubmitRecord = { [weak self] fileURL in
+        inRecordingAudioView.onSubmitRecord = { [weak self] fileURL in
             self?.recordedAudioView.fileURL = fileURL
             self?.onSubmitRecord()
         }
@@ -48,15 +48,22 @@ public final class AudioRecordingView: UIStackView {
         recordedAudioView.onSendOrClose = { [weak self] in
             guard let self = self else { return }
             recordedAudioView.setIsHidden(true)
-            recordingAudioView.setIsHidden(true)
+            inRecordingAudioView.setIsHidden(true)
+            viewModel?.delegate?.showRecording(false)
+        }
+    
+        viewModel?.audioRecoderVM.onRejectPermission = { [weak self] in
+            guard let self = self else { return }
+            recordedAudioView.setIsHidden(true)
+            inRecordingAudioView.setIsHidden(true)
             viewModel?.delegate?.showRecording(false)
         }
     }
 
     public func show(_ show: Bool, stack: UIStackView) {
         recordedAudioView.setIsHidden(true)
-        recordingAudioView.setIsHidden(!show)
-        recordingAudioView.alpha = 1.0
+        inRecordingAudioView.setIsHidden(!show)
+        inRecordingAudioView.alpha = 1.0
         recordedAudioView.alpha = 0.0
         recordedAudioView.clear()
         if !show {
@@ -73,17 +80,18 @@ public final class AudioRecordingView: UIStackView {
             }
             // We have to be in showing mode to setup recording unless we will end up toggle isRecording inside the setupRecording method.
             viewModel?.setupRecording()
-            recordingAudioView.startCircleAnimation()
+            inRecordingAudioView.startCircleAnimation()
         }
     }
 
     public func onSubmitRecord() {
         UIView.animate(withDuration: 0.2) {
-            self.recordingAudioView.alpha = 0.0
-            self.recordingAudioView.setIsHidden(true)
+            self.inRecordingAudioView.alpha = 0.0
+            self.inRecordingAudioView.setIsHidden(true)
             self.recordedAudioView.alpha = 1.0
             self.recordedAudioView.setIsHidden(false)
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 try? await self.recordedAudioView.setup()
             }
         }
@@ -91,8 +99,8 @@ public final class AudioRecordingView: UIStackView {
 
     private func onCancelRecording() {
         UIView.animate(withDuration: 0.2) {
-            self.recordingAudioView.alpha = 0.0
-            self.recordingAudioView.setIsHidden(true)
+            self.inRecordingAudioView.alpha = 0.0
+            self.inRecordingAudioView.setIsHidden(true)
             self.recordedAudioView.alpha = 0.0
             self.recordedAudioView.setIsHidden(true)
         }

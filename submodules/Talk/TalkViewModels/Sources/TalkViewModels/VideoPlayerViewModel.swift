@@ -107,9 +107,10 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
         self.fileURL.absoluteString == fileURL.absoluteString ?? ""
     }
     
-#if DEBUG
     deinit {
+        NotificationCenter.default.removeObserver(self)
+#if DEBUG
         print("deinit VideoPlayerViewModel")
-    }
 #endif
+    }
 }

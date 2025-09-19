@@ -38,7 +38,8 @@ final class ThreadHighlightViewModel {
 
         prevhighlightedMessageId = messageId
         highlightTask?.cancel()
-        highlightTask = Task {
+        highlightTask = Task { [weak self] in
+            guard let self = self else { return }
             try? await Task.sleep(for: .seconds(2.5))
             if !Task.isCancelled {
                 // Be sure and make current indexPath, there is a chance the indexPath position is incorrect due to so many factor

@@ -56,7 +56,8 @@ public class PendingManager {
     
     private func resendPendings() {
         pendings.forEach { (key: String, value: Any) in
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await send(message: value)
             }
         }

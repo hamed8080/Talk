@@ -1,5 +1,5 @@
 //
-//  RecordingAudioView.swift
+//  InRecordingAudioView.swift
 //  Talk
 //
 //  Created by hamed on 7/21/24.
@@ -14,7 +14,7 @@ import SwiftUI
 import AVFoundation
 
 @MainActor
-public final class RecordingAudioView: UIStackView {
+public final class InRecordingAudioView: UIStackView {
     private let btnMic = UIImageButton(imagePadding: .init(all: 8))
     private let dotRecordingIndicator = UIImageView()
     private let lblTimer = UILabel()
@@ -85,8 +85,8 @@ public final class RecordingAudioView: UIStackView {
         NSLayoutConstraint.activate([
             dotRecordingIndicator.widthAnchor.constraint(equalToConstant: 8),
             dotRecordingIndicator.heightAnchor.constraint(equalToConstant: 8),
-            btnMic.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnMic.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
+            btnMic.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnMic.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
         ])
     }
 
@@ -99,7 +99,7 @@ public final class RecordingAudioView: UIStackView {
     }
 
     func startCircleAnimation() {
-        dotTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+        dotTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.onAnimationCycle()
             }

@@ -142,7 +142,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: count, offset: offset, archived: true)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: withQueue, myId: myId, navSelectedId: navVM.selectedId)
                 await onArchives(calThreads)
@@ -157,7 +158,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if !TokenManager.shared.isLoggedIn { return }
         isLoading = true
         let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             do {
                 let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: true, myId: myId, navSelectedId: navVM.selectedId)
                 await onArchives(calThreads)
@@ -188,6 +190,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let myId = AppState.shared.user?.id ?? -1
             let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
             archives.append(calThreads)
+            
+            /// Sort archives after appending.
+            self.archives = await sort(threads: archives)
         
             threadsVM.removeThread(threadsVM.threads[index])
             /// threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
@@ -243,6 +248,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             wasDisconnected = true
             /// We sleep for 1 second to prevent getting banned by the server after reconnecting.
             try? await Task.sleep(for: .seconds(1))
+            deselectActiveThread()
             await refresh()
         } else if status == .disconnected && !firstSuccessResponse {
             // To get the cached version of the threads in SQLITE.
@@ -279,7 +285,8 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
         let activeVM = navVM.presentedThreadViewModel?.viewModel
         if updatedConversation.id == activeVM?.id {
-            Task {
+            Task { [weak self] in
+                guard let self = self else { return }
                 await activeVM?.historyVM.onNewMessage(messages, oldConversation, updatedConversation)
             }
         }
@@ -297,6 +304,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     private func onLeave(_ response: ChatResponse<User>) {
         if response.result?.id == myId {
+            deselectActiveThread()
             archives.removeAll(where: {$0.id == response.subjectId})
             animateObjectWillChange()
         }
@@ -352,25 +360,30 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     private func onDeleteThread(_ response: ChatResponse<Participant>) {
         if let threadId = response.subjectId, let index = archives.firstIndex(where: {$0.id == threadId }) {
+            deselectActiveThread()
             archives.remove(at: index)
             animateObjectWillChange()
+            
+            if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
+                AppState.shared.objectsContainer.navVM.remove(threadId: threadId)
+            }
         }
     }
     
     private func recalculateAndAnimate(_ thread: CalculatedConversation) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
             thread.animateObjectWillChange()
         }
     }
     
-   
-    
     func onUnreadCounts(_ response: ChatResponse<[String : Int]>) async {
         response.result?.forEach { key, value in
             if let index = firstIndex(Int(key)) {
                 archives[index].unreadCount = value
-                Task {
+                Task { [weak self] in
+                    guard let self = self else { return }
                     await ThreadCalculators.reCalculateUnreadCount(archives[index])
                     archives[index].animateObjectWillChange()
                 }
@@ -498,9 +511,11 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     func onUserRemovedByAdmin(_ response: ChatResponse<Int>) {
         if let id = response.result, let index = self.firstIndex(id) {
-            archives.remove(at: index)
+            deselectActiveThread()
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(archives[index])
+            
+            archives.remove(at: index)
             animateObjectWillChange()
         }
     }
@@ -518,6 +533,15 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             }
             recalculateAndAnimate(updated)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
+        }
+    }
+    
+    /// Deselect a selected thread will force the SwiftUI to
+    /// remove the selected color before removing the row reference.
+    private func deselectActiveThread() {
+        if let index = archives.firstIndex(where: {$0.isSelected}) {
+            archives[index].isSelected = false
+            archives[index].animateObjectWillChange()
         }
     }
 }

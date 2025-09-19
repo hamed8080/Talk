@@ -33,7 +33,8 @@ public class CustomConversationNavigationBar: UIView {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await registerObservers()
         }
     }
@@ -172,7 +173,7 @@ public class CustomConversationNavigationBar: UIView {
         /// Note: After leaving the thread info with a participant where we didn't have any chat,
         /// the userToCreateThread will be deleted by back button, so we have to reattach this.
         if viewModel.id == LocalId.emptyThread.rawValue {
-            AppState.shared.appStateNavigationModel.userToCreateThread = viewModel.participant
+            AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(viewModel.participant)
         }
         AppState.shared.objectsContainer.navVM.appendThreadDetail(threadViewModel: viewModel)
     }
@@ -247,7 +248,8 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func refetchImageOnUpdateInfo() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await fetchImageOnUpdateInfo()
         }
     }

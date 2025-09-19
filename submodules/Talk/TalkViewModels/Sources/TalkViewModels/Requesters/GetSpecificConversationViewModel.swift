@@ -40,7 +40,7 @@ public final class GetSpecificConversationViewModel {
         cancelable = NotificationCenter.thread.publisher(for: .thread)
             .compactMap { $0.object as? ThreadEventTypes }
             .sink { [weak self] event in
-                Task {
+                Task { [weak self] in
                     guard let self = self, !self.resumed else { return }
                     if let conversation = self.handleThreadEvent(event) {
                         self.resumed = true

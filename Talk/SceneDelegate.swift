@@ -105,9 +105,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else { return }
         if let threadId = url.widgetThreaId {
-            AppState.shared.showThread(.init(id: threadId))
+            AppState.shared.objectsContainer.navVM.append(thread: .init(id: threadId))
         } else if let userName = url.openThreadUserName {
-            AppState.shared.openThreadWith(userName: userName)
+            Task {
+                try await AppState.shared.objectsContainer.navVM.openThreadWith(userName: userName)
+            }
         } else if let decodedOpenURL = url.decodedOpenURL {
             let talk = AppState.shared.spec.server.talk
             let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"
@@ -154,8 +156,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
         AppState.shared.lifeCycleState = .background
-        Task {
-            await scheduleAppRefreshToken()
+        Task { [weak self] in
+            await self?.scheduleAppRefreshToken()
         }
 
         self.backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: "START_REQUESTING_MORE_BG_TIME") { [weak self] in
@@ -194,7 +196,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     }
 
     private func handleTaskRefreshToken(_ task: BGAppRefreshTask) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
             log("Start a new Task in handleTaskRefreshToken method")
             do {
                 try await TokenManager.shared.getNewTokenWithRefreshToken()

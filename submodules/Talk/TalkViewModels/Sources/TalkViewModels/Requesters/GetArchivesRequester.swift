@@ -47,11 +47,14 @@ public class GetArchivesRequester {
             .compactMap { $0.object as? ThreadEventTypes }
             .sink { [weak self] event in
                 Task { [weak self] in
-                    guard let self = self, !self.resumed else { return }
-                    if let result = await self.handleEvent(event, withCache: withCache) {
-                        self.resumed = true
-                        continuation.resume(with: .success(result))
-                    }
+                    guard
+                        let self = self,
+                        let result = await self.handleEvent(event, withCache: withCache),
+                        !self.resumed
+                    else { return }
+                    
+                    continuation.resume(with: .success(result))
+                    self.resumed = true
                 }
             }
             .store(in: &cancellableSet)

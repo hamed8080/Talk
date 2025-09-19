@@ -20,19 +20,21 @@ public class ThreadSystemEventEmiter {
     
     public func sendTyping() {
         if isTyping { return }
-        Task { @ChatGlobalActor in
-            let req = SendSignalMessageRequest(signalType: .isTyping, threadId: self.threadId)
+        let id = threadId
+        Task { @ChatGlobalActor [weak self] in
+            let req = SendSignalMessageRequest(signalType: .isTyping, threadId: id)
             ChatManager.activeInstance?.system.sendSignalMessage(req)
             await MainActor.run {
-                isTyping = false
+                self?.isTyping = false
             }
         }
     }
     
     public func send(smt: SignalMessageType) {
-        signalTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+        let id = threadId
+        signalTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @ChatGlobalActor in
-                let req = SendSignalMessageRequest(signalType: smt, threadId: self.threadId)
+                let req = SendSignalMessageRequest(signalType: smt, threadId: id)
                 ChatManager.activeInstance?.system.sendSignalMessage(req)
             }
         }

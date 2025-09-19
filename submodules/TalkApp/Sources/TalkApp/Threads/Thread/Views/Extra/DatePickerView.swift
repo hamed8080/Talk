@@ -90,7 +90,11 @@ class DatePickerView: UIView {
     }
 
     @objc private func btnSubmitTapped(_ sender: UIButton) {
-        completion?(datePicker.date)
+        let calendar = Calendar(identifier: Language.isRTL ? .persian : .gregorian)
+        let pickedDate = datePicker.date
+        let startOfDay = calendar.startOfDay(for: pickedDate)
+        
+        completion?(startOfDay)
     }
 
     @objc private func btnCanceledTapped(_ sender: UIButton) {

@@ -87,48 +87,28 @@ struct ParticiapntsPageSticker: View {
 
 struct ReactionParticipantRow: View {
     let reaction: Reaction
-
+    
     var body: some View {
-        HStack {
-            ZStack(alignment: .leading) {
-                ImageLoaderView(participant: reaction.participant)
-                    .scaledToFit()
-                    .id(reaction.participant?.id)
-                    .font(.fBoldCaption2)
-                    .foregroundColor(.white)
-                    .frame(width: 64, height: 64)
-                    .background(Color(uiColor: String.getMaterialColorByCharCode(str: reaction.participant?.name ?? "")))
-                    .clipShape(RoundedRectangle(cornerRadius:(24)))
-                Circle()
-                    .fill(.red)
-                    .frame(width: 28, height: 28)
-                    .offset(x: 0, y: 26)
-                    .blendMode(.destinationOut)
-                    .overlay {
-                        Text(verbatim: reaction.reaction?.emoji ?? "")
-                            .font(.system(size: 13))
-                            .frame(width: 22, height: 22)
-                            .background(Color.App.accent.opacity(0.3))
-                            .clipShape(RoundedRectangle(cornerRadius:(18)))
-                            .offset(x: 0, y: 26)
-
-                    }
-            }
-            .compositingGroup()
-            .opacity(0.9)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(reaction.participant?.name ?? "")
-                    .padding(.leading, 4)
-                    .lineLimit(1)
-                    .font(.fBody)
-                if let time = reaction.time {
-                    Text(time.date.localFormattedTime ?? "")
-                        .padding(.leading, 4)
-                        .font(.fCaption3)
-                        .foregroundColor(Color.App.textSecondary)
-                }
-            }
+        HStack(alignment: .center) {
+            ImageLoaderView(participant: reaction.participant)
+                .scaledToFit()
+                .id(reaction.participant?.id)
+                .font(.fBoldCaption2)
+                .foregroundColor(.white)
+                .frame(width: 64, height: 64)
+                .background(Color(uiColor: String.getMaterialColorByCharCode(str: reaction.participant?.name ?? "")))
+                .clipShape(RoundedRectangle(cornerRadius:(24)))
+            
+            Text(reaction.participant?.name ?? "")
+                .padding(.leading, 4)
+                .lineLimit(1)
+                .font(.fBody)
+            
+            Spacer()
+            
+            Text(verbatim: reaction.reaction?.emoji ?? "")
+                .font(.system(size: 15))
+                .frame(width: 22, height: 22)
         }
     }
 }

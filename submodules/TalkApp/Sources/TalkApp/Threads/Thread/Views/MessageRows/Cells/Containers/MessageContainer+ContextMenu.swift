@@ -29,28 +29,6 @@ extension MessageContainerStackView {
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(openContextMenu))
         longGesture.minimumPressDuration = Constants.longPressDuration
         addGestureRecognizer(longGesture)
-        
-        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(onDoubleTapped))
-        doubleTapGesture.numberOfTapsRequired = 2
-        addGestureRecognizer(doubleTapGesture)
-    }
-    
-    @objc private func onDoubleTapped() {
-        if let action = AppSettingsModel.restore().doubleTapAction {
-            switch action {
-            case .reply:
-                viewModel?.threadVM?.delegate?.openReplyMode(viewModel?.message)
-                break
-            case .specialEmoji(let sticker):
-                if let messageId = viewModel?.message.id {
-                    let myRow = viewModel?.reactionsModel.rows.first(where: {$0.isMyReaction})
-                    viewModel?.threadVM?.reactionViewModel.reaction(sticker, messageId: messageId, myReactionId: myRow?.myReactionId, myReactionSticker: myRow?.sticker)
-                }
-                break
-            default:
-                break
-            }
-        }
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -199,8 +177,8 @@ fileprivate class MessageContextMenuContentView: UIView {
         
         /// This delay will fix a crash when a user opens up the context menu fast.
         /// Do not use safeAreaLayoutGuide.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            self.topConstraint?.constant = self.safeAreaInsets.top + 16
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.topConstraint?.constant = (self?.safeAreaInsets.top ?? 0) + 16
         }
         topConstraint = reactionsView.topAnchor.constraint(equalTo: topAnchor, constant: 28)
         topConstraint?.isActive = true

@@ -79,8 +79,13 @@ extension MessageContainerStackView {
 
         if viewModel.calMessage.rowType.isVideo, viewModel.fileState.state == .completed {
             let saveVideoAction = ActionMenuItem(model: .saveVideo) { [weak self] in
-                self?.onSaveVideoAction(model)
-                onMenuClickedDismiss()
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    if let url = await self.getURL(message: model.message) {
+                        await PhotoLibrary.shared.onSaveVideoAction(url: url)
+                        onMenuClickedDismiss()
+                    }
+                }
             }
             menu.addItem(saveVideoAction)
         }
@@ -161,12 +166,14 @@ private extension MessageContainerStackView {
         guard let message = model.message as? Message else { return }
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         guard let participant = model.message.participant else { return }
-        AppState.shared.appStateNavigationModel.replyPrivately = message
-        AppState.shared.openThread(participant: participant)
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(message)
+        Task {
+            try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
+        }
     }
 
     func onForwardAction(_ model: ActionModel) {
-        AppState.shared.appStateNavigationModel.replyPrivately = nil
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(nil)
         model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
@@ -191,7 +198,8 @@ private extension MessageContainerStackView {
     }
 
     func onSaveAction(_ model: ActionModel) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if let fileURL = await model.message.fileURL {
                 do {
                     try await SaveToAlbumViewModel(fileURL: fileURL).save()
@@ -207,27 +215,10 @@ private extension MessageContainerStackView {
             }
         }
     }
-
-    func onSaveVideoAction(_ model: ActionModel) {
-        let message = model.viewModel.message
-        Task { @AppBackgroundActor in
-            guard let url = await message.makeTempURL() else { return }
-            PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-            }) { saved, error in
-                if saved {
-                    Task {
-                        try? FileManager.default.removeItem(at: url)
-                        await MainActor.run {
-                            let icon = Image(systemName: "externaldrive.badge.checkmark")
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.App.white)
-                            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.videoSaved", messageColor: Color.App.textPrimary)
-                        }
-                    }
-                }
-            }
-        }
+    
+    @AppBackgroundActor
+    private func getURL(message: any HistoryMessageProtocol) async -> URL? {
+        return await message.makeTempURL()
     }
 
     func onCopyAction(_ model: ActionModel) {
@@ -305,7 +296,7 @@ private extension MessageContainerStackView {
     }
 
     func onSelectAction(_ model: ActionModel) {
-        AppState.shared.appStateNavigationModel.replyPrivately = nil
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(nil)
         model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward

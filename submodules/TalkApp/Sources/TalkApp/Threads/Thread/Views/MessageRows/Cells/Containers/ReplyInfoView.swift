@@ -160,13 +160,15 @@ final class ReplyInfoView: UIView {
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {
         if viewModel?.message.replyInfo?.deleted == true { return }
-        Task {
+        let task: Task<Void, any Error> = Task { [weak self] in
+            guard let self = self else { return }
             if isReplyPrivately {
                 moveToReplyPrivately()
             } else {
                 await moveToReply()
             }
         }
+        historyVM?.setTask(task)
     }
 
     private func moveToReply() async {
@@ -174,10 +176,13 @@ final class ReplyInfoView: UIView {
     }
 
     private func moveToReplyPrivately() {
-        AppState.shared.openThreadAndMoveToMessage(conversationId: sourceConversationId,
-                                                   messageId: replyId,
-                                                   messageTime: replyTime
-        )
+        Task {
+            try await AppState.shared.objectsContainer.navVM.openThreadAndMoveToMessage(
+                conversationId: sourceConversationId,
+                messageId: replyId,
+                messageTime: replyTime
+            )
+        }
     }
 
     private var historyVM: ThreadHistoryViewModel? { viewModel?.threadVM?.historyVM }
@@ -205,7 +210,8 @@ final class ReplyInfoView: UIView {
     /// Get reply image from the disk or get thumbnail from the server,
     /// and then store it into fileState
     private func setReplyImage() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             let image = await viewModel?.getReplyImage()
             await MainActor.run { [weak self] in
                 /// Set imageView

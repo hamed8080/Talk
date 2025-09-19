@@ -69,6 +69,9 @@ public final class ThreadReactionViewModel {
     public func reaction(_ sticker: Sticker, messageId: Int, myReactionId: Int?, myReactionSticker: Sticker?) {
         if lock { return }
         lock = true
+        
+        let isDisabled = threadVM?.thread.reactionStatus == .disable
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.lock = false
         }
@@ -80,7 +83,7 @@ public final class ThreadReactionViewModel {
             if myReactionSticker == sticker, let reactionId = myReactionId {
                 let req = DeleteReactionRequest(reactionId: reactionId, conversationId: threadId)
                 ChatManager.activeInstance?.reaction.delete(req)
-            } else if canSendReaction {
+            } else if canSendReaction && !isDisabled {
                 if let reactionId = myReactionId {
                     let req = ReplaceReactionRequest(messageId: messageId, conversationId: threadId, reactionId: reactionId, reaction: sticker)
                     ChatManager.activeInstance?.reaction.replace(req)
@@ -137,7 +140,8 @@ public final class ThreadReactionViewModel {
             .filter({$0.reactionableType})
             .compactMap({$0.id})
         inQueueToGetReactions.append(contentsOf: messageIds)
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await getReactionSummary(messageIds, conversationId: threadId, withQueue: withQueue)
         }
     }

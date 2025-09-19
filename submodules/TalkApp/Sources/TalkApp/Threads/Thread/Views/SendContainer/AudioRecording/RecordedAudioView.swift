@@ -55,9 +55,10 @@ public final class RecordedAudioView: UIStackView {
         btnSend.accessibilityIdentifier = "btnSendRecordedAudioView"
         btnSend.action = { [weak self] in
             self?.onSendOrClose?()
-            Task { [weak self] in
+            let task: Task<Void, any Error> = Task { [weak self] in
                 await self?.viewModel?.sendMessageViewModel.sendTextMessage()
             }
+            self?.viewModel?.historyVM.setTask(task)
         }
 
         let btnDelete = UIButton(type: .system)
@@ -91,13 +92,13 @@ public final class RecordedAudioView: UIStackView {
 
         NSLayoutConstraint.activate([
             waveView.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
-            waveView.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnSend.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnSend.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnDelete.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnDelete.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnTogglePlayer.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnTogglePlayer.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
+            waveView.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnSend.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnSend.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnDelete.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnDelete.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnTogglePlayer.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnTogglePlayer.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
         ])
         waveView.setTopConstant(value: -8)
     }
@@ -108,8 +109,9 @@ public final class RecordedAudioView: UIStackView {
         self.item = item
         addProgressView()
         registerObservers(item: item)
-        Task {
-            let image = try await item.createWaveform(height: AudioRecordingView.height - 4)
+        Task { [weak self] in
+            guard let self = self else { return }
+            let image = try await item.createWaveform(height: AudioRecordingContainerView.height - 4)
             self.waveView.alpha = 0
             self.waveView.setImage(to: image)
             UIView.animate(withDuration: 0.25) {

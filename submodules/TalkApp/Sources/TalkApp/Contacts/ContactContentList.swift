@@ -196,7 +196,7 @@ struct ContactRowContainer: View {
     }
 
     var body: some View {
-        ContactRow(contact: contact, isInSelectionMode: $viewModel.isInSelectionMode)
+        ContactRow(contact: contact, isInSelectionMode: $viewModel.isInSelectionMode, isInSearchMode: isSearchRow)
             .animation(.spring(), value: viewModel.isInSelectionMode)
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(separatorColor)
@@ -249,7 +249,9 @@ struct ContactRowContainer: View {
                 if viewModel.isInSelectionMode {
                     viewModel.toggleSelectedContact(contact: contact)
                 } else if contact.hasUser == true {
-                    AppState.shared.openThread(contact: contact)
+                    Task {
+                        try await AppState.shared.objectsContainer.navVM.openThread(contact: contact)
+                    }
                 }
             }
     }

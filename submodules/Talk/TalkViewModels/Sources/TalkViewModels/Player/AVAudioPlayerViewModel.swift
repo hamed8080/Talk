@@ -56,7 +56,8 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
         try? AVAudioSession.sharedInstance().setActive(true)
         player?.currentTime = item?.currentTime ?? 0
         player?.play()
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await setArtwork()
         }
         setupNowPlayingInfo()

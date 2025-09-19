@@ -15,7 +15,8 @@ public class SuggestionsViewModel: ObservableObject {
     private var hasMore: Bool = true
     
     init() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await loadMore()
         }
     }

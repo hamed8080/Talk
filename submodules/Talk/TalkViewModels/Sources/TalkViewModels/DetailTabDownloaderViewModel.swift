@@ -35,8 +35,9 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
-                Task { @MainActor in
-                    await self?.onMessageEvent(event)
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    await self.onMessageEvent(event)
                 }
             }
             .store(in: &cancelable)
@@ -116,9 +117,9 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         }
     }
 
-#if DEBUG
     deinit {
+#if DEBUG
         print("deinit DetailTabDownloaderViewModel for\(tabName)")
-    }
 #endif
+    }
 }

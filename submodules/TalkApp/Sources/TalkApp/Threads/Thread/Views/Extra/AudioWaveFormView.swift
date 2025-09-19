@@ -98,8 +98,9 @@ public class AudioWaveFormView: UIView {
         maskLayer.path = path
         onSeek?(to)
         seekTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            Task { @MainActor in
-                self?.isSeeking = false
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.isSeeking = false
             }
         }
     }

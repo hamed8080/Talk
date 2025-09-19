@@ -24,6 +24,7 @@ public class UploadFileStateMediator {
         case .completed: vm.message.iconName ?? "arrow.up"
         case .uploading: "xmark"
         case .paused: "play.fill"
+        case .error: "exclamationmark.circle"
         default: "arrow.up"
         }
     }
@@ -33,7 +34,7 @@ public class UploadFileStateMediator {
         let state = MessageFileState.init(
             progress: min(CGFloat(vm.uploadPercent) / 100, 1.0),
             isUploading: vm.state == .uploading,
-            state: vm.state == .completed ? .completed : .undefined,
+            state: vm.state == .completed ? .completed : vm.state == .error ? .error : .undefined,
             iconState: getIconState(vm: vm),
             blurRadius: vm.message.isImage && vm.state != .completed ? 16 : 0,
             preloadImage: (vm.message as? UploadFileMessage)?.uploadImageRequest?.dataToSend.flatMap(UIImage.init)

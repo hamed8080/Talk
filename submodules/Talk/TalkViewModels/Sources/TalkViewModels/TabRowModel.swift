@@ -73,7 +73,8 @@ public final class TabRowModel: ObservableObject {
     }
     
     public func onTap(viewModel: ThreadDetailViewModel) {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if message.isImage {
                 showPictureInGallery(viewModel)
                 return
@@ -194,7 +195,7 @@ extension TabRowModel {
     private func showPictureInGallery(_ viewModel: ThreadDetailViewModel) {
         AppState.shared.objectsContainer.appOverlayVM.galleryMessage = .init(message: message, goToHistoryTapped: {
             /// Dismiss Detail View if it is showing
-            viewModel.dismiss = true
+            viewModel.dismisByMoveToAMessage()
         })
     }
     
@@ -252,9 +253,11 @@ extension TabRowModel {
 /// Move to the Message
 extension TabRowModel {
     public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
-        Task {
-            await detailVM.threadVM?.historyVM.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
-            detailVM.dismiss = true
+        let task: Task<Void, any Error> = Task { [weak self] in
+            guard let self = self else { return }
+            let historyVM = detailVM.threadVM?.historyVM
+            detailVM.dismisByMoveToAMessage()
+            await historyVM?.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
         }
     }
 }
