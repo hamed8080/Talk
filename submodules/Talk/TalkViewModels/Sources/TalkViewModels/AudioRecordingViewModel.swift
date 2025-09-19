@@ -35,6 +35,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
     public var startDate: Date = .init()
     @Published public var timerString: String = ""
     @Published public var isRecording: Bool = false
+    @Published public var onRejectPermission: ( () -> Void )? = nil
     private var timer: Timer?
     public var isPermissionGranted: Bool { AVAudioSession.sharedInstance().recordPermission == .granted }
     public var recordingFileName: String = ""
@@ -136,7 +137,8 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
             let error = AppErrorTypes.microphone_access_denied
             let chatError = ChatError(code: error.rawValue, hasError: true)
             AppState.shared.objectsContainer.appOverlayVM.showErrorToast(chatError)
-            stop()
+            onRejectPermission?()
+            cancel()
         }
     }
 }

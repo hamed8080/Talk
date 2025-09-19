@@ -92,13 +92,13 @@ public final class RecordedAudioView: UIStackView {
 
         NSLayoutConstraint.activate([
             waveView.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
-            waveView.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnSend.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnSend.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnDelete.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnDelete.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnTogglePlayer.widthAnchor.constraint(equalToConstant: AudioRecordingView.height),
-            btnTogglePlayer.heightAnchor.constraint(equalToConstant: AudioRecordingView.height),
+            waveView.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnSend.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnSend.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnDelete.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnDelete.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnTogglePlayer.widthAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
+            btnTogglePlayer.heightAnchor.constraint(equalToConstant: AudioRecordingContainerView.height),
         ])
         waveView.setTopConstant(value: -8)
     }
@@ -111,7 +111,7 @@ public final class RecordedAudioView: UIStackView {
         registerObservers(item: item)
         Task { [weak self] in
             guard let self = self else { return }
-            let image = try await item.createWaveform(height: AudioRecordingView.height - 4)
+            let image = try await item.createWaveform(height: AudioRecordingContainerView.height - 4)
             self.waveView.alpha = 0
             self.waveView.setImage(to: image)
             UIView.animate(withDuration: 0.25) {
