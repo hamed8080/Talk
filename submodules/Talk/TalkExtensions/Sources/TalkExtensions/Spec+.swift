@@ -81,3 +81,17 @@ public extension Spec {
         return spec
     }
 }
+
+extension Spec {
+    static func serverType(config: ChatConfig?) -> ServerTypes? {
+        if config?.spec.server.server == ServerTypes.main.rawValue {
+            return .main
+        } else if config?.spec.server.server == ServerTypes.sandbox.rawValue {
+            return .sandbox
+        } else if config?.spec.server.server == ServerTypes.integration.rawValue {
+            return .integration
+        } else {
+            return nil
+        }
+    }
+}

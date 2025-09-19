@@ -168,7 +168,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
         } else {
             if response.isPresentable {
                 Task { @MainActor in
-                    AppState.shared.animateAndShowError(error)
+                    AppState.shared.objectsContainer.appOverlayVM.showErrorToast(error)
                 }
             }
         }

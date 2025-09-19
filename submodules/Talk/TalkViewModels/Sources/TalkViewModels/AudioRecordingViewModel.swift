@@ -135,7 +135,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         } else {
             let error = AppErrorTypes.microphone_access_denied
             let chatError = ChatError(code: error.rawValue, hasError: true)
-            AppState.shared.animateAndShowError(chatError)
+            AppState.shared.objectsContainer.appOverlayVM.showErrorToast(chatError)
             stop()
         }
     }

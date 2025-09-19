@@ -16,8 +16,6 @@ public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
     public var spec: Spec = Spec.empty
     public private(set) var user: User?
-    @Published public var error: ChatError?
-    @Published public var isLoading: Bool = false
     @Published public var callLogs: [URL]?
     private var cancelable: Set<AnyCancellable> = []
     public var windowMode: WindowMode = .iPhone
@@ -52,20 +50,6 @@ public final class AppState: ObservableObject, Sendable {
         NotificationCenter.windowMode.post(
             name: .windowMode, object: windowMode)
     }
-    
-    public func animateAndShowError(_ error: ChatError) {
-        withAnimation {
-            isLoading = false
-            self.error = error
-            Timer.scheduledTimer(withTimeInterval: 5, repeats: false) {
-                [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self = self else { return }
-                    self.error = nil
-                }
-            }
-        }
-    }
 }
 
 // Observers.
@@ -91,8 +75,6 @@ extension AppState {
     public func clear() {
         AppState.shared.objectsContainer.navVM.resetNavigationProperties()
         callLogs = nil
-        error = nil
-        isLoading = false
     }
 }
 
@@ -100,19 +82,5 @@ extension AppState {
 extension AppState {
     public var isInForeground: Bool {
         lifeCycleState == .active || lifeCycleState == .foreground
-    }
-}
-
-extension AppState {    
-    static func serverType(config: ChatConfig?) -> ServerTypes? {
-        if config?.spec.server.server == ServerTypes.main.rawValue {
-            return .main
-        } else if config?.spec.server.server == ServerTypes.sandbox.rawValue {
-            return .sandbox
-        } else if config?.spec.server.server == ServerTypes.integration.rawValue {
-            return .integration
-        } else {
-            return nil
-        }
     }
 }

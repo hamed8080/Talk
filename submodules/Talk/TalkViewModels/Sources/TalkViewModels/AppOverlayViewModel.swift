@@ -5,7 +5,6 @@
 //  Created by hamed on 10/22/22.
 //
 
-import Combine
 import SwiftUI
 import Chat
 
@@ -39,12 +38,12 @@ public enum AppOverlayTypes {
 public class AppOverlayViewModel: ObservableObject {
     @Published public var isPresented = false
     public var type: AppOverlayTypes = .none
-    private var cancelableSet: Set<AnyCancellable> = .init()
     public var isToast: Bool = false
-    public var isError: Bool { AppState.shared.error != nil }
+    public var isError: Bool { error != nil }
     public var canDismiss: Bool = true
     public var toastTimer: Timer?
     public var clearBckground: Bool = false
+    private var error: ChatError?
 
     public var transition: AnyTransition {
         switch type {
@@ -75,27 +74,7 @@ public class AppOverlayViewModel: ObservableObject {
         }
     }
 
-    public init() {
-        AppState.shared.$error.sink { [weak self] newValue in
-            self?.onError(newValue)
-        }
-        .store(in: &cancelableSet)
-    }
-
-    private func onError(_ newError: ChatError?) {
-        Task { [weak self] in
-            await MainActor.run { [weak self] in
-                self?.cancelToastTimer()
-                if let error = newError {
-                    self?.type = .error(error: error)
-                    self?.isPresented = true
-                } else if newError == nil {
-                    self?.type = .none
-                    self?.isPresented = false
-                }
-            }
-        }
-    }
+    public init() { }
 
     public var galleryMessage: GalleryMessage? = nil {
         didSet {
@@ -177,6 +156,24 @@ public class AppOverlayViewModel: ObservableObject {
     private func cancelToastTimer() {
         toastTimer?.invalidate()
         toastTimer = nil
+    }
+}
+
+extension AppOverlayViewModel {
+    public func showErrorToast(_ error: ChatError) {
+        /// Cancel the old timer to prevent dismissing the new error.
+        cancelToastTimer()
+        
+        self.error = error
+        type = .error(error: error)
+        isPresented = true
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            try await Task.sleep(for: .seconds(5))
+            self.error = nil
+            type = .none
+            isPresented = false
+        }
     }
 }
 
