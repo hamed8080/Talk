@@ -354,4 +354,8 @@ public extension NavigationModel {
     func setReplyPrivately(_ replyPrivately: Message?) {
         navigationProperties.replyPrivately = replyPrivately
     }
+    
+    func updateForwardToThreadId(id: Int) {
+        navigationProperties.forwardMessageRequest?.threadId = id
+    }
 }

@@ -345,18 +345,23 @@ public final class ThreadSendMessageViewModel {
     }
 
     public func onCreateP2PThread(_ conversation: Conversation) {
+        guard let conversationId = conversation.id else { return }
         let navVM = AppState.shared.objectsContainer.navVM
         
         if navVM.presentedThreadViewModel?.viewModel.id == LocalId.emptyThread.rawValue {
-            viewModel?.thread.id = conversation.id
-            viewModel?.id = conversation.id ?? -1
-            viewModel?.historyVM.updateThreadId(id: conversation.id ?? -1)
+            viewModel?.thread.id = conversationId
+            viewModel?.id = conversationId
+            viewModel?.historyVM.updateThreadId(id: conversationId)
         }
         self.viewModel?.updateConversation(conversation)
         DraftManager.shared.clear(contactId: navVM.navigationProperties.userToCreateThread?.contactId ?? -1)
         navVM.setParticipantToCreateThread(nil)
         // It is essential to fill it again if we create a new conversation, if we don't do that it will send the wrong threadId.
-        model.threadId = conversation.id ?? -1
+        model.threadId = conversationId
+        
+        if navVM.navigationProperties.forwardMessages?.isEmpty == false {
+            navVM.updateForwardToThreadId(id: conversationId)
+        }
     }
 
     func makeModel(_ uploadFileIndex: Int? = nil) -> SendMessageModel {
