@@ -136,7 +136,7 @@ public class ThreadCalculators {
         let iconStatusColor = lastMessageIconStatus?.color
         let unreadCountString = calculateUnreadCountString(conversation.unreadCount) ?? ""
         let timeString = calculateThreadTime(conversation.time)
-        let eventVM = ThreadEventViewModel(threadId: conversation.id ?? -1)
+        let eventVM = classConversation.eventVM as? ThreadEventViewModel ?? ThreadEventViewModel(threadId: conversation.id ?? -1)
         await MainActor.run {
             classConversation.computedTitle = computedTitle
             classConversation.titleRTLString = titleRTLString

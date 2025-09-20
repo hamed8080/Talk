@@ -41,6 +41,7 @@ public final class AudioRecordingContainerView: UIStackView {
         addArrangedSubview(inRecordingAudioView)
 
         inRecordingAudioView.onSubmitRecord = { [weak self] fileURL in
+            self?.viewModel?.cancelSignal()
             self?.recordedAudioView.fileURL = fileURL
             self?.onSubmitRecord()
         }

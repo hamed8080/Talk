@@ -205,16 +205,16 @@ public class CustomConversationNavigationBar: UIView {
     
     private func subtilteAttributedStirng(text: String?, smt: SMT?) -> NSAttributedString {
         let attributedString = NSMutableAttributedString(string: "")
-        
-        if let iconName = smt?.eventImage, smt != .isTyping {
-            let imageAttachment = NSTextAttachment()
-            imageAttachment.image = UIImage(systemName: iconName)?.withRenderingMode(.alwaysTemplate).withTintColor(Color.App.accentUIColor ?? .orange)
-            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
-            let imageString = NSAttributedString(attachment: imageAttachment)
-            attributedString.append(imageString)
-        }
-        
-        attributedString.append(NSAttributedString(string: " \(text ?? "")")) // Space
+//        
+//        if let iconName = smt?.eventImage, smt != .isTyping {
+//            let imageAttachment = NSTextAttachment()
+//            imageAttachment.image = UIImage(systemName: iconName)?.withRenderingMode(.alwaysTemplate).withTintColor(Color.App.accentUIColor ?? .orange)
+//            imageAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
+//            let imageString = NSAttributedString(attachment: imageAttachment)
+//            attributedString.append(imageString)
+//        }
+//        
+        attributedString.append(NSAttributedString(string: "\(text ?? "")")) // Space
         
         return attributedString
     }

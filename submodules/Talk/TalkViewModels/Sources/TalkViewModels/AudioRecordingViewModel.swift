@@ -106,6 +106,7 @@ public final class AudioRecordingViewModel: AudioRecordingViewModelprotocol {
         isRecording = false
         recordingOutputPath = nil
         stop()
+        threadViewModel?.cancelSignal()
         deleteFile()
     }
 
