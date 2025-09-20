@@ -205,7 +205,16 @@ public extension CalculatedConversation {
     func updateOnNewMessage(_ message: Message, meId: Int?) -> CalculatedConversation {
         var thread = self
         let isMe = message.participant?.id == meId
-        if !isMe {
+        
+        /// We have to check if the new message is of type addParticipant. If so, and we are in the list of added participants,
+        /// we should not increase the unread count. That's because in the event .participant(.add)
+        /// we will fetch the new conversation and there the unread count is 1 because we are added to this thread.
+        /// If we increase the unread count it will turn into 2 instead of 1.
+        let amIInsideTheList = message.addRemoveParticipant?.participnats?.contains(where: { $0.id == meId }) == true
+        let isAddParticipantAction = message.addRemoveParticipant?.requestTypeEnum == .addParticipant
+        let amIAddedByAdmin = amIInsideTheList && isAddParticipantAction && !isMe
+        
+        if !isMe && !amIAddedByAdmin {
             thread.unreadCount = (thread.unreadCount ?? 0) + 1
             thread.unreadCountString = thread.toStruct().unreadCountString ?? ""
         } else if isMe {
