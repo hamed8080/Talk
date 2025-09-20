@@ -229,4 +229,15 @@ public extension String {
     func strinDoubleQuotation() -> String {
         self.replacingOccurrences(of: "&#34;", with: "\"")
     }
+    
+    /// A faster way to remove encodings from web version of messsages.
+    /// It may fail to replace however it is way faster to remove text encoded from web like '&amp;d' to '&d'
+    var convertedHTMLEncoding: String {
+        self.replacingOccurrences(of: "&amp;", with: "&")
+               .replacingOccurrences(of: "&lt;", with: "<")
+               .replacingOccurrences(of: "&gt;", with: ">")
+               .replacingOccurrences(of: "&quot;", with: "\"")
+               .replacingOccurrences(of: "&apos;", with: "'")
+               .replacingOccurrences(of: "&nbsp;", with: " ")
+    }
 }

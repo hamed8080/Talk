@@ -294,7 +294,12 @@ public class ThreadCalculators {
     }
 
     private class func calculateFifityFirst(_ message: String, _ isFileType: Bool) -> String? {
-        let message = removeMessageTextStyle(message: message)
+        // Step 1: Remove Markdown style
+        var message = removeMessageTextStyle(message: message)
+        
+        // Step 2: Decode HTML entities (e.g., &amp; → &)
+        message = message.convertedHTMLEncoding
+        
         if !isFileType {
             return String(message.replacingOccurrences(of: "\n", with: " ").prefix(50))
         }

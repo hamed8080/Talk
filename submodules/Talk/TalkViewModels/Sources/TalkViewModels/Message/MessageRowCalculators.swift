@@ -11,6 +11,7 @@ import TalkModels
 import Chat
 import UIKit
 import AVFoundation
+import TalkExtensions
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -613,7 +614,12 @@ class MessageRowCalculators {
     }
     
     private class func calculateAttributedString(text: String) -> NSAttributedString? {
-        let text = text.formatCodeBlocks()
+        // Step 1: Convert all encoded text from the web version to normal signs.
+        let decodedText = text.convertedHTMLEncoding
+        
+        // Step 2: Add code blocks signs if there is any.
+        let text = decodedText.formatCodeBlocks()
+        
         guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
         let range = (text.startIndex..<text.endIndex)
         
