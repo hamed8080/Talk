@@ -309,8 +309,6 @@ public final class ThreadSendMessageViewModel {
             if let fileMessage = UploadFileMessage(url: url, isLastItem: isLastItem, model: model) {
                 fileMessages.append(fileMessage)
             }
-            self.uploadsManager.enqueue(with: fileMessages)
-            attVM.clear()
         }
         self.uploadsManager.enqueue(with: fileMessages)
         attVM.clear()
