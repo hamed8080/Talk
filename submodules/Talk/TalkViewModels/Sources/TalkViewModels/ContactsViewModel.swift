@@ -13,6 +13,16 @@ import SwiftUI
 import Photos
 import TalkExtensions
 import Logger
+import UIKit
+
+public enum ContactListSection: Sendable {
+    case main
+}
+
+@MainActor
+public protocol UIContactsViewControllerDelegate: AnyObject {
+    func updateUI()
+}
 
 @MainActor
 public class ContactsViewModel: ObservableObject {
@@ -36,6 +46,7 @@ public class ContactsViewModel: ObservableObject {
     private var objectId = UUID().uuidString
     public var builderScrollProxy: ScrollViewProxy?
     @Published public var isTypinginSearchString: Bool = false
+    public weak var delegate: UIContactsViewControllerDelegate?
 
     public init(isBuilder: Bool = false) {
         self.isBuilder = isBuilder
@@ -147,6 +158,7 @@ public class ContactsViewModel: ObservableObject {
                 let contacts = try await GetContactsRequester().get(req, withCache: false, queueable: true)
                 firstSuccessResponse = true
                 appendOrUpdateContact(contacts)
+                delegate?.updateUI()
                 lazyList.setHasNext(contacts.count >= lazyList.count)
                 lazyList.setLoading(false)
                 lazyList.setThreasholdIds(ids: self.contacts.suffix(5).compactMap{$0.id})

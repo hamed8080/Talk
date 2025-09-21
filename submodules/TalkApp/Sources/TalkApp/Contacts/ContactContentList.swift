@@ -19,6 +19,11 @@ struct ContactContentList: View {
     @EnvironmentObject var builderVM: ConversationBuilderViewModel
 
     var body: some View {
+        ContactsViewControllerWrapper(viewModel: viewModel)
+//        swiftUIView
+    }
+    
+    var swiftUIView: some View {
         List {
             totalContactCountView
             syncView
@@ -38,7 +43,7 @@ struct ContactContentList: View {
         .listStyle(.plain)
         .gesture(dragToHideKeyboardGesture)
         .safeAreaInset(edge: .top, spacing: 0) {
-           ContactListToolbar()
+            ContactListToolbar()
         }
         .sheet(isPresented: $viewModel.showAddOrEditContactSheet, onDismiss: onAddOrEditDisappeared) {
             if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
@@ -255,6 +260,177 @@ struct ContactRowContainer: View {
                 }
             }
     }
+}
+
+class ContactTableViewController: UIViewController {
+    var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
+    var tableView: UITableView = UITableView(frame: .zero)
+    let viewModel: ContactsViewModel
+    static let resuableIdentifier = "CONTACTROW"
+    
+    init(viewModel: ContactsViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+        viewModel.delegate = self
+        tableView.register(ContactCell.self, forCellReuseIdentifier: ContactTableViewController.resuableIdentifier)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(tableView)
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+        tableView.backgroundColor = .red
+        configureDataSource()
+    }
+}
+
+extension ContactTableViewController {
+    
+    private func configureDataSource() {
+        dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, contact) -> UITableViewCell? in
+            guard let self = self else { return nil }
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: ContactTableViewController.resuableIdentifier,
+                for: indexPath
+            ) as? ContactCell
+            
+            // Set properties
+            cell?.setContact(contact: contact)
+            
+            return cell
+        }
+    }
+}
+
+extension ContactTableViewController: UIContactsViewControllerDelegate {
+    func updateUI() {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
+        
+        /// Configure
+        snapshot.appendSections([.main])
+        snapshot.appendItems(Array(viewModel.contacts), toSection: .main)
+        
+        /// Apply
+        dataSource.apply(snapshot)
+    }
+}
+
+class ContactCell: UITableViewCell {
+    private let titleLabel = UILabel()
+    private let notFoundLabel = UILabel()
+    private let inviteButton = UIButton()
+    private let blockedLable = UILabel()
+    private let radio = SelectMessageRadio()
+    private let avatar = AvatarView(frame: .zero)
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        configureView()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func configureView() {
+        translatesAutoresizingMaskIntoConstraints = true
+        
+        /// Full name lable
+        titleLabel.font = UIFont.fCaption
+        titleLabel.textColor = Color.App.accentUIColor
+        titleLabel.textAlignment = .center
+        titleLabel.text = "Messages.unreadMessages".bundleLocalized()
+        titleLabel.backgroundColor = Color.App.bgChatUserUIColor
+        titleLabel.accessibilityIdentifier = "labelUnreadBubbleCell"
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(titleLabel)
+        
+        /// Not found label
+        notFoundLabel.font = UIFont.fCaption
+        notFoundLabel.textColor = Color.App.accentUIColor
+        notFoundLabel.textAlignment = .center
+        notFoundLabel.text = "Messages.unreadMessages".bundleLocalized()
+        notFoundLabel.backgroundColor = Color.App.bgChatUserUIColor
+        notFoundLabel.accessibilityIdentifier = "labelUnreadBubbleCell"
+        notFoundLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(notFoundLabel)
+        
+        /// Invite button
+//        inviteButton.font = UIFont.fCaption
+//        inviteButton.textColor = Color.App.accentUIColor
+//        inviteButton.textAlignment = .center
+//        inviteButton.text = "Messages.unreadMessages".bundleLocalized()
+        inviteButton.backgroundColor = Color.App.bgChatUserUIColor
+        inviteButton.accessibilityIdentifier = "labelUnreadBubbleCell"
+        inviteButton.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(inviteButton)
+        
+        /// Block label
+        blockedLable.font = UIFont.fCaption
+        blockedLable.textColor = Color.App.accentUIColor
+        blockedLable.textAlignment = .center
+        blockedLable.text = "Messages.unreadMessages".bundleLocalized()
+        blockedLable.backgroundColor = Color.App.bgChatUserUIColor
+        blockedLable.accessibilityIdentifier = "labelUnreadBubbleCell"
+        blockedLable.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(blockedLable)
+        
+        /// Selection radio
+//        radio.font = UIFont.fCaption
+//        radio.textColor = Color.App.accentUIColor
+//        radio.textAlignment = .center
+//        radio.text = "Messages.unreadMessages".bundleLocalized()
+        radio.backgroundColor = Color.App.bgChatUserUIColor
+        radio.accessibilityIdentifier = "labelUnreadBubbleCell"
+        radio.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(radio)
+        
+        /// Avatar or user name abbrevation
+//        avatar.font = UIFont.fCaption
+//        avatar.textColor = Color.App.accentUIColor
+//        avatar.textAlignment = .center
+//        avatar.text = "Messages.unreadMessages".bundleLocalized()
+        avatar.backgroundColor = Color.App.bgChatUserUIColor
+        avatar.accessibilityIdentifier = "labelUnreadBubbleCell"
+        avatar.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(avatar)
+        
+        NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalToConstant: 30),
+            
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            
+        ])
+    }
+    
+    public func setContact(contact: Contact) {
+        titleLabel.text = contact.firstName ?? ""
+    }
+}
+
+struct ContactsViewControllerWrapper: UIViewControllerRepresentable {
+    let viewModel: ContactsViewModel
+    
+    func makeUIViewController(context: Context) -> some UIViewController {
+        let vc = ContactTableViewController(viewModel: viewModel)
+        return vc
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 }
 
 struct ContactContentList_Previews: PreviewProvider {
