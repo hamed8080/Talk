@@ -65,11 +65,7 @@ public final class TabRowModel: ObservableObject {
             registerNotifications(messageId: message.id ?? -1)
         }
        
-        if let url = fileURL {
-            let audioURL = AudioFileURLCalculator(fileURL: url, message: message).audioURL()
-            let item = await MessageRowCalculators.calculatePlayerItem(audioURL, message.fileMetaData, message)
-            self.itemPlayer = item
-        }
+        await createAudioPlayerItem()
     }
     
     public func onTap(viewModel: ThreadDetailViewModel) {
@@ -142,6 +138,16 @@ extension TabRowModel {
             /// Reloading message force it to call set method on MessageAudioView,
             /// and that will lead to call register and syncing audio
             historyVM?.reload(at: tuple.indexPath, vm: tuple.vm)
+        }
+    }
+    
+    /// After downloading the audio file we have to create this player item again
+    /// that's because in the AudioFileURLCalculator we will make the hard link file.
+    private func createAudioPlayerItem() async {
+        if let url = fileURL, message.isAudio {
+            let audioURL = AudioFileURLCalculator(fileURL: url, message: message).audioURL()
+            let item = await MessageRowCalculators.calculatePlayerItem(audioURL, message.fileMetaData, message)
+            self.itemPlayer = item
         }
     }
 }
@@ -269,17 +275,18 @@ extension TabRowModel {
             .sink { [weak self] notif in
                 Task { @MainActor [weak self] in
                     if let state = notif.object as? MessageFileState {
-                        self?.onStateChange(state)
+                        await  self?.onStateChange(state)
                     }
                 }
             }
             .store(in: &cancellableSet)
     }
     
-    private func onStateChange(_ state: MessageFileState) {
+    private func onStateChange(_ state: MessageFileState) async {
         self.state = state
         if state.state == .completed || state.state == .paused || state.state == .error {
             stopRotationTimer()
+            await createAudioPlayerItem()
         } else if timer == nil, state.state == .downloading {
             startRotationTimer()
         }

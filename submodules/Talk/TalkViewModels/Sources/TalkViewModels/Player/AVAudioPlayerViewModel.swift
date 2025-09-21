@@ -41,8 +41,7 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
             player?.delegate = self
         } catch let error as NSError {
             item.failed = true
-            Logger.log(
-                title: "AVAudioPlayerViewModel", message: error.description)
+            Logger.log(title: "AVAudioPlayerViewModel", message: error.description)
             close()
             throw error
         }

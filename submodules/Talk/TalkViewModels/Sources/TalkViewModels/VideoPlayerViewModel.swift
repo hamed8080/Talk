@@ -13,7 +13,7 @@ import Logger
 import TalkModels
 
 @MainActor
-public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLoaderDelegate {
+public class VideoPlayerViewModel: NSObject, ObservableObject, @preconcurrency AVAssetResourceLoaderDelegate {
     @Published public var player: AVPlayer?
     private var timer: Timer?
     private var fileURL: URL
@@ -95,12 +95,16 @@ public class VideoPlayerViewModel: NSObject, ObservableObject, AVAssetResourceLo
     }
     
     private func hardLink(_ fileURL: URL, _ ext: String?) throws -> URL {
-        let hardLinkURL = fileURL.appendingPathExtension(ext ?? "mp4")
         let fm = FileManager.default
-        if !fm.fileExists(atPath: hardLinkURL.path()) {
-            try fm.linkItem(at: fileURL, to: hardLinkURL)
+        
+        let docDIR = FileManager.default.urls(for: .documentDirectory, in: .allDomainsMask).first
+        let fileInDOCDIR = docDIR!.appending(path: fileURL.lastPathComponent).appendingPathExtension(ext ?? "mp4")
+        
+        if !fm.fileExists(atPath: fileInDOCDIR.path()) {
+            try fm.linkItem(at: fileURL, to: fileInDOCDIR)
         }
-        return hardLinkURL
+        
+        return fileInDOCDIR
     }
     
     public func isSameURL(_ fileURL: URL) -> Bool {
