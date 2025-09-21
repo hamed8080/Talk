@@ -61,6 +61,8 @@ public class ChatRequestQueue {
             ChatManager.activeInstance?.message.history(req)
         case .reactionCount(let req):
             ChatManager.activeInstance?.reaction.count(req)
+        case .reactionListRequest(let req):
+            ChatManager.activeInstance?.reaction.get(req)
         }
     }
     

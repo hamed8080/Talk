@@ -101,12 +101,14 @@ public final class ThreadReactionViewModel {
     public func getDetail(for messageId: Int, offset: Int = 0, count: Int, sticker: Sticker? = nil) {
         let threadId = threadId
         Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.reaction.get(.init(messageId: messageId,
-                                    offset: offset,
-                                    count: count,
-                                    conversationId: threadId,
-                                    sticker: sticker)
+            let req = ReactionListRequest(
+                messageId: messageId,
+                offset: offset,
+                count: count,
+                conversationId: threadId,
+                sticker: sticker
             )
+            await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.reactionListRequest(req: req))
         }
     }
 
