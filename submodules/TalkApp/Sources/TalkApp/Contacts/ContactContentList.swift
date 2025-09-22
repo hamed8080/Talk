@@ -437,7 +437,7 @@ class ContactCell: UITableViewCell {
     private let avatar = UIImageView(frame: .zero)
     private let avatarInitialLable = UILabel()
     private var radioIsHidden = true
-    private var showInvite = false
+    private var showInvite = true
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -459,7 +459,7 @@ class ContactCell: UITableViewCell {
         backgroundColor = .clear
         
         /// Full name lable
-        titleLabel.font = UIFont.fSubheadline
+        titleLabel.font = UIFont.fBoldSubheadline
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.textAlignment = .center
         titleLabel.accessibilityIdentifier = "ContactCell.titleLable"
@@ -469,7 +469,7 @@ class ContactCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         
         /// Not found label
-        notFoundLabel.font = UIFont.fCaption2
+        notFoundLabel.font = UIFont.fBoldCaption2
         notFoundLabel.textColor = Color.App.accentUIColor
         notFoundLabel.textAlignment = .center
         notFoundLabel.text = "Contctas.list.notFound".bundleLocalized()
@@ -478,7 +478,7 @@ class ContactCell: UITableViewCell {
         contentView.addSubview(notFoundLabel)
         
         /// Invite button
-        inviteButton.titleLabel?.font = UIFont.fCaption2
+        inviteButton.titleLabel?.font = UIFont.fBoldCaption2
         inviteButton.setTitleColor(Color.App.whiteUIColor, for: .normal)
         inviteButton.setTitle("Contacts.invite".bundleLocalized(), for: .normal)
         inviteButton.accessibilityIdentifier = "ContactCell.inviteButton"
@@ -535,22 +535,24 @@ class ContactCell: UITableViewCell {
             
             titleLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: notFoundLabel.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: inviteButton.leadingAnchor, constant: 16),
             
-            notFoundLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            notFoundLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            notFoundLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            notFoundLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             
             inviteButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            inviteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            inviteButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 64)
+            inviteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            inviteButton.widthAnchor.constraint(equalToConstant: 64),
+            
+            blockedLable.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            blockedLable.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
         ])
         
+        radio.isHidden = radioIsHidden
         if radioIsHidden {
-            radio.widthAnchor.constraint(equalToConstant: 0).isActive = true
-            radio.heightAnchor.constraint(equalToConstant: 0).isActive = true
-            radio.isHidden = true
+            radio.removeFromSuperview()
+            avatar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8).isActive = true
         }
-        
         notFoundLabel.isHidden = true
         blockedLable.isHidden = true
         inviteButton.isHidden = true
@@ -563,10 +565,9 @@ class ContactCell: UITableViewCell {
             blockedLable.isHidden = false
         }
         
-        notFoundLabel.isHidden = contact.hasUser == true
-        if contact.hasUser == false || contact.hasUser == nil, showInvite {
-            inviteButton.isHidden = false
-        }
+        let isUser = (contact.hasUser == false || contact.hasUser == nil) && showInvite
+        notFoundLabel.isHidden = !isUser
+        inviteButton.isHidden = !isUser
         
         let contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
         let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
