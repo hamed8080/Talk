@@ -22,6 +22,7 @@ public enum ContactListSection: Sendable {
 @MainActor
 public protocol UIContactsViewControllerDelegate: AnyObject {
     func updateUI()
+    func updateImage(image: UIImage?, id: Int)
 }
 
 @MainActor
@@ -46,6 +47,7 @@ public class ContactsViewModel: ObservableObject {
     private var objectId = UUID().uuidString
     public var builderScrollProxy: ScrollViewProxy?
     @Published public var isTypinginSearchString: Bool = false
+    private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
     public weak var delegate: UIContactsViewControllerDelegate?
 
     public init(isBuilder: Bool = false) {
@@ -271,6 +273,25 @@ public class ContactsViewModel: ObservableObject {
             } else {
                 self.contacts.append(contact)
             }
+            
+            if let id = contact.id, !imageLoaders.contains(where: { $0.key == id }) {
+                let image = contact.image ?? contact.user?.image ?? ""
+                let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+                let contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
+                let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                let name = !isEmptyContactString ? contactName : contact.user?.name
+                let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+                let viewModel = ImageLoaderViewModel(config: config)
+                imageLoaders[id] = viewModel
+                viewModel.onImage = { [weak self] image in
+                    Task { @MainActor [weak self] in
+                        if let id = contact.id {
+                            self?.delegate?.updateImage(image: image, id: id)
+                        }
+                    }
+                }
+                viewModel.fetch()
+            }
         }
         animateObjectWillChange()
     }
@@ -295,6 +316,10 @@ public class ContactsViewModel: ObservableObject {
         }
         lazyList.setLoading(false)
         animateObjectWillChange()
+    }
+    
+    public func imageLoader(for id: Int) -> ImageLoaderViewModel? {
+        imageLoaders[id]
     }
 
     public func setMaxContactsCountInServer(count: Int) {
