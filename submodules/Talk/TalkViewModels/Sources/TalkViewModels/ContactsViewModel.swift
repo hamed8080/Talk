@@ -21,7 +21,7 @@ public enum ContactListSection: Sendable {
 
 @MainActor
 public protocol UIContactsViewControllerDelegate: AnyObject {
-    func updateUI()
+    func updateUI(animation: Bool)
     func updateImage(image: UIImage?, id: Int)
 }
 
@@ -160,7 +160,7 @@ public class ContactsViewModel: ObservableObject {
                 let contacts = try await GetContactsRequester().get(req, withCache: false, queueable: true)
                 firstSuccessResponse = true
                 appendOrUpdateContact(contacts)
-                delegate?.updateUI()
+                delegate?.updateUI(animation: false)
                 lazyList.setHasNext(contacts.count >= lazyList.count)
                 lazyList.setLoading(false)
                 lazyList.setThreasholdIds(ids: self.contacts.suffix(5).compactMap{$0.id})
@@ -305,6 +305,7 @@ public class ContactsViewModel: ObservableObject {
                 } else {
                     self.contacts.insert(newContact, at: 0)
                 }
+                delegate?.updateUI(animation: true)
                 updateActiveThreadsContactName(contact: newContact)
             }
             editContact = nil
@@ -329,6 +330,7 @@ public class ContactsViewModel: ObservableObject {
     public func reomve(_ contact: Contact) {
         guard let index = contacts.firstIndex(where: { $0 == contact }) else { return }
         contacts.remove(at: index)
+        delegate?.updateUI(animation: true)
         animateObjectWillChange()
     }
 
