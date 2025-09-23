@@ -11,6 +11,7 @@ import SwiftUI
 import TalkUI
 import TalkViewModels
 import TalkModels
+import Combine
 
 struct ContactContentList: View {
     @EnvironmentObject var viewModel: ContactsViewModel
@@ -319,6 +320,7 @@ class ContactTableViewController: UIViewController {
 class ContactsTableViewHeader: UIView {
     weak var viewController: UIViewController?
     private let stack = UIStackView()
+    private var cancellable: AnyCancellable?
     
     init() {
         super.init(frame: .zero)
@@ -403,8 +405,11 @@ class ContactsTableViewHeader: UIView {
     
     private func showBuilder(type: StrictThreadTypeCreation = .p2p) {
         let builderVM = AppState.shared.objectsContainer.conversationBuilderVM
+        
+        let viewModel = AppState.shared.objectsContainer.contactsVM
         let rootView = ConversationBuilder()
             .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+            .environmentObject(viewModel)
             .environmentObject(builderVM)
             .onAppear {
                 Task {
@@ -415,6 +420,12 @@ class ContactsTableViewHeader: UIView {
         var sheetVC = UIHostingController(rootView: rootView)
         sheetVC.modalPresentationStyle = .formSheet
         self.viewController?.present(sheetVC, animated: true)
+        
+        cancellable = builderVM.$dismiss.sink { dismiss in
+            if dismiss {
+                sheetVC.dismiss(animated: true)
+            }
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
