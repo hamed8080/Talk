@@ -487,8 +487,11 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ContactCell
     }
     
+    private var isInSearch: Bool {
+        viewModel.searchedContacts.count > 0 && !viewModel.searchContactString.isEmpty
+    }
+    
     private var list: [Contact] {
-        let isInSearch = viewModel.searchedContacts.count > 0 && !viewModel.searchContactString.isEmpty
         let list = isInSearch ? viewModel.searchedContacts : viewModel.contacts
         return Array(list)
     }
@@ -536,6 +539,15 @@ extension ContactTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
         viewModel.loadMore(id: contact.id)
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+//        if !isInSearch { return nil }
+        let label = UILabel()
+        label.frame = .init(x: 0, y: 0, width: 90, height: 24)
+        label.text = "Test"
+        label.textColor = UIColor.red
+        return label
     }
 }
 
