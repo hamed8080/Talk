@@ -21,7 +21,7 @@ public enum ContactListSection: Sendable {
 
 @MainActor
 public protocol UIContactsViewControllerDelegate: AnyObject {
-    func updateUI(animation: Bool)
+    func updateUI(animation: Bool, reloadSections: Bool)
     func updateImage(image: UIImage?, id: Int)
 }
 
@@ -84,7 +84,7 @@ public class ContactsViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 if newValue.count == 0 {
                     self?.searchedContacts = []
-                    self?.delegate?.updateUI(animation: false)
+                    self?.delegate?.updateUI(animation: false, reloadSections: true)
                 }
             }
             .store(in: &canceableSet)
@@ -161,7 +161,7 @@ public class ContactsViewModel: ObservableObject {
                 let contacts = try await GetContactsRequester().get(req, withCache: false, queueable: true)
                 firstSuccessResponse = true
                 appendOrUpdateContact(contacts)
-                delegate?.updateUI(animation: false)
+                delegate?.updateUI(animation: false, reloadSections: false)
                 lazyList.setHasNext(contacts.count >= lazyList.count)
                 lazyList.setLoading(false)
                 lazyList.setThreasholdIds(ids: self.contacts.suffix(5).compactMap{$0.id})
@@ -191,7 +191,7 @@ public class ContactsViewModel: ObservableObject {
             for contact in contacts {
                 addImageLoader(contact)
             }
-            delegate?.updateUI(animation: true)
+            delegate?.updateUI(animation: true, reloadSections: true)
         } catch {
             log("Failed to get search contacts with error: \(error.localizedDescription)")
         }
@@ -314,7 +314,7 @@ public class ContactsViewModel: ObservableObject {
                     self.contacts.insert(newContact, at: 0)
                 }
                 addImageLoader(newContact)
-                delegate?.updateUI(animation: false)
+                delegate?.updateUI(animation: false, reloadSections: false)
                 updateActiveThreadsContactName(contact: newContact)
             }
             editContact = nil
@@ -339,7 +339,7 @@ public class ContactsViewModel: ObservableObject {
     public func reomve(_ contact: Contact) {
         guard let index = contacts.firstIndex(where: { $0 == contact }) else { return }
         contacts.remove(at: index)
-        delegate?.updateUI(animation: true)
+        delegate?.updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
     }
 
@@ -404,7 +404,7 @@ public class ContactsViewModel: ObservableObject {
         if let result = response.result, let index = contacts.firstIndex(where: { $0.id == result.contact?.id }) {
             contacts[index].blocked = true
             blockedContacts.append(result)
-            delegate?.updateUI(animation: false)
+            delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange()
         }
     }
@@ -413,7 +413,7 @@ public class ContactsViewModel: ObservableObject {
         if let result = response.result, let index = contacts.firstIndex(where: { $0.id == result.contact?.id }) {
             contacts[index].blocked = false
             blockedContacts.removeAll(where: {$0.coreUserId == response.result?.coreUserId})
-            delegate?.updateUI(animation: false)
+            delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange()
         }
     }
@@ -468,7 +468,7 @@ public class ContactsViewModel: ObservableObject {
             if let lastName = split?.dropFirst().joined(separator: " ") {
                 contacts[index].lastName = String(lastName)
             }
-            delegate?.updateUI(animation: true)
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
     }

@@ -293,6 +293,7 @@ class ContactTableViewController: UIViewController {
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
         
+        tableView.sectionHeaderTopPadding = 0
         let header = ContactsTableViewHeader()
         header.viewController = self
         header.translatesAutoresizingMaskIntoConstraints = false
@@ -466,13 +467,16 @@ extension ContactTableViewController {
 }
 
 extension ContactTableViewController: UIContactsViewControllerDelegate {
-    func updateUI(animation: Bool) {
+    func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
         
         /// Configure
         snapshot.appendSections([.main])
         snapshot.appendItems(list, toSection: .main)
+        if reloadSections {
+            snapshot.reloadSections([.main])
+        }
         
         /// Apply
         dataSource.apply(snapshot, animatingDifferences: animation)
@@ -541,27 +545,52 @@ extension ContactTableViewController: UITableViewDelegate {
         viewModel.loadMore(id: contact.id)
     }
     
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if !isInSearch { return 0 }
+        return 16
+    }
+    
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//        if !isInSearch { return nil }
-        let view = UIView(frame: .init(x: 0, y: 0, width: view.frame.width, height: 16))
+        if !isInSearch { return nil }
+        let view = SectionHeaderTitleView(
+            frame: .init(x: 0, y: 0, width: view.frame.width, height: 16),
+            text: "Contacts.searched".bundleLocalized()
+        )
+        return view
+    }
+}
+
+class SectionHeaderTitleView: UIView {
+    let text: String
+    
+    init(frame: CGRect, text: String) {
+        self.text = text
+        super.init(frame: frame)
         
+        configureView()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func configureView() {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Contacts.searched".bundleLocalized()
+        label.text = text
         label.textColor = Color.App.textSecondaryUIColor
         label.font = UIFont.fCaption
         label.textAlignment = Language.isRTL ? .right : .left
         
-        view.backgroundColor = Color.App.dividerPrimaryUIColor
-        view.addSubview(label)
+        backgroundColor = Color.App.dividerPrimaryUIColor
+        addSubview(label)
         
         NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: view.topAnchor),
-            label.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8)
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8)
         ])
-        return view
     }
 }
 
