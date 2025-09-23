@@ -297,18 +297,13 @@ class ContactTableViewController: UIViewController {
         let header = ContactsTableViewHeader()
         header.viewController = self
         header.translatesAutoresizingMaskIntoConstraints = false
-    
-        // Make it size correctly:
-        header.setNeedsLayout()
-        header.layoutIfNeeded()
-        let size = header.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
-        header.frame.size.height = size.height
         tableView.tableHeaderView = header
         
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
             header.widthAnchor.constraint(equalTo: tableView.widthAnchor),
+            header.heightAnchor.constraint(equalToConstant: 140),
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -336,29 +331,28 @@ class ContactsTableViewHeader: UIView {
         stack.axis = .vertical
         stack.alignment = .leading
         stack.spacing = 24
+        stack.translatesAutoresizingMaskIntoConstraints = false
         
         let btnCreateGroup = make("person.2", "Contacts.createGroup", #selector(onCreateGroup))
         let btnCreateChannel = make("megaphone", "Contacts.createChannel", #selector(onCreateChannel))
         let btnCreateContact = make("person.badge.plus", "Contacts.addContact", #selector(onCreateContact))
 
         stack.addArrangedSubviews([btnCreateGroup, btnCreateChannel, btnCreateContact])
-        
         addSubview(stack)
-        stack.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
         ])
     }
     
     private func make(_ image: String, _ title: String, _ selector: Selector?) -> UIView {
         let imageView = UIImageView(image: UIImage(systemName: image))
         imageView.tintColor = Color.App.accentUIColor
-        imageView.frame = .init(x: 0, y: 0, width: 0, height: 0)
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.clipsToBounds = true
         
         let label = UILabel()
         label.text = title.bundleLocalized()
@@ -378,7 +372,8 @@ class ContactsTableViewHeader: UIView {
         NSLayoutConstraint.activate([
             stack.heightAnchor.constraint(equalToConstant: 24),
             imageView.widthAnchor.constraint(equalToConstant: 24),
-            imageView.heightAnchor.constraint(equalToConstant: 24)
+            imageView.heightAnchor.constraint(equalToConstant: 24),
+            label.heightAnchor.constraint(equalToConstant: 24)
         ])
         
         return stack
