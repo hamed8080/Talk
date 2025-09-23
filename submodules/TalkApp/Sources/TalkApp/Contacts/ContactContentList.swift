@@ -543,11 +543,25 @@ extension ContactTableViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
 //        if !isInSearch { return nil }
+        let view = UIView(frame: .init(x: 0, y: 0, width: view.frame.width, height: 16))
+        
         let label = UILabel()
-        label.frame = .init(x: 0, y: 0, width: 90, height: 24)
-        label.text = "Test"
-        label.textColor = UIColor.red
-        return label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Contacts.searched".bundleLocalized()
+        label.textColor = Color.App.textSecondaryUIColor
+        label.font = UIFont.fCaption
+        label.textAlignment = Language.isRTL ? .right : .left
+        
+        view.backgroundColor = Color.App.dividerPrimaryUIColor
+        view.addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: view.topAnchor),
+            label.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+            label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8)
+        ])
+        return view
     }
 }
 
