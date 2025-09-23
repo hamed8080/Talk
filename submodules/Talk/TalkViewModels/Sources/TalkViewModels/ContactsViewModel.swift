@@ -84,6 +84,7 @@ public class ContactsViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 if newValue.count == 0 {
                     self?.searchedContacts = []
+                    self?.delegate?.updateUI(animation: false)
                 }
             }
             .store(in: &canceableSet)
@@ -187,6 +188,10 @@ public class ContactsViewModel: ObservableObject {
                 let scrollTo = contacts.isEmpty ? "General.noResult" : "SearchRow-\(searchedContacts.first?.id ?? 0)"
                 builderScrollProxy?.scrollTo(scrollTo, anchor: .top)
             }
+            for contact in contacts {
+                addImageLoader(contact)
+            }
+            delegate?.updateUI(animation: true)
         } catch {
             log("Failed to get search contacts with error: \(error.localizedDescription)")
         }
@@ -273,27 +278,30 @@ public class ContactsViewModel: ObservableObject {
             } else {
                 self.contacts.append(contact)
             }
-            
-            if let id = contact.id, !imageLoaders.contains(where: { $0.key == id }) {
-                let image = contact.image ?? contact.user?.image ?? ""
-                let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
-                let contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
-                let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                let name = !isEmptyContactString ? contactName : contact.user?.name
-                let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
-                let viewModel = ImageLoaderViewModel(config: config)
-                imageLoaders[id] = viewModel
-                viewModel.onImage = { [weak self] image in
-                    Task { @MainActor [weak self] in
-                        if let id = contact.id {
-                            self?.delegate?.updateImage(image: image, id: id)
-                        }
-                    }
-                }
-                viewModel.fetch()
-            }
+            addImageLoader(contact)
         }
         animateObjectWillChange()
+    }
+    
+    private func addImageLoader(_ contact: Contact) {
+        if let id = contact.id, !imageLoaders.contains(where: { $0.key == id }) {
+            let image = contact.image ?? contact.user?.image ?? ""
+            let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+            let contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
+            let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let name = !isEmptyContactString ? contactName : contact.user?.name
+            let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+            let viewModel = ImageLoaderViewModel(config: config)
+            imageLoaders[id] = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    if let id = contact.id {
+                        self?.delegate?.updateImage(image: image, id: id)
+                    }
+                }
+            }
+            viewModel.fetch()
+        }
     }
 
     public func onAddContacts(_ response: ChatResponse<[Contact]>) async {
@@ -305,7 +313,8 @@ public class ContactsViewModel: ObservableObject {
                 } else {
                     self.contacts.insert(newContact, at: 0)
                 }
-                delegate?.updateUI(animation: true)
+                addImageLoader(newContact)
+                delegate?.updateUI(animation: false)
                 updateActiveThreadsContactName(contact: newContact)
             }
             editContact = nil
@@ -395,6 +404,7 @@ public class ContactsViewModel: ObservableObject {
         if let result = response.result, let index = contacts.firstIndex(where: { $0.id == result.contact?.id }) {
             contacts[index].blocked = true
             blockedContacts.append(result)
+            delegate?.updateUI(animation: false)
             animateObjectWillChange()
         }
     }
@@ -403,6 +413,7 @@ public class ContactsViewModel: ObservableObject {
         if let result = response.result, let index = contacts.firstIndex(where: { $0.id == result.contact?.id }) {
             contacts[index].blocked = false
             blockedContacts.removeAll(where: {$0.coreUserId == response.result?.coreUserId})
+            delegate?.updateUI(animation: false)
             animateObjectWillChange()
         }
     }
@@ -457,6 +468,7 @@ public class ContactsViewModel: ObservableObject {
             if let lastName = split?.dropFirst().joined(separator: " ") {
                 contacts[index].lastName = String(lastName)
             }
+            delegate?.updateUI(animation: true)
             animateObjectWillChange()
         }
     }

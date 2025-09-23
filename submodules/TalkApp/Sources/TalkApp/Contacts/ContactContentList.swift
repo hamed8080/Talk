@@ -20,7 +20,11 @@ struct ContactContentList: View {
 
     var body: some View {
         ContactsViewControllerWrapper(viewModel: viewModel)
-//        swiftUIView
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ContactListToolbar()
+            }
+        
+        //        swiftUIView
     }
     
     var swiftUIView: some View {
@@ -457,17 +461,25 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
         
         /// Configure
         snapshot.appendSections([.main])
-        snapshot.appendItems(Array(viewModel.contacts), toSection: .main)
+        snapshot.appendItems(list, toSection: .main)
         
         /// Apply
         dataSource.apply(snapshot, animatingDifferences: animation)
     }
     
     func updateImage(image: UIImage?, id: Int) {
-        if let index = viewModel.contacts.firstIndex(where: { $0.id == id }),
-           let cell = tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ContactCell {
-            cell.setImage(image)
-        }
+        cell(id: id)?.setImage(image)
+    }
+    
+    private func cell(id: Int) -> ContactCell? {
+        guard let index = list.firstIndex(where: { $0.id == id }) else { return nil }
+        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ContactCell
+    }
+    
+    private var list: [Contact] {
+        let isInSearch = viewModel.searchedContacts.count > 0 && !viewModel.searchContactString.isEmpty
+        let list = isInSearch ? viewModel.searchedContacts : viewModel.contacts
+        return Array(list)
     }
 }
 
