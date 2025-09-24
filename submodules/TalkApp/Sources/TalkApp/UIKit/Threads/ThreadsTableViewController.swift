@@ -90,6 +90,19 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
         guard let index = viewModel.threads.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ConversationCell
     }
+    
+    func reloadCellWith(conversation: CalculatedConversation) {
+        cell(id: conversation.id ?? -1)?
+            .setConversation(conversation: conversation, viewModel: viewModel)
+    }
+    
+    func selectionChanged(conversation: CalculatedConversation) {
+        cell(id: conversation.id ?? -1)?.selectionChanged(conversation: conversation)
+    }
+    
+    func unreadCountChanged(conversation: CalculatedConversation) {
+        cell(id: conversation.id ?? -1)?.unreadCountChanged(conversation: conversation)
+    }
 }
 
 extension ThreadsTableViewController: UITableViewDelegate {

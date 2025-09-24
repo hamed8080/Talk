@@ -40,6 +40,7 @@ extension ThreadsViewModel: MuteThreadProtocol {
     public func onMuteThreadChanged(mute: Bool, threadId: Int?) async {
         if let index = firstIndex(threadId) {
             threads[index].mute = mute
+            delegate?.reloadCellWith(conversation: threads[index])
             threads[index].animateObjectWillChange()
             await sortInPlace()
             let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel

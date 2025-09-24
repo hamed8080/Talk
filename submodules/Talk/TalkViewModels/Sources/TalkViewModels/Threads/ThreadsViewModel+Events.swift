@@ -197,6 +197,7 @@ extension ThreadsViewModel {
             if let index = threads.firstIndex(where: {$0.id == response.subjectId}) {
                 threads[index].reactionStatus = response.result?.reactionStatus
                 threads[index].animateObjectWillChange()
+                delegate?.reloadCellWith(conversation: threads[index])
                 animateObjectWillChange()
 
                 // Update Active view model

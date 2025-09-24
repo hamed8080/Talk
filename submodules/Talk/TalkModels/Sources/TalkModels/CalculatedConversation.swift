@@ -106,6 +106,7 @@ public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable
     public var createConversationString: String?
     public var callMessage: Message?
     public var isInForwardMode: Bool = false
+    public var imageLoader: AnyObject?
     
     public init(
         admin: Bool? = nil,

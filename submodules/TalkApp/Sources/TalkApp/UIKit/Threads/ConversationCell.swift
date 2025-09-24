@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import SwiftUI
 import Chat
+import TalkUI
 
 class ConversationCell: UITableViewCell {
     private let titleLabel = UILabel()
@@ -20,15 +21,18 @@ class ConversationCell: UITableViewCell {
     private let avatarInitialLable = UILabel()
     private let pinImageView = UIImageView(image: UIImage(named: "ic_pin"))
     private let muteImageView = UIImageView(image: UIImage(systemName: "bell.slash.fill"))
-    private let unreadCountLabel = UILabel(frame: .zero)
+    private let unreadCountLabel = PaddingUILabel(frame: .zero, horizontal: 4, vertical: 4)
     private let closedImageView = UIImageView(image: UIImage(systemName: "lock"))
+    private let mentionLable = UILabel(frame: .zero)
     private var radioIsHidden = true
+    private let barView = UIView()
     
     // MARK: Constraints
     private var statusWidthConstraint = NSLayoutConstraint()
     private var statusHeightConstraint = NSLayoutConstraint()
     private var timeLabelWidthConstraint = NSLayoutConstraint()
     private var unreadCountLabelWidthConstraint = NSLayoutConstraint()
+    private var selectedBarViewWidthConstraint = NSLayoutConstraint()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -48,6 +52,12 @@ class ConversationCell: UITableViewCell {
         translatesAutoresizingMaskIntoConstraints = true
         contentView.backgroundColor = .clear
         backgroundColor = .clear
+        
+        barView.backgroundColor = Color.App.accentUIColor
+        barView.translatesAutoresizingMaskIntoConstraints = false
+        selectedBarViewWidthConstraint = barView.widthAnchor.constraint(equalToConstant: 0)
+        barView.alpha = 0.0
+        contentView.addSubview(barView)
         
         /// Title of the conversation.
         titleLabel.font = UIFont.fBoldSubheadline
@@ -77,6 +87,7 @@ class ConversationCell: UITableViewCell {
         avatar.translatesAutoresizingMaskIntoConstraints = false
         avatar.layer.cornerRadius = 24
         avatar.layer.masksToBounds = true
+        avatar.contentMode = .scaleAspectFill
         contentView.addSubview(avatar)
         
         /// User initial over the avatar image if the image is nil.
@@ -95,8 +106,6 @@ class ConversationCell: UITableViewCell {
         statusHeightConstraint = statusImageView.heightAnchor.constraint(equalToConstant: 24)
         contentView.addSubview(statusImageView)
         
-        
-        
         /// Time of the last message of the conversation.
         timeLabel.accessibilityIdentifier = "ConversationCell.timeLabel"
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -113,16 +122,17 @@ class ConversationCell: UITableViewCell {
         /// Unread count label.
         unreadCountLabel.accessibilityIdentifier = "ConversationCell.unreadCountLabel"
         unreadCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        unreadCountLabel.font = UIFont.fBoldBody
-        unreadCountLabel.numberOfLines = 1
+        unreadCountLabel.label.font = UIFont.fBoldBody
+        unreadCountLabel.label.numberOfLines = 1
         unreadCountLabelWidthConstraint = unreadCountLabel.widthAnchor.constraint(equalToConstant: 16)
         unreadCountLabel.layer.masksToBounds = true
-        unreadCountLabel.textAlignment = .center
+        unreadCountLabel.label.textAlignment = .center
         
         /// Mute image view.
         muteImageView.accessibilityIdentifier = "ConversationCell.muteImageView"
         muteImageView.translatesAutoresizingMaskIntoConstraints = false
         muteImageView.contentMode = .scaleAspectFit
+        muteImageView.tintColor = Color.App.iconSecondaryUIColor
         
         /// Closed thread image view.
         closedImageView.accessibilityIdentifier = "ConversationCell.closedImageView"
@@ -131,12 +141,22 @@ class ConversationCell: UITableViewCell {
         closedImageView.tintColor = Color.App.textSecondaryUIColor
         closedImageView.isHidden = true
         
+        /// Mention sign label.
+        mentionLable.accessibilityIdentifier = "ConversationCell.mentionLable"
+        mentionLable.translatesAutoresizingMaskIntoConstraints = false
+        mentionLable.isHidden = true
+        mentionLable.layer.cornerRadius = 8
+        mentionLable.layer.masksToBounds = true
+        mentionLable.textColor = .white
+        mentionLable.backgroundColor = Color.App.accentUIColor
+        
         let secondRowTrailingStack = UIStackView(
             arrangedSubviews: [
                 pinImageView,
                 unreadCountLabel,
                 muteImageView,
-                closedImageView
+                closedImageView,
+                mentionLable,
             ]
         )
         
@@ -148,6 +168,11 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(secondRowTrailingStack)
         
         NSLayoutConstraint.activate([
+            selectedBarViewWidthConstraint,
+            barView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            barView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            barView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            
             radio.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             radio.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             
@@ -191,6 +216,9 @@ class ConversationCell: UITableViewCell {
             closedImageView.widthAnchor.constraint(equalToConstant: 16),
             closedImageView.heightAnchor.constraint(equalToConstant: 16),
             
+            mentionLable.widthAnchor.constraint(equalToConstant: 16),
+            mentionLable.heightAnchor.constraint(equalToConstant: 16),
+            
             secondRowTrailingStack.centerYAnchor.constraint(equalTo: subtitleLabel.centerYAnchor),
             secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8)
         ])
@@ -204,10 +232,39 @@ class ConversationCell: UITableViewCell {
     
     public func setConversation(conversation: CalculatedConversation, viewModel: ThreadsViewModel) {
         titleLabel.attributedText = conversation.titleRTLString
-        subtitleLabel.attributedText = conversation.fiftyFirstCharacter
+    
+        var mutable = NSMutableAttributedString(string: "")
         if let addOrRemoveParticipant = conversation.addRemoveParticipant {
-            subtitleLabel.attributedText = NSAttributedString(string: addOrRemoveParticipant) 
+            mutable.append(NSAttributedString(string: addOrRemoveParticipant))
+        } else if let participantName = conversation.participantName {
+            mutable.append(NSAttributedString(string: participantName, attributes: [
+                .foregroundColor: Color.App.accentUIColor
+            ]))
         }
+        
+        let draft = DraftManager.shared.get(threadId: conversation.id ?? -1)
+        if let draft = draft, !draft.isEmpty {
+            /// Need to reset all above attributes
+            mutable = NSMutableAttributedString(string: "")
+            mutable.append(
+                NSAttributedString(
+                    string: "Thread.draft".bundleLocalized(),
+                    attributes: [
+                        .foregroundColor: Color.App.redUIColor
+                    ]
+                )
+            )
+            mutable.append(
+                NSAttributedString(
+                    string: " \(draft)"
+                )
+            )
+        }
+        
+        if draft?.isEmpty == true || draft == nil, let fiftyFirstAttributedString = conversation.fiftyFirstCharacter {
+            mutable.append(fiftyFirstAttributedString)
+        }
+        subtitleLabel.attributedText = mutable
         
         if let image = conversation.iconStatus {
             statusImageView.image = image
@@ -237,17 +294,20 @@ class ConversationCell: UITableViewCell {
         pinImageView.isHidden = !(conversation.pin == true && conversation.hasSpaceToShowPin)
         muteImageView.isHidden = conversation.mute == false || conversation.mute == nil
         
-        unreadCountLabel.text = conversation.unreadCountString
-        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : unreadCountLabel.sizeThatFits(.init(width: 128, height: 24)).width + 18
-        unreadCountLabel.textColor = conversation.mute == true ? Color.App.whiteUIColor : Color.App.textPrimaryUIColor
+        unreadCountLabel.label.text = conversation.unreadCountString
+        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : unreadCountLabel.sizeThatFits(.init(width: 128, height: 24)).width + 24
+        unreadCountLabel.label.textColor = conversation.mute == true ? Color.App.whiteUIColor : Color.App.textPrimaryUIColor
         unreadCountLabel.backgroundColor = conversation.mute == true ? Color.App.iconSecondaryUIColor : Color.App.accentUIColor
         unreadCountLabel.layer.cornerRadius = conversation.isCircleUnreadCount ? 12 : 10
         
         closedImageView.isHidden = !(conversation.closed == true)
         
-        contentView.backgroundColor = conversation.isSelected ? Color.App.bgChatSelectedUIColor :
-        conversation.pin == true ? Color.App.bgSecondaryUIColor :
-        Color.App.bgPrimaryUIColor
+        barView.alpha = conversation.isSelected ? 1.0 : 0.0
+        selectedBarViewWidthConstraint.constant = conversation.isSelected ? 4 : 0
+        
+        mentionLable.isHidden = !(conversation.mentioned == true)
+        
+        contentView.backgroundColor = conversation.isSelected ? Color.App.bgChatSelectedUIColor : conversation.pin == true ? Color.App.bgSecondaryUIColor : Color.App.bgPrimaryUIColor
     }
     
     public func setImage(_ image: UIImage?) {
@@ -255,20 +315,28 @@ class ConversationCell: UITableViewCell {
         avatarInitialLable.isHidden = image != nil
     }
     
-    private func appendSelectedBar() {
-        let isSelected = false
-        let isIpad = UIDevice.current.userInterfaceIdiom == .pad
-        let barView = UIView()
-        barView.translatesAutoresizingMaskIntoConstraints = false
-        barView.backgroundColor = isSelected && isIpad ? Color.App.accentUIColor : .clear
+    func selectionChanged(conversation: CalculatedConversation) {
+        barView.alpha = conversation.isSelected ? 1.0 : 0.0
         
-        NSLayoutConstraint.activate([
-            barView.widthAnchor.constraint(equalToConstant: 4),
-            barView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            barView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            barView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
-        ])
-        contentView.addSubview(barView)
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            self?.contentView.backgroundColor =
+            conversation.isSelected ? Color.App.bgChatSelectedUIColor :
+            conversation.pin == true ? Color.App.bgSecondaryUIColor : Color.App.bgPrimaryUIColor
+        }
+        
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            self?.barView.alpha = conversation.isSelected ? 1.0 : 0.0
+            self?.selectedBarViewWidthConstraint.constant = conversation.isSelected ? 4 : 0
+            self?.barView.layoutIfNeeded()
+        }
+        
+        timeLabel.textColor = conversation.isSelected ? Color.App.textPrimaryUIColor : Color.App.iconSecondaryUIColor
+    }
+    
+    func unreadCountChanged(conversation: CalculatedConversation) {
+        unreadCountLabel.label.addFlipAnimation(text: conversation.unreadCountString)
+        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : unreadCountLabel.label.sizeThatFits(.init(width: 128, height: 24)).width + 24
+        unreadCountLabel.layer.cornerRadius = conversation.isCircleUnreadCount ? 12 : 10
     }
     
     override func prepareForReuse() {
@@ -279,6 +347,10 @@ class ConversationCell: UITableViewCell {
         closedImageView.isHidden = true
         muteImageView.isHidden = true
         pinImageView.isHidden = true
+        subtitleLabel.textColor = nil
         contentView.backgroundColor = nil
+        subtitleLabel.textColor = Color.App.textSecondaryUIColor
+        selectedBarViewWidthConstraint.constant = 0
+        barView.alpha = 0.0
     }
 }

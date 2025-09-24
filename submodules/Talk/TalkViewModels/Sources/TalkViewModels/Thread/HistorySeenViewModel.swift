@@ -149,6 +149,9 @@ public final class HistorySeenViewModel {
         if let index = threads.firstIndex(where: { $0.id == threadId }) {
             threads[index].unreadCount = newUnreadCount
             await ThreadCalculators.reCalculateUnreadCount(threads[index])
+            if let index = threads.firstIndex(where: { $0.id == threadId }) {
+                threadsVM.delegate?.unreadCountChanged(conversation: threads[index])
+            }
             threads[index].animateObjectWillChange()
         }
         

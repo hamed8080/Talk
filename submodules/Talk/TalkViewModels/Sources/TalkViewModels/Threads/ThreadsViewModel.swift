@@ -21,6 +21,9 @@ public enum ThreadsListSection: Sendable {
 public protocol UIThreadsViewControllerDelegate: AnyObject {
     func updateUI(animation: Bool, reloadSections: Bool)
     func updateImage(image: UIImage?, id: Int)
+    func reloadCellWith(conversation: CalculatedConversation)
+    func selectionChanged(conversation: CalculatedConversation)
+    func unreadCountChanged(conversation: CalculatedConversation)
 }
 
 @MainActor
@@ -43,7 +46,6 @@ public final class ThreadsViewModel: ObservableObject {
     internal let incNewQueue = IncommingNewMessagesQueue()
     internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel() }()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
-    private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
     public weak var delegate: UIThreadsViewControllerDelegate?
 
     internal var objectId = UUID().uuidString
@@ -130,6 +132,7 @@ public final class ThreadsViewModel: ObservableObject {
         if let index = firstIndex(response.result?.id)  {
             threads[index].type = .publicGroup
             threads[index].animateObjectWillChange()
+            delegate?.reloadCellWith(conversation: threads[index])
             animateObjectWillChange()
         }
     }
@@ -417,12 +420,14 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.reset()
         threads = []
         firstSuccessResponse = false
+        delegate?.updateUI(animation: false, reloadSections: false)
         animateObjectWillChange()
     }
 
     public func muteUnMuteThread(_ threadId: Int?, isMute: Bool) {
         if let threadId = threadId, let index = firstIndex(threadId) {
             threads[index].mute = isMute
+            delegate?.reloadCellWith(conversation: threads[index])
             animateObjectWillChange()
         }
     }
@@ -431,6 +436,7 @@ public final class ThreadsViewModel: ObservableObject {
         guard let index = firstIndex(thread.id) else { return }
         deselectActiveThread()
         _ = threads.remove(at: index)
+        delegate?.updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
     }
 
@@ -522,6 +528,9 @@ public final class ThreadsViewModel: ObservableObject {
                 Task { [weak self] in
                     guard let self = self else { return }
                     await ThreadCalculators.reCalculateUnreadCount(threads[index])
+                    if let index = firstIndex(Int(key)) {
+                        self.delegate?.unreadCountChanged(conversation: threads[index])
+                    }
                     threads[index].animateObjectWillChange()
                 }
             }
@@ -551,6 +560,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// Check if the index still exist to prevent a crash.
             if threads.indices.contains(index) {
                 threads[index] = arrItem
+                delegate?.reloadCellWith(conversation: threads[index])
                 threads[index].animateObjectWillChange()
             }
 
@@ -615,6 +625,7 @@ public final class ThreadsViewModel: ObservableObject {
                 }
             }
             threads[index] = thread
+            delegate?.reloadCellWith(conversation: thread)
             threads[index].animateObjectWillChange()
             animateObjectWillChange()
         }
@@ -690,6 +701,7 @@ public final class ThreadsViewModel: ObservableObject {
         guard let threadId = response.result else { return }
         if let index = threads.firstIndex(where: { $0.id == threadId}) {
             threads[index].closed = true
+            delegate?.reloadCellWith(conversation: threads[index])
             threads[index].animateObjectWillChange()
             animateObjectWillChange()
 
@@ -735,7 +747,8 @@ public final class ThreadsViewModel: ObservableObject {
     public func onPinMessage(_ response: ChatResponse<PinMessage>) {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             threads[threadIndex].pinMessage = response.result
-            threads[threadIndex].animateObjectWillChange()            
+            threads[threadIndex].animateObjectWillChange()
+            delegate?.reloadCellWith(conversation: threads[threadIndex])
             animateObjectWillChange()
         }
     }
@@ -743,6 +756,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onUNPinMessage(_ response: ChatResponse<PinMessage>) {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             threads[threadIndex].pinMessage = nil
+            delegate?.reloadCellWith(conversation: threads[threadIndex])
             threads[threadIndex].animateObjectWillChange()
             animateObjectWillChange()
         }
@@ -761,6 +775,7 @@ public final class ThreadsViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
+            self.delegate?.unreadCountChanged(conversation: thread)
             thread.animateObjectWillChange()
         }
     }
@@ -786,6 +801,7 @@ public final class ThreadsViewModel: ObservableObject {
         if let thread = threadsList.first(where: {$0.id == conversationId}) {
             /// Select / Deselect a thread to remove/add bar and selected background color
             thread.isSelected = selected
+            delegate?.selectionChanged(conversation: thread)
             thread.animateObjectWillChange()
         }
     }
@@ -795,18 +811,19 @@ public final class ThreadsViewModel: ObservableObject {
     private func deselectActiveThread() {
         if let index = threads.firstIndex(where: {$0.isSelected}) {
             threads[index].isSelected = false
+            delegate?.reloadCellWith(conversation: threads[index])
             threads[index].animateObjectWillChange()
         }
     }
     
     private func addImageLoader(_ conversation: CalculatedConversation) {
-        if let id = conversation.id, !imageLoaders.contains(where: { $0.key == id }), let image = conversation.image {
+        if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
             
             let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
             let name = conversation.computedTitle
             let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
             let viewModel = ImageLoaderViewModel(config: config)
-            imageLoaders[id] = viewModel
+            conversation.imageLoader = viewModel
             viewModel.onImage = { [weak self] image in
                 Task { @MainActor [weak self] in
                     self?.delegate?.updateImage(image: image, id: id)
@@ -817,7 +834,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     public func imageLoader(for id: Int) -> ImageLoaderViewModel? {
-        imageLoaders[id]
+        threads.first(where: { $0.id == id })?.imageLoader as? ImageLoaderViewModel
     }
 }
 

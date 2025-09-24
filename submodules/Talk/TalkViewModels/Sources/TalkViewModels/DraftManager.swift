@@ -29,6 +29,9 @@ public class DraftManager {
         } else {
             UserDefaults.standard.setValue(draftValue, forKey: getConversationKey(threadId: threadId))
         }
+        if let conversation = AppState.shared.objectsContainer.threadsVM.threads.first(where: { $0.id == threadId}) {
+            AppState.shared.objectsContainer.threadsVM.delegate?.reloadCellWith(conversation: conversation)
+        }
         NotificationCenter.draft.post(name: .draft, object: threadId)
     }
 
