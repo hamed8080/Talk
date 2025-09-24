@@ -112,7 +112,7 @@ struct NormalLastMessageContainer: View {
     @ViewBuilder
     private var fiftyFirstTextView: some View {
         if let fiftyFirstCharacter = thread.fiftyFirstCharacter {
-            Text(verbatim: fiftyFirstCharacter)
+            Text(verbatim: fiftyFirstCharacter.string)
                 .font(.fCaption2)
                 .fontWeight(.regular)
                 .lineLimit(1)

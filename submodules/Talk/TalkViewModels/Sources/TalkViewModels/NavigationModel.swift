@@ -9,6 +9,7 @@ public final class NavigationModel: ObservableObject {
     var pathsTracking: [Any] = []
     var detailsStack: [ThreadDetailViewModel] = []
     public private(set) var navigationProperties: NavigationProperties = .init()
+    public var twoRowTappedAtSameTime = false
     
     /// Once we navigate to a view with NavigationLink in SwiftUI
     /// insted of appending to the paths.
@@ -337,6 +338,19 @@ public extension NavigationModel {
         } else if let conversation = try await GetThreadsReuqester().get(.init(threadIds: [conversationId])).first {
             append(thread: conversation)
         }
+    }
+    
+    public func canNavigateToConversation() -> Bool {
+        if !twoRowTappedAtSameTime {
+            twoRowTappedAtSameTime = true
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
+                Task { @MainActor [weak self] in
+                    self?.twoRowTappedAtSameTime = false
+                }
+            }
+            return true
+        }
+        return false
     }
 }
 

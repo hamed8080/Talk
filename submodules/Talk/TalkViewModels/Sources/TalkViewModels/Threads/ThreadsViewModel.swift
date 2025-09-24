@@ -13,6 +13,16 @@ import TalkModels
 import TalkExtensions
 import Logger
 
+public enum ThreadsListSection: Sendable {
+    case main
+}
+
+@MainActor
+public protocol UIThreadsViewControllerDelegate: AnyObject {
+    func updateUI(animation: Bool, reloadSections: Bool)
+    func updateImage(image: UIImage?, id: Int)
+}
+
 @MainActor
 public final class ThreadsViewModel: ObservableObject {
     public var threads: ContiguousArray<CalculatedConversation> = []
@@ -21,6 +31,7 @@ public final class ThreadsViewModel: ObservableObject {
     public var cancelable: Set<AnyCancellable> = []
     public private(set) var firstSuccessResponse = false
     public var selectedThraed: Conversation?
+    public var calculatedSearchedThreads: [CalculatedConversation] = []
     private var avatarsVM: [String :ImageLoaderViewModel] = [:]
     public var serverSortedPins: [Int] = []
     public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
@@ -32,6 +43,8 @@ public final class ThreadsViewModel: ObservableObject {
     internal let incNewQueue = IncommingNewMessagesQueue()
     internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel() }()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
+    private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
+    public weak var delegate: UIThreadsViewControllerDelegate?
 
     internal var objectId = UUID().uuidString
     internal let CHANNEL_TO_KEY: String
@@ -196,6 +209,10 @@ public final class ThreadsViewModel: ObservableObject {
         let threshold = await splitThreshold(sorted)
       
         self.threads = sorted
+        delegate?.updateUI(animation: false, reloadSections: false)
+        for conversation in threads {
+            addImageLoader(conversation)
+        }
         updatePresentedViewModels(threads)
         lazyList.setHasNext(hasAnyResults)
         lazyList.setLoading(false)
@@ -525,7 +542,7 @@ public final class ThreadsViewModel: ObservableObject {
             }
             arrItem.metadata = thread.metadata
             arrItem.title = replacedEmoji
-            arrItem.titleRTLString = ThreadCalculators.calculateTitleRTLString(replacedEmoji)
+            arrItem.titleRTLString = ThreadCalculators.calculateTitleRTLString(replacedEmoji, thread)
             arrItem.closed = thread.closed
             arrItem.time = thread.time ?? arrItem.time
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
@@ -753,6 +770,10 @@ public final class ThreadsViewModel: ObservableObject {
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
         threads = sorted
+        delegate?.updateUI(animation: false, reloadSections: false)
+        for conversation in threads {
+            addImageLoader(conversation)
+        }
         animateObjectWillChange()
     }
 
@@ -776,6 +797,27 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].isSelected = false
             threads[index].animateObjectWillChange()
         }
+    }
+    
+    private func addImageLoader(_ conversation: CalculatedConversation) {
+        if let id = conversation.id, !imageLoaders.contains(where: { $0.key == id }), let image = conversation.image {
+            
+            let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+            let name = conversation.computedTitle
+            let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+            let viewModel = ImageLoaderViewModel(config: config)
+            imageLoaders[id] = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    self?.delegate?.updateImage(image: image, id: id)
+                }
+            }
+            viewModel.fetch()
+        }
+    }
+    
+    public func imageLoader(for id: Int) -> ImageLoaderViewModel? {
+        imageLoaders[id]
     }
 }
 

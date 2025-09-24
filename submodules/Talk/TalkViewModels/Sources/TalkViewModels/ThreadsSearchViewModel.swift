@@ -201,7 +201,8 @@ public final class ThreadsSearchViewModel: ObservableObject {
             let conversation = calculatedConversation.toStruct()
             calculatedConversation.lastMessageVO = message?.toLastMessageVO
             calculatedConversation.lastMessage = message?.message
-            calculatedConversation.fiftyFirstCharacter = String((message?.message ?? "").replacingOccurrences(of: "\n", with: " ").prefix(50))
+            let string = String((message?.message ?? "").replacingOccurrences(of: "\n", with: " ").prefix(50))
+            calculatedConversation.fiftyFirstCharacter = NSAttributedString(string: string)
             calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
             calculatedConversation.animateObjectWillChange()
         }

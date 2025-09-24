@@ -104,12 +104,12 @@ struct ThreadRowIcons: View {
                 .foregroundColor(thread.isSelected ? Color.App.textPrimary : Color.App.iconSecondary)
         }
         if isSearchRow {
-            Text(AppState.shared.objectsContainer.searchVM.attributdTitle(for: thread.titleRTLString ?? ""))
+            Text(AppState.shared.objectsContainer.searchVM.attributdTitle(for: thread.titleRTLString?.string ?? ""))
                 .lineLimit(1)
                 .font(.fSubheadline)
                 .fontWeight(.semibold)
         } else {
-            let title = thread.titleRTLString ?? ""
+            let title = thread.titleRTLString?.string ?? ""
             Text(title)
                 .lineLimit(1)
                 .font(.fSubheadline)

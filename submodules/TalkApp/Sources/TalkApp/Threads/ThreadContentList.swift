@@ -19,6 +19,13 @@ struct ThreadContentList: View {
     @State private var twoRowTappedAtSameTime = false
 
     var body: some View {
+        ThreadsTableViewControllerWrapper(viewModel: threadsVM)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ConversationTopSafeAreaInset()
+            }
+    }
+    
+    var swiftUI: some View {
         ScrollViewReader { reader in
             List {
                 ForEach(threadsVM.threads) { thread in

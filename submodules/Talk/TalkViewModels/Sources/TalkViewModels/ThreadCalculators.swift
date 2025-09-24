@@ -78,7 +78,7 @@ public class ThreadCalculators {
     ) -> CalculatedConversation {
         var classConversation = conversation.toClass()
         classConversation.computedTitle = calculateComputedTitle(conversation)
-        classConversation.titleRTLString = calculateTitleRTLString(classConversation.computedTitle)
+        classConversation.titleRTLString = calculateTitleRTLString(classConversation.computedTitle, conversation)
         classConversation.metaData = calculateMetadata(conversation.metadata)
         let avatarTuple = avatarColorName(conversation.title, classConversation.computedTitle)
         classConversation.materialBackground = avatarTuple.color
@@ -101,6 +101,7 @@ public class ThreadCalculators {
         classConversation.unreadCountString = calculateUnreadCountString(conversation.unreadCount) ?? ""
         classConversation.timeString = calculateThreadTime(conversation.time)
         classConversation.eventVM = ThreadEventViewModel(threadId: conversation.id ?? -1)
+        classConversation.isTalk = conversation.isTalk
         
         return classConversation
     }
@@ -114,7 +115,7 @@ public class ThreadCalculators {
         let wasSelected = await wasSelectedOnMain(classConversation)
         let conversation = await convertToStruct(classConversation)
         let computedTitle = calculateComputedTitle(conversation)
-        let titleRTLString = calculateTitleRTLString(conversation.computedTitle)
+        let titleRTLString = calculateTitleRTLString(conversation.computedTitle, conversation)
         let metaData = calculateMetadata(conversation.metadata)
         let avatarTuple = avatarColorName(conversation.title, conversation.computedTitle)
         let materialBackground = avatarTuple.color
@@ -195,8 +196,37 @@ public class ThreadCalculators {
         return conversation.title ?? ""
     }
     
-    public class func calculateTitleRTLString(_ computedTitle: String) -> String {
-        return textDirectionMark + computedTitle
+    public class func calculateTitleRTLString(_ computedTitle: String, _ conversation: Conversation) -> NSAttributedString {
+        let titleAttributedString = NSAttributedString(string: textDirectionMark + computedTitle)
+        if conversation.isTalk, let image = UIImage(named: "ic_approved") {
+            let mutable = NSMutableAttributedString(attributedString: titleAttributedString)
+            let imgAttachment = NSTextAttachment(image: image)
+            imgAttachment.bounds = CGRect(x: 0, y: -6, width: 18, height: 18)
+            let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
+            mutable.append(NSAttributedString(string: " "))
+            mutable.append(attachmentAttribute)
+            return mutable
+        } else if conversation.type?.isChannelType == true, let image = UIImage(named: "ic_channel")?.withTintColor(.gray) {
+            let mutable = NSMutableAttributedString(attributedString: NSAttributedString(string: ""))
+            let imgAttachment = NSTextAttachment(image: image)
+            imgAttachment.bounds = CGRect(x: 0, y: -2, width: 18, height: 18)
+            let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
+            mutable.append(attachmentAttribute)
+            mutable.append(NSAttributedString(string: " "))
+            mutable.append(titleAttributedString)
+            return mutable
+        } else if conversation.group == true, conversation.type?.isChannelType == false, let image = UIImage(systemName: "person.2.fill")?.withTintColor(.gray) {
+            let mutable = NSMutableAttributedString(attributedString: NSAttributedString(string: ""))
+            let imgAttachment = NSTextAttachment(image: image)
+            imgAttachment.bounds = CGRect(x: 0, y: -4, width: 19, height: 16)
+            let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
+            mutable.append(attachmentAttribute)
+            mutable.append(NSAttributedString(string: " "))
+            mutable.append(titleAttributedString)
+            return mutable
+        } else {
+            return titleAttributedString
+        }
     }
     
     private class func fixTitleAndReactionStatus(_ conversations: [Conversation]) -> [Conversation] {
@@ -293,7 +323,7 @@ public class ThreadCalculators {
         return !allActive
     }
 
-    private class func calculateFifityFirst(_ message: String, _ isFileType: Bool) -> String? {
+    private class func calculateFifityFirst(_ message: String, _ isFileType: Bool) -> NSAttributedString? {
         // Step 1: Remove Markdown style
         var message = removeMessageTextStyle(message: message)
         
@@ -301,7 +331,8 @@ public class ThreadCalculators {
         message = message.convertedHTMLEncoding
         
         if !isFileType {
-            return String(message.replacingOccurrences(of: "\n", with: " ").prefix(50))
+            let subString = message.replacingOccurrences(of: "\n", with: " ").prefix(50)
+            return NSAttributedString(string: String(subString))
         }
         return nil
     }

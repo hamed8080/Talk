@@ -333,7 +333,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 arrItem.image = metadatImagelink
             }
             arrItem.title = replacedEmoji
-            arrItem.titleRTLString = ThreadCalculators.calculateTitleRTLString(replacedEmoji)
+            arrItem.titleRTLString = ThreadCalculators.calculateTitleRTLString(replacedEmoji, thread)
             arrItem.closed = thread.closed
             arrItem.time = thread.time ?? arrItem.time
             arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash

@@ -87,7 +87,7 @@ public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable
     public var unreadCountString: String = ""
     public var isCircleUnreadCount: Bool = true
     public var isTalk: Bool = false
-    public var titleRTLString: String?
+    public var titleRTLString: NSAttributedString?
 #if canImport(UIKit)
     public var materialBackground: UIColor = .clear
     public var iconStatus: UIImage?
@@ -99,7 +99,7 @@ public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable
     public var timeString: String = ""
     public var eventVM: AnyObject?
     public var addRemoveParticipant: String?
-    public var fiftyFirstCharacter: String?
+    public var fiftyFirstCharacter: NSAttributedString?
     public var participantName: String?
     public var hasSpaceToShowPin: Bool = false
     public var sentFileString: String?
