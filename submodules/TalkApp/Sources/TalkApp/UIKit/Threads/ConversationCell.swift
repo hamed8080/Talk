@@ -21,7 +21,7 @@ class ConversationCell: UITableViewCell {
     private let avatarInitialLable = UILabel()
     private let pinImageView = UIImageView(image: UIImage(named: "ic_pin"))
     private let muteImageView = UIImageView(image: UIImage(systemName: "bell.slash.fill"))
-    private let unreadCountLabel = PaddingUILabel(frame: .zero, horizontal: 4, vertical: 4)
+    private let unreadCountLabel = UnreadCountAnimateableUILabel()
     private let closedImageView = UIImageView(image: UIImage(systemName: "lock"))
     private let mentionLable = UILabel(frame: .zero)
     private var radioIsHidden = true
@@ -32,7 +32,6 @@ class ConversationCell: UITableViewCell {
     private var statusHeightConstraint = NSLayoutConstraint()
     private var timeLabelWidthConstraint = NSLayoutConstraint()
     private var unreadCountLabelWidthConstraint = NSLayoutConstraint()
-    private var selectedBarViewWidthConstraint = NSLayoutConstraint()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -55,7 +54,6 @@ class ConversationCell: UITableViewCell {
         
         barView.backgroundColor = Color.App.accentUIColor
         barView.translatesAutoresizingMaskIntoConstraints = false
-        selectedBarViewWidthConstraint = barView.widthAnchor.constraint(equalToConstant: 0)
         barView.alpha = 0.0
         contentView.addSubview(barView)
         
@@ -124,7 +122,7 @@ class ConversationCell: UITableViewCell {
         unreadCountLabel.translatesAutoresizingMaskIntoConstraints = false
         unreadCountLabel.label.font = UIFont.fBoldBody
         unreadCountLabel.label.numberOfLines = 1
-        unreadCountLabelWidthConstraint = unreadCountLabel.widthAnchor.constraint(equalToConstant: 16)
+        unreadCountLabelWidthConstraint = unreadCountLabel.widthAnchor.constraint(equalToConstant: 0)
         unreadCountLabel.layer.masksToBounds = true
         unreadCountLabel.label.textAlignment = .center
         
@@ -168,7 +166,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(secondRowTrailingStack)
         
         NSLayoutConstraint.activate([
-            selectedBarViewWidthConstraint,
+            barView.widthAnchor.constraint(equalToConstant: 4),
             barView.topAnchor.constraint(equalTo: contentView.topAnchor),
             barView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             barView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -232,39 +230,7 @@ class ConversationCell: UITableViewCell {
     
     public func setConversation(conversation: CalculatedConversation, viewModel: ThreadsViewModel) {
         titleLabel.attributedText = conversation.titleRTLString
-    
-        var mutable = NSMutableAttributedString(string: "")
-        if let addOrRemoveParticipant = conversation.addRemoveParticipant {
-            mutable.append(NSAttributedString(string: addOrRemoveParticipant))
-        } else if let participantName = conversation.participantName {
-            mutable.append(NSAttributedString(string: participantName, attributes: [
-                .foregroundColor: Color.App.accentUIColor
-            ]))
-        }
-        
-        let draft = DraftManager.shared.get(threadId: conversation.id ?? -1)
-        if let draft = draft, !draft.isEmpty {
-            /// Need to reset all above attributes
-            mutable = NSMutableAttributedString(string: "")
-            mutable.append(
-                NSAttributedString(
-                    string: "Thread.draft".bundleLocalized(),
-                    attributes: [
-                        .foregroundColor: Color.App.redUIColor
-                    ]
-                )
-            )
-            mutable.append(
-                NSAttributedString(
-                    string: " \(draft)"
-                )
-            )
-        }
-        
-        if draft?.isEmpty == true || draft == nil, let fiftyFirstAttributedString = conversation.fiftyFirstCharacter {
-            mutable.append(fiftyFirstAttributedString)
-        }
-        subtitleLabel.attributedText = mutable
+        subtitleLabel.attributedText = conversation.subtitleAttributedString
         
         if let image = conversation.iconStatus {
             statusImageView.image = image
@@ -295,7 +261,7 @@ class ConversationCell: UITableViewCell {
         muteImageView.isHidden = conversation.mute == false || conversation.mute == nil
         
         unreadCountLabel.label.text = conversation.unreadCountString
-        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : unreadCountLabel.sizeThatFits(.init(width: 128, height: 24)).width + 24
+        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : unreadCountLabel.label.sizeThatFits(.init(width: 128, height: 24)).width + 24
         unreadCountLabel.label.textColor = conversation.mute == true ? Color.App.whiteUIColor : Color.App.textPrimaryUIColor
         unreadCountLabel.backgroundColor = conversation.mute == true ? Color.App.iconSecondaryUIColor : Color.App.accentUIColor
         unreadCountLabel.layer.cornerRadius = conversation.isCircleUnreadCount ? 12 : 10
@@ -303,7 +269,6 @@ class ConversationCell: UITableViewCell {
         closedImageView.isHidden = !(conversation.closed == true)
         
         barView.alpha = conversation.isSelected ? 1.0 : 0.0
-        selectedBarViewWidthConstraint.constant = conversation.isSelected ? 4 : 0
         
         mentionLable.isHidden = !(conversation.mentioned == true)
         
@@ -326,8 +291,6 @@ class ConversationCell: UITableViewCell {
         
         UIView.animate(withDuration: 0.2) { [weak self] in
             self?.barView.alpha = conversation.isSelected ? 1.0 : 0.0
-            self?.selectedBarViewWidthConstraint.constant = conversation.isSelected ? 4 : 0
-            self?.barView.layoutIfNeeded()
         }
         
         timeLabel.textColor = conversation.isSelected ? Color.App.textPrimaryUIColor : Color.App.iconSecondaryUIColor
@@ -339,18 +302,33 @@ class ConversationCell: UITableViewCell {
         unreadCountLabel.layer.cornerRadius = conversation.isCircleUnreadCount ? 12 : 10
     }
     
+    func setEvent(_ smt: SMT?, _ conversation: CalculatedConversation) {
+        if let smt = smt {
+            Task { [weak self] in
+                guard let self = self else { return }
+                if smt == .isTyping {
+                    let string = smt.stringEvent?.bundleLocalized().replacingOccurrences(of: "...", with: "") ?? ""
+                    var step = 0
+                    for i in 1...9 {
+                        let repeated = String(Array(repeating: ".", count: step))
+                        subtitleLabel.attributedText = NSAttributedString(string: "\(string)\(repeated)", attributes: [.foregroundColor: Color.App.accentUIColor])
+                        try await Task.sleep(for: .seconds(0.5))
+                        step = step + 1
+                        if step > 3 {
+                            step = 0
+                        }
+                    }
+                    
+                    /// Reset subtitle back to normal after tree times showing animation.
+                    subtitleLabel.attributedText = conversation.subtitleAttributedString
+                }
+            }
+        }
+    }
+    
     override func prepareForReuse() {
-        avatarInitialLable.text = ""
         avatar.image = nil
         avatar.backgroundColor = nil
         statusImageView.image = nil
-        closedImageView.isHidden = true
-        muteImageView.isHidden = true
-        pinImageView.isHidden = true
-        subtitleLabel.textColor = nil
-        contentView.backgroundColor = nil
-        subtitleLabel.textColor = Color.App.textSecondaryUIColor
-        selectedBarViewWidthConstraint.constant = 0
-        barView.alpha = 0.0
     }
 }

@@ -201,8 +201,10 @@ public final class ThreadsSearchViewModel: ObservableObject {
             let conversation = calculatedConversation.toStruct()
             calculatedConversation.lastMessageVO = message?.toLastMessageVO
             calculatedConversation.lastMessage = message?.message
+            let myId = AppState.shared.user?.id ?? -1
             let string = String((message?.message ?? "").replacingOccurrences(of: "\n", with: " ").prefix(50))
-            calculatedConversation.fiftyFirstCharacter = NSAttributedString(string: string)
+            
+            calculatedConversation.subtitleAttributedString = ThreadCalculators.caculateSubtitle(conversation: conversation, myId: myId, isFileType: message?.isFileType == true)
             calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
             calculatedConversation.animateObjectWillChange()
         }

@@ -370,7 +370,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    private func recalculateAndAnimate(_ thread: CalculatedConversation) {
+    func recalculateAndAnimate(_ thread: CalculatedConversation) {
         Task { [weak self] in
             guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)

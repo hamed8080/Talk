@@ -84,13 +84,9 @@ public class ThreadCalculators {
         classConversation.materialBackground = avatarTuple.color
         classConversation.splitedTitle = avatarTuple.splited
         classConversation.computedImageURL = calculateImageURL(conversation.image, classConversation.metaData)
-        classConversation.addRemoveParticipant = calculateAddOrRemoveParticipant(classConversation.lastMessageVO, myId)
         let isFileType = classConversation.lastMessageVO?.toMessage.isFileType == true
-        classConversation.fiftyFirstCharacter = calculateFifityFirst(classConversation.lastMessageVO?.message ?? "", isFileType)
-        classConversation.participantName = calculateParticipantName(conversation, myId)
+       
         classConversation.hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
-        classConversation.sentFileString = sentFileString(conversation, isFileType, myId)
-        classConversation.createConversationString = createConversationString(conversation)
         classConversation.callMessage = callMessage(conversation)
         classConversation.isSelected = calculateIsSelected(conversation, isSelected: false, isInForwardMode: false, navSelectedId)
         
@@ -102,6 +98,7 @@ public class ThreadCalculators {
         classConversation.timeString = calculateThreadTime(conversation.time)
         classConversation.eventVM = ThreadEventViewModel(threadId: conversation.id ?? -1)
         classConversation.isTalk = conversation.isTalk
+        classConversation.subtitleAttributedString = caculateSubtitle(conversation: conversation, myId: myId, isFileType: isFileType)
         
         return classConversation
     }
@@ -121,10 +118,8 @@ public class ThreadCalculators {
         let materialBackground = avatarTuple.color
         let splitedTitle = avatarTuple.splited
         let computedImageURL = calculateImageURL(conversation.image, conversation.metaData)
-        let addRemoveParticipant = calculateAddOrRemoveParticipant(conversation.lastMessageVO, myId)
         let isFileType = conversation.lastMessageVO?.toMessage.isFileType == true
         let fiftyFirstCharacter = calculateFifityFirst(conversation.lastMessageVO?.message ?? "", isFileType)
-        let participantName = calculateParticipantName(conversation, myId)
         let hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
         let sentFileString = sentFileString(conversation, isFileType, myId)
         let createConversationString = createConversationString(conversation)
@@ -138,6 +133,7 @@ public class ThreadCalculators {
         let unreadCountString = calculateUnreadCountString(conversation.unreadCount) ?? ""
         let timeString = calculateThreadTime(conversation.time)
         let eventVM = classConversation.eventVM as? ThreadEventViewModel ?? ThreadEventViewModel(threadId: conversation.id ?? -1)
+        let subtitleAttributdString = caculateSubtitle(conversation: conversation, myId: myId, isFileType: isFileType)
         await MainActor.run {
             classConversation.computedTitle = computedTitle
             classConversation.titleRTLString = titleRTLString
@@ -145,12 +141,8 @@ public class ThreadCalculators {
             classConversation.materialBackground = materialBackground
             classConversation.splitedTitle = splitedTitle
             classConversation.computedImageURL = computedImageURL
-            classConversation.addRemoveParticipant = addRemoveParticipant
-            classConversation.fiftyFirstCharacter = fiftyFirstCharacter
-            classConversation.participantName = participantName
+            classConversation.subtitleAttributedString = subtitleAttributdString
             classConversation.hasSpaceToShowPin = hasSpaceToShowPin
-            classConversation.sentFileString = sentFileString
-            classConversation.createConversationString = createConversationString
             classConversation.callMessage = callMessage
             classConversation.isSelected = isSelected
             classConversation.isCircleUnreadCount = isCircleUnreadCount
@@ -384,6 +376,55 @@ public class ThreadCalculators {
         } else {
             return nil
         }
+    }
+    
+    public static func caculateSubtitle(conversation: Conversation, myId: Int, isFileType: Bool) -> NSAttributedString? {
+        var mutable = NSMutableAttributedString(string: "")
+        if let addOrRemoveParticipant = calculateAddOrRemoveParticipant(conversation.lastMessageVO, myId) {
+            mutable.append(NSAttributedString(string: addOrRemoveParticipant))
+        } else if let participantName = calculateParticipantName(conversation, myId) {
+            mutable.append(NSAttributedString(string: participantName, attributes: [
+                .foregroundColor: UIColor(named: "accent")
+            ]))
+        } else if let createdConversationString = createConversationString(conversation) {
+            mutable.append(NSAttributedString(string: createdConversationString, attributes: [
+                .foregroundColor: UIColor(named: "accent")
+            ]))
+        }
+        
+        if let fileString = sentFileString(conversation, isFileType, myId)  {
+            mutable.append(NSAttributedString(string: fileString, attributes: [
+                .foregroundColor: UIColor(named: "text_secondary")
+            ]))
+        }
+        
+        let draft = DraftManager.shared.get(threadId: conversation.id ?? -1)
+        if let draft = draft, !draft.isEmpty {
+            /// Need to reset all above attributes
+            mutable = NSMutableAttributedString(string: "")
+            mutable.append(
+                NSAttributedString(
+                    string: "Thread.draft".bundleLocalized(),
+                    attributes: [
+                        .foregroundColor: UIColor(named: "red")
+                    ]
+                )
+            )
+            mutable.append(
+                NSAttributedString(
+                    string: " \(draft)"
+                )
+            )
+        }
+
+        
+        if draft?.isEmpty == true || draft == nil,
+           let message = conversation.lastMessageVO?.toMessage,
+           let fiftyString = calculateFifityFirst(message.message ?? "", isFileType)
+        {
+            mutable.append(fiftyString)
+        }
+        return mutable
     }
 
     private class func callMessage(_ conversation: Conversation) -> Message? {

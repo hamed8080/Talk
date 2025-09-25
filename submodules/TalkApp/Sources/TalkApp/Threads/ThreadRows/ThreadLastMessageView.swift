@@ -46,20 +46,20 @@ struct NormalLastMessageContainer: View {
             }
         } else {
             HStack(spacing: 0) {
-                if thread.addRemoveParticipant != nil {
-                    addOrRemoveParticipantsView
-                } else if thread.participantName != nil {
-                    praticipantNameView
-                }
-
-                if thread.fiftyFirstCharacter != nil {
-                    fiftyFirstTextView
-                } else if thread.sentFileString != nil {
-                    fileNameLastMessageTextView
-                }
-                if thread.createConversationString != nil {
-                    createdConversation
-                }
+//                if thread.addRemoveParticipant != nil {
+//                    addOrRemoveParticipantsView
+//                } else if thread.participantName != nil {
+//                    praticipantNameView
+//                }
+//
+//                if thread.fiftyFirstCharacter != nil {
+//                    fiftyFirstTextView
+//                } else if thread.sentFileString != nil {
+//                    fileNameLastMessageTextView
+//                }
+//                if thread.createConversationString != nil {
+//                    createdConversation
+//                }
                 Spacer()
                 muteView
                 pinView
@@ -67,27 +67,27 @@ struct NormalLastMessageContainer: View {
         }
     }
 
-    @ViewBuilder
-    private var addOrRemoveParticipantsView: some View {
-        if let addOrRemoveParticipant = thread.addRemoveParticipant {
-            Text(addOrRemoveParticipant)
-                .font(.fCaption2)
-                .fontWeight(.regular)
-                .lineLimit(1)
-                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
-        }
-    }
+//    @ViewBuilder
+//    private var addOrRemoveParticipantsView: some View {
+//        if let addOrRemoveParticipant = thread.addRemoveParticipant {
+//            Text(addOrRemoveParticipant)
+//                .font(.fCaption2)
+//                .fontWeight(.regular)
+//                .lineLimit(1)
+//                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
+//        }
+//    }
 
-    @ViewBuilder
-    private var praticipantNameView: some View {
-        if let participantName = thread.participantName {
-            Text(participantName)
-                .font(.fCaption2)
-                .fontWeight(.regular)
-                .lineLimit(1)
-                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
-        }
-    }
+//    @ViewBuilder
+//    private var praticipantNameView: some View {
+//        if let participantName = thread.participantName {
+//            Text(participantName)
+//                .font(.fCaption2)
+//                .fontWeight(.regular)
+//                .lineLimit(1)
+//                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
+//        }
+//    }
 
 //    @ViewBuilder
 //    private var lastMessageIcon: some View {
@@ -99,37 +99,37 @@ struct NormalLastMessageContainer: View {
 //        //            }
 //    }
 
-    @ViewBuilder
-    private var createdConversation: some View {
-        if let createConversationString = thread.createConversationString {
-            Text(createConversationString)
-                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
-                .font(.fCaption2)
-                .fontWeight(.regular)
-        }
-    }
+//    @ViewBuilder
+//    private var createdConversation: some View {
+//        if let createConversationString = thread.createConversationString {
+//            Text(createConversationString)
+//                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.accent)
+//                .font(.fCaption2)
+//                .fontWeight(.regular)
+//        }
+//    }
 
-    @ViewBuilder
-    private var fiftyFirstTextView: some View {
-        if let fiftyFirstCharacter = thread.fiftyFirstCharacter {
-            Text(verbatim: fiftyFirstCharacter.string)
-                .font(.fCaption2)
-                .fontWeight(.regular)
-                .lineLimit(1)
-                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
-        }
-    }
+//    @ViewBuilder
+//    private var fiftyFirstTextView: some View {
+//        if let fiftyFirstCharacter = thread.fiftyFirstCharacter {
+//            Text(verbatim: fiftyFirstCharacter.string)
+//                .font(.fCaption2)
+//                .fontWeight(.regular)
+//                .lineLimit(1)
+//                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
+//        }
+//    }
 
-    @ViewBuilder
-    private var fileNameLastMessageTextView: some View {
-        if let sentFileString = thread.sentFileString {
-            Text(sentFileString)
-                .font(.fCaption2)
-                .fontWeight(.regular)
-                .lineLimit(thread.group == false ? 2 : 1)
-                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
-        }
-    }
+//    @ViewBuilder
+//    private var fileNameLastMessageTextView: some View {
+//        if let sentFileString = thread.sentFileString {
+//            Text(sentFileString)
+//                .font(.fCaption2)
+//                .fontWeight(.regular)
+//                .lineLimit(thread.group == false ? 2 : 1)
+//                .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
+//        }
+//    }
 
     @ViewBuilder
     private var muteView: some View {

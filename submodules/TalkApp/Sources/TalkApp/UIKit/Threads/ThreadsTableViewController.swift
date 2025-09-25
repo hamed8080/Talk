@@ -79,7 +79,9 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
         }
         
         /// Apply
-        dataSource.apply(snapshot, animatingDifferences: animation)
+        Task { @AppBackgroundActor in
+            await dataSource?.apply(snapshot, animatingDifferences: animation)
+        }
     }
     
     func updateImage(image: UIImage?, id: Int) {
@@ -102,6 +104,10 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     
     func unreadCountChanged(conversation: CalculatedConversation) {
         cell(id: conversation.id ?? -1)?.unreadCountChanged(conversation: conversation)
+    }
+    
+    func setEvent(smt: SMT?, conversation: CalculatedConversation) {
+        cell(id: conversation.id ?? -1)?.setEvent(smt, conversation)
     }
 }
 

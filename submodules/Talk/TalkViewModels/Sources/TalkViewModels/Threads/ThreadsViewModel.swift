@@ -24,6 +24,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject {
     func reloadCellWith(conversation: CalculatedConversation)
     func selectionChanged(conversation: CalculatedConversation)
     func unreadCountChanged(conversation: CalculatedConversation)
+    func setEvent(smt: SMT?, conversation: CalculatedConversation)
 }
 
 @MainActor
@@ -84,6 +85,7 @@ public final class ThreadsViewModel: ObservableObject {
             let old = reference.toStruct()
             let updated = reference.updateOnNewMessage(messages.last ?? .init(), meId: myId)
             threads[index] = updated
+            delegate?.unreadCountChanged(conversation: updated)
             threads[index].animateObjectWillChange()
             if updated.pin == false {
                 await sortInPlace()
@@ -281,7 +283,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     @AppBackgroundActor
     private func splitThreshold(_ sorted: ContiguousArray<CalculatedConversation>) -> [Int] {
-        sorted.suffix(2).compactMap{$0.id}
+        sorted.suffix(5).compactMap{$0.id}
     }
 
     /// After connect and reconnect all the threads will be removed from the array
@@ -771,11 +773,11 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
     
-    private func recalculateAndAnimate(_ thread: CalculatedConversation) {
+    func recalculateAndAnimate(_ thread: CalculatedConversation) {
         Task { [weak self] in
             guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
-            self.delegate?.unreadCountChanged(conversation: thread)
+            self.delegate?.reloadCellWith(conversation: thread)
             thread.animateObjectWillChange()
         }
     }

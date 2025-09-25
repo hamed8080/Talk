@@ -8,8 +8,7 @@
 import Foundation
 import Chat
 
-@MainActor
-public class DraftManager {
+public final class DraftManager: Sendable {
     private let contactKey = "contact-draft-"
     private let conversationKey = "conversation-draft-"
     private let eidtMessageKey = "edit-draft-"
@@ -29,10 +28,18 @@ public class DraftManager {
         } else {
             UserDefaults.standard.setValue(draftValue, forKey: getConversationKey(threadId: threadId))
         }
-        if let conversation = AppState.shared.objectsContainer.threadsVM.threads.first(where: { $0.id == threadId}) {
-            AppState.shared.objectsContainer.threadsVM.delegate?.reloadCellWith(conversation: conversation)
+        Task { @MainActor in
+            let threadsVM = AppState.shared.objectsContainer.threadsVM
+            if let conversation = threadsVM.threads.first(where: { $0.id == threadId}) {
+                threadsVM.recalculateAndAnimate(conversation)
+            }
+            
+            let archivesVM = AppState.shared.objectsContainer.archivesVM
+            if let conversation = archivesVM.archives.first(where: { $0.id == threadId}) {
+                archivesVM.recalculateAndAnimate(conversation)
+            }
+            NotificationCenter.draft.post(name: .draft, object: threadId)
         }
-        NotificationCenter.draft.post(name: .draft, object: threadId)
     }
 
     public func set(draftValue: String, contactId: Int) {
@@ -41,7 +48,10 @@ public class DraftManager {
         } else {
             UserDefaults.standard.setValue(draftValue, forKey: getContactKey(contactId: contactId))
         }
-        NotificationCenter.draft.post(name: .draft, object: contactId)
+        
+        Task { @MainActor in
+            NotificationCenter.draft.post(name: .draft, object: contactId)
+        }
     }
 
     public func setEditMessageDraft(_ editMessage: Message?, threadId: Int) {

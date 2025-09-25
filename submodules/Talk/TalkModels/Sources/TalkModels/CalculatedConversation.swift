@@ -98,12 +98,8 @@ public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable
     public var metaData: FileMetaData?
     public var timeString: String = ""
     public var eventVM: AnyObject?
-    public var addRemoveParticipant: String?
-    public var fiftyFirstCharacter: NSAttributedString?
-    public var participantName: String?
+    public var subtitleAttributedString: NSAttributedString?
     public var hasSpaceToShowPin: Bool = false
-    public var sentFileString: String?
-    public var createConversationString: String?
     public var callMessage: Message?
     public var isInForwardMode: Bool = false
     public var imageLoader: AnyObject?
