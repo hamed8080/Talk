@@ -12,6 +12,8 @@ import Chat
 import TalkUI
 
 class ConversationCell: UITableViewCell {
+    private var conversation: CalculatedConversation?
+    
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let radio = SelectMessageRadio()
@@ -51,6 +53,10 @@ class ConversationCell: UITableViewCell {
         translatesAutoresizingMaskIntoConstraints = true
         contentView.backgroundColor = .clear
         backgroundColor = .clear
+        
+        let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(openContextMenu))
+        longGesture.minimumPressDuration = 0.3
+        addGestureRecognizer(longGesture)
         
         barView.backgroundColor = Color.App.accentUIColor
         barView.translatesAutoresizingMaskIntoConstraints = false
@@ -229,6 +235,7 @@ class ConversationCell: UITableViewCell {
     }
     
     public func setConversation(conversation: CalculatedConversation, viewModel: ThreadsViewModel) {
+        self.conversation = conversation
         titleLabel.attributedText = conversation.titleRTLString
         subtitleLabel.attributedText = conversation.subtitleAttributedString
         
@@ -330,5 +337,54 @@ class ConversationCell: UITableViewCell {
         avatar.image = nil
         avatar.backgroundColor = nil
         statusImageView.image = nil
+    }
+    
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        setTouches(isBegan: true)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        setTouches(isBegan: false)
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        setTouches(isBegan: false)
+    }
+    
+    private func setTouches(isBegan: Bool) {
+        let scale = isBegan ? 0.98 : 1.0
+        let selectedColor = Color.App.bgChatSelectedUIColor
+        let pinColor = Color.App.bgSecondaryUIColor
+        let normalColor = Color.App.bgPrimaryUIColor
+        let touchColor = selectedColor?.withAlphaComponent(0.3)
+        
+        let isSelected = conversation?.isSelected == true        
+        let isPin = conversation?.pin == true
+        
+        let bg = isBegan ? touchColor : isSelected ? selectedColor : isPin ? pinColor : normalColor
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            guard let self = self else { return }
+            self.transform = CGAffineTransform(scaleX: scale, y: scale)
+            self.contentView.backgroundColor = bg
+        }
+    }
+    
+    @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
+        let delegate = AppState.shared.objectsContainer.threadsVM.delegate
+        guard
+            sender.state == .began,
+            let indexPath = delegate?.indexPath(for: self),
+                let conversation = delegate?.dataSourceItem(for: indexPath)
+        else { return }
+        
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
+        delegate?.showContextMenu(
+            indexPath,
+            contentView: ThreadRowContextMenuUIKit(conversation: conversation)
+        )
     }
 }

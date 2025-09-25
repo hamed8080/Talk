@@ -18,13 +18,15 @@ public enum ThreadsListSection: Sendable {
 }
 
 @MainActor
-public protocol UIThreadsViewControllerDelegate: AnyObject {
+public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate {
     func updateUI(animation: Bool, reloadSections: Bool)
     func updateImage(image: UIImage?, id: Int)
     func reloadCellWith(conversation: CalculatedConversation)
     func selectionChanged(conversation: CalculatedConversation)
     func unreadCountChanged(conversation: CalculatedConversation)
     func setEvent(smt: SMT?, conversation: CalculatedConversation)
+    func indexPath<T: UITableViewCell>(for: T) -> IndexPath?
+    func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation?
 }
 
 @MainActor
@@ -283,7 +285,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     @AppBackgroundActor
     private func splitThreshold(_ sorted: ContiguousArray<CalculatedConversation>) -> [Int] {
-        sorted.suffix(5).compactMap{$0.id}
+        sorted.suffix(10).compactMap{$0.id}
     }
 
     /// After connect and reconnect all the threads will be removed from the array
@@ -820,10 +822,14 @@ public final class ThreadsViewModel: ObservableObject {
     
     private func addImageLoader(_ conversation: CalculatedConversation) {
         if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
-            
             let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
             let name = conversation.computedTitle
-            let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+            let config = ImageLoaderConfig(
+                url: httpsImage,
+                metaData: conversation.metadata,
+                userName: String.splitedCharacter(name ?? ""),
+                forceToDownloadFromServer: true
+            )
             let viewModel = ImageLoaderViewModel(config: config)
             conversation.imageLoader = viewModel
             viewModel.onImage = { [weak self] image in
@@ -837,6 +843,27 @@ public final class ThreadsViewModel: ObservableObject {
     
     public func imageLoader(for id: Int) -> ImageLoaderViewModel? {
         threads.first(where: { $0.id == id })?.imageLoader as? ImageLoaderViewModel
+    }
+    
+    public func toggleArchive(_ conversation: Conversation) { AppState.shared.objectsContainer.archivesVM.toggleArchive(conversation)
+        if conversation.isArchive == false || conversation.isArchive == nil {
+            let leadingView = Image(systemName: "tray.and.arrow.up")
+            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: leadingView,
+                                                                message: "ArchivedTab.guide".bundleLocalized(),
+                                                                messageColor: Color("text_primary") ?? Color.white,
+                                                                duration: .slow)
+        }
+    }
+    
+    public func onTapped(conversation: CalculatedConversation) {
+        /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
+        if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
+        
+        if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
+            /// to update isSeleted for bar and background color
+            setSelected(for: conversation.id ?? -1, selected: true, isArchive: conversation.isArchive == true)
+            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: conversation.toStruct())
+        }
     }
 }
 

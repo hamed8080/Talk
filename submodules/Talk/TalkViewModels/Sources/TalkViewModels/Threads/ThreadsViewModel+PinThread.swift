@@ -44,8 +44,10 @@ extension ThreadsViewModel: PinThreadProtocol {
         if response.result != nil, let threadIndex = firstIndex(response.result?.id) {
             threads[threadIndex].pin?.toggle()
             delegate?.reloadCellWith(conversation: threads[threadIndex])
+            
             threads[threadIndex].animateObjectWillChange()
             await sortInPlace()
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
         if let conversation = await threadFinder.getNotActiveThreads(response.result?.id ?? -1) {
@@ -60,6 +62,7 @@ extension ThreadsViewModel: PinThreadProtocol {
             delegate?.reloadCellWith(conversation: threads[threadIndex])
             threads[threadIndex].animateObjectWillChange()
             await sortInPlace()
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
     }

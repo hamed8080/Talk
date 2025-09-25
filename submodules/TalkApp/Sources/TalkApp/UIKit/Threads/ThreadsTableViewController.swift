@@ -9,12 +9,14 @@ import Foundation
 import UIKit
 import Chat
 import SwiftUI
+import TalkViewModels
 
 class ThreadsTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ThreadsListSection, CalculatedConversation>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: ThreadsViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
+    public var contextMenuContainer: ContextMenuContainerView?
     
     init(viewModel: ThreadsViewModel) {
         self.viewModel = viewModel
@@ -35,8 +37,9 @@ class ThreadsTableViewController: UIViewController {
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
-        
         view.addSubview(tableView)
+        
+        contextMenuContainer = .init(delegate: self)
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -109,93 +112,73 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     func setEvent(smt: SMT?, conversation: CalculatedConversation) {
         cell(id: conversation.id ?? -1)?.setEvent(smt, conversation)
     }
+    
+    func indexPath<T: UITableViewCell>(for cell: T) -> IndexPath? {
+        tableView.indexPath(for: cell)
+    }
+    
+    func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation? {
+        dataSource?.itemIdentifier(for: indexPath)
+    }
+}
+
+extension ThreadsTableViewController: ContextMenuDelegate {
+    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
+        guard
+            let indexPath = indexPath,
+            let conversation = dataSource.itemIdentifier(for: indexPath)
+        else { return }
+        contextMenuContainer?.setContentView(contentView, indexPath: indexPath)
+        contextMenuContainer?.show()
+    }
+    
+    func dismissContextMenu(indexPath: IndexPath?) {
+        
+    }
 }
 
 extension ThreadsTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
-        onTapped(conversation: conversation)
+        viewModel.onTapped(conversation: conversation)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let deleteAction = UIContextualAction(style: .destructive, title: "") { [weak self] action, view, success in
-
-            self?.onSwipeDelete(indexPath)
+        guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return nil }
+        var arr: [UIContextualAction] = []
+        
+        let muteAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
+            self?.viewModel.toggleMute(conversation.toStruct())
             success(true)
         }
-        deleteAction.image = UIImage(systemName: "trash")
-        deleteAction.backgroundColor = UIColor.red
+        muteAction.image = UIImage(systemName: conversation.mute == true ? "speaker" : "speaker.slash")
+        muteAction.backgroundColor = UIColor.gray
+        arr.append(muteAction)
         
-        let editAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
-            self?.onSwipeEdit(indexPath)
+        let pinAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
+            self?.viewModel.togglePin(conversation.toStruct())
             success(true)
         }
-        editAction.image = UIImage(systemName: "pencil")
-        editAction.backgroundColor = UIColor.gray
+        pinAction.image = UIImage(systemName: conversation.pin == true ? "pin.slash.fill" : "pin")
+        pinAction.backgroundColor = UIColor.darkGray
+        arr.append(pinAction)
         
-        let config = UISwipeActionsConfiguration(actions: [editAction, deleteAction])
-        return config
+        let archiveImage = conversation.isArchive == true ?  "tray.and.arrow.up" : "tray.and.arrow.down"
+        let archiveAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
+            self?.viewModel.toggleArchive(conversation.toStruct())
+            success(true)
+        }
+        archiveAction.image = UIImage(systemName: archiveImage)
+        archiveAction.backgroundColor = Color.App.color2UIColor
+        arr.append(archiveAction)
+    
+        return UISwipeActionsConfiguration(actions: arr)
     }
+    
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
         Task {
             await viewModel.loadMore(id: conversation.id ?? -1)
-        }
-    }
-}
-
-extension ThreadsTableViewController {
-    func onSwipeDelete(_ indexPath: IndexPath) {
-//        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
-//        UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 1)
-//        viewModel.addToSelctedContacts(contact)
-//        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
-//            DeleteContactView()
-//                .environmentObject(viewModel)
-//                .onDisappear {
-//                    self.viewModel.removeToSelctedContacts(contact)
-//                }
-//        )
-    }
-    
-    func onSwipeEdit(_ indexPath: IndexPath) {
-//        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
-//        viewModel.editContact = contact
-//        
-//        if #available(iOS 16.4, *) {
-//            let rootView = AddOrEditContactView()
-//                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-//                .environmentObject(viewModel)
-//                .onDisappear { [weak self] in
-//                    guard let self = self else { return }
-//                    /// Clearing the view for when the user cancels the sheet by dropping it down.
-//                    viewModel.successAdded = false
-//                    viewModel.addContact = nil
-//                    viewModel.editContact = nil
-//                }
-//            var sheetVC = UIHostingController(rootView: rootView)
-//            sheetVC.modalPresentationStyle = .formSheet
-//            self.present(sheetVC, animated: true)
-//        }
-    }
-    
-    func onSwipeBlock(_ indexPath: IndexPath) {
-//        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
-//        if contact.blocked == true, let contactId = contact.id {
-//            viewModel.unblockWith(contactId)
-//        } else {
-//            viewModel.block(contact)
-//        }
-    }
-    
-    func onTapped(conversation: CalculatedConversation) {
-        /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
-        if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
-        
-        if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
-            /// to update isSeleted for bar and background color
-            viewModel.setSelected(for: conversation.id ?? -1, selected: true, isArchive: conversation.isArchive == true)
-            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: conversation.toStruct())
         }
     }
 }

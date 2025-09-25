@@ -214,6 +214,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
             threadsVM.threads.append(calThreads)
             await threadsVM.sortInPlace()
+            threadsVM.recalculateAndAnimate(calThreads)
             threadsVM.animateObjectWillChange()
             calThreads.animateObjectWillChange()
             animateObjectWillChange()
