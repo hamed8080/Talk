@@ -30,7 +30,8 @@ public extension EnvironmentValues { // Environment key path variable
     }
 }
 
-// Custom hosting controller that update status bar style
+/// Custom hosting controller that update status bar style,
+/// and prevent swipe back at the root view controller.
 public class CustomUIHostinViewController<Content>: UIHostingController<Content> where Content: View {
     private var internalStyle = UIStatusBarStyle.default
 
@@ -53,5 +54,26 @@ public class CustomUIHostinViewController<Content>: UIHostingController<Content>
 
     @objc dynamic required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+    }
+}
+
+struct UINavigationControllerState {
+    @MainActor static var shared = UINavigationControllerState()
+    var allowsSwipeBack: Bool = true
+}
+
+extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        interactivePopGestureRecognizer?.delegate = self
+    }
+
+    /// This code will prevent a bug in SwiftUI or UIKit where user tries to pop with left to right gesture
+    /// where there is no more view controller to pop.
+    /// By removing these lines, after swipe over the edge of the screen where there is nothing to pop
+    /// no more clicks will work.
+    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard UINavigationControllerState.shared.allowsSwipeBack else { return false }
+        return viewControllers.count > 1
     }
 }
