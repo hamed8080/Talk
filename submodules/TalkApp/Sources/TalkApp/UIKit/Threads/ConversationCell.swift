@@ -13,6 +13,7 @@ import TalkUI
 
 class ConversationCell: UITableViewCell {
     private var conversation: CalculatedConversation?
+    weak var delegate: UIThreadsViewControllerDelegate?
     
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
@@ -373,7 +374,6 @@ class ConversationCell: UITableViewCell {
     }
     
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
-        let delegate = AppState.shared.objectsContainer.threadsVM.delegate
         guard
             sender.state == .began,
             let indexPath = delegate?.indexPath(for: self),

@@ -63,6 +63,7 @@ extension ThreadsTableViewController {
             
             // Set properties
             cell?.setConversation(conversation: conversation)
+            cell?.delegate = self
             
             return cell
         }
