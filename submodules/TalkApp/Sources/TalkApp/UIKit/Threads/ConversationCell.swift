@@ -355,6 +355,11 @@ class ConversationCell: UITableViewCell {
         setTouches(isBegan: false)
     }
     
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        setTouches(isBegan: false)
+    }
+    
     private func setTouches(isBegan: Bool) {
         let scale = isBegan ? 0.98 : 1.0
         let selectedColor = Color.App.bgChatSelectedUIColor
