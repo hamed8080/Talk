@@ -11,6 +11,7 @@ import SwiftUI
 import TalkUI
 import TalkViewModels
 import TalkModels
+import Combine
 
 struct ContactContentList: View {
     @EnvironmentObject var viewModel: ContactsViewModel
@@ -19,6 +20,15 @@ struct ContactContentList: View {
     @EnvironmentObject var builderVM: ConversationBuilderViewModel
 
     var body: some View {
+        ContactsViewControllerWrapper(viewModel: viewModel)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ContactListToolbar()
+            }
+        
+        //        swiftUIView
+    }
+    
+    var swiftUIView: some View {
         List {
             totalContactCountView
             syncView
@@ -38,7 +48,7 @@ struct ContactContentList: View {
         .listStyle(.plain)
         .gesture(dragToHideKeyboardGesture)
         .safeAreaInset(edge: .top, spacing: 0) {
-           ContactListToolbar()
+            ContactListToolbar()
         }
         .sheet(isPresented: $viewModel.showAddOrEditContactSheet, onDismiss: onAddOrEditDisappeared) {
             if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
