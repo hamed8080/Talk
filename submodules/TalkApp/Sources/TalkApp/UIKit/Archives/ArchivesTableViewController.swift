@@ -154,7 +154,7 @@ extension ArchivesTableViewController: UITableViewDelegate {
             success(true)
         }
         archiveAction.image = UIImage(systemName: archiveImage)
-        archiveAction.backgroundColor = Color.App.color2UIColor
+        archiveAction.backgroundColor = Color.App.color5UIColor
         arr.append(archiveAction)
     
         return UISwipeActionsConfiguration(actions: arr)
