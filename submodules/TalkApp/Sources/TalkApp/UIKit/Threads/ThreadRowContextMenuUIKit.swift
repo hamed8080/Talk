@@ -34,7 +34,7 @@ class ThreadRowContextMenuUIKit: UIView {
         addSubview(menu)
         
         let cell = ConversationCell(frame: .zero)
-        cell.setConversation(conversation: conversation, viewModel: ThreadsViewModel())
+        cell.setConversation(conversation: conversation)
         cell.setImage(image)
         cell.translatesAutoresizingMaskIntoConstraints = false
         cell.layer.cornerRadius = 16

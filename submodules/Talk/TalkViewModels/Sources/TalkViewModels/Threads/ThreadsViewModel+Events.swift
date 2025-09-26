@@ -84,8 +84,8 @@ extension ThreadsViewModel {
         switch event {
         case .systemMessage(let chatResponse):
             guard let result = chatResponse.result else { return }
-            if let conversation = AppState.shared.objectsContainer.threadsVM.threads.first(where: { $0.id == chatResponse.subjectId }) {
-                AppState.shared.objectsContainer.threadsVM.delegate?.setEvent(smt: result.smt, conversation: conversation)
+            if let conversation = threads.first(where: { $0.id == chatResponse.subjectId }) {
+                delegate?.setEvent(smt: result.smt, conversation: conversation)
             }
         default:
             break

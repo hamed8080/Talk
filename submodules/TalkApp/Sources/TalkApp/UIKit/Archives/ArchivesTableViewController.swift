@@ -1,5 +1,5 @@
 //
-//  ThreadsTableViewController.swift
+//  ArchivesTableViewController.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 9/23/21.
@@ -11,14 +11,14 @@ import Chat
 import SwiftUI
 import TalkViewModels
 
-class ThreadsTableViewController: UIViewController {
+class ArchivesTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ThreadsListSection, CalculatedConversation>!
     var tableView: UITableView = UITableView(frame: .zero)
-    let viewModel: ThreadsViewModel
+    let viewModel: ArchiveThreadsViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
     public var contextMenuContainer: ContextMenuContainerView?
     
-    init(viewModel: ThreadsViewModel) {
+    init(viewModel: ArchiveThreadsViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
@@ -51,7 +51,7 @@ class ThreadsTableViewController: UIViewController {
     }
 }
 
-extension ThreadsTableViewController {
+extension ArchivesTableViewController {
     
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, conversation) -> UITableViewCell? in
@@ -69,14 +69,14 @@ extension ThreadsTableViewController {
     }
 }
 
-extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
+extension ArchivesTableViewController: UIThreadsViewControllerDelegate {
     func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
         
         /// Configure
         snapshot.appendSections([.main])
-        snapshot.appendItems(Array(viewModel.threads), toSection: .main)
+        snapshot.appendItems(Array(viewModel.archives), toSection: .main)
         if reloadSections {
             snapshot.reloadSections([.main])
         }
@@ -92,7 +92,7 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     }
     
     private func cell(id: Int) -> ConversationCell? {
-        guard let index = viewModel.threads.firstIndex(where: { $0.id == id }) else { return nil }
+        guard let index = viewModel.archives.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ConversationCell
     }
     
@@ -122,7 +122,7 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     }
 }
 
-extension ThreadsTableViewController: ContextMenuDelegate {
+extension ArchivesTableViewController: ContextMenuDelegate {
     func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
         guard
             let indexPath = indexPath,
@@ -137,7 +137,7 @@ extension ThreadsTableViewController: ContextMenuDelegate {
     }
 }
 
-extension ThreadsTableViewController: UITableViewDelegate {
+extension ArchivesTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
         viewModel.onTapped(conversation: conversation)
@@ -147,23 +147,7 @@ extension ThreadsTableViewController: UITableViewDelegate {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return nil }
         var arr: [UIContextualAction] = []
         
-        let muteAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
-            self?.viewModel.toggleMute(conversation.toStruct())
-            success(true)
-        }
-        muteAction.image = UIImage(systemName: conversation.mute == true ? "speaker" : "speaker.slash")
-        muteAction.backgroundColor = UIColor.gray
-        arr.append(muteAction)
-        
-        let pinAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
-            self?.viewModel.togglePin(conversation.toStruct())
-            success(true)
-        }
-        pinAction.image = UIImage(systemName: conversation.pin == true ? "pin.slash.fill" : "pin")
-        pinAction.backgroundColor = UIColor.darkGray
-        arr.append(pinAction)
-        
-        let archiveImage = conversation.isArchive == true ?  "tray.and.arrow.up" : "tray.and.arrow.down"
+        let archiveImage = "tray.and.arrow.up"
         let archiveAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
             self?.viewModel.toggleArchive(conversation.toStruct())
             success(true)
@@ -183,11 +167,11 @@ extension ThreadsTableViewController: UITableViewDelegate {
     }
 }
 
-struct ThreadsTableViewControllerWrapper: UIViewControllerRepresentable {
-    let viewModel: ThreadsViewModel
+struct ArchivesTableViewControllerWrapper: UIViewControllerRepresentable {
+    let viewModel: ArchiveThreadsViewModel
     
     func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = ThreadsTableViewController(viewModel: viewModel)
+        let vc = ArchivesTableViewController(viewModel: viewModel)
         return vc
     }
     

@@ -234,7 +234,7 @@ class ConversationCell: UITableViewCell {
         }
     }
     
-    public func setConversation(conversation: CalculatedConversation, viewModel: ThreadsViewModel) {
+    public func setConversation(conversation: CalculatedConversation) {
         self.conversation = conversation
         titleLabel.attributedText = conversation.titleRTLString
         subtitleLabel.attributedText = conversation.subtitleAttributedString
@@ -252,7 +252,7 @@ class ConversationCell: UITableViewCell {
         if conversation.type == .selfThread {
             avatar.image = UIImage(named: "self_thread")
             avatarInitialLable.isHidden = true
-        } else if let vm = viewModel.imageLoader(for: conversation.id ?? -1) {
+        } else if let vm = conversation.imageLoader as? ImageLoaderViewModel {
             avatar.image = vm.image
             avatarInitialLable.isHidden = vm.isImageReady
         } else {

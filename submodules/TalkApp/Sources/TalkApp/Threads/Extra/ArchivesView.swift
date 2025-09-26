@@ -14,6 +14,17 @@ struct ArchivesView: View {
     @EnvironmentObject var viewModel: ArchiveThreadsViewModel
 
     var body: some View {
+        ArchivesTableViewControllerWrapper(viewModel: viewModel)
+            .background(Color.App.bgPrimary)
+            .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)
+            .onAppear {
+                Task {
+                    await viewModel.getArchivedThreads()
+                }
+            }
+    }
+    
+    var swiftUIView: some View {
         List(viewModel.archives) { thread in
             ThreadRow() {
                 AppState.shared.objectsContainer.navVM.append(thread: thread.toStruct())
@@ -23,32 +34,26 @@ struct ArchivesView: View {
             .listRowSeparatorTint(Color.App.dividerSecondary)
             .listRowBackground(Color.App.bgPrimary)
             .onAppear {
-                if self.viewModel.archives.last == thread {
-                    viewModel.loadMore()
+                Task {
+                    await viewModel.loadMore(id: thread.id)
                 }
             }
         }
         .background(Color.App.bgPrimary)
         .listEmptyBackgroundColor(show: viewModel.archives.isEmpty)
         .overlay(alignment: .bottom) {
-            ListLoadingView(isLoading: $viewModel.isLoading)
+            ListLoadingView(isLoading: .constant(viewModel.lazyList.isLoading))
         }
         .overlay(alignment: .top) {
-            if viewModel.archives.isEmpty && !viewModel.isLoading {
+            if viewModel.archives.isEmpty && !viewModel.lazyList.isLoading {
                 Text("ArchivedTab.empty".bundleLocalized())
                     .foregroundStyle(Color.App.textPlaceholder)
             }
         }
         .animation(.easeInOut, value: viewModel.archives.count)
-        .animation(.easeInOut, value: viewModel.isLoading)
+        .animation(.easeInOut, value: viewModel.lazyList.isLoading)
         .listStyle(.plain)
         .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)
-        .onAppear {
-            viewModel.isAppeared = true
-        }
-        .onDisappear {
-            viewModel.isAppeared = false
-        }
     }
 }
 

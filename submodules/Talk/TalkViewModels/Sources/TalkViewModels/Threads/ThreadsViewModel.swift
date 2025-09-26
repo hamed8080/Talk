@@ -636,11 +636,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func onCancelTimer(key: String) {
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            if lazyList.isLoading {
-                lazyList.setLoading(false)
-            }
+        if lazyList.isLoading {
+            lazyList.setLoading(false)
         }
     }
 

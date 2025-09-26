@@ -15,17 +15,17 @@ import Logger
 
 @MainActor
 public final class ArchiveThreadsViewModel: ObservableObject {
-    public private(set) var count = 15
-    public private(set) var offset = 0
     public private(set) var cancelable: Set<AnyCancellable> = []
-    private(set) var hasNext: Bool = true
-    public var isLoading = false
     public private(set) var firstSuccessResponse = false
-    private var canLoadMore: Bool { hasNext && !isLoading }
+    public private(set) var lazyList = LazyListViewModel()
+    public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     public var archives: ContiguousArray<CalculatedConversation> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     private var wasDisconnected = false
-    public var isAppeared = false
+    private var cache: Bool = true
+    public weak var delegate: UIThreadsViewControllerDelegate?
+    
+    @Published public var scrollToId: Int?
     
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
@@ -58,6 +58,15 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             }
             .store(in: &cancelable)
         
+        NotificationCenter.system.publisher(for: .system)
+            .compactMap { $0.object as? SystemEventTypes }
+            .sink { [weak self] systemMessageEvent in
+                Task { [weak self] in
+                    await self?.onThreadSystemEvent(systemMessageEvent)
+                }
+            }
+            .store(in: &cancelable)
+        
         AppState.shared.$connectionStatus
             .sink { [weak self] event in
                 Task { [weak self] in
@@ -67,10 +76,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             .store(in: &cancelable)
     }
 
-    public func loadMore() {
-        if !canLoadMore { return }
-        offset = count + offset
-        getArchivedThreads()
+    public func loadMore(id: Int?) async {
+        if !lazyList.canLoadMore(id: id) { return }
+        lazyList.prepareForLoadMore()
+        await getArchivedThreads()
     }
 
     private func onThreadEvent(_ event: ThreadEventTypes?) async {
@@ -138,47 +147,72 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    public func getArchivedThreads(withQueue: Bool = false) {
+    public func getArchivedThreads(withQueue: Bool = false, keepOrder: Bool = false) async {
+        /// Check if user didn't logged out
         if !TokenManager.shared.isLoggedIn { return }
-        isLoading = true
-        let req = ThreadsRequest(count: count, offset: offset, archived: true)
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: withQueue, myId: myId, navSelectedId: navVM.selectedId)
-                await onArchives(calThreads)
-            } catch {
-                log("Failed to get archived threads with error: \(error.localizedDescription)")
-            }
+        if !firstSuccessResponse {
+            shimmerViewModel.show()
         }
-        animateObjectWillChange()
-    }
-
-    public func getArchivedThread(threadId: Int) {
-        if !TokenManager.shared.isLoggedIn { return }
-        isLoading = true
-        let req = ThreadsRequest(count: 1, offset: 0, archived: true, threadIds: [threadId])
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                let calThreads = try await GetArchivesRequester().getCalculated(req, withCache: false, queueable: true, myId: myId, navSelectedId: navVM.selectedId)
-                await onArchives(calThreads)
-            } catch {
-                log("Failed to get archived thread with id: \(threadId) error: \(error.localizedDescription)")
+        lazyList.setLoading(true)
+        do {
+            
+            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, archived: true, cache: cache)
+            let conversations = try await GetThreadsReuqester().getCalculated(req: req,
+                                                                              withCache: false,
+                                                                              queueable: withQueue,
+                                                                              myId: myId,
+                                                                              navSelectedId: navVM.selectedId,
+                                                                              keepOrder: keepOrder)
+            if wasDisconnected {
+                /// Clear and remove all threads
+                archives.removeAll()
             }
+                        
+            await onArchives(conversations)
+            
+            moveToTopIfWasDisconnected(topItemId: archives.first?.id)
+            
+            wasDisconnected = false
+        } catch {
+            log("Failed to get threads with error: \(error.localizedDescription)")
         }
-        animateObjectWillChange()
     }
-
-    public func onArchives(_ calThreads: [CalculatedConversation]) async {
-        let newThreads = await appendThreads(newThreads: calThreads, oldThreads: self.archives)
+    
+    public func onArchives(_ conversations: [CalculatedConversation]) async {
+        let hasAnyResults = conversations.count ?? 0 > 0
+        
+        let navSelectedId = navVM.selectedId
+        let newThreads = await appendThreads(
+            newThreads: conversations,
+            oldThreads: wasDisconnected ? [] : archives
+        )
         let sorted = await sort(threads: newThreads)
-        await MainActor.run {
-            hasNext = calThreads.count >= count
-            self.archives = sorted
-            isLoading = false
+        let threshold = await splitThreshold(sorted)
+      
+        self.archives = sorted
+        delegate?.updateUI(animation: false, reloadSections: false)
+        for conversation in archives {
+            addImageLoader(conversation)
+        }
+        updatePresentedViewModels(archives)
+        lazyList.setHasNext(hasAnyResults)
+        lazyList.setLoading(false)
+        lazyList.setThreasholdIds(ids: threshold)
+        if hasAnyResults {
             firstSuccessResponse = true
-            animateObjectWillChange()
+        }
+        if firstSuccessResponse {
+            shimmerViewModel.hide()
+        }
+        objectWillChange.send()
+        
+        updateActiveThreadAfterDisconnect()
+    }
+    
+    private func moveToTopIfWasDisconnected(topItemId: Int?) {
+        if wasDisconnected {
+            /// scroll To first if we were way down in the list to show correct row
+            scrollToId = topItemId
         }
     }
 
@@ -198,10 +232,16 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             /// threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
+            delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange()
-        } else if let conversationId = response.result {
+        } else if
+            let conversationId = response.result,
+            let conversation = try? await GetThreadsReuqester().get(.init(threadIds: [conversationId])).first {
             /// New conversation has been archived by another device so we have to fetch the conversation
-            getArchivedThread(threadId: conversationId)
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(conversation, myId)
+            archives.append(calThreads)
+            delegate?.updateUI(animation: false, reloadSections: false)
         }
     }
 
@@ -217,6 +257,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             threadsVM.recalculateAndAnimate(calThreads)
             threadsVM.animateObjectWillChange()
             calThreads.animateObjectWillChange()
+            delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange()
         }
     }
@@ -258,16 +299,16 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
 
     private func onCancelTimer(key: String) {
-        if isLoading {
-            isLoading = false
-            animateObjectWillChange()
+        if lazyList.isLoading {
+            lazyList.setLoading(false)
         }
     }
     
     public func refresh() async {
-        archives.removeAll()
-        offset = 0
-        getArchivedThreads(withQueue: true)
+        cache = false
+        lazyList.reset()
+        await getArchivedThreads(withQueue: true, keepOrder: true)
+        cache = true
     }
 
     private func onNewMessage(_ response: ChatResponse<Message>) {
@@ -279,6 +320,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage([message], updated.toStruct(), old)
+            delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
         }
     }
@@ -299,6 +341,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives[index].lastMessageVO = thread.lastMessageVO
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(archives[index])
+            delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
         }
     }
@@ -307,6 +350,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if response.result?.id == myId {
             deselectActiveThread()
             archives.removeAll(where: {$0.id == response.subjectId})
+            delegate?.updateUI(animation: true, reloadSections: true)
             animateObjectWillChange()
         }
     }
@@ -317,6 +361,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let activeThread = navVM.viewModel(for: id)
             activeThread?.thread = archives[index].toStruct()
             activeThread?.delegate?.onConversationClosed()
+            delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
         }
     }
@@ -355,6 +400,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             if let detailVM = navVM.detailViewModel(threadId: threadId) {
                 detailVM.updateThreadInfo(calculated.toStruct())
             }
+            delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
         }
     }
@@ -363,6 +409,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if let threadId = response.subjectId, let index = archives.firstIndex(where: {$0.id == threadId }) {
             deselectActiveThread()
             archives.remove(at: index)
+            delegate?.updateUI(animation: true, reloadSections: true)
             animateObjectWillChange()
             
             if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
@@ -375,6 +422,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else { return }
             await ThreadCalculators.reCalculate(thread, myId, navVM.selectedId)
+            self.delegate?.reloadCellWith(conversation: thread)
             thread.animateObjectWillChange()
         }
     }
@@ -386,45 +434,12 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 Task { [weak self] in
                     guard let self = self else { return }
                     await ThreadCalculators.reCalculateUnreadCount(archives[index])
+                    delegate?.reloadCellWith(conversation: archives[index])
                     archives[index].animateObjectWillChange()
                 }
             }
         }
         log("SERVER unreadCount: \(response.result)")
-    }
-
-    public func updateThreadInfo(_ thread: Conversation) {
-        if let threadId = thread.id, let index = firstIndex(threadId) {
-            let replacedEmoji = thread.titleRTLString.stringToScalarEmoji()
-            /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
-            /// So to update the UI properly we have to set it to link.
-            var arrItem = archives[index]
-            if let metadata = thread.metaData {
-                arrItem.image = metadata.file?.link
-                arrItem.computedImageURL = ThreadCalculators.calculateImageURL( arrItem.image, metadata)
-            }
-            arrItem.metadata = thread.metadata
-            arrItem.title = replacedEmoji
-            arrItem.closed = thread.closed
-            arrItem.time = thread.time ?? arrItem.time
-            arrItem.userGroupHash = thread.userGroupHash ?? arrItem.userGroupHash
-            arrItem.description = thread.description
-
-            archives[index] = arrItem
-            archives[index].animateObjectWillChange()
-
-            // Update active thread if it is open
-            let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.thread = arrItem.toStruct()
-            activeThread?.delegate?.updateTitleTo(replacedEmoji)
-            activeThread?.delegate?.refetchImageOnUpdateInfo()
-
-            // Update active thread detail view if it is open
-            if let detailVM = navVM.detailViewModel(threadId: threadId) {
-                detailVM.updateThreadInfo(arrItem.toStruct())
-            }
-            animateObjectWillChange()
-        }
     }
     
     /// This method will be called whenver we send seen for an unseen message by ourself.
@@ -543,6 +558,87 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if let index = archives.firstIndex(where: {$0.isSelected}) {
             archives[index].isSelected = false
             archives[index].animateObjectWillChange()
+        }
+    }
+    
+    public func onTapped(conversation: CalculatedConversation) {
+        /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
+        if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
+        
+        if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
+            /// to update isSeleted for bar and background color
+            setSelected(for: conversation.id ?? -1, selected: true)
+            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: conversation.toStruct())
+        }
+    }
+    
+    public func setSelected(for conversationId: Int, selected: Bool) {
+        let threadsList = AppState.shared.objectsContainer.archivesVM.archives
+        if let thread = threadsList.first(where: {$0.id == conversationId}) {
+            /// Select / Deselect a thread to remove/add bar and selected background color
+            thread.isSelected = selected
+            delegate?.selectionChanged(conversation: thread)
+            thread.animateObjectWillChange()
+        }
+    }
+    
+    private func addImageLoader(_ conversation: CalculatedConversation) {
+        if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
+            let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+            let name = conversation.computedTitle
+            let config = ImageLoaderConfig(
+                url: httpsImage,
+                metaData: conversation.metadata,
+                userName: String.splitedCharacter(name ?? ""),
+                forceToDownloadFromServer: true
+            )
+            let viewModel = ImageLoaderViewModel(config: config)
+            conversation.imageLoader = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    self?.delegate?.updateImage(image: image, id: id)
+                }
+            }
+            viewModel.fetch()
+        }
+    }
+    
+    public func imageLoader(for id: Int) -> ImageLoaderViewModel? {
+        archives.first(where: { $0.id == id })?.imageLoader as? ImageLoaderViewModel
+    }
+    
+    @AppBackgroundActor
+    private func splitThreshold(_ sorted: ContiguousArray<CalculatedConversation>) -> [Int] {
+        sorted.suffix(10).compactMap{$0.id}
+    }
+    
+    
+    /// After connect and reconnect all the threads will be removed from the array
+    /// So the ThreadViewModel which contains this thread object have different refrence than what's inside the array
+    private func updatePresentedViewModels(_ conversations: ContiguousArray<CalculatedConversation>) {
+        conversations.forEach { conversation in
+            navVM.updateConversationInViewModel(conversation)
+        }
+    }
+    
+    private func updateActiveThreadAfterDisconnect() {
+        if wasDisconnected,
+           let activeVM = navVM.presentedThreadViewModel?.viewModel,
+           let updatedThread = archives.first(where: {($0.id ?? 0) as Int == activeVM.id as Int}) {
+            activeVM.thread = updatedThread.toStruct()
+            activeVM.delegate?.onUnreadCountChanged()
+        }
+    }
+    
+    func onThreadSystemEvent(_ event: SystemEventTypes) async {
+        switch event {
+        case .systemMessage(let chatResponse):
+            guard let result = chatResponse.result else { return }
+            if let conversation = archives.first(where: { $0.id == chatResponse.subjectId }) {
+                delegate?.setEvent(smt: result.smt, conversation: conversation)
+            }
+        default:
+            break
         }
     }
 }
