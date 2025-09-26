@@ -105,8 +105,8 @@ class ContactCell: UITableViewCell {
             
             avatar.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             avatar.leadingAnchor.constraint(equalTo: radio.trailingAnchor, constant: 8),
-            avatar.widthAnchor.constraint(equalToConstant: 52),
-            avatar.heightAnchor.constraint(equalToConstant: 52),
+            avatar.widthAnchor.constraint(equalToConstant: 58),
+            avatar.heightAnchor.constraint(equalToConstant: 58),
             
             avatarInitialLable.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
             avatarInitialLable.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
