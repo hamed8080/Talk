@@ -361,7 +361,7 @@ class ConversationCell: UITableViewCell {
         let normalColor = Color.App.bgPrimaryUIColor
         let touchColor = selectedColor?.withAlphaComponent(0.3)
         
-        let isSelected = conversation?.isSelected == true        
+        let isSelected = conversation?.isSelected == true
         let isPin = conversation?.pin == true
         
         let bg = isBegan ? touchColor : isSelected ? selectedColor : isPin ? pinColor : normalColor
@@ -384,7 +384,7 @@ class ConversationCell: UITableViewCell {
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
         delegate?.showContextMenu(
             indexPath,
-            contentView: ThreadRowContextMenuUIKit(conversation: conversation)
+            contentView: ThreadRowContextMenuUIKit(conversation: conversation, image: avatar.image)
         )
     }
 }

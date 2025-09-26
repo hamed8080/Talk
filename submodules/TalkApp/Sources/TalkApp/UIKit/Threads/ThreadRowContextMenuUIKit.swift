@@ -12,9 +12,11 @@ import TalkViewModels
 
 class ThreadRowContextMenuUIKit: UIView {
     private let conversation: CalculatedConversation
+    private let image: UIImage?
     
-    init(conversation: CalculatedConversation) {
+    init(conversation: CalculatedConversation, image: UIImage?) {
         self.conversation = conversation
+        self.image = image
         super.init(frame: .zero)
         configureView()
     }
@@ -33,6 +35,7 @@ class ThreadRowContextMenuUIKit: UIView {
         
         let cell = ConversationCell(frame: .zero)
         cell.setConversation(conversation: conversation, viewModel: ThreadsViewModel())
+        cell.setImage(image)
         cell.translatesAutoresizingMaskIntoConstraints = false
         cell.layer.cornerRadius = 16
         cell.layer.masksToBounds = true
