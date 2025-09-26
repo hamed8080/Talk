@@ -679,6 +679,12 @@ class MessageRowCalculators {
         let nextIndex = index + 1
         let isNextExist = appended.indices.contains(nextIndex)
         if appended.count > 0, isNextExist {
+    
+            /// If user send a message between two system messages,
+            /// we have to mark this message as of the last message of the user.
+            if !appended[nextIndex].reactionableType { return true }
+    
+            /// If they are the same participant, it means the next message is still having the same user.
             let isSameParticipant = appended[nextIndex].participant?.id == message.participant?.id
             return !isSameParticipant
         }
