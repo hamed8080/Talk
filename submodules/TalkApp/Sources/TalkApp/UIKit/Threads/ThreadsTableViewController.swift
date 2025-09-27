@@ -43,8 +43,6 @@ class ThreadsTableViewController: UIViewController {
         refresh.addTarget(self, action: #selector(onRefresh), for: .valueChanged)
         tableView.refreshControl = refresh
         
-        contextMenuContainer = .init(delegate: self)
-        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -52,6 +50,11 @@ class ThreadsTableViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
         configureDataSource()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        contextMenuContainer = .init(delegate: self)
     }
 }
 

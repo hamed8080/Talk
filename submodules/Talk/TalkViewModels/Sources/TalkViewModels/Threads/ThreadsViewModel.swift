@@ -27,6 +27,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     func setEvent(smt: SMT?, conversation: CalculatedConversation)
     func indexPath<T: UITableViewCell>(for: T) -> IndexPath?
     func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation?
+    var contextMenuContainer: ContextMenuContainerView? { get set }
 }
 
 @MainActor

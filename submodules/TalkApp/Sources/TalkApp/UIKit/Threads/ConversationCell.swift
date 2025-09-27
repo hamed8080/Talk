@@ -380,7 +380,7 @@ class ConversationCell: UITableViewCell {
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
         delegate?.showContextMenu(
             indexPath,
-            contentView: ThreadRowContextMenuUIKit(conversation: conversation, image: avatar.image)
+            contentView: ThreadRowContextMenuUIKit(conversation: conversation, image: avatar.image, container: delegate?.contextMenuContainer)
         )
     }
 }

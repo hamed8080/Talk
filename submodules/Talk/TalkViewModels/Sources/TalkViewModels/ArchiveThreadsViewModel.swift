@@ -235,7 +235,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             /// threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
-            delegate?.updateUI(animation: false, reloadSections: false)
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         } else if
             let conversationId = response.result,
@@ -260,7 +260,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             threadsVM.recalculateAndAnimate(calThreads)
             threadsVM.animateObjectWillChange()
             calThreads.animateObjectWillChange()
-            delegate?.updateUI(animation: false, reloadSections: false)
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
     }

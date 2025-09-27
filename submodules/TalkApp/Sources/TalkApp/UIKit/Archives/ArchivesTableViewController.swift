@@ -39,8 +39,6 @@ class ArchivesTableViewController: UIViewController {
         tableView.separatorStyle = .none
         view.addSubview(tableView)
         
-        contextMenuContainer = .init(delegate: self)
-        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -48,6 +46,11 @@ class ArchivesTableViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
         configureDataSource()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        contextMenuContainer = .init(delegate: self)
     }
 }
 

@@ -17,6 +17,7 @@ class ForwardConversationTableViewController: UIViewController {
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
+    var contextMenuContainer: ContextMenuContainerView? = nil
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel

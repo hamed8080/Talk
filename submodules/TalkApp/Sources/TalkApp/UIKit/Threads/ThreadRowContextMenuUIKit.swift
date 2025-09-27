@@ -13,10 +13,12 @@ import TalkViewModels
 class ThreadRowContextMenuUIKit: UIView {
     private let conversation: CalculatedConversation
     private let image: UIImage?
+    private let container: ContextMenuContainerView?
     
-    init(conversation: CalculatedConversation, image: UIImage?) {
+    init(conversation: CalculatedConversation, image: UIImage?, container: ContextMenuContainerView?) {
         self.conversation = conversation
         self.image = image
+        self.container = container
         super.init(frame: .zero)
         configureView()
     }
@@ -26,10 +28,9 @@ class ThreadRowContextMenuUIKit: UIView {
     }
     
     private func configureView() {
-        let delegate = AppState.shared.objectsContainer.threadsVM.delegate as? ThreadsTableViewController
         
         let menu = configureMenu()
-        menu.contexMenuContainer = delegate?.contextMenuContainer
+        menu.contexMenuContainer = container
         menu.translatesAutoresizingMaskIntoConstraints = false
         addSubview(menu)
         
@@ -44,7 +45,7 @@ class ThreadRowContextMenuUIKit: UIView {
         addSubview(cell)
         
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: delegate?.view.bounds.height ?? 0),
+            heightAnchor.constraint(equalToConstant: container?.frame.height ?? 0),
             
             cell.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             cell.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
