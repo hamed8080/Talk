@@ -21,6 +21,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public var contactsLazyList = LazyListViewModel()
     public var conversationsLazyList = LazyListViewModel()
     private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
+    public weak var delegate: UIThreadsViewControllerDelegate?
 
     public init() {
         setupObservers()
@@ -127,6 +128,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
                 self.conversations.append(calculated)
             }
+            delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange()
         }
     }

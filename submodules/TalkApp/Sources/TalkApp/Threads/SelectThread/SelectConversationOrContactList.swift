@@ -81,6 +81,10 @@ struct SelectConversationTab: View {
     private var conversations: [CalculatedConversation] { viewModel.conversations.sorted(by: {$0.type == .selfThread && $1.type != .selfThread }) }
 
     var body: some View {
+        ForwardConversationTableViewControllerWrapper(viewModel: viewModel, onSelect: onSelect)
+    }
+    
+    var swiftUI: some View {
         List {
             ForEach(conversations) { conversation in
                 ThreadRow(enableSwipeAction: false) {
