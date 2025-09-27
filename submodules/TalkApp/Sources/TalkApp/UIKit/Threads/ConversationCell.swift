@@ -251,23 +251,12 @@ class ConversationCell: UITableViewCell {
             statusWidthConstraint.constant = 0
         }
         
-        if conversation.type == .selfThread {
-            avatarInitialLable.isHidden = true
-            avatar.backgroundColor = nil
-            avatar.image = UIImage(named: "self_thread")
-        } else if let vm = conversation.imageLoader as? ImageLoaderViewModel {
-            /// Thread with image or waiting to download the image
-            avatarInitialLable.isHidden = vm.isImageReady
-            avatarInitialLable.text = !vm.isImageReady ? conversation.splitedTitle : nil
-            avatar.backgroundColor = !vm.isImageReady ? conversation.materialBackground : nil
-            avatar.image = vm.image
-        } else {
-            /// Thread with no image
-            avatarInitialLable.isHidden = false
-            avatarInitialLable.text = conversation.splitedTitle
-            avatar.backgroundColor = conversation.materialBackground
-            avatar.image = nil
-        }
+        let vm = conversation.imageLoader as? ImageLoaderViewModel
+        let readyOrSelfThread = vm?.isImageReady == true || conversation.type == .selfThread
+        avatarInitialLable.isHidden = readyOrSelfThread
+        avatarInitialLable.text = readyOrSelfThread ? nil : conversation.splitedTitle
+        avatar.backgroundColor = readyOrSelfThread ? nil : conversation.materialBackground
+        avatar.image = conversation.type == .selfThread ? UIImage(named: "self_thread") : readyOrSelfThread ? vm?.image : nil
         
         timeLabel.text = conversation.timeString
         timeLabel.textColor = conversation.isSelected ? Color.App.textPrimaryUIColor : Color.App.iconSecondaryUIColor
