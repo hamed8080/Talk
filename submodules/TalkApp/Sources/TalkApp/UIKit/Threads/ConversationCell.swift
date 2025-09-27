@@ -247,18 +247,26 @@ class ConversationCell: UITableViewCell {
             statusWidthConstraint.constant = isSeen ? 24 : 12
             statusHeightConstraint.constant = isSeen ? 24 : 12
         } else {
+            statusImageView.image = nil
             statusWidthConstraint.constant = 0
         }
-        avatarInitialLable.text = String.splitedCharacter(conversation.computedTitle)
+        
         if conversation.type == .selfThread {
-            avatar.image = UIImage(named: "self_thread")
             avatarInitialLable.isHidden = true
+            avatar.backgroundColor = nil
+            avatar.image = UIImage(named: "self_thread")
         } else if let vm = conversation.imageLoader as? ImageLoaderViewModel {
-            avatar.image = vm.image
+            /// Thread with image or waiting to download the image
             avatarInitialLable.isHidden = vm.isImageReady
+            avatarInitialLable.text = !vm.isImageReady ? conversation.splitedTitle : nil
+            avatar.backgroundColor = !vm.isImageReady ? conversation.materialBackground : nil
+            avatar.image = vm.image
         } else {
+            /// Thread with no image
             avatarInitialLable.isHidden = false
+            avatarInitialLable.text = conversation.splitedTitle
             avatar.backgroundColor = conversation.materialBackground
+            avatar.image = nil
         }
         
         timeLabel.text = conversation.timeString
@@ -332,12 +340,6 @@ class ConversationCell: UITableViewCell {
                 }
             }
         }
-    }
-    
-    override func prepareForReuse() {
-        avatar.image = nil
-        avatar.backgroundColor = nil
-        statusImageView.image = nil
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
