@@ -87,7 +87,6 @@ public class ThreadCalculators {
         let isFileType = classConversation.lastMessageVO?.toMessage.isFileType == true
        
         classConversation.hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
-        classConversation.callMessage = callMessage(conversation)
         classConversation.isSelected = calculateIsSelected(conversation, isSelected: false, isInForwardMode: false, navSelectedId)
         
         classConversation.isCircleUnreadCount = conversation.isCircleUnreadCount
@@ -123,7 +122,6 @@ public class ThreadCalculators {
         let hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
         let sentFileString = sentFileString(conversation, isFileType, myId)
         let createConversationString = createConversationString(conversation)
-        let callMessage = callMessage(conversation)
         let isSelected = calculateIsSelected(conversation, isSelected: wasSelected, isInForwardMode: classConversation.isInForwardMode, navSelectedId)
         
         let isCircleUnreadCount = conversation.isCircleUnreadCount
@@ -143,7 +141,6 @@ public class ThreadCalculators {
             classConversation.computedImageURL = computedImageURL
             classConversation.subtitleAttributedString = subtitleAttributdString
             classConversation.hasSpaceToShowPin = hasSpaceToShowPin
-            classConversation.callMessage = callMessage
             classConversation.isSelected = isSelected
             classConversation.isCircleUnreadCount = isCircleUnreadCount
             classConversation.iconStatus = iconStatus
@@ -390,6 +387,8 @@ public class ThreadCalculators {
             mutable.append(NSAttributedString(string: createdConversationString, attributes: [
                 .foregroundColor: UIColor(named: "accent")
             ]))
+        } else if let callAttri = callMessageAttributedString(conversation, myId) {
+            mutable.append(callAttri)
         }
         
         if let fileString = sentFileString(conversation, isFileType, myId)  {
@@ -427,14 +426,52 @@ public class ThreadCalculators {
         return mutable
     }
 
-    private class func callMessage(_ conversation: Conversation) -> Message? {
-        if let message = conversation.lastMessageVO, message.messageType == .endCall || message.messageType == .startCall {
-            return message.toMessage
-        } else {
-            return nil
-        }
+    private static func callMessageAttributedString(_ conversation: Conversation, _ myId: Int) -> NSAttributedString? {
+        guard let message = conversation.lastMessageVO?.toMessage,
+              message.messageType == .endCall || message.messageType == .startCall,
+              let status = message.callHistory?.status,
+              let key = status.key?.bundleLocalized(),
+              let time = message.time
+        else { return nil }
+        
+        var mutable = NSMutableAttributedString(string: "")
+        
+        let isCallStarter = message.participant?.id == myId
+        
+        let isStarted = message.type == .startCall
+        let isMissed = status == .declined || status == .miss
+        let isCanceled = status == .canceled && isCallStarter
+        let isDeclined = status == .canceled && !isCallStarter
+        let isEnded = status == .ended
+        
+        let missed = status == .declined && message.callHistory?.startTime == nil
+        let missString = missed ? "CallStatus.miss".bundleLocalized() : nil
+        
+        let imageName = isStarted ? "phone.fill" : isMissed ? "phone.arrow.down.left.fill" : "phone.down.fill"
+        let uiImage = UIImage(systemName: imageName) ?? UIImage()
+        let imgColor = UIColor(named: message.type == .startCall ? "color2" : "red")
+        let imgAttachment = NSTextAttachment(image: uiImage.withTintColor(imgColor ?? .gray))
+        imgAttachment.bounds = CGRect(x: 0, y: -2, width: 20, height: isEnded ? 12 : 16)
+        let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
+        mutable.append(attachmentAttribute)
+        mutable.append(NSAttributedString(string: " "))
+        
+        let color = UIColor(named: "text_primary")?.withAlphaComponent(0.7)
+        mutable.append(NSAttributedString(string: missString ?? key, attributes: [
+            .foregroundColor: color,
+            .font: UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 12)
+        ]))
+        mutable.append(NSAttributedString(string: " "))
+        
+        let dateString = Date(milliseconds: Int64(time)).localFormattedTime ?? ""
+        mutable.append(NSAttributedString(string: dateString, attributes: [
+            .foregroundColor: color,
+            .font: UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12)
+        ]))
+        mutable.append(NSAttributedString(string: " "))
+        return mutable
     }
-    
+
     private class func calculateIsSelected(_ conversation: Conversation, isSelected: Bool, isInForwardMode: Bool, _ navSelectedId: Int?) -> Bool {
         if navSelectedId == conversation.id {
             return isInForwardMode == true ? false : (navSelectedId == conversation.id)

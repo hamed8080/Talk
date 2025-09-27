@@ -80,7 +80,6 @@ public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable
     public var eventVM: AnyObject?
     public var subtitleAttributedString: NSAttributedString?
     public var hasSpaceToShowPin: Bool = false
-    public var callMessage: Message?
     public var isInForwardMode: Bool = false
     public var imageLoader: AnyObject?
     

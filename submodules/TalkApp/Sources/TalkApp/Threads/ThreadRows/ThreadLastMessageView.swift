@@ -36,27 +36,17 @@ struct NormalLastMessageContainer: View {
     private static let pinImage = Image("ic_pin")
 
     var body: some View {
-        if let callMessage = thread.callMessage {
-            HStack(spacing: 0) {
-                ConversationCallMessageType(message: callMessage)
-                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                Spacer()
-                muteView
-                pinView
+        HStack(spacing: 0) {
+            if let nsAttr = thread.subtitleAttributedString {
+                Text(AttributedString(nsAttr))
+                    .font(.fCaption2)
+                    .fontWeight(.regular)
+                    .lineLimit(1)
+                    .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
             }
-        } else {
-            HStack(spacing: 0) {
-                if let nsAttr = thread.subtitleAttributedString {
-                    Text(AttributedString(nsAttr))
-                        .font(.fCaption2)
-                        .fontWeight(.regular)
-                        .lineLimit(1)
-                        .foregroundStyle(isSelected ? Color.App.textPrimary : Color.App.textSecondary)
-                }
-                Spacer()
-                muteView
-                pinView
-            }
+            Spacer()
+            muteView
+            pinView
         }
     }
 
