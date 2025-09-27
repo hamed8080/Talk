@@ -20,26 +20,6 @@ public class CalculatedConversation: @unchecked Sendable, Hashable, Identifiable
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(image)
-        hasher.combine(admin)
-        hasher.combine(title)
-        hasher.combine(lastMessageVO?.message)
-        hasher.combine(lastMessageVO?.id)
-        hasher.combine(lastMessageVO?.seen)
-        hasher.combine(lastMessageVO?.delivered)
-        hasher.combine(lastMessageVO?.metadata)
-        hasher.combine(mentioned)
-        hasher.combine(mute)
-        hasher.combine(participantCount)
-        hasher.combine(participantCount)
-        hasher.combine(time)
-        hasher.combine(unreadCount)
-        hasher.combine(isArchive)
-        hasher.combine(pinMessage?.id)
-        hasher.combine(pinMessage?.text)
-        hasher.combine(pinMessage?.text)
-        hasher.combine(iconStatus)
-        hasher.combine(iconStatusColor)
     }
     
     public var admin: Bool?

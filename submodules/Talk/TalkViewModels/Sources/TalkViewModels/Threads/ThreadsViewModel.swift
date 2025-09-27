@@ -94,6 +94,7 @@ public final class ThreadsViewModel: ObservableObject {
             }
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
+            delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
             return true
         } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
@@ -203,7 +204,7 @@ public final class ThreadsViewModel: ObservableObject {
         await getThreads()
     }
 
-    public func onThreads(_ conversations: [CalculatedConversation]) async {
+    private func onThreads(_ conversations: [CalculatedConversation]) async {
         let hasAnyResults = conversations.count ?? 0 > 0
        
         let beforeSortedPins = serverSortedPins
@@ -599,6 +600,7 @@ public final class ThreadsViewModel: ObservableObject {
             recalculateAndAnimate(threads[index])
             
             threads.remove(at: index)
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
             AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }

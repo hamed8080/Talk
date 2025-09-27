@@ -92,6 +92,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             if let thread = response.result {
                 onLastMessageChanged(thread)
             }
+            
+        case .lastSeenMessageUpdated(let response):
+            await onLastSeenMessageUpdated(response)
         case .left(let response):
             onLeave(response)
         case .closed(let response):
@@ -178,7 +181,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    public func onArchives(_ conversations: [CalculatedConversation]) async {
+    private func onArchives(_ conversations: [CalculatedConversation]) async {
         let hasAnyResults = conversations.count ?? 0 > 0
         
         let navSelectedId = navVM.selectedId
@@ -216,7 +219,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onArchive(_ response: ChatResponse<Int>) async {
+    private func onArchive(_ response: ChatResponse<Int>) async {
         if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
@@ -318,10 +321,12 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let updated = reference.updateOnNewMessage(response.result ?? .init(), meId: myId)
             archives[index] = updated
             archives[index].animateObjectWillChange()
+            delegate?.unreadCountChanged(conversation: archives[index])
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage([message], updated.toStruct(), old)
             delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
+            delegate?.updateUI(animation: false, reloadSections: false)
         }
     }
     
@@ -467,6 +472,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
             archives[index] = thread
+            delegate?.reloadCellWith(conversation: thread)
             archives[index].animateObjectWillChange()
             animateObjectWillChange()
         }
@@ -532,6 +538,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             recalculateAndAnimate(archives[index])
             
             archives.remove(at: index)
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
     }
