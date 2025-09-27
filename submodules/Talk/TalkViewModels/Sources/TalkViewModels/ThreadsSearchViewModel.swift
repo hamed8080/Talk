@@ -116,6 +116,12 @@ public final class ThreadsSearchViewModel: ObservableObject {
             lazyList.setLoading(false)
             lazyList.setHasNext(calThreads.count >= lazyList.count)
             searchedConversations.append(contentsOf: calThreads)
+            searchedConversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
+            searchedConversations.sort(by: { $0.pin == true && $1.pin == false })
+            
+            if new == true {
+                searchedConversations.sort(by: { $0.unreadCount ?? 0 > $1.unreadCount ?? 0 })
+            }
         } catch {
             log("Failed to get serach threads with error: \(error.localizedDescription)")
         }
@@ -184,7 +190,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
     }
 
     private func findRangeOfTitleToHighlight(_ title: String) -> NSRange {
-        return NSString(string: title).range(of: searchText)
+        return NSString(string: title.lowercased()).range(of: searchText.lowercased())
     }
 
     private func onCancelTimer(key: String) {

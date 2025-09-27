@@ -25,6 +25,11 @@ struct SearchFiltersMessagesDialog: View {
             HStack {
 
                 Button {
+                    /// If toggle is off don't call submit to show filter out things and close dialog
+                    if !showUnreadConversationToggle {
+                        AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
+                        return
+                    }
                     withAnimation {
                         viewModel.showUnreadConversations = true
                         AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
