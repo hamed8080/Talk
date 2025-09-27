@@ -100,9 +100,9 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             log("Failed to search get contacts with error: \(error.localizedDescription)")
         }
     }
-
-    public func loadMore() {
-        if !conversationsLazyList.canLoadMore() { return }
+    
+    public func loadMore(id: Int?) async {
+        if !conversationsLazyList.canLoadMore(id: id) { return }
         conversationsLazyList.prepareForLoadMore()
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
         getThreads(req)
@@ -123,12 +123,21 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
             let filtered = calThreads.filter({$0.closed == false }).filter({$0.type != .selfThread})
-            self.conversations.append(contentsOf: calThreads)
+            self.conversations.append(contentsOf: filtered)
             if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
                 let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
                 self.conversations.append(calculated)
             }
+            self.conversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
+            self.conversations.sort(by: { $0.pin == true && $1.pin == false })
+            self.conversations.sort(by: { $0.type == .selfThread && $1.type != .selfThread })
             delegate?.updateUI(animation: false, reloadSections: false)
+            
+            for cal in calThreads {
+                addImageLoader(cal)
+            }
+            
+            conversationsLazyList.setThreasholdIds(ids: conversations.suffix(8).compactMap {$0.id} )
             animateObjectWillChange()
         }
     }
@@ -200,6 +209,27 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
         getThreads(req)
+    }
+    
+    private func addImageLoader(_ conversation: CalculatedConversation) {
+        if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
+            let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+            let name = conversation.computedTitle
+            let config = ImageLoaderConfig(
+                url: httpsImage,
+                metaData: conversation.metadata,
+                userName: String.splitedCharacter(name ?? ""),
+                forceToDownloadFromServer: true
+            )
+            let viewModel = ImageLoaderViewModel(config: config)
+            conversation.imageLoader = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    self?.delegate?.updateImage(image: image, id: id)
+                }
+            }
+            viewModel.fetch()
+        }
     }
 }
 

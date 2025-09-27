@@ -142,7 +142,7 @@ extension ForwardConversationTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
         Task {
-            await viewModel.loadMore()
+            await viewModel.loadMore(id: conversation.id)
         }
     }
 }

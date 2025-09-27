@@ -83,34 +83,6 @@ struct SelectConversationTab: View {
     var body: some View {
         ForwardConversationTableViewControllerWrapper(viewModel: viewModel, onSelect: onSelect)
     }
-    
-    var swiftUI: some View {
-        List {
-            ForEach(conversations) { conversation in
-                ThreadRow(enableSwipeAction: false) {
-                    onSelect(conversation.toStruct(), nil)
-                    dismiss()
-                }
-                .environmentObject(conversation)
-                .listRowBackground(Color.App.bgPrimary)
-                .onAppear {
-                    Task {
-                        if conversation == conversations.last {
-                            await viewModel.loadMore()
-                        }
-                    }
-                }
-            }
-        }
-        .safeAreaInset(edge: .top) {
-            if viewModel.conversationsLazyList.isLoading {
-                SwingLoadingIndicator()
-            }
-        }
-        .listStyle(.plain)
-        .animation(.easeInOut, value: viewModel.conversations.count)
-        .animation(.easeInOut, value: viewModel.conversationsLazyList.isLoading)
-    }
 }
 
 struct SelectContactTab: View {
