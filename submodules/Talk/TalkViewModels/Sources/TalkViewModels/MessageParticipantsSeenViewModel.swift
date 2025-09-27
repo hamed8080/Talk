@@ -15,7 +15,7 @@ public class MessageParticipantsSeenViewModel: ObservableObject {
     private var hasNext = true
     private var count = 15
     private var offset = 0
-    let message: Message
+    public let message: Message
     @Published public var isLoading = false
     private var cancelable: Set<AnyCancellable> = []
     public var isEmpty: Bool { !isLoading && participants.isEmpty }
@@ -57,5 +57,11 @@ public class MessageParticipantsSeenViewModel: ObservableObject {
                 self.participants.append(newParticipant)
             }
         }
+    }
+    
+    deinit {
+#if DEBUG
+        print("deinit MessageParticipantsSeenViewModel for messageId: \(message.id ?? -1)")
+#endif
     }
 }

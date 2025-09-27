@@ -48,6 +48,14 @@ struct MessageParticipantsSeen: View {
         .normalToolbarView(title: "SeenParticipants.title", type: MessageParticipantsSeenNavigationValue.self)
         .onAppear {
             viewModel.getParticipants()
+            AppState.shared.objectsContainer.navVM.pushToLinkId(id: "MessageParticipantsSeen-\(viewModel.message.id ?? 0)")
+        }
+        .onDisappear {
+            
+            /// We have to pop lastPath tracking because it has been pushed the path tracking once we were about to show this view
+            /// So at the top for sure is this path, and disappear can be called either with swipe or back button.
+            AppState.shared.objectsContainer.navVM.popLastPathTracking()
+            AppState.shared.objectsContainer.navVM.popLinkId()
         }
     }
 }
