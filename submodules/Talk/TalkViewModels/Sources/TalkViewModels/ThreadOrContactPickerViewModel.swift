@@ -23,10 +23,18 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
 
     public init() {
-        getContacts()
-        let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
-        getThreads(req)
         setupObservers()
+        
+        Task {
+            if selfConversation == nil {
+                await getSelfConversation()
+                try? await Task.sleep(for: .seconds(0.3))
+            }
+            
+            getContacts()
+            let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
+            getThreads(req)
+        }
     }
 
     func setupObservers() {
@@ -143,6 +151,25 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             } catch {
                 log("Failed to get contacts with error: \(error.localizedDescription)")
             }
+        }
+    }
+    
+    private func getSelfConversation() async {
+        do {
+            let selfReq = ThreadsRequest(count: 1, offset: 0, type: .selfThread)
+            let myId = AppState.shared.user?.id ?? -1
+            guard let calculated = try await GetThreadsReuqester().getCalculated(
+                req: selfReq,
+                withCache: false,
+                myId: myId,
+                navSelectedId: nil
+            ).first else { return }
+            
+            selfConversation = calculated.toStruct()
+            UserDefaults.standard.setValue(codable: calculated.toStruct(), forKey: "SELF_THREAD")
+            UserDefaults.standard.synchronize()
+        } catch {
+            log("Failed to get self conversation with error: \(error.localizedDescription)")
         }
     }
 

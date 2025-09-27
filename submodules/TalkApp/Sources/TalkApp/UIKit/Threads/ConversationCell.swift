@@ -266,7 +266,7 @@ class ConversationCell: UITableViewCell {
         muteImageView.isHidden = conversation.mute == false || conversation.mute == nil
         
         unreadCountLabel.label.text = conversation.unreadCountString
-        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : unreadCountLabel.label.sizeThatFits(.init(width: 128, height: 24)).width + 24
+        unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : conversation.isCircleUnreadCount ? 24 : unreadCountLabel.label.sizeThatFits(.init(width: 128, height: 24)).width + 24
         unreadCountLabel.label.textColor = conversation.mute == true ? Color.App.whiteUIColor : Color.App.textPrimaryUIColor
         unreadCountLabel.backgroundColor = conversation.mute == true ? Color.App.iconSecondaryUIColor : Color.App.accentUIColor
         unreadCountLabel.layer.cornerRadius = conversation.isCircleUnreadCount ? 12 : 10
