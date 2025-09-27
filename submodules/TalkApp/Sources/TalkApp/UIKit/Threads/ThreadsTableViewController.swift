@@ -39,6 +39,10 @@ class ThreadsTableViewController: UIViewController {
         tableView.separatorStyle = .none
         view.addSubview(tableView)
         
+        let refresh = UIRefreshControl()
+        refresh.addTarget(self, action: #selector(onRefresh), for: .valueChanged)
+        tableView.refreshControl = refresh
+        
         contextMenuContainer = .init(delegate: self)
         
         NSLayoutConstraint.activate([
@@ -66,6 +70,13 @@ extension ThreadsTableViewController {
             cell?.delegate = self
             
             return cell
+        }
+    }
+    
+    @objc private func onRefresh() {
+        Task {
+            await viewModel.refresh()
+            tableView.refreshControl?.endRefreshing()
         }
     }
 }
