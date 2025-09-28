@@ -50,9 +50,6 @@ extension ThreadsViewModel: PinThreadProtocol {
             delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
-        if let conversation = await threadFinder.getNotActiveThreads(response.result?.id ?? -1) {
-            
-        }
     }
 
     public func onUNPin(_ response: ChatResponse<Conversation>) async {

@@ -115,7 +115,9 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func onMessageEvent(_ event: MessageEventTypes?) async {
         switch event {
         case .new(let chatResponse):
-            onNewMessage(chatResponse)
+            if let conversationId = chatResponse.subjectId, let messages = chatResponse.result {
+                await onNewMessage([messages], conversationId)
+            }
         case .seen(let response):
             onSeen(response)
         case .deleted(let response):
@@ -310,19 +312,26 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         cache = true
     }
 
-    private func onNewMessage(_ response: ChatResponse<Message>) {
-        if let message = response.result, let index = archives.firstIndex(where: {$0.id == message.conversation?.id}) {
+    private func onNewMessage(_ messages: [Message], _ conversationId: Int) async {
+        if let index = archives.firstIndex(where: { $0.id == conversationId }) {
             let reference = archives[index]
             let old = reference.toStruct()
-            let updated = reference.updateOnNewMessage(response.result ?? .init(), meId: myId)
+            let updated = reference.updateOnNewMessage(messages.last ?? .init(), meId: myId)
             archives[index] = updated
             archives[index].animateObjectWillChange()
             delegate?.unreadCountChanged(conversation: archives[index])
             recalculateAndAnimate(updated)
-            updateActiveConversationOnNewMessage([message], updated.toStruct(), old)
+            updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
             delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
+            
+            archives = await sort(threads: archives)
             delegate?.updateUI(animation: false, reloadSections: false)
+        } else if
+            let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId), conversation.isArchive == true {
+            let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
+            await calculateAppendSortAnimate(conversation)
+            updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
         }
     }
     
@@ -348,7 +357,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             
             /// Sort is essential after deleting the last message of the thread.
             /// It will cause to move down by sorting if the previous message is older another thread
-            await sort(threads: archives)
+            archives = await sort(threads: archives)
             delegate?.updateUI(animation: true, reloadSections: false)
         }
     }

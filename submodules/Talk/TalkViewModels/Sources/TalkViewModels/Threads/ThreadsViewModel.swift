@@ -48,7 +48,6 @@ public final class ThreadsViewModel: ObservableObject {
     private var wasDisconnected = false
     internal let incForwardQueue = IncommingForwardMessagesQueue()
     internal let incNewQueue = IncommingNewMessagesQueue()
-    internal lazy var threadFinder: GetSpecificConversationViewModel = { GetSpecificConversationViewModel() }()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
     public weak var delegate: UIThreadsViewControllerDelegate?
 
@@ -98,7 +97,7 @@ public final class ThreadsViewModel: ObservableObject {
             delegate?.updateUI(animation: false, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
             return true
-        } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
+        } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId), conversation.isArchive != true {
             let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
             await calculateAppendSortAnimate(conversation)
             updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
@@ -133,7 +132,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// and in the above line we sort them again so reload data source is a must.
             delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
-        } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
+        } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
             await calculateAppendSortAnimate(conversation)
         }
     }
@@ -694,7 +693,7 @@ public final class ThreadsViewModel: ObservableObject {
                 AppState.shared.objectsContainer.navVM.append(thread: conversation)
             }
             
-            if let id = conversation.id, let conversation = await threadFinder.getNotActiveThreads(id) {
+            if let id = conversation.id, let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(id) {
                 await calculateAppendSortAnimate(conversation)
             }
         }
