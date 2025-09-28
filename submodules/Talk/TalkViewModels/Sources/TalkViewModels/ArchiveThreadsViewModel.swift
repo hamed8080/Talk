@@ -348,11 +348,26 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     private func onLeave(_ response: ChatResponse<User>) {
-        if response.result?.id == myId {
+        let isMe = response.result?.id == myId
+        let threadVM = navVM.viewModel(for: response.subjectId ?? -1)
+        let deletedUserId = response.result?.id
+        let participant = threadVM?.participantsViewModel.participants.first(where: {$0.id == deletedUserId})
+        
+        if isMe, let conversationId = response.subjectId {
             deselectActiveThread()
             archives.removeAll(where: {$0.id == response.subjectId})
             delegate?.updateUI(animation: true, reloadSections: true)
             animateObjectWillChange()
+            
+            /// Pop detail sa view and thread view at the same time
+            if navVM.detailsStack.last?.threadVM?.id == conversationId {
+                navVM.detailsStack.last?.dismissBothDetailAndThreadProgramatically()
+            } else if navVM.presentedThreadViewModel?.threadId == conversationId {
+                /// Pop only the thread view if the presented is the thread.
+                navVM.remove(threadId: conversationId)
+            }
+        } else if let participant = participant {
+            threadVM?.participantsViewModel.removeParticipant(participant)
         }
     }
     
@@ -503,6 +518,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             archives[threadIndex].pinMessage = response.result
             archives[threadIndex].animateObjectWillChange()
+            delegate?.reloadCellWith(conversation: archives[threadIndex])
             animateObjectWillChange()
         }
     }
@@ -511,6 +527,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if response.result != nil, let threadIndex = firstIndex(response.subjectId) {
             archives[threadIndex].pinMessage = nil
             archives[threadIndex].animateObjectWillChange()
+            delegate?.reloadCellWith(conversation: archives[threadIndex])
             animateObjectWillChange()
         }
     }
@@ -524,6 +541,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: archives)
         let sorted = await sort(threads: appendedThreads)
         archives = sorted
+        delegate?.updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
     }
     
@@ -536,6 +554,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives.remove(at: index)
             delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
+            AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }
     }
     
@@ -561,6 +580,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if let index = archives.firstIndex(where: {$0.isSelected}) {
             archives[index].isSelected = false
             archives[index].animateObjectWillChange()
+            delegate?.reloadCellWith(conversation: archives[index])
         }
     }
     
