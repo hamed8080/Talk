@@ -680,6 +680,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             guard let result = chatResponse.result else { return }
             if let conversation = archives.first(where: { $0.id == chatResponse.subjectId }) {
                 delegate?.setEvent(smt: result.smt, conversation: conversation)
+                (conversation.eventVM as? ThreadEventViewModel)?.startEventTimer(result)
             }
         default:
             break
