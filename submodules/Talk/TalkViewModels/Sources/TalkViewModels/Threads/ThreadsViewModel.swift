@@ -128,6 +128,10 @@ public final class ThreadsViewModel: ObservableObject {
                 await sortInPlace()
             }
             recalculateAndAnimate(updated)
+            /// We have to reload the table view data source because,
+            /// when we send or recive forward messages the lower thread will be moved to the top
+            /// and in the above line we sort them again so reload data source is a must.
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         } else if let conversation = await threadFinder.getNotActiveThreads(conversationId) {
             await calculateAppendSortAnimate(conversation)
@@ -593,13 +597,19 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onLastMessageChanged(_ thread: Conversation) {
+    public func onLastMessageChanged(_ thread: Conversation) async {
         if let index = firstIndex(thread.id) {
             threads[index].lastMessage = thread.lastMessage
             threads[index].lastMessageVO = thread.lastMessageVO
+            threads[index].time = thread.lastMessageVO?.time ?? thread.time
             threads[index].animateObjectWillChange()
             recalculateAndAnimate(threads[index])
             animateObjectWillChange()
+
+            /// Sort is essential after deleting the last message of the thread.
+            /// It will cause to move down by sorting if the previous message is older another thread
+            await sortInPlace()
+            delegate?.updateUI(animation: true, reloadSections: false)
         }
     }
 

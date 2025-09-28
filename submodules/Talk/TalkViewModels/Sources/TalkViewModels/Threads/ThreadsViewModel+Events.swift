@@ -109,7 +109,7 @@ extension ThreadsViewModel {
             onDeleteThread(response)
         case let .lastMessageDeleted(response), let .lastMessageEdited(response):
             if let thread = response.result {
-                onLastMessageChanged(thread)
+                await onLastMessageChanged(thread)
             }
         case .updatedInfo(let response):
             if let thread = response.result {

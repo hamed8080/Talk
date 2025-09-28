@@ -90,7 +90,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             await onUNArchive(response)
         case let .lastMessageDeleted(response), let .lastMessageEdited(response):
             if let thread = response.result {
-                onLastMessageChanged(thread)
+                await onLastMessageChanged(thread)
             }
             
         case .lastSeenMessageUpdated(let response):
@@ -336,14 +336,20 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         }
     }
     
-    public func onLastMessageChanged(_ thread: Conversation) {
+    public func onLastMessageChanged(_ thread: Conversation) async {
         if let index = firstIndex(thread.id) {
             archives[index].lastMessage = thread.lastMessage
             archives[index].lastMessageVO = thread.lastMessageVO
+            archives[index].time = thread.lastMessageVO?.time ?? thread.time
             archives[index].animateObjectWillChange()
             recalculateAndAnimate(archives[index])
             delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
+            
+            /// Sort is essential after deleting the last message of the thread.
+            /// It will cause to move down by sorting if the previous message is older another thread
+            await sort(threads: archives)
+            delegate?.updateUI(animation: true, reloadSections: false)
         }
     }
     
@@ -570,6 +576,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 self.archives = sorted
             }
             recalculateAndAnimate(updated)
+            /// We have to reload the table view data source because,
+            /// when we send or recive forward messages the lower thread will be moved to the top
+            /// and in the above line we sort them again so reload data source is a must.
+            delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         }
     }
