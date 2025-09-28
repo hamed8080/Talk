@@ -25,8 +25,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var cache: Bool = true
     public weak var delegate: UIThreadsViewControllerDelegate?
     
-    @Published public var scrollToId: Int?
-    
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var myId: Int { AppState.shared.user?.id ?? -1 }
@@ -217,7 +215,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func moveToTopIfWasDisconnected(topItemId: Int?) {
         if wasDisconnected {
             /// scroll To first if we were way down in the list to show correct row
-            scrollToId = topItemId
+            delegate?.scrollToTop()
         }
     }
 

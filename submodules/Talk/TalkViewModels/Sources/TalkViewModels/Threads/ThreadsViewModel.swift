@@ -27,6 +27,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     func setEvent(smt: SMT?, conversation: CalculatedConversation)
     func indexPath<T: UITableViewCell>(for: T) -> IndexPath?
     func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation?
+    func scrollToTop()
     var contextMenuContainer: ContextMenuContainerView? { get set }
 }
 
@@ -55,7 +56,6 @@ public final class ThreadsViewModel: ObservableObject {
     internal let CHANNEL_TO_KEY: String
     internal let JOIN_TO_PUBLIC_GROUP_KEY: String
     internal let LEAVE_KEY: String
-    @Published public var scrollToId: Int?
 
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
@@ -258,7 +258,7 @@ public final class ThreadsViewModel: ObservableObject {
     private func moveToTopIfWasDisconnected(topItemId: Int?) {
         if wasDisconnected {
             /// scroll To first if we were way down in the list to show correct row
-            scrollToId = topItemId
+            delegate?.scrollToTop()
         }
     }
     

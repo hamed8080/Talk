@@ -135,6 +135,10 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation? {
         dataSource?.itemIdentifier(for: indexPath)
     }
+    
+    func scrollToTop() {
+        tableView.setContentOffset(.zero, animated: true)
+    }
 }
 
 extension ThreadsTableViewController: ContextMenuDelegate {

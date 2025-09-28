@@ -124,6 +124,10 @@ extension ArchivesTableViewController: UIThreadsViewControllerDelegate {
     func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation? {
         dataSource?.itemIdentifier(for: indexPath)
     }
+    
+    func scrollToTop() {
+        tableView.setContentOffset(.zero, animated: true)
+    }
 }
 
 extension ArchivesTableViewController: ContextMenuDelegate {
