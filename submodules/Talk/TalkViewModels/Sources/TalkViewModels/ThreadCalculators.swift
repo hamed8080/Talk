@@ -59,7 +59,7 @@ public class ThreadCalculators {
     }
     
     private class func sanitizeConversations(_ conversations: [Conversation], _ nonArchives: Bool = true) -> [Conversation] {
-        let fixedTitles = fixTitleAndReactionStatus(conversations)
+        let fixedTitles = fixReactionStatus(conversations)
         if nonArchives {
             let fixedArchives = fileterNonArchives(fixedTitles)
             return fixedArchives
@@ -111,9 +111,9 @@ public class ThreadCalculators {
         let wasSelected = await wasSelectedOnMain(classConversation)
         let conversation = await convertToStruct(classConversation)
         let computedTitle = calculateComputedTitle(conversation)
-        let titleRTLString = calculateTitleRTLString(conversation.computedTitle, conversation)
+        let titleRTLString = calculateTitleRTLString(computedTitle, conversation)
         let metaData = calculateMetadata(conversation.metadata)
-        let avatarTuple = avatarColorName(conversation.title, conversation.computedTitle)
+        let avatarTuple = avatarColorName(conversation.title, computedTitle)
         let materialBackground = avatarTuple.color
         let splitedTitle = avatarTuple.splited
         let computedImageURL = calculateImageURL(conversation.image, conversation.metaData)
@@ -182,7 +182,7 @@ public class ThreadCalculators {
         if conversation.type == .selfThread {
             return "Thread.selfThread".bundleLocalized()
         }
-        return conversation.title ?? ""
+        return conversation.title?.stringToScalarEmoji() ?? ""
     }
     
     public class func calculateTitleRTLString(_ computedTitle: String, _ conversation: Conversation) -> NSAttributedString {
@@ -218,10 +218,9 @@ public class ThreadCalculators {
         }
     }
     
-    private class func fixTitleAndReactionStatus(_ conversations: [Conversation]) -> [Conversation] {
+    private class func fixReactionStatus(_ conversations: [Conversation]) -> [Conversation] {
         var conversations = conversations
         conversations.enumerated().forEach { index, thread in
-            conversations[index].title = thread.title?.stringToScalarEmoji()
             conversations[index].reactionStatus = thread.reactionStatus ?? .enable
         }
         return conversations
