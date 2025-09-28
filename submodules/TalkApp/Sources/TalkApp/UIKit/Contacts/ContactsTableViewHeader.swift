@@ -109,6 +109,11 @@ class ContactsTableViewHeader: UIView {
                     await builderVM.show(type: type)
                 }
             }
+            .onDisappear {
+                Task {
+                    await builderVM.clear()
+                }
+            }
         
         var sheetVC = UIHostingController(rootView: rootView)
         sheetVC.modalPresentationStyle = .formSheet

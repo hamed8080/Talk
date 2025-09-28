@@ -76,6 +76,7 @@ struct ConversationBuilder: View {
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                         .submitLabel(.done)
+                        .font(.fBody)
                 }
                 .background(.ultraThinMaterial)
             }

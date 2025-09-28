@@ -239,6 +239,7 @@ public class ContactsViewModel: ObservableObject {
         searchedContacts = []
         maxContactsCountInServer = 0
         animateObjectWillChange()
+        delegate?.updateUI(animation: false, reloadSections: false)
     }
 
     public func deselectContacts() {
