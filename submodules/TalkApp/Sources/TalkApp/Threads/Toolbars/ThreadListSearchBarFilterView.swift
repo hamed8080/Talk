@@ -15,6 +15,7 @@ struct ThreadListSearchBarFilterView: View {
     @State private var showPopover = false
     @Binding var isInSearchMode: Bool
     @EnvironmentObject var viewModel: ThreadsSearchViewModel
+    @State private var isFilternewMessagesOn = false
     enum Field: Hashable {
         case saerch
     }
@@ -29,7 +30,6 @@ struct ThreadListSearchBarFilterView: View {
                 }
                 .transition(.asymmetric(insertion: .push(from: .top), removal: .push(from: .bottom)))
             }
-            selectedSearchFilters
         }
         .animation(.easeInOut, value: isInSearchMode)
         .animation(.easeInOut, value: viewModel.showUnreadConversations)
@@ -75,30 +75,17 @@ struct ThreadListSearchBarFilterView: View {
 
     private var filterButton: some View {
         Button {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
-                SearchFiltersMessagesDialog()
-                    .environmentObject(viewModel)
-            )
+            withAnimation {
+                isFilternewMessagesOn.toggle()
+                viewModel.showUnreadConversations = isFilternewMessagesOn
+            }
         } label: {
             Image(systemName: "envelope.badge")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 22, height: 22)
                 .fontWeight(.medium)
-                .foregroundColor(viewModel.showUnreadConversations == true ? Color.App.accent : Color.App.textSecondary)
-        }
-    }
-
-    @ViewBuilder
-    private var selectedSearchFilters: some View {
-        if viewModel.showUnreadConversations == true {
-            HStack {
-                FilterChip(text: "Filters.onlyUnreadConversations") {
-                    /// On remove
-                    viewModel.showUnreadConversations?.toggle()
-                }
-                Spacer()
-            }
+                .foregroundColor(isFilternewMessagesOn == true ? Color.App.accent : Color.App.textSecondary)
         }
     }
 
