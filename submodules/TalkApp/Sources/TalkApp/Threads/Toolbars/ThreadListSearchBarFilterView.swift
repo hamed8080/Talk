@@ -15,7 +15,7 @@ struct ThreadListSearchBarFilterView: View {
     @State private var showPopover = false
     @Binding var isInSearchMode: Bool
     @EnvironmentObject var viewModel: ThreadsSearchViewModel
-    @State private var isFilternewMessagesOn = false
+    @Binding var isFilternewMessagesOn: Bool
     enum Field: Hashable {
         case saerch
     }
@@ -156,6 +156,6 @@ struct FilterChip: View {
 
 struct ThreadListSearchBarFilterView_Previews: PreviewProvider {
     static var previews: some View {
-        ThreadListSearchBarFilterView(isInSearchMode: .constant(true))
+        ThreadListSearchBarFilterView(isInSearchMode: .constant(true), isFilternewMessagesOn: .constant(false))
     }
 }

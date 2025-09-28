@@ -17,6 +17,7 @@ struct ConversationTopSafeAreaInset: View {
     @State private var item: AVAudioPlayerItem?
     @State private var isDownloading: Bool = false
     @State private var isUploading: Bool = false
+    @State private var isFilternewMessagesOn = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,7 +28,7 @@ struct ConversationTopSafeAreaInset: View {
                 centerViews: EmptyView(),
                 trailingViews: trainlingViews
             )
-            ThreadListSearchBarFilterView(isInSearchMode: $isInSearchMode)
+            ThreadListSearchBarFilterView(isInSearchMode: $isInSearchMode, isFilternewMessagesOn: $isFilternewMessagesOn)
                 .background(MixMaterialBackground())
                 .environmentObject(container.searchVM)
             if AppState.isInSlimMode, let item = item {
@@ -57,6 +58,11 @@ struct ConversationTopSafeAreaInset: View {
         .onReceive(NotificationCenter.cancelSearch.publisher(for: .cancelSearch)) { newValue in
             if let cancelSearch = newValue.object as? Bool, cancelSearch == true, cancelSearch && isInSearchMode {
                 isInSearchMode.toggle()
+            }
+            
+            /// Reset filter new messages on close by x mark
+            if !isInSearchMode {
+                isFilternewMessagesOn = false
             }
         }.onReceive(AppState.shared.objectsContainer.downloadsManager.$elements) { newValue in
             isDownloading = newValue.count > 0
@@ -151,6 +157,11 @@ struct ConversationTopSafeAreaInset: View {
                     await MainActor.run {
                         withAnimation {
                             isInSearchMode.toggle()
+                            
+                            /// Reset filter new messages on close by x mark
+                            if !isInSearchMode {
+                                isFilternewMessagesOn = false
+                            }
                         }
                     }
                 }
