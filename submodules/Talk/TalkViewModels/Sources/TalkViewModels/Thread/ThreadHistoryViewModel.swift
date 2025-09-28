@@ -810,7 +810,7 @@ extension ThreadHistoryViewModel {
         thread = updatedConversation
         guard let viewModel = viewModel else { return }
         let wasAtBottom = isLastMessageInsideTheSections(oldConversation)
-        if wasAtBottom {
+        if wasAtBottom || isFirstMessageSentByMe(newMessages: messages) {
             for message in messages {
                 let bottomVMBeforeJoin = sections.last?.vms.last
                 
@@ -1909,6 +1909,11 @@ extension ThreadHistoryViewModel {
     private func canJumpToLastMessageLocally() -> Bool {
         guard let index = lastIndexPathInSections() else { return false }
         return sections[index.section].vms[index.row].message.id ?? 0 >= thread.lastSeenMessageId ?? 0
+    }
+    
+    /// Sending the first message of the thread for the first time ever.
+    private func isFirstMessageSentByMe(newMessages: [Message]) -> Bool {
+        sections.first?.vms.first?.message.id == nil && sections.first?.vms.first?.message.uniqueId == newMessages.first?.uniqueId
     }
 }
 
