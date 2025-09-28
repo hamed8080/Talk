@@ -315,3 +315,27 @@ public final class ImageLoaderViewModel: ObservableObject {
         self.uniqueId = uniqueId
     }
 }
+
+extension ImageLoaderViewModel {
+    convenience init(conversation: CalculatedConversation) {
+        let httpsImage = conversation.image?.replacingOccurrences(of: "http://", with: "https://") ?? ""
+        let name = conversation.computedTitle
+        let config = ImageLoaderConfig(
+            url: httpsImage,
+            metaData: conversation.metadata,
+            userName: String.splitedCharacter(name ?? ""),
+            forceToDownloadFromServer: true
+        )
+        self.init(config: config)
+    }
+    
+    convenience init(contact: Contact) {
+        let image = contact.image ?? contact.user?.image ?? ""
+        let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
+        let contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
+        let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let name = !isEmptyContactString ? contactName : contact.user?.name
+        let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+        self.init(config: config)
+    }
+}

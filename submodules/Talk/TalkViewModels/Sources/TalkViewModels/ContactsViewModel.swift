@@ -286,13 +286,7 @@ public class ContactsViewModel: ObservableObject {
     
     private func addImageLoader(_ contact: Contact) {
         if let id = contact.id, !imageLoaders.contains(where: { $0.key == id }) {
-            let image = contact.image ?? contact.user?.image ?? ""
-            let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
-            let contactName = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
-            let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            let name = !isEmptyContactString ? contactName : contact.user?.name
-            let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
-            let viewModel = ImageLoaderViewModel(config: config)
+            let viewModel = ImageLoaderViewModel(contact: contact)
             imageLoaders[id] = viewModel
             viewModel.onImage = { [weak self] image in
                 Task { @MainActor [weak self] in

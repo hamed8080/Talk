@@ -213,15 +213,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     
     private func addImageLoader(_ conversation: CalculatedConversation) {
         if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
-            let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
-            let name = conversation.computedTitle
-            let config = ImageLoaderConfig(
-                url: httpsImage,
-                metaData: conversation.metadata,
-                userName: String.splitedCharacter(name ?? ""),
-                forceToDownloadFromServer: true
-            )
-            let viewModel = ImageLoaderViewModel(config: config)
+            let viewModel = ImageLoaderViewModel(conversation: conversation)
             conversation.imageLoader = viewModel
             viewModel.onImage = { [weak self] image in
                 Task { @MainActor [weak self] in
