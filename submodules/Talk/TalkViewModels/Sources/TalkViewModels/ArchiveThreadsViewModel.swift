@@ -19,7 +19,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     public private(set) var firstSuccessResponse = false
     public private(set) var lazyList = LazyListViewModel()
     public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
-    public var archives: ContiguousArray<CalculatedConversation> = []
+    public private(set) var archives: ContiguousArray<CalculatedConversation> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     private var wasDisconnected = false
     private var cache: Bool = true
@@ -254,14 +254,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             conversation.isArchive = false
             conversation.mute = false
             archives.remove(at: index)
-            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
-            threadsVM.threads.append(calThreads)
-            await threadsVM.sortInPlace()
-            threadsVM.recalculateAndAnimate(calThreads)
-            threadsVM.animateObjectWillChange()
-            calThreads.animateObjectWillChange()
             delegate?.updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
+           
+            await threadsVM.append(conversation)
         }
     }
     
@@ -580,8 +576,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     }
     
     public func setSelected(for conversationId: Int, selected: Bool) {
-        let threadsList = AppState.shared.objectsContainer.archivesVM.archives
-        if let thread = threadsList.first(where: {$0.id == conversationId}) {
+        if let thread = archives.first(where: {$0.id == conversationId}) {
             /// Select / Deselect a thread to remove/add bar and selected background color
             thread.isSelected = selected
             delegate?.selectionChanged(conversation: thread)

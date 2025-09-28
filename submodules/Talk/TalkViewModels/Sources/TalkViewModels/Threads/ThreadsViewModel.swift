@@ -32,7 +32,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
 
 @MainActor
 public final class ThreadsViewModel: ObservableObject {
-    public var threads: ContiguousArray<CalculatedConversation> = []
+    public private(set) var threads: ContiguousArray<CalculatedConversation> = []
     @Published public var activeCallThreads: [CallToJoin] = []
     @Published public var sheetType: ThreadsSheetType?
     public var cancelable: Set<AnyCancellable> = []
@@ -203,6 +203,15 @@ public final class ThreadsViewModel: ObservableObject {
         if !lazyList.canLoadMore(id: id) { return }
         lazyList.prepareForLoadMore()
         await getThreads()
+    }
+    
+    public func append(_ conversation: CalculatedConversation) async {
+        let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
+        threads.append(calThreads)
+        await sortInPlace()
+        calThreads.animateObjectWillChange()
+        delegate?.updateUI(animation: true, reloadSections: false)
+        animateObjectWillChange()
     }
 
     private func onThreads(_ conversations: [CalculatedConversation]) async {
@@ -800,9 +809,8 @@ public final class ThreadsViewModel: ObservableObject {
         Logger.log(title: "ThreadsViewModel", message: string)
     }
     
-    public func setSelected(for conversationId: Int, selected: Bool, isArchive: Bool) {
-        let threadsList = isArchive ? AppState.shared.objectsContainer.archivesVM.archives : threads
-        if let thread = threadsList.first(where: {$0.id == conversationId}) {
+    public func setSelected(for conversationId: Int, selected: Bool) {
+        if let thread = threads.first(where: {$0.id == conversationId}) {
             /// Select / Deselect a thread to remove/add bar and selected background color
             thread.isSelected = selected
             delegate?.selectionChanged(conversation: thread)
@@ -861,7 +869,7 @@ public final class ThreadsViewModel: ObservableObject {
         
         if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
             /// to update isSeleted for bar and background color
-            setSelected(for: conversation.id ?? -1, selected: true, isArchive: conversation.isArchive == true)
+            setSelected(for: conversation.id ?? -1, selected: true)
             AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: conversation.toStruct())
         }
     }
