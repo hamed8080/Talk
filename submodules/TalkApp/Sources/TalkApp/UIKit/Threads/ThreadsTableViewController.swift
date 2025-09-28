@@ -170,7 +170,13 @@ extension ThreadsTableViewController: UITableViewDelegate {
         muteAction.backgroundColor = UIColor.gray
         arr.append(muteAction)
         
+        let hasSpaceToAddMorePin = viewModel.serverSortedPins.count < 5
         let pinAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
+            if !hasSpaceToAddMorePin {
+                /// Show dialog
+                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(WarningDialogView(message: "Errors.warningCantAddMorePinThread".bundleLocalized()))
+                return
+            }
             self?.viewModel.togglePin(conversation.toStruct())
             success(true)
         }

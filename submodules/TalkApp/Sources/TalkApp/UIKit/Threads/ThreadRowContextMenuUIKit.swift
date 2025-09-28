@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import Chat
 import TalkViewModels
+import SwiftUI
 
 class ThreadRowContextMenuUIKit: UIView {
     private let conversation: CalculatedConversation
@@ -61,13 +62,26 @@ class ThreadRowContextMenuUIKit: UIView {
     private func configureMenu() -> CustomMenu {
         let menu = CustomMenu()
         let vm = AppState.shared.objectsContainer.threadsVM
+       
         
-        if conversation.isArchive ?? false == false, conversation.pin == true || vm.serverSortedPins.count < 5 {
+        let hasSpaceToAddMorePin = vm.serverSortedPins.count < 5
+        let isInArchiveList = conversation.isArchive == true
+        if !isInArchiveList {
             let pinKey = conversation.pin == true ? "Thread.unpin" : "Thread.pin"
             let pinImage = conversation.pin == true ? "pin.slash" : "pin"
             let model = ActionItemModel(title: pinKey.bundleLocalized(), image: pinImage)
             let pinAction = ActionMenuItem(model: model) { [weak self] in
                 guard let self = self else { return }
+                if !hasSpaceToAddMorePin {
+                    /// Hide menu
+                    menu.contexMenuContainer?.hide()
+                    
+                    /// Show dialog
+                    let warningView = WarningDialogView(message: "Errors.warningCantAddMorePinThread".bundleLocalized())
+                    AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(warningView)
+                    return
+                }
+                
                 vm.togglePin(conversation.toStruct())
                 menu.contexMenuContainer?.hide()
             }
