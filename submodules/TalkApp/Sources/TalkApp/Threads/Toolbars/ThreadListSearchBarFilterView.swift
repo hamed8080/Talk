@@ -80,12 +80,12 @@ struct ThreadListSearchBarFilterView: View {
                     .environmentObject(viewModel)
             )
         } label: {
-            Image("ic_search_filter")
+            Image(systemName: "envelope.badge")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 22, height: 22)
                 .fontWeight(.medium)
-                .foregroundColor(Color.App.textSecondary)
+                .foregroundColor(viewModel.showUnreadConversations == true ? Color.App.accent : Color.App.textSecondary)
         }
     }
 
