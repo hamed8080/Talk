@@ -571,7 +571,10 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
             /// to update isSeleted for bar and background color
             setSelected(for: conversation.id ?? -1, selected: true)
-            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: conversation.toStruct())
+            
+            /// We just push when we are in archives list, beacause the archive list itself has been pushed
+            /// So if we use switch version it will pop all and archive list will be popped out which is wrong.
+            AppState.shared.objectsContainer.navVM.append(thread: conversation.toStruct())
         }
     }
     
