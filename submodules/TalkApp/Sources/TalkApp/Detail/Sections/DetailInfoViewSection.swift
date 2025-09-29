@@ -41,24 +41,26 @@ struct DetailInfoViewSection: View {
 
     @ViewBuilder
     private var imageView: some View {
-        ImageLoaderView(imageLoader: viewModel.avatarVM)
-            .id("\(viewModel.imageLink)\(thread.id ?? 0)")
-            .font(.system(size: 16).weight(.heavy))
-            .foregroundColor(.white)
-            .frame(width: 64, height: 64)
-            .background(Color(uiColor: String.getMaterialColorByCharCode(str: viewModel.thread?.title ?? viewModel.participantDetailViewModel?.participant.name ?? "")))
-            .clipShape(RoundedRectangle(cornerRadius:(28)))
-            .overlay {
-                if thread.type == .selfThread {
-                    SelfThreadImageView(imageSize: 64, iconSize: 28)
+        if let imageLoaderVM = viewModel.avatarVM {
+            ImageLoaderView(imageLoader: imageLoaderVM)
+                .id("\(viewModel.imageLink)\(thread.id ?? 0)")
+                .font(.system(size: 16).weight(.heavy))
+                .foregroundColor(.white)
+                .frame(width: 64, height: 64)
+                .background(Color(uiColor: String.getMaterialColorByCharCode(str: viewModel.thread?.title ?? viewModel.participantDetailViewModel?.participant.name ?? "")))
+                .clipShape(RoundedRectangle(cornerRadius:(28)))
+                .overlay {
+                    if thread.type == .selfThread {
+                        SelfThreadImageView(imageSize: 64, iconSize: 28)
+                    }
+                    if viewModel.showDownloading {
+                        ProgressView()
+                    }
                 }
-                if viewModel.showDownloading {
-                    ProgressView()
+                .onTapGesture {
+                    viewModel.onTapAvatarAction()
                 }
-            }
-            .onTapGesture {
-                viewModel.onTapAvatarAction()
-            }
+        }
     }
     
     private var threadTitle: some View {

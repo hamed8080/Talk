@@ -18,9 +18,12 @@ struct ThreadImageView: View {
         ZStack {
             if thread.type == .selfThread {
                 SelfThreadImageView(imageSize: 54, iconSize: 27)
-            } else if let image = thread.computedImageURL {
+            } else if
+                let image = thread.computedImageURL,
+                let imageVM = thread.imageLoader as? ImageLoaderViewModel
+            {
                 ImageLoaderView(
-                    imageLoader: AppState.shared.objectsContainer.threadsVM.avatars(for: image, metaData: thread.metadata, userName: thread.splitedTitle),
+                    imageLoader: imageVM,
                     textFont: .fBoldBody
                 )
                 .id("\(thread.computedImageURL ?? "")\(thread.id ?? 0)")

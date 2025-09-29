@@ -256,7 +256,7 @@ public class CustomConversationNavigationBar: UIView {
 
     public func fetchImageOnUpdateInfo() async {
         guard let link = await getImageLink() else { return }
-        if let imageViewModel = viewModel?.threadsViewModel?.avatars(for: link, metaData: nil, userName: nil) {
+        if let imageViewModel = imageLoaderVM {
             self.imageLoader = imageViewModel
 
             // Set first time opening the thread image from cahced version inside avatarVMS
@@ -288,7 +288,7 @@ public class CustomConversationNavigationBar: UIView {
     private func registerObservers() async {
         // Initial image from avatarVMS inside the thread
         let link = await getImageLink()
-        if let link = link, let _ = viewModel?.threadsViewModel?.avatars(for: link, metaData: nil, userName: nil) {
+        if let link = link, let _ = imageLoaderVM {
             await fetchImageOnUpdateInfo()
         } else {
             await setSplitedText()
@@ -330,5 +330,10 @@ public class CustomConversationNavigationBar: UIView {
         Task { @ChatGlobalActor in
             await ChatManager.activeInstance?.setToken(newToken: "revoked_token", reCreateObject: false)
         }
+    }
+    
+    private var imageLoaderVM: ImageLoaderViewModel? {
+        let threads = (viewModel?.threadsViewModel?.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
+        return threads.first(where: { $0.id == self.viewModel?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }
 }
