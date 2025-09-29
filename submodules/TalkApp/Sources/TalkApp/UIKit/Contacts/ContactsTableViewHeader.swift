@@ -87,23 +87,31 @@ class ContactsTableViewHeader: UIView {
     @objc private func onCreateContact() {
         let viewModel = AppState.shared.objectsContainer.contactsVM
         if #available(iOS 16.4, *) {
+            let isDarkMode = AppSettingsModel.restore().isDarkModeEnabled == true
+            
             let rootView = AddOrEditContactView()
                 .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                 .environmentObject(viewModel)
+                .environment(\.colorScheme, isDarkMode ? .dark : .light)
+                .preferredColorScheme(isDarkMode ? .dark : .light)
             var sheetVC = UIHostingController(rootView: rootView)
             sheetVC.modalPresentationStyle = .formSheet
+            sheetVC.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
             self.viewController?.present(sheetVC, animated: true)
         }
     }
     
     private func showBuilder(type: StrictThreadTypeCreation = .p2p) {
         let builderVM = AppState.shared.objectsContainer.conversationBuilderVM
+        let isDarkMode = AppSettingsModel.restore().isDarkModeEnabled == true
         
         let viewModel = AppState.shared.objectsContainer.contactsVM
         let rootView = ConversationBuilder()
             .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
             .environmentObject(viewModel)
             .environmentObject(builderVM)
+            .environment(\.colorScheme, isDarkMode ? .dark : .light)
+            .preferredColorScheme(isDarkMode ? .dark : .light)
             .onAppear {
                 Task {
                     await builderVM.show(type: type)
@@ -117,6 +125,7 @@ class ContactsTableViewHeader: UIView {
         
         var sheetVC = UIHostingController(rootView: rootView)
         sheetVC.modalPresentationStyle = .formSheet
+        sheetVC.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
         self.viewController?.present(sheetVC, animated: true)
         
         cancellable = builderVM.$dismiss.sink { dismiss in
