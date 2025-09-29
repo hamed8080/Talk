@@ -64,6 +64,7 @@ struct ParticipantRowContainer: View {
     @EnvironmentObject var viewModel: ParticipantsViewModel
     let participant: Participant
     let isSearchRow: Bool
+    @State private var clickDate = Date()
     var separatorColor: Color {
         if !isSearchRow {
             return viewModel.participants.last == participant ? Color.clear : Color.App.dividerPrimary
@@ -92,7 +93,11 @@ struct ParticipantRowContainer: View {
             }
             .onTapGesture {
                 if !isMe {
+                    if clickDate.advanced(by: 0.5) > .now {
+                        return
+                    }
                     Task {
+                        clickDate = Date()
                         try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
                     }
                 }

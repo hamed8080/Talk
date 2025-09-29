@@ -54,7 +54,7 @@ struct ConversationPlusContextMenu: View {
                 showCreateConversationSheet.toggle()
             }
         }
-        .frame(minWidth: 0, maxWidth: ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: 38)
+        .frame(minWidth: 0, maxWidth: ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: 42)
         .clipped()
         .foregroundStyle(Color.App.toolbarButton)
     }

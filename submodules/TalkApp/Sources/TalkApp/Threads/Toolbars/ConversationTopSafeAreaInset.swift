@@ -104,9 +104,10 @@ struct ConversationTopSafeAreaInset: View {
                 .resizable()
                 .scaledToFit()
                 .padding(8)
-                .frame(minWidth: 0, maxWidth: isDownloading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isDownloading ? 38 : 0)
+                .frame(minWidth: 0, maxWidth: isDownloading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isDownloading ? 42 : 0)
                 .accessibilityHint("Download")
                 .fontWeight(.medium)
+                .contentShape(Rectangle())
                 .clipped()
                 .foregroundStyle(Color.App.toolbarButton)
         }
@@ -141,9 +142,10 @@ struct ConversationTopSafeAreaInset: View {
                 .resizable()
                 .scaledToFit()
                 .padding(8)
-                .frame(minWidth: 0, maxWidth: isUploading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isUploading ? 38 : 0)
+                .frame(minWidth: 0, maxWidth: isUploading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isUploading ? 42 : 0)
                 .accessibilityHint("Upload")
                 .fontWeight(.medium)
+                .contentShape(Rectangle())
                 .clipped()
                 .foregroundStyle(Color.App.toolbarButton)
         }
@@ -169,12 +171,13 @@ struct ConversationTopSafeAreaInset: View {
                 Image(systemName: "xmark")
                     .resizable()
                     .scaledToFit()
-                    .padding(12)
+                    .padding(10)
                     .font(.fBody)
                     .foregroundStyle(Color.App.toolbarButton)
             }
             .buttonStyle(.borderless)
-            .frame(minWidth: 0, minHeight: 0, maxHeight: isInSearchMode ? 38 : 0)
+            .frame(minWidth: 0, minHeight: 0, maxHeight: isInSearchMode ? 42 : 0)
+            .contentShape(Rectangle())
             .clipped()
         } else {
             ToolbarButtonItem(imageName: "magnifyingglass", hint: "Search", padding: 10) {
@@ -182,7 +185,8 @@ struct ConversationTopSafeAreaInset: View {
                     isInSearchMode.toggle()
                 }
             }
-            .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? 0 : 38)
+            .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? 0 : 42)
+            .contentShape(Rectangle())
             .clipped()
             .foregroundStyle(Color.App.toolbarButton)
         }
