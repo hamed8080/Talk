@@ -190,6 +190,9 @@ public final class ThreadsViewModel: ObservableObject {
             if wasDisconnected {
                 /// Clear and remove all threads
                 threads.removeAll()
+                /// After a disconnect it is essential to reload the diffable,
+                /// becuase if there is any new message it won't show up.
+                delegate?.updateUI(animation: false, reloadSections: false)
             }
                         
             await onThreads(filtered)
