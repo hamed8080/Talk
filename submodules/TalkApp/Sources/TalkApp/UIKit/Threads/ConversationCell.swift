@@ -148,9 +148,11 @@ class ConversationCell: UITableViewCell {
         
         /// Mention sign label.
         mentionLable.accessibilityIdentifier = "ConversationCell.mentionLable"
+        mentionLable.text = "@"
+        mentionLable.textAlignment = .center
         mentionLable.translatesAutoresizingMaskIntoConstraints = false
         mentionLable.isHidden = true
-        mentionLable.layer.cornerRadius = 8
+        mentionLable.layer.cornerRadius = 12
         mentionLable.layer.masksToBounds = true
         mentionLable.textColor = .white
         mentionLable.backgroundColor = Color.App.accentUIColor
@@ -221,8 +223,8 @@ class ConversationCell: UITableViewCell {
             closedImageView.widthAnchor.constraint(equalToConstant: 16),
             closedImageView.heightAnchor.constraint(equalToConstant: 16),
             
-            mentionLable.widthAnchor.constraint(equalToConstant: 16),
-            mentionLable.heightAnchor.constraint(equalToConstant: 16),
+            mentionLable.widthAnchor.constraint(equalToConstant: 24),
+            mentionLable.heightAnchor.constraint(equalToConstant: 24),
             
             secondRowTrailingStack.centerYAnchor.constraint(equalTo: subtitleLabel.centerYAnchor),
             secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8)
