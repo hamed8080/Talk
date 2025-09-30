@@ -48,6 +48,7 @@ struct ConversationPlusContextMenu: View {
     private var conversationBuilderDialogButton: some View {
         ToolbarButtonItem(imageName: "plus", hint: "ThreadList.Toolbar.startNewChat", padding: 12) {
             withAnimation {
+                builderVM.clear()
                 AppState.shared.objectsContainer.searchVM.searchText = ""
                 AppState.shared.objectsContainer.contactsVM.searchContactString = ""
                 NotificationCenter.cancelSearch.post(name: .cancelSearch, object: true)
