@@ -26,7 +26,8 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public init() {
         setupObservers()
         
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             if selfConversation == nil {
                 await getSelfConversation()
                 try? await Task.sleep(for: .seconds(0.3))
@@ -136,7 +137,6 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             for cal in calThreads {
                 addImageLoader(cal)
             }
-            
             conversationsLazyList.setThreasholdIds(ids: conversations.suffix(8).compactMap {$0.id} )
             animateObjectWillChange()
         }
