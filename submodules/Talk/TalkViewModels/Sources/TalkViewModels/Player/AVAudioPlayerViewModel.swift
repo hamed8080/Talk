@@ -134,11 +134,14 @@ public final class AVAudioPlayerViewModel: NSObject, ObservableObject, @preconcu
         let isSameTitleAndSubtitle = item.title == item.subtitle
         var nowPlayingInfo: [String: Any] = [
             MPMediaItemPropertyTitle: item.title,
-            MPMediaItemPropertyArtist: item.artistName ?? (isSameTitleAndSubtitle ? nil : item.subtitle),
             MPMediaItemPropertyPlaybackDuration: item.duration,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: player.currentTime,
             MPNowPlayingInfoPropertyPlaybackRate: player.isPlaying == true ? 1.0 : 0.0
         ]
+        
+        if !isSameTitleAndSubtitle {
+            nowPlayingInfo[MPMediaItemPropertyArtist] = item.artistName ?? item.subtitle ?? ""
+        }
         nowPlayingInfo[MPMediaItemPropertyArtwork] = albumArtImage
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }

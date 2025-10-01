@@ -53,8 +53,6 @@ public final class EditMessagePlaceholderView: UIStackView {
         messageLabel.textAlignment = Language.isRTL ? .right : .left
         messageLabel.accessibilityIdentifier = "messageLabelEditMessagePlaceholderView"
         messageLabel.isUserInteractionEnabled = true
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
-        messageLabel.addGestureRecognizer(tapGesture)
         
         let vStack = UIStackView()
         vStack.axis = .vertical
@@ -70,6 +68,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         staticEditImageView.translatesAutoresizingMaskIntoConstraints = false
         staticEditImageView.imageView.tintColor = Color.App.accentUIColor
         staticEditImageView.contentMode = .scaleAspectFit
+        staticEditImageView.isUserInteractionEnabled = false
         staticEditImageView.accessibilityIdentifier = "staticEditImageViewEditMessagePlaceholderView"
         
         messageImageView.layer.cornerRadius = 4
@@ -90,6 +89,10 @@ public final class EditMessagePlaceholderView: UIStackView {
         addArrangedSubview(messageImageView)
         addArrangedSubview(vStack)
         addArrangedSubview(closeButton)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
+        addGestureRecognizer(tapGesture)
+        
         messageLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 20).isActive = true
         NSLayoutConstraint.activate([
             messageImageView.widthAnchor.constraint(equalToConstant: 36),
@@ -167,6 +170,7 @@ public final class EditMessagePlaceholderView: UIStackView {
             let time = sendVM.getEditMessage()?.time,
             let id = sendVM.getEditMessage()?.id
         else { return }
+        viewModel?.historyVM.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             await self?.viewModel?.historyVM.moveToTime(time, id)
         }

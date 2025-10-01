@@ -71,6 +71,7 @@ public final class UnreadMenitonsButton: UIButton {
     }
 
     @objc private func onTap(_ sender: UIGestureRecognizer) {
+        viewModel?.historyVM.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
             await viewModel?.moveToFirstUnreadMessage()

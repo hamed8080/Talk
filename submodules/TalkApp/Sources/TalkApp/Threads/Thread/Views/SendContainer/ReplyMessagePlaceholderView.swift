@@ -51,8 +51,6 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelReplyMessagePlaceholderView"
         messageLabel.isUserInteractionEnabled = true
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
-        messageLabel.addGestureRecognizer(tapGesture)
         messageLabel.textAlignment = Language.isRTL ? .right : .left
         
         replyImage.translatesAutoresizingMaskIntoConstraints = false
@@ -67,6 +65,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         staticImageReply.imageView.image = UIImage(systemName: "arrow.turn.up.left")
         staticImageReply.imageView.tintColor = Color.App.accentUIColor
         staticImageReply.imageView.contentMode = .scaleAspectFit
+        staticImageReply.isUserInteractionEnabled = false
         staticImageReply.accessibilityIdentifier = "staticReplyImageReplyMessagePlaceholderView"
         
         let closeButton = CloseButtonView()
@@ -80,6 +79,9 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         addArrangedSubview(replyImage)
         addArrangedSubview(vStack)
         addArrangedSubview(closeButton)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedOnMessage))
+        addGestureRecognizer(tapGesture)
         
         NSLayoutConstraint.activate([
             staticImageReply.widthAnchor.constraint(equalToConstant: 28),
@@ -156,6 +158,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
             let time = viewModel?.replyMessage?.time,
             let id = viewModel?.replyMessage?.id
         else { return }
+        viewModel?.historyVM.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             await self?.viewModel?.historyVM.moveToTime(time, id)
         }

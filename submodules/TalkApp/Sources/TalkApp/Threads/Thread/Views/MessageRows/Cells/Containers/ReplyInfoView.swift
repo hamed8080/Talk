@@ -160,10 +160,11 @@ final class ReplyInfoView: UIView {
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {
         if viewModel?.message.replyInfo?.deleted == true { return }
+        historyVM?.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else { return }    
             if isReplyPrivately {
-                moveToReplyPrivately()
+                try await moveToReplyPrivately()
             } else {
                 await moveToReply()
             }
@@ -175,14 +176,12 @@ final class ReplyInfoView: UIView {
         await historyVM?.moveToTime(replyTime, replyId, highlight: true)
     }
 
-    private func moveToReplyPrivately() {
-        Task {
-            try await AppState.shared.objectsContainer.navVM.openThreadAndMoveToMessage(
-                conversationId: sourceConversationId,
-                messageId: replyId,
-                messageTime: replyTime
-            )
-        }
+    private func moveToReplyPrivately() async throws {
+        try await AppState.shared.objectsContainer.navVM.openThreadAndMoveToMessage(
+            conversationId: sourceConversationId,
+            messageId: replyId,
+            messageTime: replyTime
+        )
     }
 
     private var historyVM: ThreadHistoryViewModel? { viewModel?.threadVM?.historyVM }

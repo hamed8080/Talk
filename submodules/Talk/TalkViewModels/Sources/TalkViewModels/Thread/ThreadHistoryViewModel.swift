@@ -2014,7 +2014,7 @@ extension ThreadHistoryViewModel {
 }
 
 extension ThreadHistoryViewModel {
-    func cancelTasks() {
+    public func cancelTasks() {
         task?.cancel()
         task = nil
         

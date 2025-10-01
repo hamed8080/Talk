@@ -146,6 +146,7 @@ class ThreadNavigationPlayer: UIView {
     }
 
     @objc private func taped(_ sender: UIGestureRecognizer) {
+        viewModel?.historyVM.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self, let message = playerVM.message, let time = message.time, let id = message.id else { return }
             if viewModel != nil {

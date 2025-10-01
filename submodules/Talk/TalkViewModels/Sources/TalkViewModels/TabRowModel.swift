@@ -259,9 +259,10 @@ extension TabRowModel {
 /// Move to the Message
 extension TabRowModel {
     public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
+        let historyVM = detailVM.threadVM?.historyVM
+        historyVM?.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
-            let historyVM = detailVM.threadVM?.historyVM
             detailVM.dismisByMoveToAMessage()
             await historyVM?.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
         }

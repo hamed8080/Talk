@@ -290,6 +290,7 @@ public final class MainSendButtons: UIStackView {
     }
 
     @objc private func onBtnSendTapped() {
+        threadVM?.historyVM.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
             await threadVM?.sendMessageViewModel.sendTextMessage()

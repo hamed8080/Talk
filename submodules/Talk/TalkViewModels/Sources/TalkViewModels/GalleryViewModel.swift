@@ -203,13 +203,15 @@ public final class GalleryViewModel: ObservableObject {
     
     public func goToHistory() {
         let message = selectedVM?.message
+        let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             if let time = message?.time, let id = message?.id {
+                vm?.historyVM.cancelTasks()
                 let task: Task<Void, any Error> = Task { [weak self] in
-                    guard let self = self else { return }
-                    await AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.historyVM.moveToTime(time, id)
+                    guard let self = self else { return }                   
+                    await vm?.historyVM.moveToTime(time, id)
                 }
-                AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.historyVM.setTask(task)
+                vm?.historyVM.setTask(task)
             }
         }
     }
