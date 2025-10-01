@@ -125,9 +125,7 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     private func setMessageContainerConstraints(viewModel: MessageRowViewModel) {
-        if viewModel.threadVM?.thread.type?.isChannelType == false {
-            messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
-        }
+        messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
         messageStackLeadingToRadioTrailingConstraint.isActive = viewModel.calMessage.state.isInSelectMode
         messageStackLeadingToContainerLeadingConstarint.isActive = canSnapToContainer(viewModel: viewModel)
         if canSnapToContainer(viewModel: viewModel) {
@@ -138,13 +136,21 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     private func canSnapToAvatar(viewModel: MessageRowViewModel) -> Bool {
+        if viewModel.threadVM?.thread.type?.isChannelType == true { return false }
         let isInSelectionMode = viewModel.calMessage.state.isInSelectMode
         let isGroup = viewModel.threadVM?.thread.group == true
         return !isInSelectionMode && isGroup && avatar != nil
     }
 
     private func canSnapToContainer(viewModel: MessageRowViewModel) -> Bool {
-        viewModel.calMessage.isMe && !viewModel.calMessage.state.isInSelectMode
+        /// For myself
+        if viewModel.calMessage.isMe && !viewModel.calMessage.state.isInSelectMode { return true }
+        
+        /// For a P2P chat
+        if !viewModel.calMessage.isMe && !viewModel.calMessage.state.isInSelectMode && viewModel.threadVM?.thread.group != true { return true }
+        
+        /// For other things like a group chat
+        return false
     }
 
     public func setValues(viewModel: MessageRowViewModel) {
