@@ -127,11 +127,13 @@ extension UIHistoryTableView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        makeReplyButton(indexPath: indexPath, isLeading: false)
+        if viewModel?.selectedMessagesViewModel.isInSelectMode == true { return nil }
+        return makeReplyButton(indexPath: indexPath, isLeading: false)
     }
 
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        makeReplyButton(indexPath: indexPath, isLeading: true)
+        if viewModel?.selectedMessagesViewModel.isInSelectMode == true { return nil }
+        return makeReplyButton(indexPath: indexPath, isLeading: true)
     }
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
