@@ -213,7 +213,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         assetResources = []
     }
     
-    func dimissAnResetDismiss() {
+    private func dimissAnResetDismiss() {
         dismiss = true
         Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in

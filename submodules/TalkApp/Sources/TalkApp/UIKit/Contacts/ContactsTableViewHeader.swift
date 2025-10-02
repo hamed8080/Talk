@@ -87,7 +87,10 @@ class ContactsTableViewHeader: UIView {
     @objc private func onCreateContact() {
         let viewModel = AppState.shared.objectsContainer.contactsVM
         if #available(iOS 16.4, *) {
-            let isDarkMode = AppSettingsModel.restore().isDarkModeEnabled == true
+            let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
+            let isDarkModeStorage = AppSettingsModel.restore().isDarkModeEnabled == true
+            let systemDarModeIsEnabled = traitCollection.userInterfaceStyle == .dark
+            let isDarkMode = nilDarkMode ? systemDarModeIsEnabled : isDarkModeStorage
             
             let rootView = AddOrEditContactView()
                 .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
@@ -103,7 +106,10 @@ class ContactsTableViewHeader: UIView {
     
     private func showBuilder(type: StrictThreadTypeCreation = .p2p) {
         let builderVM = AppState.shared.objectsContainer.conversationBuilderVM
-        let isDarkMode = AppSettingsModel.restore().isDarkModeEnabled == true
+        let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
+        let isDarkModeStorage = AppSettingsModel.restore().isDarkModeEnabled == true
+        let systemDarModeIsEnabled = traitCollection.userInterfaceStyle == .dark
+        let isDarkMode = nilDarkMode ? systemDarModeIsEnabled : isDarkModeStorage
         
         let viewModel = AppState.shared.objectsContainer.contactsVM
         let rootView = ConversationBuilder()
@@ -120,6 +126,7 @@ class ContactsTableViewHeader: UIView {
             .onDisappear {
                 Task {
                     await builderVM.clear()
+                    builderVM.dismiss = false
                 }
             }
         
