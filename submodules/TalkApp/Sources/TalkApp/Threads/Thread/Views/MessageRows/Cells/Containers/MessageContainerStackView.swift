@@ -41,6 +41,9 @@ public final class MessageContainerStackView: UIStackView {
     private static let tailWidth: CGFloat = 16
     private static let tailHeight: CGFloat = 32
     private static let margin: CGFloat = 4
+    private static let minWidth: CGFloat = 58
+    
+    private var minWidthConstraint: NSLayoutConstraint?
 
     init(frame: CGRect, isMe: Bool) {
         self.groupParticipantNameView = .init(frame: frame)
@@ -105,10 +108,13 @@ public final class MessageContainerStackView: UIStackView {
             tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -12).isActive = true
             tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         }
+        minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: MessageContainerStackView.minWidth)
+        minWidthConstraint?.isActive = true
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
+        minWidthConstraint?.constant = max(MessageContainerStackView.minWidth, viewModel.calMessage.textRect?.width ?? 0)
         reattachOrDetach(viewModel: viewModel)
         isUserInteractionEnabled = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == false
         if viewModel.calMessage.isLastMessageOfTheUser && !viewModel.calMessage.isMe && viewModel.threadVM?.thread.group == true {
