@@ -147,6 +147,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func onConnectionStatusChanged(_ status: Published<ConnectionStatus>.Publisher.Output) async {
         if status == .connected {
+            saveScrollPositionVM.clear()
             // After connecting again
             // We should call this method because if the token expire all the data inside InMemory Cache of the SDK is invalid
             wasDisconnected = true
