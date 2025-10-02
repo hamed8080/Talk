@@ -73,7 +73,6 @@ extension ThreadHistoryViewModel {
         /// we should prevent it from calling it to not get any error.
         if isFetchedServerFirstResponse == false {
             startFetchingHistory()
-            viewModel?.threadsViewModel?.clearAvatarsOnSelectAnotherThread()
         } else if isFetchedServerFirstResponse == true {
             /// try to open reply privately if user has tried to click on  reply privately and back button multiple times
             /// iOS has a bug where it tries to keep the object in the memory, so multiple back and forward doesn't lead to destroy the object.

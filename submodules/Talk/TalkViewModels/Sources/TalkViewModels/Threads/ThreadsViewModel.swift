@@ -40,7 +40,6 @@ public final class ThreadsViewModel: ObservableObject {
     public private(set) var firstSuccessResponse = false
     public var selectedThraed: Conversation?
     public var calculatedSearchedThreads: [CalculatedConversation] = []
-    private var avatarsVM: [String :ImageLoaderViewModel] = [:]
     public var serverSortedPins: [Int] = []
     public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     private var cache: Bool = true
@@ -657,30 +656,6 @@ public final class ThreadsViewModel: ObservableObject {
     func onCancelTimer(key: String) {
         if lazyList.isLoading {
             lazyList.setLoading(false)
-        }
-    }
-
-    public func avatars(for imageURL: String, metaData: String?, userName: String?) -> ImageLoaderViewModel {
-        if let avatarVM = avatarsVM[imageURL], !imageURL.isEmpty {
-            return avatarVM
-        } else {
-            let config = ImageLoaderConfig(url: imageURL, metaData: metaData, userName: userName)
-            let newAvatarVM = ImageLoaderViewModel(config: config)
-            avatarsVM[imageURL] = newAvatarVM
-            return newAvatarVM
-        }
-    }
-
-    public func clearAvatarsOnSelectAnotherThread() {
-        var keysToRemove: [String] = []
-        let allThreadImages = threads.compactMap({$0.computedImageURL})
-        avatarsVM.forEach { (key: String, value: ImageLoaderViewModel) in
-            if !allThreadImages.contains(where: {$0 == key }) {
-                keysToRemove.append(key)
-            }
-        }
-        keysToRemove.forEach { key in
-            avatarsVM.removeValue(forKey: key)
         }
     }
 

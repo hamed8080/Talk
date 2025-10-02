@@ -53,10 +53,10 @@ public final class ThreadDetailViewModel: ObservableObject {
         fullScreenImageLoader.updateCondig(config: config)
     }
     
-    public var avatarVM: ImageLoaderViewModel {
-        let threadsVM = objs.threadsVM
-        let avatarVM = threadsVM.avatars(for: imageLink, metaData: thread?.metadata, userName: String.splitedCharacter(thread?.title ?? ""))
-        return avatarVM
+    public var avatarVM: ImageLoaderViewModel? {
+        let threads = objs.threadsVM.threads + objs.archivesVM.archives
+        return threads
+            .first(where: { $0.id == threadVM?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }
 
     public var imageLink: String {
@@ -119,6 +119,14 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     public func updateThreadInfo(_ newThread: Conversation) {
         thread = newThread
+        
+        let imageLoader = ImageLoaderViewModel(conversation: newThread)
+        imageLoader.onImage = { [weak self] image in
+            Task { @MainActor [weak self] in
+                self?.cachedImage = image
+            }
+        }
+        imageLoader.fetch()
         setupFullScreenAvatarConfig()
         animateObjectWillChange()
     }

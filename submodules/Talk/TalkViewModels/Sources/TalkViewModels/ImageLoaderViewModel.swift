@@ -329,6 +329,18 @@ extension ImageLoaderViewModel {
         self.init(config: config)
     }
     
+    convenience init(conversation: Conversation) {
+        let httpsImage = conversation.image?.replacingOccurrences(of: "http://", with: "https://") ?? ""
+        let name = conversation.computedTitle
+        let config = ImageLoaderConfig(
+            url: httpsImage,
+            metaData: conversation.metadata,
+            userName: String.splitedCharacter(name ?? ""),
+            forceToDownloadFromServer: true
+        )
+        self.init(config: config)
+    }
+    
     convenience init(contact: Contact) {
         let image = contact.image ?? contact.user?.image ?? ""
         let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
