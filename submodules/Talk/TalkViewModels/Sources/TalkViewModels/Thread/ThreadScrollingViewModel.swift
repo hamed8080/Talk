@@ -25,6 +25,7 @@ public final class ThreadScrollingViewModel {
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1)}
     public var isAtBottomOfTheList: Bool = false
     public var lastContentOffsetY: CGFloat = 0
+    public var didEndScrollingAnimation = true
     @DeceleratingActor public var isEndedDecelerating: Bool = true
     init() {}
 
@@ -51,7 +52,13 @@ public final class ThreadScrollingViewModel {
     public func scrollToNewMessageIfIsAtBottomOrMe(_ message: HistoryMessageType) {
         if isAtBottomOfTheList || message.isMe(currentUserId: AppState.shared.user?.id), let uniqueId = message.uniqueId {
             disableExcessiveLoading()
-            scrollTo(uniqueId, animate: true)
+            if !didEndScrollingAnimation {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    self?.scrollTo(uniqueId, animate: true)
+                }
+            } else {
+                scrollTo(uniqueId, animate: true)
+            }
             isAtBottomOfTheList = true
             viewModel?.delegate?.showMoveToBottom(show: false)
         }

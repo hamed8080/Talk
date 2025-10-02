@@ -202,6 +202,10 @@ extension UIHistoryTableView {
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         viewModel?.historyVM.didEndDragging(scrollView, decelerate)
     }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        viewModel?.scrollVM.didEndScrollingAnimation = true
+    }
 }
 
 extension UIHistoryTableView {

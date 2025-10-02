@@ -488,6 +488,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
         if tableView.numberOfSections == 0 { return }
         if tableView.numberOfRows(inSection: index.section) < index.row + 1 { return }
+        viewModel?.scrollVM.didEndScrollingAnimation = false
         tableView.scrollToRow(at: index, at: position, animated: animate)
     }
     
@@ -559,6 +560,7 @@ extension ThreadViewController: HistoryScrollDelegate {
         tableView.endUpdates()
         
         if let scrollToIndexPath = scrollTo, let at = at {
+            viewModel?.scrollVM.didEndScrollingAnimation = false
             tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: animate)
         }
         
