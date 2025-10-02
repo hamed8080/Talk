@@ -25,7 +25,8 @@ public class ContextMenuContainerView: UIView {
 
     public init(delegate: ContextMenuDelegate) {
         self.delegate = delegate
-        let frame = (delegate as? UIViewController)?.navigationController?.view.frame ?? .zero
+        let vc = delegate as? UIViewController
+        let frame = vc?.navigationController?.view.frame ?? vc?.view.frame ?? .zero
         self.scrollView = UIScrollView(frame: frame)
         super.init(frame: frame)
         setupView()
