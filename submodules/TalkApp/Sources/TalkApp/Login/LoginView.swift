@@ -30,17 +30,24 @@ struct LoginContentView: View {
                     .padding(.bottom, 40)
                     .frame(maxWidth: 420)
 
-                let key = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumber"
+                let key = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumberHint"
                 let placeholder = key.bundleLocalized()
+                
+                let topPlaceHolder = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Settings.phoneNumber"
                 TextField(placeholder, text: $viewModel.text)
                     .focused($isFocused)
                     .keyboardType(.phonePad)
                     .font(.fBody)
                     .padding()
                     .frame(maxWidth: 420)
-                    .applyAppTextfieldStyle(topPlaceholder: viewModel.selectedServerType == .integration ? "Login.staticToken" : "Settings.phoneNumber", isFocused: isFocused) {
-                        isFocused.toggle()
-                    }
+                    .multilineTextAlignment(.leading)
+                    .applyAppTextfieldStyleWithLeadingView(
+                        topPlaceholder: topPlaceHolder.bundleLocalized(),
+                        isFocused: isFocused,
+                        forcedLayoutDirection: .leftToRight,
+                        leadingView: leadingViewPhoneNumber) {
+                            isFocused.toggle()
+                        }
 
                 if viewModel.isValidPhoneNumber == false {
                     ErrorView(error: "Errors.Login.invalidPhoneNumber")
@@ -112,6 +119,23 @@ struct LoginContentView: View {
                 ProgressView()
                     .progressViewStyle(.circular)
             }
+        }
+    }
+    
+    @ViewBuilder
+    private var leadingViewPhoneNumber: some View {
+        if viewModel.selectedServerType != .integration {
+            HStack {
+                Text(verbatim: "+98")
+                    .font(.fBody)
+                    .foregroundStyle(Color.App.accent)
+                
+                Rectangle()
+                    .fill(.gray)
+                    .frame(width: 1)
+            }
+            .frame(height: 24)
+            .padding(.leading, 12)
         }
     }
 }

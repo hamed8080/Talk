@@ -8,50 +8,100 @@
 import SwiftUI
 import TalkExtensions
 
-public struct AppTextFieldModifier: ViewModifier {
+public struct AppTextFieldModifier<LeadingView: View>: ViewModifier {
     let topPlaceholder: String
     let innerBGColor: Color
     let error: String?
     let minHeigh: CGFloat
     let isFocused: Bool
+    let forcedLayoutDirection: LayoutDirection?
+    let leadingView: (() -> LeadingView?)?
     /// We use onClick for the border around where they are not clickable.
     let onClick: (() -> Void)?
-
+    @Environment(\.layoutDirection) var direction
+    
     public func body(content: Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(topPlaceholder)
+            topPlaceholderView
+            HStack {
+                if let leadingView = leadingView?() {
+                    leadingView
+                }
+                content
+            }
+            .environment(\.layoutDirection, leadingView != nil ? .leftToRight : direction)
+            .frame(minHeight: minHeigh)
+            .background(isFocused ? Color.clear : innerBGColor)
+            .overlay(alignment: .center) {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(error != nil ? Color.App.red : isFocused ? Color.App.accent : Color.clear, lineWidth: 2)
+                    .frame(minHeight: minHeigh)
+            }
+            .clipShape(RoundedRectangle(cornerRadius:(12)))
+            .padding()
+            .onTapGesture {
+                /// For clicking when the user clicks the outer side of a TextField and we want to force the TextFeild to Focus when tapping on padding.
+                onClick?()
+            }
+            errorVeiw
+        }
+    }
+    
+    private var topPlaceholderView: some View {
+        Text(topPlaceholder)
+            .font(.fCaption)
+            .padding(.horizontal, 20)
+            .offset(y: 8)
+    }
+    
+    @ViewBuilder
+    private var errorVeiw: some View {
+        if let error {
+            Text(error)
                 .font(.fCaption)
                 .padding(.horizontal, 20)
-                .offset(y: 8)
-            content
-                .frame(minHeight: minHeigh)
-                .background(isFocused ? Color.clear : innerBGColor)
-                .overlay(alignment: .center) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(error != nil ? Color.App.red : isFocused ? Color.App.accent : Color.clear, lineWidth: 2)
-                        .frame(minHeight: minHeigh)
-                }
-                .clipShape(RoundedRectangle(cornerRadius:(12)))
-                .padding()
-                .onTapGesture {
-                    /// For clicking when the user clicks the outer side of a TextField and we want to force the TextFeild to Focus when tapping on padding.
-                    onClick?()
-                }
-
-            if let error {
-                Text(error)
-                    .font(.fCaption)
-                    .padding(.horizontal, 20)
-                    .offset(y: -8)
-                    .foregroundColor(Color.App.red)
-            }
+                .offset(y: -8)
+                .foregroundColor(Color.App.red)
         }
     }
 }
 
 public extension View {
-    func applyAppTextfieldStyle(topPlaceholder: String = "", innerBGColor: Color = Color.App.bgInput, error: String? = nil, minHeight: CGFloat = 52, isFocused: Bool = false, onClick: (() -> Void)? = nil) -> some View {
-        modifier(AppTextFieldModifier(topPlaceholder: topPlaceholder, innerBGColor: innerBGColor, error: error, minHeigh: minHeight, isFocused: isFocused, onClick: onClick))
+    func applyAppTextfieldStyle(topPlaceholder: String = "",
+                                innerBGColor: Color = Color.App.bgInput,
+                                error: String? = nil,
+                                minHeight: CGFloat = 52,
+                                isFocused: Bool = false,
+                                onClick: (() -> Void)? = nil) -> some View {
+        modifier(AppTextFieldModifier<EmptyView>(
+            topPlaceholder: topPlaceholder,
+            innerBGColor: innerBGColor,
+            error: error,
+            minHeigh: minHeight,
+            isFocused: isFocused,
+            forcedLayoutDirection: nil,
+            leadingView: nil,
+            onClick: onClick)
+        )
+    }
+    
+    func applyAppTextfieldStyleWithLeadingView<LeadingView: View>(topPlaceholder: String = "",
+                                                                  innerBGColor: Color = Color.App.bgInput,
+                                                                  error: String? = nil,
+                                                                  minHeight: CGFloat = 52,
+                                                                  isFocused: Bool = false,
+                                                                  forcedLayoutDirection: LayoutDirection?,
+                                                                  leadingView: LeadingView,
+                                                                  onClick: (() -> Void)? = nil) -> some View {
+        modifier(AppTextFieldModifier(
+            topPlaceholder: topPlaceholder,
+            innerBGColor: innerBGColor,
+            error: error,
+            minHeigh: minHeight,
+            isFocused: isFocused,
+            forcedLayoutDirection: forcedLayoutDirection,
+            leadingView: { leadingView },
+            onClick: onClick))
     }
 }
 
