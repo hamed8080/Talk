@@ -191,7 +191,10 @@ public class ContactsViewModel: ObservableObject {
             for contact in contacts {
                 addImageLoader(contact)
             }
-            delegate?.updateUI(animation: true, reloadSections: true)
+            
+            /// We should not set animation to true beacause it will lead to incorrect animation,
+            /// due to the fact that Contact.id is the idetifier and diffable dataSource see them as one.
+            delegate?.updateUI(animation: false, reloadSections: true)
         } catch {
             log("Failed to get search contacts with error: \(error.localizedDescription)")
         }
