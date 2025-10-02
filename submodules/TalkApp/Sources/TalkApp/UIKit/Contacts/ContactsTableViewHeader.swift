@@ -119,6 +119,9 @@ class ContactsTableViewHeader: UIView {
     
     private func showBuilder(type: StrictThreadTypeCreation = .p2p) {
         let builderVM = AppState.shared.objectsContainer.conversationBuilderVM
+        
+        builderVM.dismiss = false
+        
         let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
         let isDarkModeStorage = AppSettingsModel.restore().isDarkModeEnabled == true
         let systemDarModeIsEnabled = traitCollection.userInterfaceStyle == .dark

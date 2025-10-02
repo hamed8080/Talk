@@ -152,6 +152,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
     
     private func navigateToTheConversation(_ conversation: Conversation) {
         clear()
+        dismiss = true
         if #available(iOS 17, *) {
             AppState.shared.objectsContainer.navVM.append(thread: conversation)
         } else {
