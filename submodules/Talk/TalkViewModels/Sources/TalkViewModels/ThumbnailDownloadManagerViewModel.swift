@@ -71,6 +71,7 @@ public class ThumbnailDownloadManagerViewModel {
     @ChatGlobalActor
     private func cacheData(url: URL) -> Data? {
         guard let filePath = ChatManager.activeInstance?.file.filePath(url),
+              FileManager.default.fileExists(atPath: filePath.path()) == true,
               let cgImage = filePath.imageScale(width: 100)?.image,
               let data = UIImage(cgImage: cgImage).pngData()
         else { return nil }
