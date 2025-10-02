@@ -14,6 +14,8 @@ class ContactsTableViewHeader: UIView {
     weak var viewController: UIViewController?
     private let stack = UIStackView()
     private var cancellable: AnyCancellable?
+    private let loadingView = UILoadingView()
+    private let loadingContainer = UIView()
     
     init() {
         super.init(frame: .zero)
@@ -30,14 +32,25 @@ class ContactsTableViewHeader: UIView {
         stack.spacing = 24
         stack.translatesAutoresizingMaskIntoConstraints = false
         
+        loadingContainer.translatesAutoresizingMaskIntoConstraints = false
+        loadingContainer.addSubview(loadingView)
+        loadingView.translatesAutoresizingMaskIntoConstraints = false
+        
         let btnCreateGroup = make("person.2", "Contacts.createGroup", #selector(onCreateGroup))
         let btnCreateChannel = make("megaphone", "Contacts.createChannel", #selector(onCreateChannel))
         let btnCreateContact = make("person.badge.plus", "Contacts.addContact", #selector(onCreateContact))
 
-        stack.addArrangedSubviews([btnCreateGroup, btnCreateChannel, btnCreateContact])
+        stack.addArrangedSubviews([btnCreateGroup, btnCreateChannel, btnCreateContact, loadingContainer])
         addSubview(stack)
         
         NSLayoutConstraint.activate([
+            loadingContainer.widthAnchor.constraint(equalTo: widthAnchor),
+            loadingContainer.heightAnchor.constraint(equalToConstant: 36),
+            
+            loadingView.widthAnchor.constraint(equalToConstant: 36),
+            loadingView.heightAnchor.constraint(equalToConstant: 36),
+            loadingView.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            
             stack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
@@ -119,15 +132,10 @@ class ContactsTableViewHeader: UIView {
             .environment(\.colorScheme, isDarkMode ? .dark : .light)
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .onAppear {
-                Task {
-                    await builderVM.show(type: type)
-                }
+                builderVM.show(type: type)
             }
             .onDisappear {
-                Task {
-                    await builderVM.clear()
-                    builderVM.dismiss = false
-                }
+                builderVM.clear()
             }
         
         var sheetVC = UIHostingController(rootView: rootView)
@@ -158,5 +166,14 @@ class ContactsTableViewHeader: UIView {
         if let view = touches.first?.view {
             view.layer.opacity = 1.0
         }
+    }
+    
+    public func removeLoading() {
+        loadingView.animate(false)
+        loadingContainer.removeFromSuperview()
+    }
+    
+    public func startLoading() {
+        loadingView.animate(true)
     }
 }

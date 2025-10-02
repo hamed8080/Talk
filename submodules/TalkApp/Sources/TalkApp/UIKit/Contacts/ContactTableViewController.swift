@@ -38,6 +38,7 @@ class ContactTableViewController: UIViewController {
         
         tableView.sectionHeaderTopPadding = 0
         let header = ContactsTableViewHeader()
+        header.startLoading()
         header.viewController = self
         header.translatesAutoresizingMaskIntoConstraints = false
         tableView.tableHeaderView = header
@@ -76,6 +77,8 @@ extension ContactTableViewController {
 
 extension ContactTableViewController: UIContactsViewControllerDelegate {
     func updateUI(animation: Bool, reloadSections: Bool) {
+        (tableView.tableHeaderView as? ContactsTableViewHeader)?.removeLoading()
+        
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
         

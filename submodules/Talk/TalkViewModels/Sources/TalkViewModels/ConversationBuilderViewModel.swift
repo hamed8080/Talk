@@ -189,7 +189,6 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
     
     public override func clear() {
         super.clear()
-        dimissAnResetDismiss()
         resetImageUploading()
         createdConversation = nil
         isCreateLoading = false
@@ -211,15 +210,6 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         isUploading = false
         imageUploadingFailed = false
         assetResources = []
-    }
-    
-    private func dimissAnResetDismiss() {
-        dismiss = true
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.dismiss = false
-            }
-        }
     }
     
 //    private func onUploadCompleted(_ uniqueId: String, _ fileMetaData: FileMetaData?, _ data: Data?, _ error: Error?) {
