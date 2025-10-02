@@ -81,7 +81,7 @@ public final class LoginViewModel: ObservableObject {
                 await MainActor.run {
                     if let keyId = decodecd.keyId {
                         isLoading = false
-                        requestOTP(identity: text, keyId: keyId)
+                        requestOTP(identity: identity, keyId: keyId)
                     }
                     expireIn = decodecd.client?.accessTokenExpiryTime ?? 60
                     startTimer()
@@ -146,7 +146,7 @@ public final class LoginViewModel: ObservableObject {
         let spec = AppState.shared.spec
         let address = "\(spec.server.talkback)\(spec.paths.talkBack.verify)"
         var urlReq = URLRequest(url: URL(string: address)!)
-        urlReq.url?.append(queryItems: [.init(name: "identity", value: text.replaceRTLNumbers()), .init(name: "otp", value: codes)])
+        urlReq.url?.append(queryItems: [.init(name: "identity", value: identity), .init(name: "otp", value: codes)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
         Task { [weak self] in
@@ -279,5 +279,9 @@ public final class LoginViewModel: ObservableObject {
 
     func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+    
+    private var identity: String {
+        return "\(0)\(text)".replaceRTLNumbers()
     }
 }

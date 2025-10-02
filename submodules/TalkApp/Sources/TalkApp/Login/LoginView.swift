@@ -45,9 +45,12 @@ struct LoginContentView: View {
                         topPlaceholder: topPlaceHolder.bundleLocalized(),
                         isFocused: isFocused,
                         forcedLayoutDirection: .leftToRight,
-                        leadingView: leadingViewPhoneNumber) {
-                            isFocused.toggle()
+                        leadingView: leadingViewPhoneNumber) { isFocused.toggle() }
+                    .onChange(of: viewModel.text) { newValue in
+                        if newValue.first == "0", viewModel.state == .login {
+                            viewModel.text = ""
                         }
+                    }
 
                 if viewModel.isValidPhoneNumber == false {
                     ErrorView(error: "Errors.Login.invalidPhoneNumber")
