@@ -14,7 +14,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     public var onTextChanged: ((String?) -> Void)?
     private let placeholderLabel = UILabel()
     private var heightConstraint: NSLayoutConstraint!
-    private let initSize: CGFloat = 42
+    private let initSize: CGFloat = 48
     private let RTLMarker = "\u{200f}"
     
     public init() {
@@ -36,7 +36,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.textContainerInset = .init(top: 12, left: 0, bottom: 0, right: 0)
+        textView.textContainerInset = .init(top: 14, left: 10, bottom: 14, right: 10)
         textView.delegate = self
         textView.isEditable = true
         textView.isSelectable = true
@@ -72,10 +72,10 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
             textView.centerYAnchor.constraint(equalTo: centerYAnchor),
             textView.heightAnchor.constraint(equalTo: heightAnchor),
             
-            placeholderLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: -8),
-            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            placeholderLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: 0),
+            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -16),
             placeholderLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2.5),
-            placeholderLabel.heightAnchor.constraint(equalToConstant: initSize),
+            placeholderLabel.heightAnchor.constraint(equalTo: heightAnchor),
         ])
     }
     
@@ -142,6 +142,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     
     private func calculateHeight() -> CGFloat {
         let fittedSize = textView.sizeThatFits(CGSize(width: frame.size.width, height: CGFloat.greatestFiniteMagnitude)).height
+        /// initSize + 16 to check if we are in the new line or not to prevent a change in the height 
+        if fittedSize < initSize + 16 { return initSize }
         return min(max(fittedSize, initSize), 192)
     }
     

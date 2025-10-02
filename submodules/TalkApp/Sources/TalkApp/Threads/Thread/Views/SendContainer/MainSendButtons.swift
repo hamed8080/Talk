@@ -42,7 +42,7 @@ public final class MainSendButtons: UIStackView {
         axis = .horizontal
         spacing = 8
         alignment = .bottom
-        layoutMargins = .init(horizontal: 8, vertical: 4)
+        layoutMargins = .init(horizontal: 8, vertical: 7)
         isLayoutMarginsRelativeArrangement = true
         semanticContentAttribute = .forceLeftToRight
 
@@ -91,7 +91,7 @@ public final class MainSendButtons: UIStackView {
         hStack.axis = .horizontal
         hStack.spacing = 8
         hStack.layer.masksToBounds = true
-        hStack.layer.cornerRadius = MainSendButtons.initSize / 2
+        hStack.layer.cornerRadius = 48 / 2
         hStack.backgroundColor = Color.App.bgSendInputUIColor
         hStack.isOpaque = true
         hStack.alignment = .bottom
