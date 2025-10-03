@@ -31,12 +31,6 @@ final class ReplyInfoView: UIView {
     private static let deletedStaticText = "Messages.deletedMessageReply".bundleLocalized()
     private static let repliedToStaticText = "Message.replyTo".bundleLocalized()
 
-    // Sizes
-    private static let margin: CGFloat = 6
-    private static let imageSize: CGFloat = 36
-    private static let barWidth: CGFloat = 2.5
-    private static let barMargin: CGFloat = 0.5
-
     init(frame: CGRect, isMe: Bool) {
         super.init(frame: frame)
         configureView(isMe: isMe)
@@ -100,36 +94,36 @@ final class ReplyInfoView: UIView {
 
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.backgroundColor = Color.App.accentUIColor
-        bar.layer.cornerRadius = 2
+        bar.layer.cornerRadius = MessageRowSizes.messageReplyInfoViewBarCornerRadisu
         bar.layer.masksToBounds = true
         bar.accessibilityIdentifier = "barReplyInfoView"
         addSubview(bar)
 
-        imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ReplyInfoView.margin)
+        imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin)
         NSLayoutConstraint.activate([
-            bar.widthAnchor.constraint(equalToConstant: ReplyInfoView.barWidth),
-            bar.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
-            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ReplyInfoView.margin),
-            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ReplyInfoView.barMargin),
+            bar.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewBarWidth),
+            bar.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
+            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageReplyInfoViewBarMargin),
 
             imageIconViewLeadingConstriant,
-            imageIconView.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
-            imageIconView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ReplyInfoView.margin),
-            imageIconView.widthAnchor.constraint(equalToConstant: ReplyInfoView.imageSize),
-            imageIconView.heightAnchor.constraint(equalToConstant: ReplyInfoView.imageSize),
+            imageIconView.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            imageIconView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
+            imageIconView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewImageSize),
+            imageIconView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewImageSize),
 
-            participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
-            participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: ReplyInfoView.margin),
-            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ReplyInfoView.margin),
+            participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
 
-            deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: ReplyInfoView.margin),
+            deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
             deletedLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
-            deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ReplyInfoView.margin),
+            deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
 
-            replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: ReplyInfoView.margin),
-            replyLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ReplyInfoView.margin),
+            replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            replyLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
             replyLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
-            replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ReplyInfoView.margin)
+            replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin)
         ])
     }
 
@@ -155,7 +149,7 @@ final class ReplyInfoView: UIView {
             setReplyImage()
         }
         imageIconView.setIsHidden(!hasImage)
-        imageIconViewLeadingConstriant.constant = hasImage ? ReplyInfoView.margin : -ReplyInfoView.imageSize
+        imageIconViewLeadingConstriant.constant = hasImage ? MessageRowSizes.messageReplyInfoViewMargin : -MessageRowSizes.messageReplyInfoViewImageSize
     }
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {

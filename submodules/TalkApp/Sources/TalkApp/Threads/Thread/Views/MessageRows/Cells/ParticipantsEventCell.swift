@@ -12,7 +12,9 @@ import TalkUI
 import TalkViewModels
 
 final class ParticipantsEventCell: UITableViewCell {
-    private let label = PaddingUILabel(frame: .zero, horizontal: 16, vertical: 8)
+    private let label = PaddingUILabel(frame: .zero,
+                                       horizontal: MessageRowSizes.messageParticipantsEventCellLableHorizontalPadding,
+                                       vertical: MessageRowSizes.messageParticipantsEventCellLableVerticalPadding)
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -28,7 +30,7 @@ final class ParticipantsEventCell: UITableViewCell {
         label.label.font = UIFont.fBody
         label.label.numberOfLines = 0
         label.label.textColor = Color.App.textPrimaryUIColor
-        label.layer.cornerRadius = 14
+        label.layer.cornerRadius = MessageRowSizes.messageParticipantsEventCellCornerRadius
         label.layer.masksToBounds = true
         label.label.textAlignment = .center
         label.backgroundColor = .black.withAlphaComponent(0.4)
@@ -38,9 +40,9 @@ final class ParticipantsEventCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 1, constant: -24),
-            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
-            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -4),
+            label.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 1, constant: -MessageRowSizes.messageParticipantsEventCellWidthRedaction),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: MessageRowSizes.messageParticipantsEventCellMargin),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -MessageRowSizes.messageParticipantsEventCellMargin),
         ])
 
         // Set content compression resistance priority

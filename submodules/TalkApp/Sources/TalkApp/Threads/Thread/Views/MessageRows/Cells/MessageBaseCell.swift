@@ -63,27 +63,27 @@ public class MessageBaseCell: UITableViewCell {
         messageContainer.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         messageContainer.accessibilityIdentifier = "messageContainerMessageBaseCell"
         container.addSubview(messageContainer)
-        messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: 1).isActive = true
+        messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: MessageRowSizes.messageContainerStackViewTopMargin).isActive = true
         messageContainer.widthAnchor.constraint(lessThanOrEqualToConstant: ThreadViewModel.maxAllowedWidth).isActive = true
-        messageContainerBottomConstraint = messageContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -1)
+        messageContainerBottomConstraint = messageContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.messageContainerStackViewBottomMargin)
         messageContainerBottomConstraint.identifier = "messageContainerBottomConstraintMessageBaseCell"
         messageContainerBottomConstraint.isActive = true
 
         // 53 for avatar/tail to make the container larger to be clickable, this view is invisible and we should see it on view debugger hierarchy
-        containerWidthConstraint = container.widthAnchor.constraint(equalTo: messageContainer.widthAnchor, constant: isMe ? 0 : 53)
+        containerWidthConstraint = container.widthAnchor.constraint(equalTo: messageContainer.widthAnchor, constant: isMe ? 0 : MessageRowSizes.messagebaseCellWidth)
         containerWidthConstraint.isActive = true
         container.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0).isActive = true
         let isMe = self is MyselfMessageCell
         let isRTL = Language.isRTL
         if (isRTL && isMe) || (!isRTL && !isMe) {
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8).isActive = true
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: MessageRowSizes.beforeContainerLeading).isActive = true
         } else {
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8).isActive = true
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -MessageRowSizes.beforeContainerLeading).isActive = true
         }
 
         if let avatar = avatar {
-            messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8)
+            messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: MessageRowSizes.afterAvatarTrailing)
         }
         messageStackLeadingToRadioTrailingConstraint = messageContainer.leadingAnchor.constraint(equalTo: radio.trailingAnchor, constant: 0)
         messageStackLeadingToContainerLeadingConstarint = messageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 0)
@@ -99,7 +99,7 @@ public class MessageBaseCell: UITableViewCell {
                 self?.radio.isHidden = false
             }
             radio.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
-            radio.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -10).isActive = true
+            radio.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.selectMessageRadioBottomConstant).isActive = true
         }
         radio.set(selected: viewModel.calMessage.state.isSelected, viewModel: viewModel)
     }
@@ -111,8 +111,8 @@ public class MessageBaseCell: UITableViewCell {
             self.avatar?.translatesAutoresizingMaskIntoConstraints = false
             self.avatar?.accessibilityIdentifier = "avatarContainerMessageBaseCell"
             container.addSubview(avatar)
-            avatar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 8).isActive = true
-            avatar.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -8).isActive = true
+            avatar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: MessageRowSizes.beforeAvatarLeading).isActive = true
+            avatar.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.messageAvatarViewBottomMargin).isActive = true
         } else if avatar?.superview != nil, viewModel.calMessage.state.isInSelectMode {
             avatar?.removeFromSuperview()
         }
@@ -128,11 +128,7 @@ public class MessageBaseCell: UITableViewCell {
         messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
         messageStackLeadingToRadioTrailingConstraint.isActive = viewModel.calMessage.state.isInSelectMode
         messageStackLeadingToContainerLeadingConstarint.isActive = canSnapToContainer(viewModel: viewModel)
-        if canSnapToContainer(viewModel: viewModel) {
-            containerWidthConstraint.constant = 0
-        } else {
-            containerWidthConstraint.constant = 53
-        }
+        containerWidthConstraint.constant =  canSnapToContainer(viewModel: viewModel) ? 0 : MessageRowSizes.messagebaseCellWidth
     }
 
     private func canSnapToAvatar(viewModel: MessageRowViewModel) -> Bool {
@@ -156,7 +152,7 @@ public class MessageBaseCell: UITableViewCell {
     public func setValues(viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser && !viewModel.calMessage.isMe
-        messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -6 : -1
+        messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -MessageRowSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -MessageRowSizes.messageContainerStackViewBottomMargin
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
         setMessageContainer(viewModel: viewModel)

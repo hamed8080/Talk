@@ -36,22 +36,22 @@ final class CallEventCell: UITableViewCell {
         stack.axis = .horizontal
         stack.alignment = .center
         stack.distribution = .fill
-        stack.spacing = 12
+        stack.spacing = MessageRowSizes.messageCallEventCellStackSapcing
         stack.accessibilityIdentifier = "stackCallEventCell"
 
         stack.addArrangedSubview(dateLabel)
         stack.backgroundColor = UIColor.black.withAlphaComponent(0.2)
-        stack.layer.cornerRadius = 14
+        stack.layer.cornerRadius = MessageRowSizes.messageCallEventCellStackCornerRadius
         stack.layer.masksToBounds = true
-        stack.layoutMargins = .init(top: 0, left: 16, bottom: 0, right: 16)
+        stack.layoutMargins = .init(top: 0, left: MessageRowSizes.messageCallEventCellStackLayoutMargin, bottom: 0, right: MessageRowSizes.messageCallEventCellStackLayoutMargin)
         stack.isLayoutMarginsRelativeArrangement = true
         contentView.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            contentView.heightAnchor.constraint(equalToConstant: 32),
+            contentView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageCallEventCellHeight),
             stack.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: MessageRowSizes.messageCallEventCellStackMargin),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageCallEventCellStackMargin),
         ])
     }
 

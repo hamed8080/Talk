@@ -63,11 +63,18 @@ public final class ThreadViewModel: ObservableObject {
     public var isSimulatedThared: Bool {
         AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
-    nonisolated(unsafe) public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth - (38 + MessageRowSizes.avatarSize)
+    nonisolated(unsafe) public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth
     nonisolated(unsafe) public static var threadWidth: CGFloat = 0 {
         didSet {
-            // 38 = Avatar width + tail width + leading padding + trailing padding
-            maxAllowedWidth = min(400, ThreadViewModel.threadWidth - (38 + MessageRowSizes.avatarSize))
+            // [spacingBeforeAvatar: 8] + [Avatar width: 37] + [tail width: 16] + [spacing after avatar: 8] + [continer leading: 8] + [trailing padding: 8]
+            maxAllowedWidth = min(
+                400,
+                ThreadViewModel.threadWidth - (MessageRowSizes.beforeContainerLeading
+                                               + MessageRowSizes.beforeAvatarLeading
+                                               + MessageRowSizes.messageAvatarViewSize
+                                               + MessageRowSizes.messageTailViewWidth
+                                               + 8 + 8 + 8)
+            )
         }
     }
 

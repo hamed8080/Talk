@@ -37,12 +37,12 @@ public final class SelectMessageRadio: UIView {
         addSubview(imageView)
 
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(equalToConstant: 48),
-            heightAnchor.constraint(equalToConstant: 48),
+            widthAnchor.constraint(equalToConstant: MessageRowSizes.selectMessageRadioWidth),
+            heightAnchor.constraint(equalToConstant: MessageRowSizes.selectMessageRadioHeight),
             imageView.centerXAnchor.constraint(equalTo: centerXAnchor),
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 28),
-            imageView.heightAnchor.constraint(equalToConstant: 28),
+            imageView.widthAnchor.constraint(equalToConstant: MessageRowSizes.selectMessageRadioImageViewWidth),
+            imageView.heightAnchor.constraint(equalToConstant: MessageRowSizes.selectMessageRadioImageViewHeight),
         ])
     }
 

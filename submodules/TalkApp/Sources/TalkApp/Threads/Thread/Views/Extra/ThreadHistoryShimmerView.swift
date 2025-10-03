@@ -85,15 +85,15 @@ struct MessageRowShimmer: View {
                 if !isMe && !isSameUserMessage {
                     Rectangle()
                         .fill(color)
-                        .frame(width: MessageRowSizes.avatarSize, height: MessageRowSizes.avatarSize)
-                        .clipShape(RoundedRectangle(cornerRadius:(MessageRowSizes.avatarSize / 2)))
-                        .shimmer(cornerRadius: MessageRowSizes.avatarSize / 2, startFromLeading: !isMe)
+                        .frame(width: MessageRowSizes.messageAvatarViewSize, height: MessageRowSizes.messageAvatarViewSize)
+                        .clipShape(RoundedRectangle(cornerRadius:(MessageRowSizes.messageAvatarViewSize / 2)))
+                        .shimmer(cornerRadius: MessageRowSizes.messageAvatarViewSize / 2, startFromLeading: !isMe)
                         .padding(.trailing, 2)
                 } else {
                     /// Empty avatar
                     Rectangle()
                         .fill(Color.clear)
-                        .frame(width: MessageRowSizes.avatarSize, height: MessageRowSizes.avatarSize)
+                        .frame(width: MessageRowSizes.messageAvatarViewSize, height: MessageRowSizes.messageAvatarViewSize)
                         .padding(.trailing, 2)
                 }
             }
