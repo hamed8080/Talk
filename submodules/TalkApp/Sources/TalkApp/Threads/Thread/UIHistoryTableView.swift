@@ -36,7 +36,7 @@ class UIHistoryTableView: UITableView {
         delegate = self
         dataSource = self
         estimatedRowHeight = 128
-        sectionHeaderHeight = 28
+        sectionHeaderHeight = MessageRowSizes.sectionHeaderViewHeight
         rowHeight = UITableView.automaticDimension
         tableFooterView = UIView()
         separatorStyle = .none
@@ -96,8 +96,10 @@ extension UIHistoryTableView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = UIColor.clear
         revealAnimation.reveal(for: cell)
-        sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight = cell.bounds.height
+        let row = sections[indexPath.section].vms[indexPath.row]
+        row.calMessage.sizes.estimatedHeight = cell.bounds.height
         
+        print("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -137,6 +139,8 @@ extension UIHistoryTableView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        let row = sections[indexPath.section].vms[indexPath.row]
+        print("[HEIGHT][ESTIMATE] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
         return sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
     }
 }

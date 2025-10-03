@@ -125,7 +125,7 @@ final class MessageAudioView: UIView {
             waveView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: MessageRowSizes.messageAudioViewMargin * 2),
             waveView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageAudioViewMargin * 2),
             waveView.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor),
-            waveView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewFileNameHeight),
+            waveView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewFileWaveFormHeight),
             
             fileSizeLabel.leadingAnchor.constraint(equalTo: waveView.leadingAnchor),
             fileSizeLabel.topAnchor.constraint(equalTo: waveView.bottomAnchor, constant: MessageRowSizes.messageAudioViewMargin),

@@ -108,9 +108,9 @@ extension ThreadViewController {
         loadingManager.configureLoadings(parent: view, tableView: tableView)
         let vStackOverlayButtonsConstraint: NSLayoutConstraint
         if Language.isRTL {
-            vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
+            vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: MessageRowSizes.vStackButtonsLeadingMargin)
         } else {
-            vStackOverlayButtonsConstraint = vStackOverlayButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            vStackOverlayButtonsConstraint = vStackOverlayButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -MessageRowSizes.vStackButtonsLeadingMargin)
         }
         
         sendContainerBottomConstraint = sendContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor)

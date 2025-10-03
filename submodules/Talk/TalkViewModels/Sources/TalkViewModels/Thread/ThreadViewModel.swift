@@ -64,18 +64,39 @@ public final class ThreadViewModel: ObservableObject {
         AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
     nonisolated(unsafe) public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth
+    nonisolated(unsafe) public static var maxAllowedWidthIsMe: CGFloat = ThreadViewModel.threadWidth
     nonisolated(unsafe) public static var threadWidth: CGFloat = 0 {
         didSet {
-            // [spacingBeforeAvatar: 8] + [Avatar width: 37] + [tail width: 16] + [spacing after avatar: 8] + [continer leading: 8] + [trailing padding: 8]
-            maxAllowedWidth = min(
-                400,
-                ThreadViewModel.threadWidth - (MessageRowSizes.beforeContainerLeading
-                                               + MessageRowSizes.beforeAvatarLeading
-                                               + MessageRowSizes.messageAvatarViewSize
-                                               + MessageRowSizes.messageTailViewWidth
-                                               + 8 + 8 + 8)
-            )
+            setMaxAllowedWidth()
+            setMaxAllowedWidthIsMe()
         }
+    }
+    
+    nonisolated static func setMaxAllowedWidth() {
+        
+        let paddingsAndAvatar = (MessageRowSizes.beforeContainerLeading
+        + MessageRowSizes.messageAvatarBeforeLeading
+        + MessageRowSizes.messageAvatarViewSize
+        + MessageRowSizes.messageAvatarAfterTrailing
+        + MessageRowSizes.messageContainerStackViewMargin
+        + MessageRowSizes.messageContainerStackViewMargin
+        + MessageRowSizes.messagebaseCellTrailingSpaceForShowingMoveToBottom
+        + MessageRowSizes.vStackButtonsLeadingMargin
+        )
+        
+        maxAllowedWidth = min(400, ThreadViewModel.threadWidth - paddingsAndAvatar)
+    }
+    
+    nonisolated static func setMaxAllowedWidthIsMe() {
+        
+        let paddingsAndAvatar = (MessageRowSizes.beforeContainerLeading
+        + MessageRowSizes.messageContainerStackViewMargin
+        + MessageRowSizes.messageContainerStackViewMargin
+        + MessageRowSizes.messagebaseCellTrailingSpaceForShowingMoveToBottom
+        + MessageRowSizes.vStackButtonsLeadingMargin
+        )
+        
+        maxAllowedWidthIsMe = min(400, ThreadViewModel.threadWidth - paddingsAndAvatar)
     }
 
     // MARK: Initializer

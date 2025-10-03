@@ -70,8 +70,8 @@ final class MessageLocationView: UIImageView {
         
         tintColor = viewModel.fileState.state == .completed ? .clear : .gray
         
-        if mapViewHeightConstraint.constant != viewModel.calMessage.sizes.mapHeight {
-            mapViewHeightConstraint.constant = viewModel.calMessage.sizes.mapHeight
+        if mapViewHeightConstraint.constant != MessageRowSizes.messageLocationHeight {
+            mapViewHeightConstraint.constant = MessageRowSizes.messageLocationHeight
         }
     }
     

@@ -151,7 +151,7 @@ class MessageRowCalculators {
         rowType.isAudio = message.isAudio
         rowType.isForward = message.forwardInfo != nil
         rowType.isUnSent = message.isUnsentMessage
-        rowType.hasText = (!rowType.isPublicLink) && !rowType.isSingleEmoji && calculateText(message: message) != nil
+        rowType.hasText = !rowType.isSingleEmoji && calculateText(message: message) != nil
         if mapUploadText != nil {
             rowType.hasText = true
         }
@@ -168,7 +168,13 @@ class MessageRowCalculators {
         sizes.forwardContainerWidth = calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
         //        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
-        calculatedMessage.textRect = getRect(markdownTitle: calculatedMessage.attributedString, width: ThreadViewModel.maxAllowedWidth)
+        
+        if let attr = calculatedMessage.addOrRemoveParticipantsAttr {
+            calculatedMessage.textRect = getRect(markdownTitle: attr, width: ThreadViewModel.maxAllowedWidth)
+        } else if let attr = calculatedMessage.attributedString {
+            let width = calculatedMessage.isMe ? ThreadViewModel.maxAllowedWidthIsMe : ThreadViewModel.maxAllowedWidth
+            calculatedMessage.textRect = getRect(markdownTitle: attr, width: width)
+        }
         
         let originalPaddings = sizes.paddings
         sizes.paddings = calculateSpacingPaddings(message: message, calculatedMessage: calculatedMessage)
@@ -181,7 +187,7 @@ class MessageRowCalculators {
         calculatedMessage.callAttributedString = calculateCallText(message: message, myId: mainData.appUserId)
         
         calculatedMessage.rowType = rowType
-        let estimateHeight = calculateEstimatedHeight(calculatedMessage, sizes)
+        let estimateHeight = calculateEstimatedHeight(id: message.id ?? 0, calculatedMessage, sizes, message.reactionableType)
         sizes.estimatedHeight = estimateHeight
         calculatedMessage.sizes = sizes
         
@@ -344,7 +350,7 @@ class MessageRowCalculators {
     
     class func calculateForwardContainerWidth(rowType: MessageViewRowType, sizes: MessageRowSizes) -> CGFloat? {
         if rowType.isMap {
-            return sizes.mapWidth - 8
+            return MessageRowSizes.messageLocationWidth - 8
         }
         return .infinity
     }
@@ -775,8 +781,7 @@ class MessageRowCalculators {
         message.message?.isEmoji == true && message.message?.isEmpty == false && message.replyInfo == nil && message.message?.count ?? 0 == 1
     }
     
-    class func getRect(markdownTitle: NSAttributedString?, width: CGFloat) -> CGRect? {
-        guard let markdownTitle = markdownTitle else { return nil }
+    class func getRect(markdownTitle: NSAttributedString, width: CGFloat) -> CGRect? {
         let ts = NSTextStorage(attributedString: markdownTitle)
         let size = CGSize(width: width, height: CGFloat.greatestFiniteMagnitude)
         let tc = NSTextContainer(size: size)
@@ -789,76 +794,92 @@ class MessageRowCalculators {
         return rect
     }
     
-    class func calculateEstimatedHeight(_ calculatedMessage: MessageRowCalculatedData, _ sizes: MessageRowSizes) -> CGFloat {
+    class func calculateEstimatedHeight(id: Int, _ calculatedMessage: MessageRowCalculatedData, _ sizes: MessageRowSizes, _ isReactionable: Bool) -> CGFloat {
         if calculatedMessage.rowType.cellType == .call {
-            return 32
-        } else if calculatedMessage.rowType.cellType == .participants {
-            let padding: CGFloat = 16 // top/bottom margin constraint
-            let margin: CGFloat = 24 // top/bottom padding label
-            let drawableWidth = ThreadViewModel.threadWidth - (margin + padding)
-            let height = (getRect(markdownTitle: calculatedMessage.addOrRemoveParticipantsAttr, width: drawableWidth)?.height ?? 0)
-            return height + (padding / 2) + (margin / 2)
+            return MessageRowSizes.messageCallEventCellHeight
+        } else if calculatedMessage.rowType.cellType == .participants, let attr = calculatedMessage.addOrRemoveParticipantsAttr {
+            let horizontalPadding: CGFloat = MessageRowSizes.messageParticipantsEventCellLableHorizontalPadding * 2
+            let drawableWidth = ThreadViewModel.threadWidth - (MessageRowSizes.messageParticipantsEventCellWidthRedaction + horizontalPadding)
+            let height = (getRect(markdownTitle: attr, width: drawableWidth)?.height ?? 0)
+            return height + (MessageRowSizes.messageParticipantsEventCellLableVerticalPadding) + (MessageRowSizes.messageParticipantsEventCellMargin * 2)
+        } else if calculatedMessage.rowType.isSingleEmoji {
+            return MessageRowSizes.messageSingleEmojiViewHeight
+        } else if calculatedMessage.rowType.cellType == .unreadBanner {
+            return MessageRowSizes.messageUnreadBubbleCellHeight
         }
-        let containerMargin: CGFloat = 1
+        
+        let containerMargin: CGFloat = calculatedMessage.isFirstMessageOfTheUser ? MessageRowSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : MessageRowSizes.messageContainerStackViewBottomMargin
+        
         var estimatedHeight: CGFloat = 0
-        let margin: CGFloat = 4 // stack margin
-        let spacing: CGFloat = 4
+        
+        /// Stack layout marging for both top and bottom
+        let margin: CGFloat = MessageRowSizes.messageContainerStackViewMargin * 2
+        
+        estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         
         estimatedHeight += containerMargin
         estimatedHeight += margin
         
-        //group participant name height
+        /// Group participant name height
         if calculatedMessage.isFirstMessageOfTheUser && !calculatedMessage.isMe {
-            estimatedHeight += 16
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.groupParticipantNameViewHeight
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isReply {
-            estimatedHeight += spacing
-            estimatedHeight += 48
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageReplyInfoViewHeight
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isForward {
-            estimatedHeight += 48
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageForwardInfoViewHeight
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isImage {
             estimatedHeight += sizes.imageHeight ?? 0
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isVideo {
-            estimatedHeight += 196
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageVideoViewHeight
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isAudio {
-            estimatedHeight += 78
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageAudioViewFileNameHeight
+            estimatedHeight += MessageRowSizes.messageAudioViewMargin
+            
+            estimatedHeight += MessageRowSizes.messageAudioViewMargin
+            estimatedHeight += MessageRowSizes.messageAudioViewFileWaveFormHeight
+            
+            estimatedHeight += MessageRowSizes.messageAudioViewPlaybackSpeedHeight
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isFile {
-            estimatedHeight += 44
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageFileViewHeight
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.isMap {
-            estimatedHeight += sizes.mapHeight // static inside MessageRowCalculatedData
-            estimatedHeight += spacing
+            estimatedHeight += MessageRowSizes.messageLocationHeight // static inside MessageRowCalculatedData
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
         
         if calculatedMessage.rowType.hasText {
             estimatedHeight += calculatedMessage.textRect?.height ?? 0
-            estimatedHeight += spacing
-            estimatedHeight += 15 // UITextView margin
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
         }
-        
-        //footer height
-        estimatedHeight += 18
-        estimatedHeight += margin
-        estimatedHeight += containerMargin
+       
+        /// Footer height
+        /// Reactions are not part of the estimation.
+        if isReactionable {
+            estimatedHeight += MessageRowSizes.messageFooterViewHeightWithoutReaction
+            estimatedHeight += margin
+            estimatedHeight += containerMargin
+            estimatedHeight += MessageRowSizes.messageContainerStackViewStackSpacing
+        }
         
         return estimatedHeight
     }

@@ -52,7 +52,7 @@ public final class MessageContainerStackView: UIStackView {
         self.singleEmojiView = .init(frame: frame, isMe: isMe)
     
         let textKitStack = TextKitStack(attributedString: NSAttributedString(string: ""))
-        textMessageView = TextMessageView(frame: .zero, textContainer: textKitStack.textContainer)
+        textMessageView = TextMessageView(frame: frame, textContainer: textKitStack.textContainer)
         self.textKitStack = textKitStack
         super.init(frame: frame)
         configureView(isMe: isMe)
@@ -76,6 +76,8 @@ public final class MessageContainerStackView: UIStackView {
         layer.cornerRadius = MessageRowSizes.messageContainerStackViewCornerRadius
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         registerGestures()
+        
+        textMessageView.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
 
         groupParticipantNameView.translatesAutoresizingMaskIntoConstraints = false
         replyInfoMessageRow.translatesAutoresizingMaskIntoConstraints = false
@@ -108,7 +110,11 @@ public final class MessageContainerStackView: UIStackView {
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        minWidthConstraint?.constant = max(MessageRowSizes.messageContainerStackViewMinWidth, viewModel.calMessage.textRect?.width ?? 0)
+        
+        /// Padding around the text is essential, unless it will move every even small texts to the second line
+        let paddingAroundText = (MessageRowSizes.messageContainerStackViewPaddingAroundTextView * 2)
+        let textWidth = viewModel.calMessage.textRect?.width ?? 0
+        minWidthConstraint?.constant = max(MessageRowSizes.messageContainerStackViewMinWidth, textWidth + paddingAroundText)
         reattachOrDetach(viewModel: viewModel)
         isUserInteractionEnabled = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == false
         if viewModel.calMessage.isLastMessageOfTheUser && !viewModel.calMessage.isMe && viewModel.threadVM?.thread.group == true {
@@ -258,7 +264,6 @@ extension MessageContainerStackView {
         }
         textKitStack.roundedBackgroundLayoutManager.ranges = viewModel.calMessage.rangeCodebackground
         addArrangedSubview(textMessageView)
-        textMessageView.backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         
         viewModel.calMessage.rangeCodebackground?.forEach { codeRange in
             textMessageView.setDirectionForRange(range: codeRange)

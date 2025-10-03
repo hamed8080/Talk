@@ -10,12 +10,11 @@ import Foundation
 public struct MessageRowSizes: Sendable {
     
     /// Paddings and margins in a message row
-    nonisolated(unsafe) public static let beforeAvatarLeading: CGFloat = 8
-    nonisolated(unsafe) public static let afterAvatarTrailing: CGFloat = 8
     nonisolated(unsafe) public static let beforeContainerLeading: CGFloat = 8
     
     /// MessageBaseCell sizes
-    nonisolated(unsafe) public static let messagebaseCellWidth: CGFloat = beforeAvatarLeading + messageAvatarViewSize + afterAvatarTrailing
+    nonisolated(unsafe) public static let messagebaseCellWidth: CGFloat = messageAvatarBeforeLeading + messageAvatarViewSize + messageAvatarAfterTrailing
+    nonisolated(unsafe) public static let messagebaseCellTrailingSpaceForShowingMoveToBottom: CGFloat = 22
     
     /// MessageContainerStackView sizes
     nonisolated(unsafe) public static let messageContainerStackViewMargin: CGFloat = 4
@@ -25,10 +24,13 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let messageContainerStackViewTopMargin: CGFloat = 1
     nonisolated(unsafe) public static let messageContainerStackViewCornerRadius: CGFloat = 10
     nonisolated(unsafe) public static let messageContainerStackViewStackSpacing: CGFloat = 4
+    nonisolated(unsafe) public static let messageContainerStackViewPaddingAroundTextView: CGFloat = 8
 
     /// MessageAvatarView sizes
     nonisolated(unsafe) public static let messageAvatarViewSize: CGFloat = 37
     nonisolated(unsafe) public static let messageAvatarViewBottomMargin: CGFloat = 8
+    nonisolated(unsafe) public static let messageAvatarBeforeLeading: CGFloat = 8
+    nonisolated(unsafe) public static let messageAvatarAfterTrailing: CGFloat = 8
     
     /// MessageTailView sizes
     nonisolated(unsafe) public static let messageTailViewWidth: CGFloat = 16
@@ -36,6 +38,7 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let messageTailViewLeading: CGFloat = 12
 
     /// MessageFileView sizes
+    nonisolated(unsafe) public static let messageFileViewHeight: CGFloat = 48
     nonisolated(unsafe) public static let messageFileViewStackSpacing: CGFloat = 8
     nonisolated(unsafe) public static let messageFileViewProgressButtonSize: CGFloat = 36
     nonisolated(unsafe) public static let messageFileViewStackLayoutMarginSize: CGFloat = 8
@@ -62,6 +65,7 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let messageAudioViewPlayButtonCornerRadius: CGFloat = 12
     nonisolated(unsafe) public static let messageAudioViewFileNameWidth: CGFloat = 72
     nonisolated(unsafe) public static let messageAudioViewFileNameHeight: CGFloat = 42
+    nonisolated(unsafe) public static let messageAudioViewFileWaveFormHeight: CGFloat = 42
     nonisolated(unsafe) public static let messageAudioViewPlaybackSpeedWidth: CGFloat = 52
     nonisolated(unsafe) public static let messageAudioViewPlaybackSpeedHeight: CGFloat = 28
     nonisolated(unsafe) public static let messageAudioViewPlaybackSpeedTopMargin: CGFloat = 4
@@ -69,18 +73,28 @@ public struct MessageRowSizes: Sendable {
     /// MessageLocationView sizes
     nonisolated(unsafe) public static let messageLocationViewMinWidth: CGFloat = 340
     nonisolated(unsafe) public static let messageLocationCornerRadius: CGFloat = 6
+    
+    /// We use max to at least have a width, because there are times that maxWidth is nil.
+    nonisolated(unsafe) public static let messageLocationWidth: CGFloat = max(128, (ThreadViewModel.maxAllowedWidth)) - (18 + messageTailViewWidth)
+    /// We use max to at least have a width, because there are times that maxWidth is nil.
+    /// We use min to prevent the image gets bigger than 320 if it's bigger.
+    nonisolated(unsafe) public static let messageLocationHeight: CGFloat = min(320, max(128, (ThreadViewModel.maxAllowedWidth)))
 
     /// GroupParticipantNameView sizes
     nonisolated(unsafe) public static let groupParticipantNameViewHeight: CGFloat = 16
     
     /// MessageReplyInfoView sizes
+    nonisolated(unsafe) public static let messageReplyInfoViewHeight: CGFloat = 48
     nonisolated(unsafe) public static let messageReplyInfoViewMargin: CGFloat = 6
     nonisolated(unsafe) public static let messageReplyInfoViewImageSize: CGFloat = 36
     nonisolated(unsafe) public static let messageReplyInfoViewBarWidth: CGFloat = 2.5
     nonisolated(unsafe) public static let messageReplyInfoViewBarMargin: CGFloat = 0.5
-    nonisolated(unsafe) public static let messageReplyInfoViewBarCornerRadisu: CGFloat = 2
+    nonisolated(unsafe) public static let messageReplyInfoViewCornerRadius: CGFloat = 8
+    nonisolated(unsafe) public static let messageReplyInfoViewImageIconCornerRadius: CGFloat = 4
+    nonisolated(unsafe) public static let messageReplyInfoViewBarCornerRadius: CGFloat = 2
 
     /// MessageForwardInfoView sizes
+    nonisolated(unsafe) public static let messageForwardInfoViewHeight: CGFloat = 48
     nonisolated(unsafe) public static let messageForwardInfoViewMargin: CGFloat = 6
     nonisolated(unsafe) public static let messageForwardInfoViewImageSize: CGFloat = 36
     nonisolated(unsafe) public static let messageForwardInfoViewBarWidth: CGFloat = 2.5
@@ -127,9 +141,11 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let messageReactionRowViewTopMargin : CGFloat = 6
     
     /// MessageUnreadBubbleCell sizes
-    nonisolated(unsafe) public static let messageUnreadBubbleCellHeight: CGFloat = 30
+    nonisolated(unsafe) public static let messageUnreadBubbleCellHeight: CGFloat = 48
+    nonisolated(unsafe) public static let messageUnreadBubbleCellLableHeight: CGFloat = 30
     
     /// SectionHeaderView sizes
+    nonisolated(unsafe) public static let sectionHeaderViewHeight: CGFloat = 28
     nonisolated(unsafe) public static let sectionHeaderViewLabelCornerRadius: CGFloat = 14
     nonisolated(unsafe) public static let sectionHeaderViewLableHorizontalPadding: CGFloat = 32
     nonisolated(unsafe) public static let sectionHeaderViewLableVerticalPadding: CGFloat = 8
@@ -147,6 +163,9 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let messageCallEventCellStackLayoutMargin: CGFloat = 16
     nonisolated(unsafe) public static let messageCallEventCellHeight: CGFloat = 32
     nonisolated(unsafe) public static let messageCallEventCellStackMargin: CGFloat = 4
+    
+    /// Buttons vertical stack for mention/jump to bottom
+    nonisolated(unsafe) public static let vStackButtonsLeadingMargin: CGFloat = 8
 
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0
@@ -154,12 +173,6 @@ public struct MessageRowSizes: Sendable {
     public var forwardContainerWidth: CGFloat?
     public var imageWidth: CGFloat? = nil
     public var imageHeight: CGFloat? = nil
-
-    /// We use max to at least have a width, because there are times that maxWidth is nil.
-    public let mapWidth = max(128, (ThreadViewModel.maxAllowedWidth)) - (18 + messageTailViewWidth)
-    /// We use max to at least have a width, because there are times that maxWidth is nil.
-    /// We use min to prevent the image gets bigger than 320 if it's bigger.
-    public let mapHeight = min(320, max(128, (ThreadViewModel.maxAllowedWidth)))
 
     public init(){}
 }

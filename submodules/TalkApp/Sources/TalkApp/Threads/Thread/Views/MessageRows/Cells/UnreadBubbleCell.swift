@@ -36,10 +36,10 @@ final class UnreadBubbleCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: MessageRowSizes.messageUnreadBubbleCellHeight),
-            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+            label.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageUnreadBubbleCellLableHeight),
+            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            label.topAnchor.constraint(equalTo: contentView.topAnchor),
         ])
     }
 }

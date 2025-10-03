@@ -77,6 +77,8 @@ final class ForwardInfoView: UIView {
         addGestureRecognizer(tap)
 
         NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageForwardInfoViewHeight),
+            
             bar.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageForwardInfoViewBarWidth),
             bar.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageForwardInfoViewMargin),
             bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageForwardInfoViewMargin),

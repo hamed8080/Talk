@@ -64,7 +64,7 @@ public class MessageBaseCell: UITableViewCell {
         messageContainer.accessibilityIdentifier = "messageContainerMessageBaseCell"
         container.addSubview(messageContainer)
         messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: MessageRowSizes.messageContainerStackViewTopMargin).isActive = true
-        messageContainer.widthAnchor.constraint(lessThanOrEqualToConstant: ThreadViewModel.maxAllowedWidth).isActive = true
+        messageContainer.widthAnchor.constraint(lessThanOrEqualToConstant: isMe ? ThreadViewModel.maxAllowedWidthIsMe : ThreadViewModel.maxAllowedWidth).isActive = true
         messageContainerBottomConstraint = messageContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.messageContainerStackViewBottomMargin)
         messageContainerBottomConstraint.identifier = "messageContainerBottomConstraintMessageBaseCell"
         messageContainerBottomConstraint.isActive = true
@@ -83,7 +83,7 @@ public class MessageBaseCell: UITableViewCell {
         }
 
         if let avatar = avatar {
-            messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: MessageRowSizes.afterAvatarTrailing)
+            messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: MessageRowSizes.messageAvatarAfterTrailing)
         }
         messageStackLeadingToRadioTrailingConstraint = messageContainer.leadingAnchor.constraint(equalTo: radio.trailingAnchor, constant: 0)
         messageStackLeadingToContainerLeadingConstarint = messageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 0)
@@ -111,7 +111,7 @@ public class MessageBaseCell: UITableViewCell {
             self.avatar?.translatesAutoresizingMaskIntoConstraints = false
             self.avatar?.accessibilityIdentifier = "avatarContainerMessageBaseCell"
             container.addSubview(avatar)
-            avatar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: MessageRowSizes.beforeAvatarLeading).isActive = true
+            avatar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: MessageRowSizes.messageAvatarBeforeLeading).isActive = true
             avatar.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.messageAvatarViewBottomMargin).isActive = true
         } else if avatar?.superview != nil, viewModel.calMessage.state.isInSelectMode {
             avatar?.removeFromSuperview()

@@ -102,6 +102,7 @@ final class MessageFileView: UIStackView {
         addArrangedSubview(vStack)
 
         NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageFileViewHeight),
             progressButton.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageFileViewProgressButtonSize),
             progressButton.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageFileViewProgressButtonSize),
         ])

@@ -41,7 +41,7 @@ final class ReplyInfoView: UIView {
     }
 
     private func configureView(isMe: Bool) {
-        layer.cornerRadius = 8
+        layer.cornerRadius = MessageRowSizes.messageReplyInfoViewCornerRadius
         layer.masksToBounds = true
         backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
         isOpaque = true
@@ -54,7 +54,7 @@ final class ReplyInfoView: UIView {
         imageIconView.contentMode = .scaleAspectFit
         imageIconView.accessibilityIdentifier = "imageIconViewReplyInfoView"
         imageIconView.setContentHuggingPriority(.required, for: .horizontal)
-        imageIconView.layer.cornerRadius = 4
+        imageIconView.layer.cornerRadius = MessageRowSizes.messageReplyInfoViewImageIconCornerRadius
         imageIconView.layer.masksToBounds = true
         addSubview(imageIconView)
 
@@ -94,13 +94,15 @@ final class ReplyInfoView: UIView {
 
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.backgroundColor = Color.App.accentUIColor
-        bar.layer.cornerRadius = MessageRowSizes.messageReplyInfoViewBarCornerRadisu
+        bar.layer.cornerRadius = MessageRowSizes.messageReplyInfoViewBarCornerRadius
         bar.layer.masksToBounds = true
         bar.accessibilityIdentifier = "barReplyInfoView"
         addSubview(bar)
 
         imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin)
         NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewHeight),
+            
             bar.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewBarWidth),
             bar.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
             bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
