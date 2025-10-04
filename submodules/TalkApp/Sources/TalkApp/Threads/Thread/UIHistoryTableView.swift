@@ -99,7 +99,7 @@ extension UIHistoryTableView: UITableViewDelegate {
         let row = sections[indexPath.section].vms[indexPath.row]
         row.calMessage.sizes.estimatedHeight = cell.bounds.height
         
-        print("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+        log("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -130,17 +130,12 @@ extension UIHistoryTableView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         if viewModel?.selectedMessagesViewModel.isInSelectMode == true { return nil }
-        return makeReplyButton(indexPath: indexPath, isLeading: false)
-    }
-
-    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        if viewModel?.selectedMessagesViewModel.isInSelectMode == true { return nil }
-        return makeReplyButton(indexPath: indexPath, isLeading: true)
+        return makeReplyButton(indexPath: indexPath)
     }
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         let row = sections[indexPath.section].vms[indexPath.row]
-        print("[HEIGHT][ESTIMATE] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+        log("[HEIGHT][ESTIMATE] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
         return sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
     }
 }
@@ -162,7 +157,7 @@ extension UIHistoryTableView: UITableViewDataSourcePrefetching {
 
 // Reply leading/trailing button
 extension UIHistoryTableView {
-    func makeReplyButton(indexPath: IndexPath, isLeading: Bool) -> UISwipeActionsConfiguration? {
+    func makeReplyButton(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let viewModel = viewModel else { return nil }
         let sections = sections
         guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
@@ -170,8 +165,6 @@ extension UIHistoryTableView {
         if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
         if vm.message.id == LocalId.unreadMessageBanner.rawValue { return nil }
         if !vm.message.reactionableType { return nil }
-        if isLeading && !vm.calMessage.isMe { return nil }
-        if !isLeading && vm.calMessage.isMe { return nil }
         let replyAction = UIContextualAction(style: .normal, title: "") { action, view, success in
             UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 1)
             viewModel.delegate?.openReplyMode(vm.message)
