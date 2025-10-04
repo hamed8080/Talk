@@ -27,10 +27,6 @@ struct DetailToolbarContainer: View {
                         trailingViews: DetailTarilingToolbarViews()) { searchValue in
                 viewModel.threadVM?.searchedMessagesViewModel.searchText = searchValue
             }
-            if let viewModel = viewModel.threadVM {
-                ThreadSearchList(threadVM: viewModel)
-                    .environmentObject(viewModel.searchedMessagesViewModel)
-            }
         }
     }
 }

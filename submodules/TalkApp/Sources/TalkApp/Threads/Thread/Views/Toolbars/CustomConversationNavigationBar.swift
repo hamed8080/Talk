@@ -16,6 +16,7 @@ import Chat
 public class CustomConversationNavigationBar: UIView {
     private weak var viewModel: ThreadViewModel?
     private let backButton = UIImageButton(imagePadding: .init(all: 6))
+    private let searchButton = UIImageButton(imagePadding: .init(all: 6))
     private let fullScreenButton = UIImageButton(imagePadding: .init(all: 6))
     private let titlebutton = UIButton(type: .system)
     #if DEBUG
@@ -50,12 +51,14 @@ public class CustomConversationNavigationBar: UIView {
         titlebutton.setAttributedTitle(titleAttributedStirng, for: .normal)
         titlebutton.titleLabel?.font = UIFont.fBoldBody
         titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
+        titlebutton.contentHorizontalAlignment = Language.isRTL ? .right : .left
         titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
         titlebutton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
         subtitleLabel.font = UIFont.fFootnote
+        subtitleLabel.textAlignment = Language.isRTL ? .right : .left
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
 
         let isSelfThread = viewModel?.thread.type == .selfThread
@@ -98,6 +101,18 @@ public class CustomConversationNavigationBar: UIView {
         backButton.action = { [weak self] in
             (self?.viewModel?.delegate as? UIViewController)?.navigationController?.popViewController(animated: true)
         }
+        
+        let isSimulated = viewModel?.id == LocalId.emptyThread.rawValue
+        searchButton.translatesAutoresizingMaskIntoConstraints = false
+        searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
+        searchButton.imageView.tintColor = Color.App.accentUIColor
+        searchButton.imageView.contentMode = .scaleAspectFit
+        searchButton.accessibilityIdentifier = "searchButtonCustomConversationNavigationBar"
+        searchButton.isHidden = isSimulated
+        searchButton.isUserInteractionEnabled = !isSimulated
+        searchButton.action = { [weak self] in
+            self?.onSearchTapped()
+        }
 
         fullScreenButton.translatesAutoresizingMaskIntoConstraints = false
         fullScreenButton.imageView.image = UIImage(systemName: "sidebar.leading")
@@ -115,6 +130,7 @@ public class CustomConversationNavigationBar: UIView {
         addSubview(threadTitleSupplementary)
         addSubview(titlebutton)
         addSubview(subtitleLabel)
+        addSubview(searchButton)
 
         centerYTitleConstraint = titlebutton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0)
         centerYTitleConstraint.identifier = "centerYTitleConstraintCustomConversationNavigationBar"
@@ -124,29 +140,34 @@ public class CustomConversationNavigationBar: UIView {
             backButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             backButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             backButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            backButton.widthAnchor.constraint(equalToConstant: 36),
-
-            fullScreenButton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 4),
-            fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            fullScreenButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            fullScreenButton.widthAnchor.constraint(equalToConstant: 36),
-
-            threadImageButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+            backButton.widthAnchor.constraint(equalToConstant: 42),
+            
+            threadImageButton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 2),
             threadImageButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             threadImageButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             threadImageButton.widthAnchor.constraint(equalToConstant: 38),
+            
+            fullScreenButton.leadingAnchor.constraint(equalTo: threadImageButton.trailingAnchor, constant: 4),
+            fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            fullScreenButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
+            fullScreenButton.widthAnchor.constraint(equalToConstant: 42),
 
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
             threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.centerYAnchor),
 
-            titlebutton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 4),
-            titlebutton.trailingAnchor.constraint(equalTo: threadImageButton.leadingAnchor, constant: -4),
+            titlebutton.leadingAnchor.constraint(equalTo: threadImageButton.trailingAnchor, constant: 8),
+            titlebutton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -4),
             centerYTitleConstraint,
             titlebutton.heightAnchor.constraint(equalToConstant: 16),
 
-            subtitleLabel.centerXAnchor.constraint(equalTo: titlebutton.centerXAnchor),
+            subtitleLabel.leadingAnchor.constraint(equalTo: titlebutton.leadingAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titlebutton.bottomAnchor, constant: -4),
             subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 4),
+            
+            searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+            searchButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            searchButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
+            searchButton.widthAnchor.constraint(equalToConstant: 42),
         ])
         
 #if DEBUG
@@ -158,7 +179,7 @@ public class CustomConversationNavigationBar: UIView {
         revokeButton.addTarget(self, action: #selector(revokeButtonTapped), for: .touchUpInside)
         addSubview(revokeButton)
         NSLayoutConstraint.activate([
-            revokeButton.trailingAnchor.constraint(equalTo: threadImageButton.leadingAnchor, constant: 4),
+            revokeButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -8),
             revokeButton.widthAnchor.constraint(equalToConstant: 64),
             revokeButton.bottomAnchor.constraint(equalTo: bottomAnchor),
             revokeButton.topAnchor.constraint(equalTo: topAnchor),
@@ -335,5 +356,16 @@ public class CustomConversationNavigationBar: UIView {
     private var imageLoaderVM: ImageLoaderViewModel? {
         let threads = (viewModel?.threadsViewModel?.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
         return threads.first(where: { $0.id == self.viewModel?.thread.id })?.imageLoader as? ImageLoaderViewModel
+    }
+    
+    private func onSearchTapped() {
+        if viewModel?.id != nil, viewModel?.historyVM.sections.isEmpty == false, let viewModel = viewModel {
+            let rootView = ThreadSearchMessages(threadVM: viewModel)
+                .environmentObject(viewModel.searchedMessagesViewModel)
+            
+            let vc = UIHostingController(rootView: rootView)
+            vc.modalPresentationStyle = .fullScreen
+            (viewModel.delegate as? UIViewController)?.present(vc, animated: true)
+        }
     }
 }

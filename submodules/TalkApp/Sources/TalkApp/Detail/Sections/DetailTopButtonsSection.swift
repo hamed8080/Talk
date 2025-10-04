@@ -47,16 +47,6 @@ struct DetailTopButtonsSection: View {
             //                }
             //            }
 
-            let isSimulated = viewModel.threadVM?.id == LocalId.emptyThread.rawValue
-            if viewModel.threadVM?.id != nil, viewModel.threadVM?.historyVM.sections.isEmpty == false {
-                DetailViewButton(accessibilityText: "", icon: "magnifyingglass") {
-                    NotificationCenter.forceSearch.post(name: .forceSearch, object: "DetailView")
-                }
-                .opacity( isSimulated ? 0.5 : 1.0)
-                .disabled(isSimulated)
-                .allowsHitTesting(!isSimulated)
-            }
-
             //            Menu {
             //                if let conversation = viewModel.thread {
             //                    ThreadRowActionMenu(isDetailView: true, thread: conversation)

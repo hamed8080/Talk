@@ -14,56 +14,48 @@ import TalkModels
 struct SearchMessageRow: View {
     let message: Message
     let threadVM: ThreadViewModel?
+    let onTap: () -> Void
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         Button {
             onTap()
         } label: {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(message.message ?? "")
-                        .font(.fBody)
-                        .multilineTextAlignment(.leading)
-                        .foregroundStyle(Color.App.textPrimary)
-                        .lineLimit(1)
-                    HStack {
-                        if let timeString = message.time?.date.localFormattedTime {
-                            Text(timeString)
-                                .foregroundStyle(Color.App.textSecondary)
-                        }
-                        Spacer()
-                        if let name = message.participant?.name {
-                            Text(name)
-                                .foregroundStyle(Color.App.textSecondary)
-                                .lineLimit(1)
-                        }
+            HStack(alignment: .top) {
+                
+                Text(message.message ?? "")
+                    .font(.fBody)
+                    .multilineTextAlignment(.leading)
+                    .foregroundStyle(Color.App.textPrimary)
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                VStack(alignment: .trailing) {
+                    if let name = message.participant?.name {
+                        Text(name)
+                            .foregroundStyle(Color.App.textSecondary)
+                            .lineLimit(1)
+                            .font(Font.fCaption2)
+                    }
+                    
+                    if let timeString = message.time?.date.localFormattedTime {
+                        Text(timeString)
+                            .foregroundStyle(Color.App.textSecondary)
+                            .font(Font.fCaption2)
                     }
                 }
-                Spacer()
             }
             .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
             .padding()
         }
     }
-
-    private func onTap() {
-        threadVM?.historyVM.cancelTasks()
-        let task: Task<Void, any Error> = Task { @MainActor in
-            if let time = message.time, let messageId = message.id {
-                AppState.shared.objectsContainer.navVM.popLastDetail()
-                AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(nil)
-                AppState.shared.objectsContainer.navVM.remove(innerBack: true)
-                threadVM?.scrollVM.disableExcessiveLoading()
-                await threadVM?.historyVM.moveToTime(time, messageId)
-                threadVM?.searchedMessagesViewModel.cancel()
-            }
-        }
-        threadVM?.historyVM.setTask(task)
-    }
 }
 
 struct SearchMessageRow_Previews: PreviewProvider {
     static var previews: some View {
-        SearchMessageRow(message: .init(id: 1), threadVM: .init(thread: .init(id: 1)))        
+        SearchMessageRow(message: .init(id: 1), threadVM: .init(thread: .init(id: 1))) {
+            
+        }
     }
 }
