@@ -98,7 +98,7 @@ public class MessageBaseCell: UITableViewCell {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.radio.isHidden = false
             }
-            radio.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+            radio.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: MessageRowSizes.selectMessageRadioNegativeConstantOnSelection).isActive = true
             radio.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.selectMessageRadioBottomConstant).isActive = true
         }
         radio.set(selected: viewModel.calMessage.state.isSelected, viewModel: viewModel)

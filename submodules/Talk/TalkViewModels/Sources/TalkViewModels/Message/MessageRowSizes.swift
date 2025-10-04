@@ -14,7 +14,7 @@ public struct MessageRowSizes: Sendable {
     
     /// MessageBaseCell sizes
     nonisolated(unsafe) public static let messagebaseCellWidth: CGFloat = messageAvatarBeforeLeading + messageAvatarViewSize + messageAvatarAfterTrailing
-    nonisolated(unsafe) public static let messagebaseCellTrailingSpaceForShowingMoveToBottom: CGFloat = 22
+    nonisolated(unsafe) public static let messagebaseCellTrailingSpaceForShowingMoveToBottom: CGFloat = 28
     
     /// MessageContainerStackView sizes
     nonisolated(unsafe) public static let messageContainerStackViewMargin: CGFloat = 4
@@ -121,7 +121,8 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let selectMessageRadioImageViewWidth: CGFloat = 28
     nonisolated(unsafe) public static let selectMessageRadioImageViewHeight: CGFloat = 28
     nonisolated(unsafe) public static let selectMessageRadioBottomConstant: CGFloat = 10
-    
+    nonisolated(unsafe) public static let selectMessageRadioNegativeConstantOnSelection: CGFloat = -8
+
     /// SelectMessageRadio sizes
     nonisolated(unsafe) public static let unsentMessageViewHeight: CGFloat = 28
     nonisolated(unsafe) public static let unsentMessageViewBtnResendLeading: CGFloat = 8
