@@ -34,6 +34,10 @@ final class ThreadViewController: UIViewController {
     private var isViewControllerVisible: Bool = true
     private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
     private var animatingKeyboard = false
+    
+    /// After appending a row while this view is disappeard and return back to this view like adding a participant.
+    /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
+    private var shouldScrollToBottomAtReapperance = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,6 +60,9 @@ final class ThreadViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        
+        shouldScrollToBottomAtReapperance = viewModel?.scrollVM.isAtBottomOfTheList == true
+        
         var hasAnyInstanceInStack = false
         isViewControllerVisible = false
         navigationController?.viewControllers.forEach({ hostVC in
@@ -76,6 +83,13 @@ final class ThreadViewController: UIViewController {
         super.viewDidAppear(animated)
         viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
         contextMenuContainer = ContextMenuContainerView(delegate: self)
+        
+        /// After appending a row while this view is disappeard and return back to this view like adding a participant.
+        /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
+        if shouldScrollToBottomAtReapperance == true, let indexPath = viewModel?.historyVM.lastMessageIndexPath {
+            tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
+            shouldScrollToBottomAtReapperance = false
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -490,6 +504,10 @@ extension ThreadViewController: HistoryScrollDelegate {
         if tableView.numberOfRows(inSection: index.section) < index.row + 1 { return }
         viewModel?.scrollVM.didEndScrollingAnimation = false
         tableView.scrollToRow(at: index, at: position, animated: animate)
+        
+        if isViewControllerVisible == true {
+            shouldScrollToBottomAtReapperance = false
+        }
     }
     
     func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {

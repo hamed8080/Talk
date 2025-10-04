@@ -1884,7 +1884,7 @@ extension ThreadHistoryViewModel {
         return await MessageRowCalculators.batchCalulate(messages, mainData: mainData, viewModel: viewModel)
     }
     
-    private var lastMessageIndexPath: IndexPath? {
+    public var lastMessageIndexPath: IndexPath? {
         sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id ?? -1)?.indexPath
     }
     
