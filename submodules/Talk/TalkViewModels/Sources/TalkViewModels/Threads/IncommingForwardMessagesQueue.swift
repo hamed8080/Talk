@@ -14,7 +14,7 @@ import Logger
 public class IncommingForwardMessagesQueue {
     private var messageSubjects: [Int: PassthroughSubject<ChatResponse<Message>, Never>] = [:]
     private var cancellables: Set<AnyCancellable> = []
-    private let batchInterval: TimeInterval = 1.0 // Interval to batch messages
+    private let batchInterval: TimeInterval = 0.3 // Interval to batch messages
     private let maxBatchSize: Int = 50 // Maximum number of messages per batch
     public weak var viewModel: ThreadsViewModel?
 
