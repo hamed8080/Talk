@@ -14,7 +14,7 @@ import Combine
 import Chat
 
 public class CustomConversationNavigationBar: UIView {
-    private weak var viewModel: ThreadViewModel?
+    /// Views
     private let backButton = UIImageButton(imagePadding: .init(all: 6))
     private let searchButton = UIImageButton(imagePadding: .init(all: 6))
     private let fullScreenButton = UIImageButton(imagePadding: .init(all: 6))
@@ -25,10 +25,17 @@ public class CustomConversationNavigationBar: UIView {
     private let subtitleLabel = UILabel()
     private var threadImageButton = UIImageButton(imagePadding: .init(all: 0))
     private var threadTitleSupplementary = UILabel()
-    private var centerYTitleConstraint: NSLayoutConstraint!
     private let gradientLayer = CAGradientLayer()
-    private var cancellableSet: Set<AnyCancellable> = Set()
+    
+    /// Models
+    private weak var viewModel: ThreadViewModel?
     private var imageLoader: ImageLoaderViewModel?
+    private var cancellableSet: Set<AnyCancellable> = Set()
+    
+    /// Constraints
+    private var fullScreenButtonWidthConstraint: NSLayoutConstraint?
+    private var centerYTitleConstraint: NSLayoutConstraint!
+    private var threadImageLeadingConstraint: NSLayoutConstraint?
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -142,15 +149,13 @@ public class CustomConversationNavigationBar: UIView {
             backButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             backButton.widthAnchor.constraint(equalToConstant: 42),
             
-            threadImageButton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 2),
+            fullScreenButton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 0),
+            fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            fullScreenButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
+            
             threadImageButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             threadImageButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             threadImageButton.widthAnchor.constraint(equalToConstant: 38),
-            
-            fullScreenButton.leadingAnchor.constraint(equalTo: threadImageButton.trailingAnchor, constant: 4),
-            fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            fullScreenButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            fullScreenButton.widthAnchor.constraint(equalToConstant: 42),
 
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
             threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.centerYAnchor),
@@ -169,6 +174,12 @@ public class CustomConversationNavigationBar: UIView {
             searchButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             searchButton.widthAnchor.constraint(equalToConstant: 42),
         ])
+        
+        fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: 42)
+        fullScreenButtonWidthConstraint?.isActive = true
+        
+        threadImageLeadingConstraint = threadImageButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)
+        threadImageLeadingConstraint?.isActive = true
         
 #if DEBUG
         revokeButton.translatesAutoresizingMaskIntoConstraints = false
@@ -341,6 +352,9 @@ public class CustomConversationNavigationBar: UIView {
         super.traitCollectionDidChange(previousTraitCollection)
         let showFullScreenButton = traitCollection.horizontalSizeClass == .regular && traitCollection.userInterfaceIdiom == .pad
         fullScreenButton.setIsHidden(!showFullScreenButton)
+        fullScreenButtonWidthConstraint?.constant = showFullScreenButton ? 42 : 0
+        fullScreenButton.isUserInteractionEnabled = showFullScreenButton
+        threadImageLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
     }
 
     private func hideImageUserNameSplitedLable(isHidden: Bool) {
