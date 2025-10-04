@@ -873,6 +873,8 @@ extension ThreadHistoryViewModel {
             reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, firstSortedMessage)
         }
         showEmptyThread(show: false)
+        
+        fixLastMessageIfNeeded()
     }
 
     /*
