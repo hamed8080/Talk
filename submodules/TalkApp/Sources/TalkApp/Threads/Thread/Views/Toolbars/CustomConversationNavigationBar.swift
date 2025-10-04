@@ -67,6 +67,11 @@ public class CustomConversationNavigationBar: UIView {
         subtitleLabel.font = UIFont.fFootnote
         subtitleLabel.textAlignment = Language.isRTL ? .right : .left
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
+        subtitleLabel.isUserInteractionEnabled = true
+        
+        let gesture = UITapGestureRecognizer()
+        gesture.addTarget(self, action: #selector(navigateToDetailView))
+        subtitleLabel.addGestureRecognizer(gesture)
 
         let isSelfThread = viewModel?.thread.type == .selfThread
         if isSelfThread {
