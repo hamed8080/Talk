@@ -25,7 +25,9 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
 
     public init() {
         setupObservers()
-        
+    }
+    
+    public func start() {
         Task { [weak self] in
             guard let self = self else { return }
             if selfConversation == nil {
@@ -132,6 +134,16 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             self.conversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
             self.conversations.sort(by: { $0.pin == true && $1.pin == false })
             self.conversations.sort(by: { $0.type == .selfThread && $1.type != .selfThread })
+            let serverSortedPins = AppState.shared.objectsContainer.threadsVM.serverSortedPins
+            
+            self.conversations.sort(by: { (firstItem, secondItem) in
+                guard let firstIndex = serverSortedPins.firstIndex(where: {$0 == firstItem.id}),
+                      let secondIndex = serverSortedPins.firstIndex(where: {$0 == secondItem.id}) else {
+                    return false // Handle the case when an element is not found in the server-sorted array
+                }
+                return firstIndex < secondIndex
+            })
+            
             delegate?.updateUI(animation: false, reloadSections: false)
             
             for cal in calThreads {
