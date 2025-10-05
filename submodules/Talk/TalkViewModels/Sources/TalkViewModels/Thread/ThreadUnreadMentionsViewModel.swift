@@ -66,6 +66,7 @@ public final class ThreadUnreadMentionsViewModel {
             unreadMentions.removeAll()
             unreadMentions.append(contentsOf: newuUnreadMentions)
             unreadMentions.sort(by: {$0.time ?? 0 < $1.time ?? 1})
+            hasMention = viewModel?.thread.mentioned == true && unreadMentions.count > 0
             viewModel?.delegate?.onChangeUnreadMentions()
         }
     }
@@ -95,5 +96,9 @@ public final class ThreadUnreadMentionsViewModel {
         cancelable.forEach { cancelable in
             cancelable.cancel()
         }
+    }
+    
+    public func hasUnreadMention() -> Bool {
+        viewModel?.thread.mentioned == true && unreadMentions.count > 0
     }
 }

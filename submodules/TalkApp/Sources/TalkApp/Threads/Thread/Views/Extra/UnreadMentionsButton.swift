@@ -81,7 +81,7 @@ public final class UnreadMenitonsButton: UIButton {
 
     public func onChangeUnreadMentions() {
         guard let viewModel = viewModel?.unreadMentionsViewModel else { return }
-        let hasMention = viewModel.hasMention
+        let hasMention = viewModel.hasUnreadMention()
         setIsHidden(!hasMention)
         lblUnreadMentionsCount.label.text = "\(viewModel.unreadMentions.count)"
         UIView.animate(withDuration: 0.2) {
