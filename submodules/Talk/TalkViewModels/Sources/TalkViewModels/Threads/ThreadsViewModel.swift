@@ -651,6 +651,14 @@ public final class ThreadsViewModel: ObservableObject {
             delegate?.reloadCellWith(conversation: thread)
             threads[index].animateObjectWillChange()
             animateObjectWillChange()
+            
+            /// Update active conversation thread value struct inside HistoryViewModel and ThreadViewModel.
+            /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
+            let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+            if vm?.threadId == thread.id {
+                vm?.viewModel.thread = thread.toStruct()
+                vm?.viewModel.historyVM.updateThread(conversation: thread.toStruct())
+            }
         }
     }
 

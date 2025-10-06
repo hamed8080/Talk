@@ -62,6 +62,10 @@ public final class ThreadHistoryViewModel {
     public func updateThreadId(id: Int) {
         self.threadId = id
     }
+    
+    public func updateThread(conversation: Conversation) {
+        self.thread = conversation
+    }
 }
 
 // MARK: Setup/Start
