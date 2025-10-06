@@ -119,6 +119,10 @@ public final class ThreadsSearchViewModel: ObservableObject {
             searchedConversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
             searchedConversations.sort(by: { $0.pin == true && $1.pin == false })
             
+            for cal in calThreads {
+                addImageLoader(cal)
+            }
+            
             if new == true {
                 searchedConversations.sort(by: { $0.unreadCount ?? 0 > $1.unreadCount ?? 0 })
             }
@@ -250,6 +254,19 @@ private extension ThreadsSearchViewModel {
             req = ContactsRequest(query: searchText)
         }
         return req
+    }
+    
+    private func addImageLoader(_ conversation: CalculatedConversation) {
+        if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
+            let viewModel = ImageLoaderViewModel(conversation: conversation)
+            conversation.imageLoader = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    conversation.animateObjectWillChange()
+                }
+            }
+            viewModel.fetch()
+        }
     }
 }
 
