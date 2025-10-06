@@ -18,14 +18,14 @@ public class CustomConversationNavigationBar: UIView {
     private let backButton = UIImageButton(imagePadding: .init(all: 6))
     private let searchButton = UIImageButton(imagePadding: .init(all: 6))
     private let fullScreenButton = UIImageButton(imagePadding: .init(all: 6))
-    private let titlebutton = UIButton(type: .system)
+    private let titleLabel = UILabel()
+    private let detailViewButton: UIView = UIView()
     #if DEBUG
     private let revokeButton = UIButton(type: .system)
     #endif
     private let subtitleLabel = UILabel()
     private var threadImageButton = UIImageButton(imagePadding: .init(all: 0))
     private var threadTitleSupplementary = UILabel()
-    private let gradientLayer = CAGradientLayer()
     
     /// Models
     private weak var viewModel: ThreadViewModel?
@@ -54,40 +54,32 @@ public class CustomConversationNavigationBar: UIView {
     public func configureViews() {
         translatesAutoresizingMaskIntoConstraints = false
         
-        titlebutton.translatesAutoresizingMaskIntoConstraints = false
-        titlebutton.setAttributedTitle(titleAttributedStirng, for: .normal)
-        titlebutton.titleLabel?.font = UIFont.fBoldBody
-        titlebutton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
-        titlebutton.contentHorizontalAlignment = Language.isRTL ? .right : .left
-        titlebutton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
-        titlebutton.addTarget(self, action: #selector(navigateToDetailView), for: .touchUpInside)
-
+        detailViewButton.translatesAutoresizingMaskIntoConstraints = false
+        let gesture = UITapGestureRecognizer()
+        gesture.addTarget(self, action: #selector(navigateToDetailView))
+        detailViewButton.addGestureRecognizer(gesture)
+        
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.attributedText = titleAttributedStirng
+        titleLabel.font = UIFont.fBoldBody
+        titleLabel.textColor = Color.App.textPrimaryUIColor
+        titleLabel.textAlignment = Language.isRTL ? .right : .left
+        titleLabel.accessibilityIdentifier = "titleLabelCustomConversationNavigationBar"
+        detailViewButton.addSubview(titleLabel)
+        
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
         subtitleLabel.font = UIFont.fFootnote
         subtitleLabel.textAlignment = Language.isRTL ? .right : .left
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
-        subtitleLabel.isUserInteractionEnabled = true
+        detailViewButton.addSubview(subtitleLabel)
         
-        let gesture = UITapGestureRecognizer()
-        gesture.addTarget(self, action: #selector(navigateToDetailView))
-        subtitleLabel.addGestureRecognizer(gesture)
 
         let isSelfThread = viewModel?.thread.type == .selfThread
         if isSelfThread {
-            threadImageButton = UIImageButton(imagePadding: .init(all: 8))
-            threadImageButton.accessibilityIdentifier = "threadImageButtonCustomConversationNavigationBar"
-            let startColor = UIColor(red: 255/255, green: 145/255, blue: 98/255, alpha: 1.0)
-            let endColor = UIColor(red: 255/255, green: 90/255, blue: 113/255, alpha: 1.0)
-            gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
-            gradientLayer.startPoint = .init(x: 0, y: 0)
-            gradientLayer.endPoint = .init(x: 1.0, y: 1.0)
-            threadImageButton.imageView.image = UIImage(named: "bookmark")
+            threadImageButton.imageView.image = UIImage(named: "self_thread")
             threadImageButton.imageView.tintColor = Color.App.textPrimaryUIColor
-            threadImageButton.layer.addSublayer(gradientLayer)
-            threadImageButton.bringSubviewToFront(threadImageButton.imageView)
-            threadTitleSupplementary.accessibilityIdentifier = "threadTitleSupplementaryCustomConversationNavigationBar"
-            threadTitleSupplementary.setIsHidden(true)
+            threadTitleSupplementary.isHidden = true
         }
         threadImageButton.translatesAutoresizingMaskIntoConstraints = false
         threadImageButton.layer.cornerRadius = 17
@@ -96,14 +88,14 @@ public class CustomConversationNavigationBar: UIView {
         threadImageButton.imageView.layer.masksToBounds = true
         threadImageButton.imageView.contentMode  = .scaleAspectFill
         threadImageButton.accessibilityIdentifier = "threadImageButtonCustomConversationNavigationBar"
-        threadImageButton.action = { [weak self] in
-            self?.navigateToDetailView()
-        }
+        threadImageButton.isUserInteractionEnabled = false
+        detailViewButton.addSubview(threadImageButton)
 
         threadTitleSupplementary.translatesAutoresizingMaskIntoConstraints = false
-        threadTitleSupplementary.font = UIFont.fCaption3
+        threadTitleSupplementary.font = UIFont.fBoldCaption3
         threadTitleSupplementary.textColor = .white
         threadTitleSupplementary.accessibilityIdentifier = "threadTitleSupplementaryCustomConversationNavigationBar"
+        detailViewButton.addSubview(threadTitleSupplementary)
 
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.imageView.image = UIImage(systemName: "chevron.backward")
@@ -138,13 +130,10 @@ public class CustomConversationNavigationBar: UIView {
 
         addSubview(backButton)
         addSubview(fullScreenButton)
-        addSubview(threadImageButton)
-        addSubview(threadTitleSupplementary)
-        addSubview(titlebutton)
-        addSubview(subtitleLabel)
+        addSubview(detailViewButton)
         addSubview(searchButton)
 
-        centerYTitleConstraint = titlebutton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0)
+        centerYTitleConstraint = titleLabel.centerYAnchor.constraint(equalTo: detailViewButton.centerYAnchor, constant: 0)
         centerYTitleConstraint.identifier = "centerYTitleConstraintCustomConversationNavigationBar"
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 46),
@@ -158,21 +147,25 @@ public class CustomConversationNavigationBar: UIView {
             fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             fullScreenButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             
-            threadImageButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            threadImageButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
+            detailViewButton.topAnchor.constraint(equalTo: topAnchor),
+            detailViewButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            threadImageButton.topAnchor.constraint(equalTo: detailViewButton.topAnchor, constant: 4),
+            threadImageButton.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: -4),
             threadImageButton.widthAnchor.constraint(equalToConstant: 38),
+            threadImageButton.leadingAnchor.constraint(equalTo: detailViewButton.leadingAnchor),
 
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
             threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.centerYAnchor),
 
-            titlebutton.leadingAnchor.constraint(equalTo: threadImageButton.trailingAnchor, constant: 8),
-            titlebutton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -4),
+            titleLabel.leadingAnchor.constraint(equalTo: threadImageButton.trailingAnchor, constant: 8),
+            titleLabel.trailingAnchor.constraint(equalTo: detailViewButton.trailingAnchor, constant: -4),
             centerYTitleConstraint,
-            titlebutton.heightAnchor.constraint(equalToConstant: 16),
+            titleLabel.heightAnchor.constraint(equalToConstant: 16),
 
-            subtitleLabel.leadingAnchor.constraint(equalTo: titlebutton.leadingAnchor),
-            subtitleLabel.topAnchor.constraint(equalTo: titlebutton.bottomAnchor, constant: -4),
-            subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 4),
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: -4),
+            subtitleLabel.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: 4),
             
             searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
             searchButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
@@ -183,7 +176,7 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: 42)
         fullScreenButtonWidthConstraint?.isActive = true
         
-        threadImageLeadingConstraint = threadImageButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)
+        threadImageLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)
         threadImageLeadingConstraint?.isActive = true
         
 #if DEBUG
@@ -217,7 +210,7 @@ public class CustomConversationNavigationBar: UIView {
 
     public func updateTitleTo(_ title: String?) {
         UIView.animate(withDuration: 0.2) {
-            self.titlebutton.setAttributedTitle(self.titleAttributedStirng, for: .normal)
+            self.titleLabel.attributedText = self.titleAttributedStirng
         }
         updateThreadImage()
     }
@@ -348,11 +341,6 @@ public class CustomConversationNavigationBar: UIView {
         }
     }
 
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        gradientLayer.frame = threadImageButton.bounds
-    }
-
     public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         let showFullScreenButton = traitCollection.horizontalSizeClass == .regular && traitCollection.userInterfaceIdiom == .pad
@@ -385,6 +373,38 @@ public class CustomConversationNavigationBar: UIView {
             let vc = UIHostingController(rootView: rootView)
             vc.modalPresentationStyle = .fullScreen
             (viewModel.delegate as? UIViewController)?.present(vc, animated: true)
+        }
+    }
+    
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        if touches.first?.view == detailViewButton {
+            detailViewButton.alpha = 0.5
+            detailViewButton.transform = CGAffineTransform.identity.scaledBy(x: 0.98, y: 0.98)
+        }
+    }
+    
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        if touches.first?.view == detailViewButton {
+            detailViewButton.alpha = 1.0
+            detailViewButton.transform = CGAffineTransform.identity.scaledBy(x: 1.0, y: 1.0)
+        }
+    }
+    
+    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        if touches.first?.view == detailViewButton {
+            detailViewButton.alpha = 1.0
+            detailViewButton.transform = CGAffineTransform.identity.scaledBy(x: 1.0, y: 1.0)
+        }
+    }
+    
+    public override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        if touches.first?.view == detailViewButton {
+            detailViewButton.alpha = 1.0
+            detailViewButton.transform = CGAffineTransform.identity.scaledBy(x: 1.0, y: 1.0)
         }
     }
 }
