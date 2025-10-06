@@ -31,7 +31,7 @@ struct ConversationTopSafeAreaInset: View {
             ThreadListSearchBarFilterView(isInSearchMode: $isInSearchMode, isFilternewMessagesOn: $isFilternewMessagesOn)
                 .background(MixMaterialBackground())
                 .environmentObject(container.searchVM)
-            if AppState.isInSlimMode, let item = item {
+            if let item = item {
                 NavigationPlayerWrapper()
                     .padding(0)
                     .frame(height: ToolbarButtonItem.buttonWidth)
