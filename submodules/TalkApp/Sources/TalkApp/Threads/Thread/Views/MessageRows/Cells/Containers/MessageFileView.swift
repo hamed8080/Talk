@@ -124,7 +124,10 @@ final class MessageFileView: UIStackView {
     public func updateProgress(viewModel: MessageRowViewModel) {
         if !viewModel.calMessage.rowType.isFile { return }
         let progress = viewModel.fileState.progress
-        progressButton.animate(to: progress, systemIconName: viewModel.fileState.iconState)
+        let downloadIcon = viewModel.fileState.iconState
+        let isUploading = viewModel.fileState.isUploading || viewModel.message is UploadFileMessage
+        let icon = isUploading ? "arrow.up" : downloadIcon
+        progressButton.animate(to: progress, systemIconName: icon)
         progressButton.setProgressVisibility(visible: canShowProgress)
         progressButton.showRotation(show: canShowProgress)
     }

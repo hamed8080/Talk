@@ -209,7 +209,9 @@ final class MessageAudioView: UIView {
     
     public func updateProgress(viewModel: MessageRowViewModel) {
         let progress = viewModel.calMessage.avPlayerItem?.progress ?? viewModel.fileState.progress
-        let icon = viewModel.fileState.iconState
+        let downloadIcon = viewModel.fileState.iconState
+        let isUploading = viewModel.fileState.isUploading || viewModel.message is UploadFileMessage
+        let icon = isUploading ? "arrow.up" : downloadIcon
         let canShowDownloadUpload = viewModel.fileState.state != .completed
         progressButton.animate(to: progress, systemIconName: canShowDownloadUpload ? icon : playingIcon)
         progressButton.setProgressVisibility(visible: canShowProgress)
