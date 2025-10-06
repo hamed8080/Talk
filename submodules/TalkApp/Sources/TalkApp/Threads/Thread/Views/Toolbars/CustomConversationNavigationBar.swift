@@ -286,7 +286,7 @@ public class CustomConversationNavigationBar: UIView {
 
     public func fetchImageOnUpdateInfo() async {
         guard let link = await getImageLink() else { return }
-        if let imageViewModel = imageLoaderVM {
+        if let imageViewModel = cachedImageLoaderVM {
             self.imageLoader = imageViewModel
 
             // Set first time opening the thread image from cahced version inside avatarVMS
@@ -318,8 +318,12 @@ public class CustomConversationNavigationBar: UIView {
     private func registerObservers() async {
         // Initial image from avatarVMS inside the thread
         let link = await getImageLink()
-        if let link = link, let _ = imageLoaderVM {
-            await fetchImageOnUpdateInfo()
+        if let link = link {
+            if imageLoader != nil {
+                await fetchImageOnUpdateInfo()
+            } else {
+                createImageLoaderAndListen(link: link)
+            }
         } else {
             await setSplitedText()
         }
@@ -358,11 +362,6 @@ public class CustomConversationNavigationBar: UIView {
         Task { @ChatGlobalActor in
             await ChatManager.activeInstance?.setToken(newToken: "revoked_token", reCreateObject: false)
         }
-    }
-    
-    private var imageLoaderVM: ImageLoaderViewModel? {
-        let threads = (viewModel?.threadsViewModel?.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
-        return threads.first(where: { $0.id == self.viewModel?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }
     
     private func onSearchTapped() {
@@ -406,5 +405,22 @@ public class CustomConversationNavigationBar: UIView {
             detailViewButton.alpha = 1.0
             detailViewButton.transform = CGAffineTransform.identity.scaledBy(x: 1.0, y: 1.0)
         }
+    }
+    
+    private var cachedImageLoaderVM: ImageLoaderViewModel? {
+        let threads = (viewModel?.threadsViewModel?.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
+        return threads.first(where: { $0.id == self.viewModel?.thread.id })?.imageLoader as? ImageLoaderViewModel
+    }
+    
+    /// When click on an avatar in the thread history for a contact that we have never had any conversation.
+    private func createImageLoaderAndListen(link: String) {
+        imageLoader = ImageLoaderViewModel(config: .init(url: link))
+        imageLoader?.onImage = { [weak self] image in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                self?.updateImageTo(image)
+            }
+        }
+        imageLoader?.fetch()
     }
 }
