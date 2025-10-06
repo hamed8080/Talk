@@ -66,6 +66,13 @@ public final class ThreadHistoryViewModel {
     public func updateThread(conversation: Conversation) {
         self.thread = conversation
     }
+    
+    deinit {
+        let title = thread.title ?? ""
+#if DEBUG
+        print("deinit called in class ThreadHistoryViewModel: \(title)")
+#endif
+    }
 }
 
 // MARK: Setup/Start

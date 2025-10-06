@@ -150,7 +150,7 @@ class ThreadNavigationPlayer: UIView {
         viewModel?.historyVM.cancelTasks()
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self, let message = playerVM.message, let time = message.time, let id = message.id else { return }
-            if viewModel != nil {
+            if viewModel != nil && viewModel?.thread.id == playerVM.message?.conversation?.id  {
                 await viewModel?.historyVM.moveToTime(time, id)
             } else {
                 /// Open thread and move to the message directly if we are outside of the thread and player is still plying
