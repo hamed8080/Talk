@@ -84,7 +84,7 @@ public class CustomConversationNavigationBar: UIView {
         threadImageButton.translatesAutoresizingMaskIntoConstraints = false
         threadImageButton.layer.cornerRadius = 17
         threadImageButton.layer.masksToBounds = true
-        threadImageButton.imageView.layer.cornerRadius = 8
+        threadImageButton.imageView.layer.cornerRadius = 14
         threadImageButton.imageView.layer.masksToBounds = true
         threadImageButton.imageView.contentMode  = .scaleAspectFill
         threadImageButton.accessibilityIdentifier = "threadImageButtonCustomConversationNavigationBar"
@@ -136,12 +136,12 @@ public class CustomConversationNavigationBar: UIView {
         centerYTitleConstraint = titleLabel.centerYAnchor.constraint(equalTo: detailViewButton.centerYAnchor, constant: 0)
         centerYTitleConstraint.identifier = "centerYTitleConstraintCustomConversationNavigationBar"
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 46),
+            heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
 
             backButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             backButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             backButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            backButton.widthAnchor.constraint(equalToConstant: 42),
+            backButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             fullScreenButton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 0),
             fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
@@ -152,7 +152,7 @@ public class CustomConversationNavigationBar: UIView {
             
             threadImageButton.topAnchor.constraint(equalTo: detailViewButton.topAnchor, constant: 4),
             threadImageButton.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: -4),
-            threadImageButton.widthAnchor.constraint(equalToConstant: 38),
+            threadImageButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth - 8),
             threadImageButton.leadingAnchor.constraint(equalTo: detailViewButton.leadingAnchor),
 
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
@@ -170,10 +170,10 @@ public class CustomConversationNavigationBar: UIView {
             searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
             searchButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             searchButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            searchButton.widthAnchor.constraint(equalToConstant: 42),
+            searchButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
         ])
         
-        fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: 42)
+        fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth)
         fullScreenButtonWidthConstraint?.isActive = true
         
         threadImageLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)

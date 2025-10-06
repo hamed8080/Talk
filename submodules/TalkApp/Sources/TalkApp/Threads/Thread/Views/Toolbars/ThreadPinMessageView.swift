@@ -88,7 +88,7 @@ public final class ThreadPinMessageView: UIStackView {
         addArrangedSubview(unpinButton)
 
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 40),
+            heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             bar.widthAnchor.constraint(equalToConstant: 3),
             bar.heightAnchor.constraint(equalToConstant: 24),
             pinImageView.widthAnchor.constraint(equalToConstant: 14),

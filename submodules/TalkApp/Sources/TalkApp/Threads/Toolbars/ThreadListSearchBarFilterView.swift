@@ -83,7 +83,8 @@ struct ThreadListSearchBarFilterView: View {
             Image(systemName: "envelope.badge")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 22, height: 22)
+                .padding(12)
+                .frame(width: ToolbarButtonItem.buttonWidth, height: ToolbarButtonItem.buttonWidth)
                 .fontWeight(.medium)
                 .foregroundColor(isFilternewMessagesOn == true ? Color.App.accent : Color.App.textSecondary)
         }

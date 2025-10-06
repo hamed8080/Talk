@@ -34,7 +34,7 @@ struct ConversationTopSafeAreaInset: View {
             if AppState.isInSlimMode, let item = item {
                 NavigationPlayerWrapper()
                     .padding(0)
-                    .frame(height: 40)
+                    .frame(height: ToolbarButtonItem.buttonWidth)
                     .frame(maxWidth: .infinity)
                     .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                     .background(MixMaterialBackground())
@@ -142,7 +142,7 @@ struct ConversationTopSafeAreaInset: View {
                 .resizable()
                 .scaledToFit()
                 .padding(8)
-                .frame(minWidth: 0, maxWidth: isUploading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isUploading ? 42 : 0)
+                .frame(minWidth: 0, maxWidth: isUploading ? ToolbarButtonItem.buttonWidth : 0, minHeight: 0, maxHeight: isUploading ? ToolbarButtonItem.buttonWidth : 0)
                 .accessibilityHint("Upload")
                 .fontWeight(.medium)
                 .contentShape(Rectangle())
@@ -171,21 +171,21 @@ struct ConversationTopSafeAreaInset: View {
                 Image(systemName: "xmark")
                     .resizable()
                     .scaledToFit()
-                    .padding(10)
+                    .padding(14)
                     .font(.fBody)
                     .foregroundStyle(Color.App.toolbarButton)
             }
             .buttonStyle(.borderless)
-            .frame(minWidth: 0, minHeight: 0, maxHeight: isInSearchMode ? 42 : 0)
+            .frame(minWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? ToolbarButtonItem.buttonWidth : 0)
             .contentShape(Rectangle())
             .clipped()
         } else {
-            ToolbarButtonItem(imageName: "magnifyingglass", hint: "Search", padding: 10) {
+            ToolbarButtonItem(imageName: "magnifyingglass", hint: "Search", padding: 14) {
                 withAnimation {
                     isInSearchMode.toggle()
                 }
             }
-            .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? 0 : 42)
+            .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth)
             .contentShape(Rectangle())
             .clipped()
             .foregroundStyle(Color.App.toolbarButton)

@@ -29,8 +29,8 @@ struct DetailEditContactButton: View {
                 Image("ic_edit")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 16, height: 16)
-                    .padding(8)
+                    .padding(14)
+                    .frame(width: ToolbarButtonItem.buttonWidth, height: ToolbarButtonItem.buttonWidth)
                     .foregroundStyle(colorScheme == .dark ?  Color.App.accent : Color.App.white)
                     .fontWeight(.heavy)
             }

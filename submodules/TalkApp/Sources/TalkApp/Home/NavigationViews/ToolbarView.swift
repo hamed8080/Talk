@@ -23,7 +23,7 @@ struct ToolbarView<LeadingContentView: View, CenterContentView: View, TrailingCo
     @State var searchText: String = ""
     @State var isInSearchMode: Bool = false
     let showSearchButton: Bool
-    let toolbarHeight: CGFloat = 36
+    let toolbarHeight: CGFloat = 46
     let searchKeyboardType: UIKeyboardType
     private var searchId: String?
 

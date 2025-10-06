@@ -47,20 +47,20 @@ struct ContactListToolbar: View {
                 Image(systemName: "xmark")
                     .resizable()
                     .scaledToFit()
-                    .padding(12)
-                    .frame(width: 38, height: 38)
+                    .padding(14)
+                    .frame(width: ToolbarButtonItem.buttonWidth, height: ToolbarButtonItem.buttonWidth)
                     .foregroundStyle(Color.App.toolbarButton)
             }
             .buttonStyle(.borderless)
-            .frame(minWidth: 0, minHeight: 0, maxHeight: isInSearchMode ? 38 : 0)
+            .frame(minWidth: 0, minHeight: 0, maxHeight: isInSearchMode ? ToolbarButtonItem.buttonWidth : 0)
             .clipped()
         } else {
-            ToolbarButtonItem(imageName: "magnifyingglass", hint: "Search", padding: 10) {
+            ToolbarButtonItem(imageName: "magnifyingglass", hint: "Search", padding: 14) {
                 withAnimation {
                     isInSearchMode.toggle()
                 }
             }
-            .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? 0 : 38)
+            .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth, minHeight: 0, maxHeight: isInSearchMode ? 0 : ToolbarButtonItem.buttonWidth)
             .clipped()
             .foregroundStyle(Color.App.toolbarButton)
         }
@@ -69,7 +69,7 @@ struct ContactListToolbar: View {
     @ViewBuilder var leadingViews: some View {
         searchButton
         if EnvironmentValues.isTalkTest {
-            ToolbarButtonItem(imageName: "list.bullet", hint: "General.select", padding: 10) {
+            ToolbarButtonItem(imageName: "list.bullet", hint: "General.select", padding: 14) {
                 withAnimation {
                     viewModel.isInSelectionMode.toggle()
                 }

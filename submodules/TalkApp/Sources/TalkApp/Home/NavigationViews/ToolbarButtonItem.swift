@@ -13,9 +13,9 @@ public struct ToolbarButtonItem: View {
     let hint: String
     let padding: CGFloat
     let action: (() -> Void)?
-    static let buttonWidth: CGFloat = 38
+    static let buttonWidth: CGFloat = 48
 
-    init(imageName: String, hint: String = "", padding: CGFloat = 6, action: (() -> Void)? = nil) {
+    init(imageName: String, hint: String = "", padding: CGFloat = 10, action: (() -> Void)? = nil) {
         self.padding = padding
         self.imageName = imageName
         self.hint = hint

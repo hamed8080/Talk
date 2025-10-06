@@ -19,7 +19,7 @@ class ThreadNavigationPlayer: UIView {
     private let timerLabel = UILabel()
     private let titleLabel = UILabel()
     private let closeButton = UIImageButton(imagePadding: .init(all: 8))
-    private let playButton = UIImageButton(imagePadding: .init(all: 8))
+    private let playButton = UIImageButton(imagePadding: .init(top: 8, left: 0, bottom: 8, right: 8))
     private let progress = UIProgressView(progressViewStyle: .bar)
     private weak var viewModel: ThreadViewModel?
     private var cancellableSet = Set<AnyCancellable>()
@@ -80,6 +80,7 @@ class ThreadNavigationPlayer: UIView {
         playButton.translatesAutoresizingMaskIntoConstraints = false
         playButton.tintColor = Color.App.accentUIColor
         playButton.imageView.image = UIImage(systemName: "play.fill")
+        playButton.imageView.contentMode = .scaleAspectFit
         playButton.imageView.tintColor = Color.App.accentUIColor
         playButton.accessibilityIdentifier = "playButtonThreadNavigationPlayer"
         playButton.action = { [weak self] in
@@ -91,10 +92,10 @@ class ThreadNavigationPlayer: UIView {
         addGestureRecognizer(tapGesture)
 
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 40),
-            playButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            playButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0), // -6 for moving the icon close the edge
             playButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -2),
-            playButton.widthAnchor.constraint(equalToConstant: 32),
+            playButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             titleLabel.leadingAnchor.constraint(equalTo: playButton.trailingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: timerLabel.leadingAnchor, constant: -4),
@@ -102,12 +103,12 @@ class ThreadNavigationPlayer: UIView {
             
             closeButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             closeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            closeButton.widthAnchor.constraint(equalToConstant: 32),
+            closeButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             timerLabel.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -4),
             timerLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             /// This prevents it from getting so small and the title wobbles a lot.
-            timerLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 36),
+            timerLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: ToolbarButtonItem.buttonWidth),
             
             progress.leadingAnchor.constraint(equalTo: leadingAnchor),
             progress.trailingAnchor.constraint(equalTo: trailingAnchor),

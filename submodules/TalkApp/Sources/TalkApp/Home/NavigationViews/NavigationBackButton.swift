@@ -25,7 +25,7 @@ public struct NavigationBackButton: View {
             Image(systemName: "chevron.backward")
                 .resizable()
                 .scaledToFit()
-                .padding(EdgeInsets(top: 8, leading: 0, bottom: 12, trailing: navViewModel.previousTitle.isEmpty ? 8 : 2))
+                .padding(EdgeInsets(top: 12, leading: 0, bottom: 14, trailing: navViewModel.previousTitle.isEmpty ? 8 : 2))
                 .fontWeight(.medium)
         }
         .foregroundColor(Color.App.toolbarButton)
