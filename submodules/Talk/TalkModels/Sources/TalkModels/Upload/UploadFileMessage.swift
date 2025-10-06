@@ -46,7 +46,13 @@ public class UploadFileMessage: HistoryMessageBaseCalss, UploadProtocol {
 
 public extension UploadFileMessage {
     var fileSize: Int? {
-        uploadFileRequest?.dataToSend?.count ?? uploadImageRequest?.dataToSend?.count
+        let contentSize = uploadFileRequest?.dataToSend?.count ?? uploadImageRequest?.dataToSend?.count
+        if contentSize != 0 {
+            return contentSize
+        } else if let fileSize = uploadFileRequest?.fileSize ?? uploadImageRequest?.fileSize {
+            return Int(fileSize)
+        }
+        return nil
     }
     
     var fileName: String? {
