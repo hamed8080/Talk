@@ -18,6 +18,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     public var thread: Conversation?
     public weak var threadVM: ThreadViewModel?
     @Published public var isLoading = false
+    public var avatarVM: ImageLoaderViewModel?
     public var canShowEditConversationButton: Bool { thread?.group == true && thread?.admin == true && thread?.type != .selfThread }
     public var participantDetailViewModel: ParticipantDetailViewModel?
     public var editConversationViewModel: EditConversationViewModel?
@@ -53,7 +54,18 @@ public final class ThreadDetailViewModel: ObservableObject {
         fullScreenImageLoader.updateCondig(config: config)
     }
     
-    public var avatarVM: ImageLoaderViewModel? {
+    private func createImageViewLoadderAndListen() {
+        avatarVM = ImageLoaderViewModel(config: .init(url: imageLink))
+        avatarVM?.onImage = { [weak self] image in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                self?.cachedImage = image
+            }
+        }
+        avatarVM?.fetch()
+    }
+    
+    private var cachedAvatarVM: ImageLoaderViewModel? {
         let threads = objs.threadsVM.threads + objs.archivesVM.archives
         return threads
             .first(where: { $0.id == threadVM?.thread.id })?.imageLoader as? ImageLoaderViewModel
@@ -94,6 +106,12 @@ public final class ThreadDetailViewModel: ObservableObject {
         setupParticipantDetailViewModel(participant: participant)
         setupEditConversationViewModel()
         setupFullScreenAvatarConfig()
+        
+        avatarVM = cachedAvatarVM
+        if avatarVM == nil {
+            createImageViewLoadderAndListen()
+        }
+        
         registerObservers()
         Task { [weak self] in
             await self?.fetchPartnerParticipant()
