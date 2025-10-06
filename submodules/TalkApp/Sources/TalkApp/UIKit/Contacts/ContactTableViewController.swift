@@ -46,6 +46,8 @@ class ContactTableViewController: UIViewController {
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
+            header.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
+            header.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
             header.widthAnchor.constraint(equalTo: tableView.widthAnchor),
             header.heightAnchor.constraint(equalToConstant: 140),
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
