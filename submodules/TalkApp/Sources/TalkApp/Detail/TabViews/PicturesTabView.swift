@@ -39,7 +39,6 @@ struct PicturesTabView: View {
                         }
                     }
             }
-            DetailLoading()
         }
         .frame(maxWidth: maxWidth)
         .environment(\.layoutDirection, .leftToRight)
@@ -49,6 +48,15 @@ struct PicturesTabView: View {
             if isEmptyTab {
                 EmptyResultViewInTabs()
                     .padding(.top, 10)
+            }
+        }
+        .overlay(alignment: .center) {
+            if viewModel.isLoading {
+                HStack {
+                    DetailLoading()
+                        .environmentObject(viewModel)
+                }
+                .padding(.top, 16)
             }
         }
         .onAppear {
