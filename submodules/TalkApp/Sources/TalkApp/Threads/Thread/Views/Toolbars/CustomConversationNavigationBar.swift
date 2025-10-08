@@ -92,7 +92,7 @@ public class CustomConversationNavigationBar: UIView {
         detailViewButton.addSubview(threadImageButton)
 
         threadTitleSupplementary.translatesAutoresizingMaskIntoConstraints = false
-        threadTitleSupplementary.font = UIFont.fBoldCaption3
+        threadTitleSupplementary.font = UIFont.fBoldSubheadline
         threadTitleSupplementary.textColor = .white
         threadTitleSupplementary.accessibilityIdentifier = "threadTitleSupplementaryCustomConversationNavigationBar"
         detailViewButton.addSubview(threadTitleSupplementary)
@@ -132,6 +132,11 @@ public class CustomConversationNavigationBar: UIView {
         addSubview(fullScreenButton)
         addSubview(detailViewButton)
         addSubview(searchButton)
+        
+        /// If the image is not accessible anymore, at least we can show the splitted text and background.
+        Task {
+            await setSplitedText()
+        }
 
         centerYTitleConstraint = titleLabel.centerYAnchor.constraint(equalTo: detailViewButton.centerYAnchor, constant: 0)
         centerYTitleConstraint.identifier = "centerYTitleConstraintCustomConversationNavigationBar"
@@ -414,7 +419,12 @@ public class CustomConversationNavigationBar: UIView {
     
     /// When click on an avatar in the thread history for a contact that we have never had any conversation.
     private func createImageLoaderAndListen(link: String) {
-        imageLoader = ImageLoaderViewModel(config: .init(url: link))
+        let config = ImageLoaderConfig(url: link,
+                                       size: .ACTUAL,
+                                       metaData: viewModel?.thread.metadata,
+                                       userName: String.splitedCharacter(viewModel?.thread.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        imageLoader = ImageLoaderViewModel(config: config)
         imageLoader?.onImage = { [weak self] image in
             guard let self = self else { return }
             Task { @MainActor [weak self] in

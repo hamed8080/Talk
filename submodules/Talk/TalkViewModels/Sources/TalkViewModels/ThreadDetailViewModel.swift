@@ -55,7 +55,13 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
     
     private func createImageViewLoadderAndListen() {
-        avatarVM = ImageLoaderViewModel(config: .init(url: imageLink))
+        let config = ImageLoaderConfig(url: imageLink,
+                                       size: .ACTUAL,
+                                       metaData: thread?.metadata,
+                                       userName: String.splitedCharacter(thread?.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        
+        avatarVM = ImageLoaderViewModel(config: config)
         avatarVM?.onImage = { [weak self] image in
             guard let self = self else { return }
             Task { @MainActor [weak self] in

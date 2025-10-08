@@ -820,7 +820,8 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     private func addImageLoader(_ conversation: CalculatedConversation) {
-        if let id = conversation.id, conversation.imageLoader == nil, let image = conversation.image {
+        let imageLink = conversation.image
+        if let id = conversation.id, conversation.imageLoader == nil, imageLink != nil || conversation.metadata != nil {
             let viewModel = ImageLoaderViewModel(conversation: conversation)
             conversation.imageLoader = viewModel
             viewModel.onImage = { [weak self] image in

@@ -318,7 +318,7 @@ public final class ImageLoaderViewModel: ObservableObject {
 
 extension ImageLoaderViewModel {
     convenience init(conversation: CalculatedConversation) {
-        let httpsImage = conversation.image?.replacingOccurrences(of: "http://", with: "https://") ?? ""
+        let httpsImage = conversation.image?.replacingOccurrences(of: "http://", with: "https://") ?? conversation.metaData?.file?.link ?? ""
         let name = conversation.computedTitle
         let config = ImageLoaderConfig(
             url: httpsImage,
