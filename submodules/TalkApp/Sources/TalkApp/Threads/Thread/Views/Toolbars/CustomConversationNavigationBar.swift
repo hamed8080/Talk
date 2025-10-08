@@ -15,8 +15,8 @@ import Chat
 
 public class CustomConversationNavigationBar: UIView {
     /// Views
-    private let backButton = UIImageButton(imagePadding: .init(all: 6))
-    private let searchButton = UIImageButton(imagePadding: .init(all: 6))
+    private let backButton = UIImageButton(imagePadding: .init(all: 14))
+    private let searchButton = UIImageButton(imagePadding: .init(all: 10))
     private let fullScreenButton = UIImageButton(imagePadding: .init(all: 6))
     private let titleLabel = UILabel()
     private let detailViewButton: UIView = UIView()
@@ -82,9 +82,9 @@ public class CustomConversationNavigationBar: UIView {
             threadTitleSupplementary.isHidden = true
         }
         threadImageButton.translatesAutoresizingMaskIntoConstraints = false
-        threadImageButton.layer.cornerRadius = 17
+        threadImageButton.layer.cornerRadius = 22
         threadImageButton.layer.masksToBounds = true
-        threadImageButton.imageView.layer.cornerRadius = 14
+        threadImageButton.imageView.layer.cornerRadius = 22
         threadImageButton.imageView.layer.masksToBounds = true
         threadImageButton.imageView.contentMode  = .scaleAspectFill
         threadImageButton.accessibilityIdentifier = "threadImageButtonCustomConversationNavigationBar"
@@ -136,7 +136,7 @@ public class CustomConversationNavigationBar: UIView {
         centerYTitleConstraint = titleLabel.centerYAnchor.constraint(equalTo: detailViewButton.centerYAnchor, constant: 0)
         centerYTitleConstraint.identifier = "centerYTitleConstraintCustomConversationNavigationBar"
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            heightAnchor.constraint(equalToConstant: 64),
 
             backButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             backButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
@@ -152,7 +152,7 @@ public class CustomConversationNavigationBar: UIView {
             
             threadImageButton.topAnchor.constraint(equalTo: detailViewButton.topAnchor, constant: 4),
             threadImageButton.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: -4),
-            threadImageButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth - 8),
+            threadImageButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth + 8),
             threadImageButton.leadingAnchor.constraint(equalTo: detailViewButton.leadingAnchor),
 
             threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
