@@ -92,18 +92,20 @@ public final class MessageContainerStackView: UIStackView {
         footerView.translatesAutoresizingMaskIntoConstraints = false
 //        unsentMessageView.translatesAutoresizingMaskIntoConstraints = false
 
-        if !isMe {
-            tailImageView = UIImageView(image: MessageContainerStackView.tailImage)
-            tailImageView.translatesAutoresizingMaskIntoConstraints = false
-            tailImageView.contentMode = .scaleAspectFit
-            tailImageView.tintColor = Color.App.bgChatUserUIColor!
-            addSubview(tailImageView)
-
-            tailImageView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageTailViewWidth).isActive = true
-            tailImageView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageTailViewHeight).isActive = true
-            tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -MessageRowSizes.messageTailViewLeading).isActive = true
-            tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
+        tailImageView = UIImageView(image: MessageContainerStackView.tailImage)
+        if isMe {
+            tailImageView.transform = CGAffineTransform(scaleX: -1, y: 1)
         }
+        tailImageView.translatesAutoresizingMaskIntoConstraints = false
+        tailImageView.contentMode = .scaleAspectFit
+        tailImageView.tintColor = isMe ? Color.App.bgChatMeUIColor : Color.App.bgChatUserUIColor!
+        addSubview(tailImageView)
+
+        tailImageView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageTailViewWidth).isActive = true
+        tailImageView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageTailViewHeight).isActive = true
+        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: isMe ? -MessageRowSizes.messageTailViewLeading + 2 : -MessageRowSizes.messageTailViewLeading).isActive = true
+        tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
+        
         minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageContainerStackViewMinWidth)
         minWidthConstraint?.isActive = true
     }
@@ -117,8 +119,11 @@ public final class MessageContainerStackView: UIStackView {
         minWidthConstraint?.constant = max(MessageRowSizes.messageContainerStackViewMinWidth, textWidth + paddingAroundText)
         reattachOrDetach(viewModel: viewModel)
         isUserInteractionEnabled = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == false
-        if viewModel.calMessage.isLastMessageOfTheUser && !viewModel.calMessage.isMe && viewModel.threadVM?.thread.group == true {
-            layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+        if viewModel.calMessage.isLastMessageOfTheUser {
+            layer.maskedCorners = [.layerMinXMinYCorner,
+                                   .layerMaxXMinYCorner,
+                                   viewModel.calMessage.isMe ? .layerMinXMaxYCorner : .layerMaxXMaxYCorner
+            ]
             tailImageView.setIsHidden(false)
         } else {
             layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner]
