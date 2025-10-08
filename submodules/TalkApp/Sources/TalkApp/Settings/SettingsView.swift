@@ -154,14 +154,21 @@ struct UserInformationSection: View {
         }
 
         if !userName.isEmpty {
-            VStack(alignment: .leading) {
-                Text("Settings.userName")
-                    .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption)
-                TextField("", text: $userName)
-                    .foregroundColor(Color.App.textPrimary)
-                    .font(.fSubheadline)
-                    .disabled(true)
+            HStack {
+                Image(systemName: "person")
+                    .fontWeight(.semibold)
+                    .font(.fTitle)
+                    .foregroundStyle(Color.App.textSecondary)
+                    .frame(width: 28, height: 28)
+                VStack(alignment: .leading) {
+                    Text("Settings.userName")
+                        .foregroundColor(Color.App.textSecondary)
+                        .font(.fCaption)
+                    TextField("", text: $userName)
+                        .foregroundColor(Color.App.textPrimary)
+                        .font(.fSubheadline)
+                        .disabled(true)
+                }
             }
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.App.dividerPrimary)
@@ -177,31 +184,45 @@ struct UserInformationSection: View {
         }
 
         if !phone.isEmpty {
-            VStack(alignment: .leading) {
-                Text("Settings.phoneNumber")
-                    .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption)
-                TextField("", text: $phone)
-                    .foregroundColor(Color.App.textPrimary)
-                    .font(.fSubheadline)
-                    .disabled(true)
+            HStack {
+                Image(systemName: "phone")
+                    .fontWeight(.semibold)
+                    .font(.fTitle)
+                    .foregroundStyle(Color.App.textSecondary)
+                    .frame(width: 28, height: 28)
+                VStack(alignment: .leading) {
+                    Text("Settings.phoneNumber")
+                        .foregroundColor(Color.App.textSecondary)
+                        .font(.fCaption)
+                    TextField("", text: $phone)
+                        .foregroundColor(Color.App.textPrimary)
+                        .font(.fSubheadline)
+                        .disabled(true)
+                }
             }
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.App.dividerPrimary)
         }
 
         if !bio.isEmpty {
-            VStack(alignment: .leading) {
-                Text("Settings.bio")
-                    .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption)
-                Text(bio)
-                    .foregroundColor(Color.App.textPrimary)
-                    .font(.fSubheadline)
-                    .disabled(true)
-                    .lineLimit(20)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            HStack {
+                Image(systemName: "note.text")
+                    .fontWeight(.semibold)
+                    .font(.fTitle)
+                    .foregroundStyle(Color.App.textSecondary)
+                    .frame(width: 28, height: 28)
+                VStack(alignment: .leading) {
+                    Text("Settings.bio")
+                        .foregroundColor(Color.App.textSecondary)
+                        .font(.fCaption)
+                    Text(bio)
+                        .foregroundColor(Color.App.textPrimary)
+                        .font(.fSubheadline)
+                        .disabled(true)
+                        .lineLimit(20)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                }
             }
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.clear)
