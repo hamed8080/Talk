@@ -38,7 +38,7 @@ struct LoginContentView: View {
                     .focused($isFocused)
                     .keyboardType(.phonePad)
                     .font(.fBody)
-                    .padding()
+                    .padding([.top, .bottom], 8)
                     .frame(maxWidth: 420)
                     .multilineTextAlignment(.leading)
                     .applyAppTextfieldStyleWithLeadingView(

@@ -92,6 +92,8 @@ struct VerifyContentView: View {
             Text("Login.verifyCode")
                 .foregroundColor(Color.App.textPrimary)
                 .font(.fBoldCaption)
+                .padding(.top, 8)
+                .padding(.leading, 2)
             Spacer()
         }
         .frame(maxWidth: 420)
