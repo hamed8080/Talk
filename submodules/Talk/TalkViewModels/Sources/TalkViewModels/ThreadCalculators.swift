@@ -333,7 +333,9 @@ public class ThreadCalculators {
     }
 
     private class func calculateParticipantName(_ conversation: Conversation, _ myId: Int) -> String? {
-        if let participantName = conversation.lastMessageVO?.participant?.contactName ?? conversation.lastMessageVO?.participant?.name, conversation.group == true {
+        let lastMessage = conversation.lastMessageVO
+        if lastMessage?.messageType != .endCall && lastMessage?.messageType != .startCall,
+           let participantName = lastMessage?.participant?.contactName ?? lastMessage?.participant?.name, conversation.group == true {
             let meVerb = "General.you".bundleLocalized()
             let localized = "Thread.Row.lastMessageSender".bundleLocalized()
             let participantName = String(format: localized, participantName)
@@ -382,18 +384,22 @@ public class ThreadCalculators {
             mutable.append(NSAttributedString(string: participantName, attributes: [
                 .foregroundColor: UIColor(named: "accent")
             ]))
+            mutable.append(NSAttributedString(string: " "))
         } else if let createdConversationString = createConversationString(conversation) {
             mutable.append(NSAttributedString(string: createdConversationString, attributes: [
                 .foregroundColor: UIColor(named: "accent")
             ]))
+            mutable.append(NSAttributedString(string: " "))
         } else if let callAttri = callMessageAttributedString(conversation, myId) {
             mutable.append(callAttri)
+            mutable.append(NSAttributedString(string: " "))
         }
         
         if let fileString = sentFileString(conversation, isFileType, myId)  {
             mutable.append(NSAttributedString(string: fileString, attributes: [
                 .foregroundColor: UIColor(named: "text_secondary")
             ]))
+            mutable.append(NSAttributedString(string: " "))
         }
         
         let draft = DraftManager.shared.get(threadId: conversation.id ?? -1)
