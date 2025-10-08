@@ -1578,8 +1578,17 @@ extension ThreadHistoryViewModel {
     
     private func reloadIfStitchChangedOnNewMessage(_ bottomVMBeforeJoin: MessageRowViewModel?, _ newMessage: Message) {
         guard let indexPath = StitchAvatarCalculator.forNew(sections, newMessage, bottomVMBeforeJoin) else { return }
-        bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = false
+        bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = true        
+        reloadStitchIfNeededForPreviousMessage(newMessage: newMessage)
         delegate?.reloadData(at: indexPath)
+    }
+    
+    private func reloadStitchIfNeededForPreviousMessage(newMessage: Message) {
+        if let newMessageIndexPath = sections.viewModelAndIndexPath(for: newMessage.id)?.indexPath,
+           let prevIndexPath = sections.previousIndexPath(newMessageIndexPath), sections[prevIndexPath.section].vms[prevIndexPath.row].message.ownerId == newMessage.ownerId {
+            sections[prevIndexPath.section].vms[prevIndexPath.row].calMessage.isLastMessageOfTheUser = false
+            delegate?.reloadData(at: prevIndexPath)
+        }
     }
     
     private func fixLastMessageIfNeeded() -> Int? {

@@ -151,7 +151,7 @@ public class MessageBaseCell: UITableViewCell {
 
     public func setValues(viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser && !viewModel.calMessage.isMe
+        let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser
         messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -MessageRowSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -MessageRowSizes.messageContainerStackViewBottomMargin
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
