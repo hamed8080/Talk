@@ -112,11 +112,7 @@ public final class MessageContainerStackView: UIStackView {
 
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        
-        /// Padding around the text is essential, unless it will move every even small texts to the second line
-        let paddingAroundText = (MessageRowSizes.messageContainerStackViewPaddingAroundTextView * 2)
-        let textWidth = viewModel.calMessage.textRect?.width ?? 0
-        minWidthConstraint?.constant = max(MessageRowSizes.messageContainerStackViewMinWidth, textWidth + paddingAroundText)
+        minWidthConstraint?.constant = viewModel.calMessage.sizes.minTextWidth ?? 0
         reattachOrDetach(viewModel: viewModel)
         isUserInteractionEnabled = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == false
         if viewModel.calMessage.isLastMessageOfTheUser {

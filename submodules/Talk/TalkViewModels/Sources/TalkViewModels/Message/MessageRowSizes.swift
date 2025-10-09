@@ -84,7 +84,7 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let groupParticipantNameViewHeight: CGFloat = 16
     
     /// MessageReplyInfoView sizes
-    nonisolated(unsafe) public static let messageReplyInfoViewHeight: CGFloat = 48
+    nonisolated(unsafe) public static let messageReplyInfoViewHeight: CGFloat = 54
     nonisolated(unsafe) public static let messageReplyInfoViewMargin: CGFloat = 6
     nonisolated(unsafe) public static let messageReplyInfoViewImageSize: CGFloat = 36
     nonisolated(unsafe) public static let messageReplyInfoViewBarWidth: CGFloat = 2.5
@@ -92,6 +92,7 @@ public struct MessageRowSizes: Sendable {
     nonisolated(unsafe) public static let messageReplyInfoViewCornerRadius: CGFloat = 8
     nonisolated(unsafe) public static let messageReplyInfoViewImageIconCornerRadius: CGFloat = 4
     nonisolated(unsafe) public static let messageReplyInfoViewBarCornerRadius: CGFloat = 2
+    nonisolated(unsafe) public static let messageReplyInfoViewLableHeight: CGFloat = 18
 
     /// MessageForwardInfoView sizes
     nonisolated(unsafe) public static let messageForwardInfoViewHeight: CGFloat = 48
@@ -174,6 +175,7 @@ public struct MessageRowSizes: Sendable {
     public var forwardContainerWidth: CGFloat?
     public var imageWidth: CGFloat? = nil
     public var imageHeight: CGFloat? = nil
+    public var minTextWidth: CGFloat? = nil
 
     public init(){}
 }

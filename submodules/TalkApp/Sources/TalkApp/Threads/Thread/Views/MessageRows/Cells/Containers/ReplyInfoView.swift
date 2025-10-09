@@ -109,21 +109,22 @@ final class ReplyInfoView: UIView {
             bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageReplyInfoViewBarMargin),
 
             imageIconViewLeadingConstriant,
-            imageIconView.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            imageIconView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
+            imageIconView.centerYAnchor.constraint(equalTo: centerYAnchor),
             imageIconView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewImageSize),
             imageIconView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewImageSize),
 
             participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            participantLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewLableHeight),
             participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
             participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
 
             deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
+            deletedLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewLableHeight),
             deletedLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
             deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
 
             replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            replyLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
+            replyLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewLableHeight),
             replyLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
             replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin)
         ])

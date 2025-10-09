@@ -186,6 +186,8 @@ class MessageRowCalculators {
         
         calculatedMessage.callAttributedString = calculateCallText(message: message, myId: mainData.appUserId)
         
+        sizes.minTextWidth = minimumTextWidthBasedOnTextRect(textWidth: calculatedMessage.textRect?.width ?? 0)
+        
         calculatedMessage.rowType = rowType
         let estimateHeight = calculateEstimatedHeight(id: message.id ?? 0, calculatedMessage, sizes, message.reactionableType)
         sizes.estimatedHeight = estimateHeight
@@ -902,6 +904,13 @@ class MessageRowCalculators {
                                  artworkMetadata: artworkMetadata,
                                  artistName: artistName
         )
+    }
+    
+    public class func minimumTextWidthBasedOnTextRect(textWidth: CGFloat) -> CGFloat {
+        /// Padding around the text is essential, unless it will move every even small texts to the second line
+        let paddingAroundText = (MessageRowSizes.messageContainerStackViewPaddingAroundTextView * 2)
+        let miTextWidth = min(ThreadViewModel.maxAllowedWidth - paddingAroundText, max(MessageRowSizes.messageContainerStackViewMinWidth, textWidth + paddingAroundText))
+        return miTextWidth
     }
 }
 
