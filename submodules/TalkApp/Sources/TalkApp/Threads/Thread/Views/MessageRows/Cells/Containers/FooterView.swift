@@ -26,6 +26,7 @@ final class FooterView: UIStackView {
     private var statusImageWidthConstriant: NSLayoutConstraint?
     private var shapeLayer = CAShapeLayer()
     private var rotateAnimation = CABasicAnimation(keyPath: "transform.rotation.z")
+    private var viewModel: MessageRowViewModel?
 
     // Constraints
     private var heightConstraint: NSLayoutConstraint!
@@ -94,8 +95,6 @@ final class FooterView: UIStackView {
             timelabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageFooterViewStatusHeight),
         ])
     }
-
-    var viewModel: MessageRowViewModel?
     
     public func set(_ viewModel: MessageRowViewModel) {
         self.viewModel = viewModel

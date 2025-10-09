@@ -26,15 +26,14 @@ final class GroupParticipantNameView: UILabel {
         font = UIFont.fBoldBody
         numberOfLines = 1
         isOpaque = true
+        textAlignment = .left
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: MessageRowSizes.groupParticipantNameViewHeight)
         ])
     }
 
     public func set(_ viewModel: MessageRowViewModel) {
-        let name = viewModel.calMessage.groupMessageParticipantName
         textColor = viewModel.calMessage.participantColor
-        textAlignment = .left
-        text = name
+        text = viewModel.calMessage.groupMessageParticipantName
     }
 }
