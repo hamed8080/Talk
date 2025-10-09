@@ -350,6 +350,13 @@ extension MessageContainerStackView {
         textMessageView.forceEnableSelection = true
         tailImageView.isHidden = true
         textMessageView.isSelectable = true
+        messageImageView.isUserInteractionEnabled = false
+        locationRowView.isUserInteractionEnabled = false
+        groupParticipantNameView.isUserInteractionEnabled = false
+        messageAudioView.isUserInteractionEnabled = false
+        messageVideoView.isUserInteractionEnabled = false
+        messageFileView.isUserInteractionEnabled = false
+        singleEmojiView.isUserInteractionEnabled = false
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
     }
