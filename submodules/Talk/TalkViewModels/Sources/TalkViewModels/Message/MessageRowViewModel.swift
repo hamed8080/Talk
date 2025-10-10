@@ -297,7 +297,7 @@ public extension MessageRowViewModel {
     @AppBackgroundActor
     private func getReplyImage(threadId: Int?, metadata: String?) async -> UIImage? {
         /// Convert replyInfo to Message to calculate URL
-        let replyMessage = Message(threadId: threadId, metadata: metadata)
+        let replyMessage = Message(threadId: threadId, messageType: .podSpacePicture, metadata: metadata)
         
         /// Get url
         guard let url = await replyMessage.url else { return nil }
