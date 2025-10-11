@@ -119,6 +119,8 @@ struct MutableSearchViewToolbar: View {
             AddOrEditQuestionView()
                 .environmentObject(container)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
 
         Button {
             withAnimation {
@@ -128,6 +130,8 @@ struct MutableSearchViewToolbar: View {
         } label: {
             IconButtonKeyboardShortcut(title: "Play", systemImageName: "play.square")
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .toobarNavgationButtonStyle()
         .disabled(reviewStatus == .isPlaying)
         .opacity(reviewStatus == .isPlaying ? 0.7 : 1)
@@ -142,6 +146,8 @@ struct MutableSearchViewToolbar: View {
         } label: {
             IconButtonKeyboardShortcut(title: "Stop", systemImageName: "stop.circle")
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .toobarNavgationButtonStyle()
         .disabled(reviewStatus != .isPlaying)
         .opacity(reviewStatus == .isPlaying ? 1 : 0.7)
@@ -156,6 +162,8 @@ struct MutableSearchViewToolbar: View {
         } label: {
             IconButtonKeyboardShortcut(title: "Pause", systemImageName: "pause.circle")
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .toobarNavgationButtonStyle()
         .disabled(reviewStatus != .isPlaying)
         .opacity(reviewStatus == .isPlaying ? 1 : 0.7)
@@ -171,6 +179,8 @@ struct MutableSearchViewToolbar: View {
             IconButtonKeyboardShortcut(title: "Next", systemImageName: "forward.end")
                 .foregroundStyle(Color.accentColor)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .toobarNavgationButtonStyle()
         .disabled(reviewStatus != .isPlaying)
         .opacity(reviewStatus == .isPlaying ? 1 : 0.7)

@@ -81,12 +81,16 @@ struct ReviewMutableToolbarView: View {
             AddOrEditQuestionView()
                 .environmentObject(container)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .keyboardShortcut("a", modifiers: [.command, .option])
 
         ToolbarNavigation(title: "Search View", systemImageName: "square.text.square") {
             SearchView(container: container)
                 .environmentObject(container.searchVM)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .keyboardShortcut("s", modifiers: [.command, .option])
     }
 }

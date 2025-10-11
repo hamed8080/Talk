@@ -62,18 +62,24 @@ struct LevelsToolbarView: View {
             AddOrEditQuestionView()
                 .environmentObject(container)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .keyboardShortcut("a", modifiers: [.command, .option])
 
         ToolbarNavigation(title: "Search View", systemImageName: "square.text.square") {
             SearchView(container: container)
                 .environmentObject(container.searchVM)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .keyboardShortcut("f", modifiers: [.command, .option])
 
         ToolbarNavigation(title: "Tags", systemImageName: "tag.square") {
             TagView()
                 .environmentObject(container)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .keyboardShortcut("t", modifiers: [.command, .option])
 
         ToolbarNavigation(title: "Statictics", systemImageName: "chart.xyaxis.line") {
@@ -82,11 +88,15 @@ struct LevelsToolbarView: View {
                     .environmentObject(StatisticsViewModel(viewContext: context))
             }
         }
-
+        .padding(8)
+        .frame(width: 48, height: 48)
+        
         ToolbarNavigation(title: "Synonyms", systemImageName: "arrow.left.and.right.square") {
             SynonymsView()
                 .environmentObject(container)
         }
+        .padding(8)
+        .frame(width: 48, height: 48)
         .keyboardShortcut("s", modifiers: [.command, .option])
     }
 }
