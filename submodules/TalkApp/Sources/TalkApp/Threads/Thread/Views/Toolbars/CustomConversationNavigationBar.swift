@@ -420,7 +420,7 @@ public class CustomConversationNavigationBar: UIView {
     /// When click on an avatar in the thread history for a contact that we have never had any conversation.
     private func createImageLoaderAndListen(link: String) {
         let config = ImageLoaderConfig(url: link,
-                                       size: .ACTUAL,
+                                       size: .MEDIUM,
                                        metaData: viewModel?.thread.metadata,
                                        userName: String.splitedCharacter(viewModel?.thread.title ?? ""),
                                        forceToDownloadFromServer: true)

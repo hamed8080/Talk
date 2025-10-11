@@ -56,7 +56,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     
     private func createImageViewLoadderAndListen() {
         let config = ImageLoaderConfig(url: imageLink,
-                                       size: .ACTUAL,
+                                       size: .MEDIUM,
                                        metaData: thread?.metadata,
                                        userName: String.splitedCharacter(thread?.title ?? ""),
                                        forceToDownloadFromServer: true)
