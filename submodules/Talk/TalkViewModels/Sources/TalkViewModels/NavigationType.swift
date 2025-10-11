@@ -26,4 +26,6 @@ public enum NavigationType: Hashable, Sendable {
     case manageConnection(ManageConnectionNavigationValue)
     case doubleTapSetting(DoubleTapSettingNavigationValue)
     case doubleTapEmojiPicker(DoubleTapEmojiPickerNavigationValue)
+    case uploadsManagerList(UploadsManagerListNavigationValue)
+    case downloadsManagerList(DownloadsManagerListNavigationValue)
 }

@@ -166,6 +166,18 @@ public struct DoubleTapSettingNavigationValue: NavigaitonValueProtocol {
     public init() {}
 }
 
+public struct UploadsManagerListNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "UploadsManager.title"
+    public var navType: NavigationType { .uploadsManagerList(self) }
+    public init() {}
+}
+
+public struct DownloadsManagerListNavigationValue: NavigaitonValueProtocol {
+    public var title: String = "DownalodsManager.title"
+    public var navType: NavigationType { .downloadsManagerList(self) }
+    public init() {}
+}
+
 public struct DoubleTapEmojiPickerNavigationValue: NavigaitonValueProtocol {
     public var title: String = "Settings.DoubleTapEmojiPicker.title"
     public var navType: NavigationType { .doubleTapEmojiPicker(self) }

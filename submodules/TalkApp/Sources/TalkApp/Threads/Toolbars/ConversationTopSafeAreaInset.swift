@@ -96,9 +96,9 @@ struct ConversationTopSafeAreaInset: View {
     }
     
     private var downloadsManagerButton: some View {
-        NavigationLink {
-            DownloadsManagerListView()
-                .environmentObject(AppState.shared.objectsContainer.downloadsManager)
+        Button {
+            let value = DownloadsManagerListNavigationValue()
+            AppState.shared.objectsContainer.navVM.append(value: value)
         } label: {
             Image(systemName: downloadIconNameCompatible)
                 .resizable()
@@ -134,9 +134,9 @@ struct ConversationTopSafeAreaInset: View {
     }
     
     private var uploadsManagerButton: some View {
-        NavigationLink {
-            UploadsManagerListView()
-                .environmentObject(AppState.shared.objectsContainer.uploadsManager)
+        Button {
+            let value = UploadsManagerListNavigationValue()
+            AppState.shared.objectsContainer.navVM.append(value: value)
         } label: {
             Image(systemName: uploadIconNameCompatible)
                 .resizable()

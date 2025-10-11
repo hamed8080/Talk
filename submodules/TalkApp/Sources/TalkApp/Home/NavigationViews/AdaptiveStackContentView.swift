@@ -127,6 +127,12 @@ struct NavigationTypeView: View {
                 .environmentObject(model.viewModel)
         case .manageSessions(_):
             ManageSessionsView()
+        case .uploadsManagerList(_):
+            UploadsManagerListView()
+                .environmentObject(AppState.shared.objectsContainer.uploadsManager)
+        case .downloadsManagerList(_):
+            DownloadsManagerListView()
+                .environmentObject(AppState.shared.objectsContainer.downloadsManager)
         case .doubleTapSetting(_):
             DoubleTapSettingView()
         case .doubleTapEmojiPicker(_):
