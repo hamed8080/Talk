@@ -32,6 +32,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         layoutMargins = .init(horizontal: 8, vertical: 2)
         isLayoutMarginsRelativeArrangement = true
         alignment = .center
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         let imageReply = UIImageButton(imagePadding: .init(all: 4))
         imageReply.translatesAutoresizingMaskIntoConstraints = false
@@ -46,6 +47,7 @@ public final class ReplyPrivatelyMessagePlaceholderView: UIStackView {
         vStack.spacing = 0
         vStack.alignment = .leading
         vStack.accessibilityIdentifier = "vStackReplyPrivatelyMessagePlaceholderView"
+        vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor

@@ -8,6 +8,7 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import TalkModels
 
 public struct ToastView<ContentView: View>: View {
     let title: String?
@@ -114,6 +115,7 @@ public final class ToastUIView: UIStackView {
 
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         alignment = .leading
         spacing = 0

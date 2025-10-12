@@ -27,6 +27,8 @@ final class MentionCell: UITableViewCell {
     }
 
     private func configureView() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         backgroundColor = .clear
         let hStack = UIStackView()
         hStack.translatesAutoresizingMaskIntoConstraints = false
@@ -35,6 +37,7 @@ final class MentionCell: UITableViewCell {
         hStack.alignment = .center
         hStack.layoutMargins = .init(all: 8)
         hStack.isLayoutMarginsRelativeArrangement = true
+        hStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         hStack.accessibilityIdentifier = "hStackMentionCell"
 
         lblName.font = .fCaption2
@@ -58,6 +61,7 @@ final class MentionCell: UITableViewCell {
         vStack.isLayoutMarginsRelativeArrangement = true
         vStack.layoutMargins = .init(all: 4)
         vStack.accessibilityIdentifier = "vStackMentionCell"
+        vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         vStack.addArrangedSubview(lblName)
         vStack.addArrangedSubview(lblUserName)
         

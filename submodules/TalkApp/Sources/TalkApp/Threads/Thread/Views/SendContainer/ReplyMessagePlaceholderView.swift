@@ -34,12 +34,14 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         layoutMargins = .init(horizontal: 8, vertical: 2)
         isLayoutMarginsRelativeArrangement = true
         alignment = .center
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         let vStack = UIStackView()
         vStack.axis = .vertical
         vStack.spacing = 0
         vStack.alignment = .leading
         vStack.accessibilityIdentifier = "vStackReplyMessagePlaceholderView"
+        vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor

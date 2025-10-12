@@ -40,6 +40,7 @@ class ThreadNavigationPlayer: UIView {
 
     private func configureViews() {
         translatesAutoresizingMaskIntoConstraints = false
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.fCaption

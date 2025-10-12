@@ -34,6 +34,7 @@ public final class AttachmentFilesTableView: UIView {
     }
 
     private func configureViews() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         // Configure table view
         tableView.translatesAutoresizingMaskIntoConstraints = false

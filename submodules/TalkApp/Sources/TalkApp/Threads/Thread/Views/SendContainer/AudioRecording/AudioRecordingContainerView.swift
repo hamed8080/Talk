@@ -34,6 +34,7 @@ public final class AudioRecordingContainerView: UIStackView {
     private func configureView() {
         axis = .vertical
         spacing = 0
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         recordedAudioView.setIsHidden(false)
         inRecordingAudioView.setIsHidden(false)

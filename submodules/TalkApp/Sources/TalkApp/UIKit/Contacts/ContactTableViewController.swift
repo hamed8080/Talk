@@ -9,11 +9,13 @@ import Foundation
 import UIKit
 import Chat
 import SwiftUI
+import TalkUI
 
 class ContactTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: ContactsViewModel
+    private let navBar = ContactsNavigationBar()
     static let resuableIdentifier = "CONTACTROW"
     
     init(viewModel: ContactsViewModel) {
@@ -21,6 +23,7 @@ class ContactTableViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
         tableView.register(ContactCell.self, forCellReuseIdentifier: ContactTableViewController.resuableIdentifier)
+        configureDataSource()
     }
     
     required init?(coder: NSCoder) {
@@ -29,14 +32,18 @@ class ContactTableViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+       
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 96
         tableView.delegate = self
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
-        
+        tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.sectionHeaderTopPadding = 0
+        
         let header = ContactsTableViewHeader()
         header.startLoading()
         header.viewController = self
@@ -45,17 +52,34 @@ class ContactTableViewController: UIViewController {
         
         view.addSubview(tableView)
         
+        /// Toolbar
+        navBar.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        navBar.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(navBar)
+        
         NSLayoutConstraint.activate([
+            navBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
             header.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
             header.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
             header.widthAnchor.constraint(equalTo: tableView.widthAnchor),
             header.heightAnchor.constraint(equalToConstant: 140),
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-        configureDataSource()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.contentInset = .init(top: navBar.frame.height + view.safeAreaInsets.top,
+                                       left: 0,
+                                       bottom: 52 + view.safeAreaInsets.bottom,
+                                       right: 0)
     }
 }
 

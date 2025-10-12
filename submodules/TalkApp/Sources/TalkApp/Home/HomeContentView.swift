@@ -111,7 +111,7 @@ struct SplitViewContent: View {
                     iconName: "person.crop.circle"
                 ),
                 .init(
-                    tabContent: ThreadContentList(container: container),
+                    tabContent: EmptyView(),
                     contextMenus: Button("Thread Context Menu") {},
                     title: "Tab.chats",
                     iconName: "ellipsis.message.fill"

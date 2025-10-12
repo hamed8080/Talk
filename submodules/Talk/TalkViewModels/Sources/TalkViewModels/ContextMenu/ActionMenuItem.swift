@@ -31,6 +31,7 @@ public class ActionMenuItem: UIView {
 
     private func configureView() {
         backgroundColor = .clear
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = model.title

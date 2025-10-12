@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import SwiftUI
 import Combine
+import TalkUI
 
 class ContactsTableViewHeader: UIView {
     weak var viewController: UIViewController?
@@ -27,10 +28,13 @@ class ContactsTableViewHeader: UIView {
     }
     
     private func configureView() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         stack.axis = .vertical
         stack.alignment = .leading
         stack.spacing = 24
         stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         loadingContainer.translatesAutoresizingMaskIntoConstraints = false
         loadingContainer.addSubview(loadingView)
@@ -53,6 +57,7 @@ class ContactsTableViewHeader: UIView {
             
             stack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
         ])
     }
     
@@ -74,6 +79,7 @@ class ContactsTableViewHeader: UIView {
         stack.spacing = 8
         stack.alignment = .leading
         stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         let gesture = UITapGestureRecognizer(target: self, action: selector)
         stack.addGestureRecognizer(gesture)

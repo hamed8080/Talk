@@ -74,7 +74,7 @@ final class ThreadViewController: UIViewController {
         })
         if !hasAnyInstanceInStack, let viewModel = viewModel {
             AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.id)
-            viewModel.threadsViewModel?.setSelected(for: viewModel.id, selected: false)
+            AppState.shared.objectsContainer.threadsVM.setSelected(for: viewModel.id, selected: false)
             AppState.shared.objectsContainer.archivesVM.setSelected(for: viewModel.id, selected: false)
         }
     }
@@ -112,6 +112,8 @@ final class ThreadViewController: UIViewController {
 // MARK: Configure Views
 extension ThreadViewController {
     func configureViews() {
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         emptyThreadView.attachToParent(parent: view)
         emptyThreadView.isHidden = true
         dimView.viewModel = viewModel

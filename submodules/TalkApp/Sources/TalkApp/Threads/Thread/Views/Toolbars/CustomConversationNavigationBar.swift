@@ -52,9 +52,11 @@ public class CustomConversationNavigationBar: UIView {
     }
 
     public func configureViews() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         translatesAutoresizingMaskIntoConstraints = false
         
         detailViewButton.translatesAutoresizingMaskIntoConstraints = false
+        detailViewButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         let gesture = UITapGestureRecognizer()
         gesture.addTarget(self, action: #selector(navigateToDetailView))
         detailViewButton.addGestureRecognizer(gesture)
@@ -99,11 +101,13 @@ public class CustomConversationNavigationBar: UIView {
 
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.imageView.image = UIImage(systemName: "chevron.backward")
+        backButton.imageView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         backButton.imageView.tintColor = Color.App.accentUIColor
         backButton.imageView.contentMode = .scaleAspectFit
         backButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
         backButton.action = { [weak self] in
-            (self?.viewModel?.delegate as? UIViewController)?.navigationController?.popViewController(animated: true)
+            self?.viewModel?.threadsViewModel?.deselectActiveThread()
+            AppState.shared.objectsContainer.navVM.popCurrentViewController(id: self?.viewModel?.thread.id ?? 0)
         }
         
         let isSimulated = viewModel?.id == LocalId.emptyThread.rawValue
@@ -118,6 +122,10 @@ public class CustomConversationNavigationBar: UIView {
             self?.onSearchTapped()
         }
 
+        let showFullScreenButton = traitCollection.horizontalSizeClass == .regular && traitCollection.userInterfaceIdiom == .pad
+        fullScreenButton.setIsHidden(!showFullScreenButton)
+        fullScreenButton.isUserInteractionEnabled = showFullScreenButton
+        fullScreenButton.setIsHidden(!showFullScreenButton)
         fullScreenButton.translatesAutoresizingMaskIntoConstraints = false
         fullScreenButton.imageView.image = UIImage(systemName: "sidebar.leading")
         fullScreenButton.imageView.tintColor = Color.App.accentUIColor
@@ -180,9 +188,11 @@ public class CustomConversationNavigationBar: UIView {
         
         fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth)
         fullScreenButtonWidthConstraint?.isActive = true
+        fullScreenButtonWidthConstraint?.constant = showFullScreenButton ? 42 : 0
         
         threadImageLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)
         threadImageLeadingConstraint?.isActive = true
+        threadImageLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
         
 #if DEBUG
         revokeButton.translatesAutoresizingMaskIntoConstraints = false
@@ -210,7 +220,16 @@ public class CustomConversationNavigationBar: UIView {
         if viewModel.id == LocalId.emptyThread.rawValue {
             AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(viewModel.participant)
         }
-        AppState.shared.objectsContainer.navVM.appendThreadDetail(threadViewModel: viewModel)
+        
+        let detailViewModel = ThreadDetailViewModel()
+        detailViewModel.setup(threadVM: viewModel)
+        let detailVC = UIHostingController(rootView: DetailViewWrapper(detailViewModel: detailViewModel))
+        let navigationController = (viewModel.delegate as? ThreadViewController)?.navigationController
+        
+        AppState.shared.objectsContainer.navVM.appendThreadDetailUIKit(vc: detailVC,
+                                                                       navigationController: navigationController,
+                                                                       conversationId: viewModel.id,
+                                                                       detailViewModel: detailViewModel)
     }
 
     public func updateTitleTo(_ title: String?) {

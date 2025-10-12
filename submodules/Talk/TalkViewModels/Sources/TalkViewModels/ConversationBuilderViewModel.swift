@@ -154,12 +154,12 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         clear()
         dismiss = true
         if #available(iOS 17, *) {
-            AppState.shared.objectsContainer.navVM.append(thread: conversation)
+            AppState.shared.objectsContainer.navVM.createAndAppend(conversation: conversation)
         } else {
             /// It will prevent a bug on small deveice can not click on the back button after creation.
             Timer.scheduledTimer(withTimeInterval: 0.8, repeats: false) { _ in
                 Task { @MainActor in
-                    AppState.shared.objectsContainer.navVM.append(thread: conversation)
+                    AppState.shared.objectsContainer.navVM.createAndAppend(conversation: conversation)
                 }
             }
         }

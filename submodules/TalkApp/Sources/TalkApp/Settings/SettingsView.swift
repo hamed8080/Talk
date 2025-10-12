@@ -133,8 +133,7 @@ struct SettingSettingSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "gearshape.fill", title: "Settings.title", color: .gray, showDivider: false) {
-            let value = PreferenceNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: PreferenceView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -293,8 +292,7 @@ struct SettingLogSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
-            let value = LogNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: LogView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -307,8 +305,7 @@ struct SettingArchivesSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "archivebox.fill", title: "Tab.archives", color: Color.App.color5, showDivider: false) {
-            let value = ArchivesNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: ArchivesView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -321,8 +318,7 @@ struct SettingLanguageSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "globe", title: "Settings.language", color: Color.App.red, showDivider: false, trailingView: selectedLanguage) {
-            let value = LanguageNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: LanguageView(container: AppState.shared.objectsContainer))
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -346,7 +342,11 @@ struct SavedMessageSection: View {
                 do {
                     let conversation = try await create()
                     storeInUserDefaults(conversation)
-                    AppState.shared.objectsContainer.navVM.append(thread: conversation)
+                    
+                    let vc = ThreadViewController()
+                    vc.viewModel = ThreadViewModel(thread: conversation)
+                    
+                    AppState.shared.objectsContainer.navVM.appendUIKit(vc: vc, conversation: conversation)
                 } catch {
                     
                 }
@@ -377,8 +377,7 @@ struct BlockedMessageSection: View {
     var body: some View {
         ListSectionButton(imageName: "hand.raised.slash", title: "General.blocked", color: Color.App.red, showDivider: false) {
             withAnimation {
-                let value = BlockedContactsNavigationValue()
-                navModel.append(value: value)
+                navModel.wrapAndPush(view: BlockedContacts())
             }
         }
         .listRowInsets(.zero)
@@ -393,8 +392,7 @@ struct SupportSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "exclamationmark.bubble.fill", title: "Settings.about", color: Color.App.color2, showDivider: false) {
-            let value = SupportNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: SupportView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -431,8 +429,7 @@ struct SettingAssistantSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "person.fill", title: "Settings.assistants", color: Color.App.color1, showDivider: false) {
-            let value = AssistantNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: AssistantView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -445,8 +442,7 @@ struct ManualConnectionManagementSection: View {
     
     var body: some View {
         ListSectionButton(imageName: "rectangle.connected.to.line.below", title: "Settings.manageConnection", color: Color.App.color3, showDivider: false) {
-            let value = ManageConnectionNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: ManuallyConnectionManagerView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -479,8 +475,7 @@ struct UserProfileView: View {
             Spacer()
 
             Button {
-                let value = EditProfileNavigationValue()
-                AppState.shared.objectsContainer.navVM.append(value: value)
+                AppState.shared.objectsContainer.navVM.wrapAndPush(view: EditProfileView())
             } label: {
                 Rectangle()
                     .fill(.clear)
@@ -508,8 +503,7 @@ struct LoadTestsSection: View {
     var body: some View {
         if EnvironmentValues.isTalkTest {
             ListSectionButton(imageName: "testtube.2", title: "Load Tests", color: Color.App.color4, showDivider: false) {
-                let value = LoadTestsNavigationValue()
-                navModel.append(value: value)
+                navModel.wrapAndPush(view: LoadTestsView())
             }
             .listRowInsets(.zero)
             .listRowBackground(Color.App.bgPrimary)
@@ -543,6 +537,31 @@ struct VersionNumberView: View {
         return localStr.joined(separator: ".")
     }
 
+}
+
+struct SettingsTabWrapper: View {
+    private var container: ObjectsContainer { AppState.shared.objectsContainer }
+    
+    var body: some View {
+        SettingsView(container: container)
+            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+            .environmentObject(AppState.shared)
+            .environmentObject(container)
+            .environmentObject(container.navVM)
+            .environmentObject(container.settingsVM)
+            .environmentObject(container.contactsVM)
+            .environmentObject(container.threadsVM)
+            .environmentObject(container.loginVM)
+            .environmentObject(container.tokenVM)
+            .environmentObject(container.tagsVM)
+            .environmentObject(container.userConfigsVM)
+            .environmentObject(container.logVM)
+            .environmentObject(container.audioPlayerVM)
+            .environmentObject(container.conversationBuilderVM)
+            .environmentObject(container.userProfileImageVM)
+            .environmentObject(container.banVM)
+            .environmentObject(container.sizeClassObserver)
+    }
 }
 
 struct SettingsMenu_Previews: PreviewProvider {

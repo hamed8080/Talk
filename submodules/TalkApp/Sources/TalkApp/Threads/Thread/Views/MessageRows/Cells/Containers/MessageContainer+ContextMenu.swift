@@ -165,6 +165,7 @@ fileprivate class MessageContextMenuContentView: UIView {
     }
     
     public func configureView() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .clear
         bringSubviewToFront(reactionsView) // Expand mode in reactions

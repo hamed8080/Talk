@@ -24,7 +24,7 @@ struct ThreadSearchView: View {
 
                 ForEach(viewModel.searchedConversations) { thread in
                     ThreadRow(isSearchRow: true) {
-                        AppState.shared.objectsContainer.navVM.append(thread: thread.toStruct())
+                        AppState.shared.objectsContainer.navVM.createAndAppend(conversation: thread.toStruct())
                     }
                     .environmentObject(thread)
                     .listRowInsets(.init(top: 16, leading: 0, bottom: 16, trailing: 0))

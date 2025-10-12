@@ -14,8 +14,7 @@ struct DoubleTapSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "hand.tap.fill", title: "Settings.DoubleTap.title", color: .App.color4, showDivider: false) {
-            let value = DoubleTapSettingNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: DoubleTapSettingView().environmentObject(navModel))
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)

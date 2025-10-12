@@ -14,8 +14,7 @@ struct ManageSessionsSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "ipad.landscape", title: "Settings.ManageSessions.title", color: .blue, showDivider: false) {
-            let value = ManageSessionsNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: ManageSessionsView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)

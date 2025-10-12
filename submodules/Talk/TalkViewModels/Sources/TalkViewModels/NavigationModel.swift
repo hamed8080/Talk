@@ -4,12 +4,16 @@ import TalkModels
 
 @MainActor
 public final class NavigationModel: ObservableObject {
+    /// This is the SplitViewController or the root vc of the applicaiton
+    public weak var rootVC: UIViewController?
     @Published public var selectedId: Int?
     @Published public var paths = NavigationPath()
     var pathsTracking: [Any] = []
     var detailsStack: [ThreadDetailViewModel] = []
     public private(set) var navigationProperties: NavigationProperties = .init()
     public var twoRowTappedAtSameTime = false
+    private var splitVC: UISplitViewController? { rootVC as? UISplitViewController }
+    private var navigationController: UINavigationController? { splitVC?.viewControllers.first as? UINavigationController }
     
     /// Once we navigate to a view with NavigationLink in SwiftUI
     /// insted of appending to the paths.
@@ -20,9 +24,49 @@ public final class NavigationModel: ObservableObject {
     
     public init() {}
 
-    public func append<T: NavigaitonValueProtocol>(value: T) {
-        paths.append(value.navType)
-        pathsTracking.append(value)
+    public func wrapAndPush<T: View>(view: T) {
+        let container = AppState.shared.objectsContainer!
+        let injected = view
+            .environmentObject(container.navVM)
+            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+            .environmentObject(AppState.shared)
+            .environmentObject(container)
+            .environmentObject(container.navVM)
+            .environmentObject(container.settingsVM)
+            .environmentObject(container.contactsVM)
+            .environmentObject(container.threadsVM)
+            .environmentObject(container.archivesVM)
+            .environmentObject(container.loginVM)
+            .environmentObject(container.tokenVM)
+            .environmentObject(container.tagsVM)
+            .environmentObject(container.userConfigsVM)
+            .environmentObject(container.logVM)
+            .environmentObject(container.audioPlayerVM)
+            .environmentObject(container.conversationBuilderVM)
+            .environmentObject(container.userProfileImageVM)
+            .environmentObject(container.banVM)
+            .environmentObject(container.sizeClassObserver)
+            .environmentObject(container.appOverlayVM)
+            .environmentObject(container.downloadsManager)
+            .environmentObject(container.uploadsManager)
+
+        let vc = UIHostingController(rootView: injected)
+        appendUIKit(value: vc)
+    }
+    
+    public func appendUIKit<T: UIViewController>(value: T) {
+        // Check if container is iPhone navigation controller or iPad split view container or on iPadOS we are in a narrow window
+        if splitVC?.isCollapsed == true {
+            // iPhone — push onto the existing navigation stack
+            navigationController?.pushViewController(value, animated: true)
+        } else {
+            // iPad — show in secondary column
+            if (splitVC?.viewController(for: .secondary) as? UINavigationController)?.viewControllers.count ?? 0 >= 1 {
+                (splitVC?.viewController(for: .secondary) as? UINavigationController)?.pushViewController(value, animated: true)
+            } else {
+                splitVC?.showDetailViewController(value, sender: nil)
+            }
+        }
     }
 
     public func popAllPaths() {
@@ -32,6 +76,21 @@ public final class NavigationModel: ObservableObject {
             }
         }
         pathsTracking.removeAll()
+    }
+    
+    public func popAllPathsUIKit() {
+        
+        // iPhone (collapsed)
+        // on iPhone PrimaryTabBarViewController is the root view controller of the navigation stack,
+        // and thread view controller is the second view controller of the navigation stack,
+        // So as long as we are in thread view controller, the number of view controllers inside the stack is greater than 1.
+        if let nav = navigationController, nav.viewControllers.count > 1 {
+            nav.popViewController(animated: true)
+        }
+        // iPad (side-by-side)
+        else if let splitVC = splitVC {
+            splitVC.setViewController(nil, for: .secondary)
+        }
     }
 
     public func popPathTrackingAt(at index: Int) {
@@ -50,14 +109,11 @@ public final class NavigationModel: ObservableObject {
         }
     }
 
-    public func remove(innerBack: Bool = false) {
-        if pathsTracking.count > 0 {
-            popLastPathTracking()
-            if innerBack {
-                popLastPath()
-            } else if pathsTracking.count == 0, paths.count > 0 {
-                popLastPath()
-            }
+    public func removeUIKit() {
+        if splitVC?.isCollapsed == false, let nav = splitVC?.viewController(for: .secondary) as? UINavigationController {
+            nav.popViewController(animated: true)
+        } else {
+            navigationController?.popViewController(animated: true)
         }
     }
 }
@@ -97,23 +153,48 @@ public extension NavigationModel {
 public extension NavigationModel {
     private var threadsViewModel: ThreadsViewModel? { AppState.shared.objectsContainer.threadsVM }
     private var threadStack: [ConversationNavigationValue] { pathsTracking.compactMap{ $0 as? ConversationNavigationValue } }
-
-    func switchFromThreadList(thread: Conversation) {
+    
+    func switchFromThreadListUIKit(viewController: UIViewController, conversation: Conversation) {
         presentedThreadViewModel?.viewModel.cancelAllObservers()
-        popAllPaths()
-        append(thread: thread)
+        popAllPathsUIKit()
+        appendUIKit(vc: viewController, conversation: conversation)
     }
-
-    func append(thread: Conversation) {
-        pushToLinkId(id: "Thread-\(thread.id)")
-        let viewModel = viewModel(for: thread.id ?? 0) ?? createViewModel(conversation: thread)
-        let value = ConversationNavigationValue(viewModel: viewModel)
+    
+    func appendUIKit(vc: UIViewController, conversation: Conversation) {
+        pushToLinkId(id: "Thread-\(conversation.id)")
         // Pop until the same thread if exist
-        popUntilSameConversation(threadId: thread.id ?? 0)
-        append(value: value)
-        selectedId = thread.id
+        popUntilSameConversation(threadId: conversation.id ?? 0)
+        appendUIKit(value: vc)
+        selectedId = conversation.id
         // We have to update the object with animateObjectWillChange because inside the ThreadRow we use a chagne listener on this
         animateObjectWillChange()
+    }
+    
+    func createAndAppend(conversation: Conversation) {
+        if let vc = AppState.shared.objectsContainer.threadsVM.delegate?.createThreadViewController(conversation: conversation) {
+            appendUIKit(vc: vc, conversation: conversation)
+        }
+    }
+    
+    func popCurrentViewController(id: Int) {
+        if AppState.shared.objectsContainer.threadsVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
+            AppState.shared.objectsContainer.threadsVM.deselectActiveThread()
+        }
+        
+        if AppState.shared.objectsContainer.archivesVM.archives.contains(where: { $0.id == id && $0.isSelected == true }) {
+            AppState.shared.objectsContainer.archivesVM.deselectActiveThread()
+        }
+        // iPhone (collapsed)
+        // on iPhone PrimaryTabBarViewController is the root view controller of the navigation stack,
+        // and thread view controller is the second view controller of the navigation stack,
+        // So as long as we are in thread view controller, the number of view controllers inside the stack is greater than 1.
+        if let nav = navigationController, nav.viewControllers.count > 1 {
+            nav.popViewController(animated: true)
+        }
+        // iPad (side-by-side)
+        else if let splitVC = splitVC {
+            splitVC.setViewController(nil, for: .secondary)
+        }
     }
     
     private func popUntilSameConversation(threadId: Int) {
@@ -147,7 +228,7 @@ public extension NavigationModel {
         if threadId != nil {
             presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
-        remove(innerBack: false)
+        removeUIKit()
         if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.id == threadId {
             popLastPathTracking()
             popLastPath()
@@ -174,20 +255,24 @@ public extension NavigationModel {
 
 // ThreadDetailViewModel
 public extension NavigationModel {
-    func appendThreadDetail(threadViewModel: ThreadViewModel) {
-        let detailViewModel = ThreadDetailViewModel()
-        detailViewModel.setup(threadVM: threadViewModel)
-        let value = ConversationDetailNavigationValue(viewModel: detailViewModel)
-        append(value: value)
+    func appendThreadDetailUIKit(vc: UIViewController,
+                                 navigationController: UINavigationController?,
+                                 conversationId: Int,
+                                 detailViewModel: ThreadDetailViewModel
+    ) {
+        // iPad — Push to navigation controller instead of replacing the whole secondary view controller in split view controller
+        navigationController?.pushViewController(vc, animated: true)
         detailsStack.append(detailViewModel)
-        selectedId = threadViewModel.id
+        selectedId = conversationId
         animateObjectWillChange()
     }
 
-    func removeDetail() {
+    func removeDetail(id: Int) {
         popLastPath()
         popLastPathTracking()
         popLastDetail()
+        
+        removeUIKit()
     }
     
     func popLastDetail() {
@@ -235,10 +320,11 @@ public extension NavigationModel {
     public func openThread(contact: Contact) async throws {
         let coreUserId = contact.user?.coreUserId ?? contact.user?.id ?? -1
         navigationProperties.userToCreateThread = contact.toParticipant
+        
         if let conversation = checkForP2POffline(coreUserId: coreUserId ?? -1) {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else if let conversation = try await GetThreadsReuqester().get(coreUserId: coreUserId) {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else {
             showEmptyThread(userName: nil)
         }
@@ -249,9 +335,9 @@ public extension NavigationModel {
         guard let coreUserId = participant.coreUserId else { return }
         
         if let conversation = checkForP2POffline(coreUserId: coreUserId ?? -1) {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else if let conversation = try await GetThreadsReuqester().get(coreUserId: coreUserId) {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else {
             showEmptyThread(userName: participant.username)
         }
@@ -261,7 +347,7 @@ public extension NavigationModel {
         navigationProperties.userToCreateThread = .init(username: userName)
         
         if let conversation = try await GetThreadsReuqester().get(userName: userName) {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else {
             showEmptyThread(userName: userName)
         }
@@ -272,16 +358,16 @@ public extension NavigationModel {
     public func openForwardThread(from: Int, conversation: Conversation, messages: [Message]) {
         let dstId = conversation.id ?? -1
         setupForwardRequest(from: from, to: dstId, messages: messages)
-        append(thread: conversation)
+        createAndAppend(conversation: conversation)
     }
     
     public func openForwardThread(from: Int, contact: Contact, messages: [Message]) async throws {
         if let conversation = checkForP2POffline(coreUserId: contact.user?.coreUserId ?? -1) {
             setupForwardRequest(from: from, to: conversation.id ?? -1, messages: messages)
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else if let conversation = try await GetThreadsReuqester().get(coreUserId: contact.user?.coreUserId ?? -1) {
             setupForwardRequest(from: from, to: conversation.id ?? -1, messages: messages)
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else {
             let dstId = LocalId.emptyThread.rawValue
             setupForwardRequest(from: from, to: dstId, messages: messages)
@@ -322,7 +408,7 @@ public extension NavigationModel {
             image: participant.image,
             title: participant.name ?? userName,
             participants: particpants)
-        append(thread: conversation)
+        createAndAppend(conversation: conversation)
     }
     
     public func openThreadAndMoveToMessage(conversationId: Int, messageId: Int, messageTime: UInt) async throws {
@@ -334,9 +420,9 @@ public extension NavigationModel {
         if viewModel(for: conversationId) != nil, let currentThreadId = presentedThreadViewModel?.threadId {
             remove(threadId: currentThreadId)
         } else if let conversation = checkForOffline(threadId: conversationId) {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         } else if let conversation = try await GetThreadsReuqester().get(.init(threadIds: [conversationId])).first {
-            append(thread: conversation)
+            createAndAppend(conversation: conversation)
         }
     }
     

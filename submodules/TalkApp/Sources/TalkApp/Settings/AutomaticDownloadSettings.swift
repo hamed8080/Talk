@@ -15,8 +15,7 @@ struct AutomaticDownloadSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "arrow.down.square.fill", title: "Settings.download", color: Color.App.color5, showDivider: false) {
-            let value = AutomaticDownloadsNavigationValue()
-            navModel.append(value: value)
+            navModel.wrapAndPush(view: AutomaticDownloadSettings())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)

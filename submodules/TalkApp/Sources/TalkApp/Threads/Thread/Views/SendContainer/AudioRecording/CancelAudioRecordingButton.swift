@@ -27,6 +27,7 @@ final class CancelAudioRecordingButton: UIView {
 
     private func configure() {
         translatesAutoresizingMaskIntoConstraints = false
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         btnCancel.translatesAutoresizingMaskIntoConstraints = false
         btnCancel.imageView.image = UIImage(systemName: "xmark")

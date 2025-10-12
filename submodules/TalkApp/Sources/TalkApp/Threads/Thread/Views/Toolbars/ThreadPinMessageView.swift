@@ -39,6 +39,7 @@ public final class ThreadPinMessageView: UIStackView {
 
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.backgroundColor = Color.App.accentUIColor

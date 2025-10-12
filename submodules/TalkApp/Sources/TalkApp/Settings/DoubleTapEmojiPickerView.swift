@@ -21,7 +21,7 @@ struct DoubleTapEmojiPickerView: View {
                         var model = AppSettingsModel.restore()
                         model.doubleTapAction = .specialEmoji(sticker)
                         model.save()
-                        AppState.shared.objectsContainer.navVM.remove(innerBack: true)
+                        AppState.shared.objectsContainer.navVM.removeUIKit()
                     } label: {
                         Text(sticker.emoji)
                             .font(.system(size: 42))

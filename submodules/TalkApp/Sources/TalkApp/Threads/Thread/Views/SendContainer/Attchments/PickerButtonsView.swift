@@ -36,6 +36,7 @@ public final class PickerButtonsView: UIStackView {
     }
 
     private func configureViews() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         axis = .horizontal
         spacing = 8
         alignment = .center

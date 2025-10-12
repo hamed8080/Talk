@@ -29,6 +29,7 @@ class ThreadRowContextMenuUIKit: UIView {
     }
     
     private func configureView() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         let menu = configureMenu()
         menu.contexMenuContainer = container

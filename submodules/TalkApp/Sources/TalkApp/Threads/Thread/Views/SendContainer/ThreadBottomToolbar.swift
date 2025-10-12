@@ -44,6 +44,9 @@ public final class ThreadBottomToolbar: UIStackView {
         self.closedBarView = ClosedBarView(viewModel: viewModel)
         self.mentionTableView = MentionTableView(viewModel: viewModel)
         super.init(frame: .zero)
+        
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         editMessagePlaceholderView.superViewStack = self
         editMessagePlaceholderView.registerObservers()
         
@@ -59,6 +62,7 @@ public final class ThreadBottomToolbar: UIStackView {
         alignment = .fill
         spacing = 0
         isLayoutMarginsRelativeArrangement = true
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         let blurEffect = UIBlurEffect(style: .systemThinMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)

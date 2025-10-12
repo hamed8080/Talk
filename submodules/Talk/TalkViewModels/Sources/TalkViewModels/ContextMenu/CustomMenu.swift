@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import TalkModels
 
 public class CustomMenu: UIStackView {
     public weak var contexMenuContainer: ContextMenuContainerView?
@@ -27,6 +28,7 @@ public class CustomMenu: UIStackView {
         distribution = .fillEqually
         layer.cornerRadius = 8
         layer.masksToBounds = true
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)

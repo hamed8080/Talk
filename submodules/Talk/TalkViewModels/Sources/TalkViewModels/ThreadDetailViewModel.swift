@@ -345,7 +345,7 @@ public extension ThreadDetailViewModel {
         threadVM?.scrollVM.disableExcessiveLoading()
         clearObjects()
         
-        objs.navVM.removeDetail()
+        objs.navVM.removeDetail(id: threadVM?.thread.id ?? -1)
     }
     
     func dismissBothDetailAndThreadProgramatically() {
@@ -357,7 +357,7 @@ public extension ThreadDetailViewModel {
         clearObjects()
        
         /// Firstly, remove ThreadDetailViewModel path and pop it up.
-        objs.navVM.removeDetail()
+        objs.navVM.removeDetail(id: threadVM?.thread.id ?? -1)
       
         /// Secondly, remove ThreadViewModel path and pop it up.
         objs.navVM.remove(threadId: threadId)
@@ -370,7 +370,7 @@ public extension ThreadDetailViewModel {
         clearObjects()
        
         /// Firstly, remove ThreadDetailViewModel path and pop it up.
-        objs.navVM.removeDetail()
+        objs.navVM.removeDetail(id: threadVM?.thread.id ?? -1)
     }
     
     private func clearObjects() {

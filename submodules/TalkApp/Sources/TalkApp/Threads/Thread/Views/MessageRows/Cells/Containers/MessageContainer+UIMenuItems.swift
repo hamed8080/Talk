@@ -193,8 +193,7 @@ private extension MessageContainerStackView {
 
     func onSeenListAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
-        let value = MessageParticipantsSeenNavigationValue(message: message, threadVM: model.threadVM!)
-        AppState.shared.objectsContainer.navVM.append(value: value)
+        AppState.shared.objectsContainer.navVM.wrapAndPush(view: MessageParticipantsSeen(message: message))
     }
 
     func onSaveAction(_ model: ActionModel) {

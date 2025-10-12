@@ -62,18 +62,18 @@ struct UINavigationControllerState {
     var allowsSwipeBack: Bool = true
 }
 
-extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        interactivePopGestureRecognizer?.delegate = self
-    }
-
-    /// This code will prevent a bug in SwiftUI or UIKit where user tries to pop with left to right gesture
-    /// where there is no more view controller to pop.
-    /// By removing these lines, after swipe over the edge of the screen where there is nothing to pop
-    /// no more clicks will work.
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        guard UINavigationControllerState.shared.allowsSwipeBack else { return false }
-        return viewControllers.count > 1
-    }
-}
+//extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
+//    override open func viewDidLoad() {
+//        super.viewDidLoad()
+//        interactivePopGestureRecognizer?.delegate = self
+//    }
+//
+//    /// This code will prevent a bug in SwiftUI or UIKit where user tries to pop with left to right gesture
+//    /// where there is no more view controller to pop.
+//    /// By removing these lines, after swipe over the edge of the screen where there is nothing to pop
+//    /// no more clicks will work.
+//    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+//        guard UINavigationControllerState.shared.allowsSwipeBack else { return false }
+//        return viewControllers.count > 1
+//    }
+//}

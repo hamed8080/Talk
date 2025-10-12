@@ -593,7 +593,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     
     /// Deselect a selected thread will force the SwiftUI to
     /// remove the selected color before removing the row reference.
-    private func deselectActiveThread() {
+    public func deselectActiveThread() {
         if let index = archives.firstIndex(where: {$0.isSelected}) {
             archives[index].isSelected = false
             archives[index].animateObjectWillChange()
@@ -611,7 +611,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             
             /// We just push when we are in archives list, beacause the archive list itself has been pushed
             /// So if we use switch version it will pop all and archive list will be popped out which is wrong.
-            AppState.shared.objectsContainer.navVM.append(thread: conversation.toStruct())
+            AppState.shared.objectsContainer.navVM.createAndAppend(conversation: conversation.toStruct())
         }
     }
     

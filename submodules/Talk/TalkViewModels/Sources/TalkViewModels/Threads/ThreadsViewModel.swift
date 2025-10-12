@@ -29,6 +29,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation?
     func scrollToTop()
     var contextMenuContainer: ContextMenuContainerView? { get set }
+    func createThreadViewController(conversation: Conversation) -> UIViewController
 }
 
 @MainActor
@@ -672,7 +673,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) async {
         if let conversation = response.result {
             if conversation.participants?.first?.id == myId, response.pop(prepend: JOIN_TO_PUBLIC_GROUP_KEY) != nil {
-                AppState.shared.objectsContainer.navVM.append(thread: conversation)
+                AppState.shared.objectsContainer.navVM.createAndAppend(conversation: conversation)
             }
             
             if let id = conversation.id, let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(id) {
@@ -811,7 +812,7 @@ public final class ThreadsViewModel: ObservableObject {
     
     /// Deselect a selected thread will force the SwiftUI to
     /// remove the selected color before removing the row reference.
-    private func deselectActiveThread() {
+    public func deselectActiveThread() {
         if let index = threads.firstIndex(where: {$0.isSelected}) {
             threads[index].isSelected = false
             delegate?.reloadCellWith(conversation: threads[index])
@@ -847,14 +848,14 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
     
-    public func onTapped(conversation: CalculatedConversation) {
+    public func onTapped(viewController: UIViewController, conversation: Conversation) {
         /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
         if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
         
         if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
             /// to update isSeleted for bar and background color
             setSelected(for: conversation.id ?? -1, selected: true)
-            AppState.shared.objectsContainer.navVM.switchFromThreadList(thread: conversation.toStruct())
+            AppState.shared.objectsContainer.navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
         }
     }
 }

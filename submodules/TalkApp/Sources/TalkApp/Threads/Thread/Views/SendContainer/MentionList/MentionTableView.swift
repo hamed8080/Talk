@@ -37,6 +37,7 @@ public final class MentionTableView: UITableView {
         backgroundColor = .clear
         separatorStyle = .none
         rowHeight = cellHeight
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         let blurEffect = UIBlurEffect(style: .systemThinMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)

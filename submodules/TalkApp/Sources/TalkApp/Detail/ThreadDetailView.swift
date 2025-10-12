@@ -64,6 +64,33 @@ struct ThreadDetailView: View {
     }
 }
 
+struct DetailViewWrapper: View {
+    private let container = AppState.shared.objectsContainer!
+    let detailViewModel: ThreadDetailViewModel
+    
+    var body: some View {
+        ThreadDetailView()
+            .environmentObject(detailViewModel)
+            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+            .environmentObject(AppState.shared)
+            .environmentObject(container)
+            .environmentObject(container.navVM)
+            .environmentObject(container.settingsVM)
+            .environmentObject(container.contactsVM)
+            .environmentObject(container.threadsVM)
+            .environmentObject(container.loginVM)
+            .environmentObject(container.tokenVM)
+            .environmentObject(container.tagsVM)
+            .environmentObject(container.userConfigsVM)
+            .environmentObject(container.logVM)
+            .environmentObject(container.audioPlayerVM)
+            .environmentObject(container.conversationBuilderVM)
+            .environmentObject(container.userProfileImageVM)
+            .environmentObject(container.banVM)
+            .environmentObject(container.sizeClassObserver)
+    }
+}
+
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
         ThreadDetailView()

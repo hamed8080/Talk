@@ -35,9 +35,11 @@ public final class TopThreadToolbar: UIStackView {
     }
 
     private func configureViews() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         translatesAutoresizingMaskIntoConstraints = false
         axis = .vertical
         spacing = 0
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         configureBlurBackgroundView()
         configureNavBarView()

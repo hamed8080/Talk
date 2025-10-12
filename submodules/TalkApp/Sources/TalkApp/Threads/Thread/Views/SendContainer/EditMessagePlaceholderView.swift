@@ -39,6 +39,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         layoutMargins = .init(horizontal: 8, vertical: 8)
         isLayoutMarginsRelativeArrangement = true
         translatesAutoresizingMaskIntoConstraints = false
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         nameLabel.font = UIFont.fBody
         nameLabel.textColor = Color.App.accentUIColor
@@ -58,6 +59,7 @@ public final class EditMessagePlaceholderView: UIStackView {
         vStack.axis = .vertical
         vStack.spacing = 2
         vStack.alignment = .leading
+        vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         vStack.accessibilityIdentifier = "vStackEditMessagePlaceholderView"
         vStack.addArrangedSubview(nameLabel)
         vStack.addArrangedSubview(messageLabel)

@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import SwiftUI
 import TalkViewModels
+import TalkUI
 
 public final class AttchmentButton: UIStackView {
     private let imageContainer = UIView()
@@ -18,7 +19,7 @@ public final class AttchmentButton: UIStackView {
     private var imageContainerHeightConstraint: NSLayoutConstraint!
 
     public init(title: String, image: String) {
-        let image = UIImage(systemName: image)
+        let image = UIImage(systemName: image)?.withRenderingMode(.alwaysTemplate)
         self.imageView = UIImageView(image: image)
         self.label = UILabel()
         label.text = title.bundleLocalized()
@@ -35,10 +36,11 @@ public final class AttchmentButton: UIStackView {
         axis = .vertical
         spacing = 4
         isUserInteractionEnabled = true
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = AppSettingsModel.restore().isDarkModeEnabled == true ? Color.App.whiteUIColor : Color.App.accentUIColor
+        imageView.tintColor = AppSettingsModel.restore().isDarkModeEnabled == true ? Color.App.accentUIColor : Color.App.whiteUIColor
         imageView.accessibilityIdentifier = "imageViewAttchmentButton"
 
         imageContainer.translatesAutoresizingMaskIntoConstraints = false

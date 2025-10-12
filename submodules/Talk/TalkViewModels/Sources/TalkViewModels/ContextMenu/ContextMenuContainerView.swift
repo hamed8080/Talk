@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import TalkModels
 
 @MainActor
 public protocol ContextMenuDelegate: AnyObject {
@@ -37,6 +38,8 @@ public class ContextMenuContainerView: UIView {
     }
 
     private func setupView() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
         effectView = UIVisualEffectView(effect: blurEffect)
         effectView.translatesAutoresizingMaskIntoConstraints = false
@@ -89,6 +92,7 @@ public class ContextMenuContainerView: UIView {
         self.indexPath = indexPath
         changeSizeIfNeeded()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         contentView.addSubview(view)
         NSLayoutConstraint.activate([
             view.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),

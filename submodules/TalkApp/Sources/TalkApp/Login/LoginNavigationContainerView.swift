@@ -11,12 +11,16 @@ import TalkViewModels
 
 import TalkUI
 
-struct LoginNavigationContainerView: View {
+public struct LoginNavigationContainerView: View {
     @EnvironmentObject var viewModel: LoginViewModel
     var addNewuser = false
     var onNewUserAdded: (() -> Void)?
 
-    var body: some View {
+    public init(onNewUserAdded: ( () -> Void)? = nil) {
+        self.onNewUserAdded = onNewUserAdded
+    }
+    
+    public var body: some View {
         NavigationStack(path: $viewModel.path) {
             LoginContentView()
                 .navigationDestination(for: LoginState.self) { _ in

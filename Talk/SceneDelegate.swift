@@ -94,10 +94,27 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     
     public func setupRoot(windowScene: UIWindowScene) {
         let window = UIWindow(windowScene: windowScene)
-        let contentView = HomeContentView()
-            .font(.fBody)
+//        let contentView = HomeContentView()
+//            .font(.fBody)
         /// CustomUIHosting is Needed for change status bar color per page
-        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
+//        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
+        
+        /// This object reference will not be released and will be hold by the AppState automatically
+        let container = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
+        
+        if TokenManager.shared.isLoggedIn {
+            window.rootViewController = SplitViewController(style: .doubleColumn)
+        } else {
+            let loginCompletion = { [weak self] in
+                window.rootViewController = SplitViewController(style: .doubleColumn)
+                self?.window = window
+            }
+            let rootView = LoginNavigationContainerView(onNewUserAdded: loginCompletion)
+                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+                .environmentObject(container.loginVM)
+                .environmentObject(container.tokenVM)
+            window.rootViewController = UIHostingController(rootView: rootView)
+        }
         self.window = window
         window.makeKeyAndVisible()
     }
@@ -105,7 +122,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else { return }
         if let threadId = url.widgetThreaId {
-            AppState.shared.objectsContainer.navVM.append(thread: .init(id: threadId))
+            AppState.shared.objectsContainer.navVM.createAndAppend(conversation: .init(id: threadId))
         } else if let userName = url.openThreadUserName {
             Task {
                 try await AppState.shared.objectsContainer.navVM.openThreadWith(userName: userName)

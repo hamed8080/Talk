@@ -119,12 +119,15 @@ struct ThreadSearchMessages: View {
             viewModel.cancel()
         } label: {
             Image(systemName: "xmark")
-                .padding(.leading)
+                .resizable()
+                .padding(12)
+                .scaledToFit()
                 .font(.fBody)
                 .foregroundStyle(Color.App.toolbarButton)
         }
         .buttonStyle(.borderless)
         .frame(maxHeight: 42)
+        .contentShape(Rectangle())
         .clipped()
     }
 }

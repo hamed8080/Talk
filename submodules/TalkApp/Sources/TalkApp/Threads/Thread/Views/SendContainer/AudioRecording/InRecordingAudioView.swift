@@ -39,6 +39,7 @@ public final class InRecordingAudioView: UIStackView {
         alignment = .center
         layoutMargins = .init(horizontal: 8, vertical: 4)
         isLayoutMarginsRelativeArrangement = true
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         btnMic.translatesAutoresizingMaskIntoConstraints = false
         let micImage = UIImage(systemName: "mic.fill")!

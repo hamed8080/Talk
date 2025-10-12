@@ -36,6 +36,7 @@ public final class SelectionView: UIStackView {
         spacing = 4
         layoutMargins = .init(horizontal: 8, vertical: 4)
         isLayoutMarginsRelativeArrangement = true
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         let image = UIImage(systemName: "arrow.turn.up.right")
         btnForward.imageView.image = image

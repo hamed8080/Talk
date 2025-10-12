@@ -130,6 +130,12 @@ extension ForwardConversationTableViewController: UIThreadsViewControllerDelegat
     func scrollToTop() {
         tableView.setContentOffset(.zero, animated: true)
     }
+    
+    func createThreadViewController(conversation: Conversation) -> UIViewController {
+        let vc = ThreadViewController()
+        vc.viewModel = ThreadViewModel(thread: conversation)
+        return vc
+    }
 }
 
 extension ForwardConversationTableViewController: ContextMenuDelegate {

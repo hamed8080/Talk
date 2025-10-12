@@ -31,8 +31,7 @@ struct DoubleTapSettingView: View {
             }
             
             ListSectionButton(imageName: nil, title: "Settings.DoubleTap.selectEmoji", color: .blue, showDivider: true, shownavigationButton: false) {
-                let value = DoubleTapEmojiPickerNavigationValue()
-                navModel.append(value: value)
+                navModel.wrapAndPush(view: DoubleTapEmojiPickerView())
             }
             .listRowInsets(.zero)
             .listRowBackground(Color.App.bgPrimary)

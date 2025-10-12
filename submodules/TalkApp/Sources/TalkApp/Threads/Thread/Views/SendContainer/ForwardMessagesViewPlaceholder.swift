@@ -37,6 +37,7 @@ public final class ForwardMessagePlaceholderView: UIStackView {
         layoutMargins = .init(horizontal: 8, vertical: 2)
         isLayoutMarginsRelativeArrangement = true
         alignment = .center
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         let vStack = UIStackView()
         vStack.axis = .vertical

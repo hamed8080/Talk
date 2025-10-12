@@ -29,7 +29,7 @@ struct AssistantView: View {
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
                 NavigationBackButton(automaticDismiss: false) {
-                    AppState.shared.objectsContainer.navVM.remove(innerBack: true)
+                    AppState.shared.objectsContainer.navVM.removeUIKit()
                 }
             }
 

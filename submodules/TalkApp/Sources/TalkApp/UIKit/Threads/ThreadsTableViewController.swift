@@ -10,6 +10,7 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkViewModels
+import TalkUI
 
 class ThreadsTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ThreadsListSection, CalculatedConversation>!
@@ -17,6 +18,7 @@ class ThreadsTableViewController: UIViewController {
     let viewModel: ThreadsViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
     public var contextMenuContainer: ContextMenuContainerView?
+    private let threadsToolbar = ThreadsTopToolbarView()
     
     init(viewModel: ThreadsViewModel) {
         self.viewModel = viewModel
@@ -31,20 +33,34 @@ class ThreadsTableViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 96
         tableView.delegate = self
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
+        tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         view.addSubview(tableView)
         
         let refresh = UIRefreshControl()
         refresh.addTarget(self, action: #selector(onRefresh), for: .valueChanged)
         tableView.refreshControl = refresh
         
+        /// Toolbar
+        threadsToolbar.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(threadsToolbar)
+        tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth, left: 0, bottom: 0, right: 0)
+        
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            /// Toolbar
+            threadsToolbar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            threadsToolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            threadsToolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -55,6 +71,11 @@ class ThreadsTableViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         contextMenuContainer = .init(delegate: self)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.contentInset.top = threadsToolbar.frame.height
     }
 }
 
@@ -139,6 +160,12 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     func scrollToTop() {
         tableView.setContentOffset(.zero, animated: true)
     }
+    
+    func createThreadViewController(conversation: Conversation) -> UIViewController {
+        let vc = ThreadViewController()
+        vc.viewModel = ThreadViewModel(thread: conversation)
+        return vc
+    }
 }
 
 extension ThreadsTableViewController: ContextMenuDelegate {
@@ -159,7 +186,27 @@ extension ThreadsTableViewController: ContextMenuDelegate {
 extension ThreadsTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
-        viewModel.onTapped(conversation: conversation)
+        let secondaryVC = splitViewController?.viewController(for: .secondary) as? UINavigationController
+        let threadVC = secondaryVC?.viewControllers.last as? ThreadViewController
+        if let threadVC = threadVC, threadVC.viewModel?.thread.id == conversation.id {
+            // Do nothing if the user tapped on the same conversation on iPadOS row.
+            return
+        }
+        
+        let vc = ThreadViewController()
+        vc.viewModel = ThreadViewModel(thread: conversation.toStruct())
+            
+        // Check if container is iPhone navigation controller or iPad split view container or on iPadOS we are in a narrow window
+        if splitViewController?.isCollapsed == true {
+            vc.navigationController?.setNavigationBarHidden(true, animated: false)
+            // iPhone — push onto the existing navigation stack
+            viewModel.onTapped(viewController: vc, conversation: conversation.toStruct())
+        } else {
+            // iPad — show in secondary column
+            let nav = FastNavigationController(rootViewController: vc)
+            nav.setNavigationBarHidden(true, animated: false)
+            viewModel.onTapped(viewController: nav, conversation: conversation.toStruct())
+        }
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {

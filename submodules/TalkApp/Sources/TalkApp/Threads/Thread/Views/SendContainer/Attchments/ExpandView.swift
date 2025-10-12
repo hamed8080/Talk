@@ -28,6 +28,8 @@ public class ExpandView: UIView {
     }
 
     private func configureViews() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         let btnClear = UIButton(type: .system)
         btnClear.translatesAutoresizingMaskIntoConstraints = false
         btnClear.setTitle("General.cancel".bundleLocalized(), for: .normal)
