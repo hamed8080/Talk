@@ -63,30 +63,30 @@ public class MessageBaseCell: UITableViewCell {
         messageContainer.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         messageContainer.accessibilityIdentifier = "messageContainerMessageBaseCell"
         container.addSubview(messageContainer)
-        messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: MessageRowSizes.messageContainerStackViewTopMargin).isActive = true
+        messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: ConstantSizes.messageContainerStackViewTopMargin).isActive = true
         messageContainer.widthAnchor.constraint(lessThanOrEqualToConstant: isMe ? ThreadViewModel.maxAllowedWidthIsMe : ThreadViewModel.maxAllowedWidth).isActive = true
-        messageContainerBottomConstraint = messageContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.messageContainerStackViewBottomMargin)
+        messageContainerBottomConstraint = messageContainer.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -ConstantSizes.messageContainerStackViewBottomMargin)
         messageContainerBottomConstraint.identifier = "messageContainerBottomConstraintMessageBaseCell"
         messageContainerBottomConstraint.isActive = true
 
         // 53 for avatar/tail to make the container larger to be clickable, this view is invisible and we should see it on view debugger hierarchy
-        containerWidthConstraint = container.widthAnchor.constraint(equalTo: messageContainer.widthAnchor, constant: isMe ? 0 : MessageRowSizes.messagebaseCellWidth)
+        containerWidthConstraint = container.widthAnchor.constraint(equalTo: messageContainer.widthAnchor, constant: isMe ? 0 : ConstantSizes.messagebaseCellWidth)
         containerWidthConstraint.isActive = true
         container.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0).isActive = true
         let isMe = self is MyselfMessageCell
         let isRTL = Language.isRTL
         if (isRTL && isMe) || (!isRTL && !isMe) {
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: MessageRowSizes.beforeContainerLeading).isActive = true
+            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: ConstantSizes.beforeContainerLeading).isActive = true
         } else {
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -MessageRowSizes.beforeContainerLeading).isActive = true
+            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ConstantSizes.beforeContainerLeading).isActive = true
         }
 
         if let avatar = avatar {
-            messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: MessageRowSizes.messageAvatarAfterTrailing)
+            messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: ConstantSizes.messageAvatarAfterTrailing)
         }
         messageStackLeadingToRadioTrailingConstraint = messageContainer.leadingAnchor.constraint(equalTo: radio.trailingAnchor, constant: 0)
-        messageStackLeadingToContainerLeadingConstarint = messageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: isMe ? MessageRowSizes.beforeContainerLeading : 0)
+        messageStackLeadingToContainerLeadingConstarint = messageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: isMe ? ConstantSizes.beforeContainerLeading : 0)
     }
 
     private func attachOrDetachRadio(viewModel: MessageRowViewModel) {
@@ -98,8 +98,8 @@ public class MessageBaseCell: UITableViewCell {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.radio.isHidden = false
             }
-            radio.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: MessageRowSizes.selectMessageRadioNegativeConstantOnSelection).isActive = true
-            radio.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.selectMessageRadioBottomConstant).isActive = true
+            radio.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: ConstantSizes.selectMessageRadioNegativeConstantOnSelection).isActive = true
+            radio.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -ConstantSizes.selectMessageRadioBottomConstant).isActive = true
         }
         radio.set(selected: viewModel.calMessage.state.isSelected, viewModel: viewModel)
     }
@@ -111,8 +111,8 @@ public class MessageBaseCell: UITableViewCell {
             self.avatar?.translatesAutoresizingMaskIntoConstraints = false
             self.avatar?.accessibilityIdentifier = "avatarContainerMessageBaseCell"
             container.addSubview(avatar)
-            avatar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: MessageRowSizes.messageAvatarBeforeLeading).isActive = true
-            avatar.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -MessageRowSizes.messageAvatarViewBottomMargin).isActive = true
+            avatar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: ConstantSizes.messageAvatarBeforeLeading).isActive = true
+            avatar.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -ConstantSizes.messageAvatarViewBottomMargin).isActive = true
         } else if avatar?.superview != nil, viewModel.calMessage.state.isInSelectMode {
             avatar?.removeFromSuperview()
         }
@@ -128,7 +128,7 @@ public class MessageBaseCell: UITableViewCell {
         messageStackLeadingAvatarTrailingConstarint?.isActive = canSnapToAvatar(viewModel: viewModel)
         messageStackLeadingToRadioTrailingConstraint.isActive = viewModel.calMessage.state.isInSelectMode
         messageStackLeadingToContainerLeadingConstarint.isActive = canSnapToContainer(viewModel: viewModel)
-        containerWidthConstraint.constant =  canSnapToContainer(viewModel: viewModel) ? 0 : MessageRowSizes.messagebaseCellWidth
+        containerWidthConstraint.constant =  canSnapToContainer(viewModel: viewModel) ? 0 : ConstantSizes.messagebaseCellWidth
     }
 
     private func canSnapToAvatar(viewModel: MessageRowViewModel) -> Bool {
@@ -152,7 +152,7 @@ public class MessageBaseCell: UITableViewCell {
     public func setValues(viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser
-        messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -MessageRowSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -MessageRowSizes.messageContainerStackViewBottomMargin
+        messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -ConstantSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -ConstantSizes.messageContainerStackViewBottomMargin
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
         setMessageContainer(viewModel: viewModel)

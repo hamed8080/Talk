@@ -47,19 +47,22 @@ class PrimaryTabBarViewController: UIViewController {
         
         let tabs: [UITabBarItem] = [contactsTab, chatsTab, settingsTab]
         
+        tabBar.translatesAutoresizingMaskIntoConstraints = false
         tabBar.items = tabs
         tabBar.delegate = self
+        tabBar.accessibilityIdentifier = "tabBarPrimaryTabBarViewController"
+        
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.accessibilityIdentifier = "containerPrimaryTabBarViewController"
         
         view.addSubview(container)
         view.addSubview(tabBar)
-        container.translatesAutoresizingMaskIntoConstraints = false
-        tabBar.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0),
             tabBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            tabBar.heightAnchor.constraint(equalToConstant: 52),
+            tabBar.heightAnchor.constraint(equalToConstant: ConstantSizes.bottomToolbarSize),
             
             container.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
             container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -89,19 +92,21 @@ class PrimaryTabBarViewController: UIViewController {
         }
         
         addChild(vc)
-        vc.view.frame.size.width = splitViewController?.isCollapsed == true ? container.bounds.width : splitViewController?.maximumPrimaryColumnWidth ?? 0
-        vc.view.frame.size.height = container.bounds.height - (tabBar.frame.height + view.safeAreaInsets.bottom)
-        vc.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(vc.view)
         vc.didMove(toParent: self)
         active = vc
-    }
-    
-    /// It is needed for the first tab.
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        active?.view.frame.size.width = splitViewController?.isCollapsed == true ? container.bounds.width : splitViewController?.maximumPrimaryColumnWidth ?? 0
-        active?.view.frame.size.height = container.bounds.height
+        NSLayoutConstraint.activate([
+            vc.view.topAnchor.constraint(equalTo: container.topAnchor),
+            vc.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            vc.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+        ])
+        
+        if splitViewController?.isCollapsed == true {
+            vc.view.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
+        } else {
+            vc.view.widthAnchor.constraint(equalToConstant: splitViewController?.maximumPrimaryColumnWidth ?? 0).isActive = true
+        }
     }
     
     private func makeTabItem(image: String, title: String) -> UITabBarItem {

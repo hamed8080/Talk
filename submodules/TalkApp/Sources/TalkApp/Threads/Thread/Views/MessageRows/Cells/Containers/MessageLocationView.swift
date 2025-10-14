@@ -26,7 +26,7 @@ final class MessageLocationView: UIImageView {
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = Color.App.bgPrimaryUIColor?.withAlphaComponent(0.5)
-        layer.cornerRadius = MessageRowSizes.messageLocationCornerRadius
+        layer.cornerRadius = ConstantSizes.messageLocationCornerRadius
         layer.masksToBounds = true
         contentMode = .scaleAspectFill
         
@@ -39,7 +39,7 @@ final class MessageLocationView: UIImageView {
         addGestureRecognizer(tapGesture)
         
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(greaterThanOrEqualToConstant: MessageRowSizes.messageLocationViewMinWidth),
+            widthAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.messageLocationViewMinWidth),
             mapViewHeightConstraint
         ])
     }
@@ -70,8 +70,8 @@ final class MessageLocationView: UIImageView {
         
         tintColor = viewModel.fileState.state == .completed ? .clear : .gray
         
-        if mapViewHeightConstraint.constant != MessageRowSizes.messageLocationHeight {
-            mapViewHeightConstraint.constant = MessageRowSizes.messageLocationHeight
+        if mapViewHeightConstraint.constant != ConstantSizes.messageLocationHeight {
+            mapViewHeightConstraint.constant = ConstantSizes.messageLocationHeight
         }
     }
     

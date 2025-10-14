@@ -215,7 +215,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private func moveToTopIfWasDisconnected(topItemId: Int?) {
         if wasDisconnected {
             /// scroll To first if we were way down in the list to show correct row
-            delegate?.scrollToTop()
+            delegate?.scrollToFirstIndex()
         }
     }
 

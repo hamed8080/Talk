@@ -94,7 +94,7 @@ final class MessageAudioView: UIView {
         playbackSpeedButton.isUserInteractionEnabled = true
         playbackSpeedButton.accessibilityIdentifier = "playbackSpeedButtonMessageAudioView"
         playbackSpeedButton.tintColor = Color.App.textPrimaryUIColor
-        playbackSpeedButton.layer.cornerRadius = MessageRowSizes.messageAudioViewPlayButtonCornerRadius
+        playbackSpeedButton.layer.cornerRadius = ConstantSizes.messageAudioViewPlayButtonCornerRadius
         playbackSpeedButton.titleLabel?.font = UIFont.fBoldSubheadline
         playbackSpeedButton.setTitle("", for: .normal)
         playbackSpeedButton.addTarget(self, action: #selector(onPlaybackSpeedTapped), for: .touchUpInside)
@@ -109,44 +109,44 @@ final class MessageAudioView: UIView {
                 audioVM.seek(to)
             }
         }
-        fileNameHeightConstraint = fileNameLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewFileNameHeight)
+        fileNameHeightConstraint = fileNameLabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewFileNameHeight)
         fileNameHeightConstraint?.isActive = true
         
         NSLayoutConstraint.activate([
-            progressButton.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewProgressButtonSize),
-            progressButton.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewProgressButtonSize),
-            progressButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageAudioViewMargin),
-            progressButton.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageAudioViewMargin),
+            progressButton.widthAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewProgressButtonSize),
+            progressButton.heightAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewProgressButtonSize),
+            progressButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ConstantSizes.messageAudioViewMargin),
+            progressButton.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageAudioViewMargin),
             
-            fileNameLabel.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: MessageRowSizes.messageAudioViewMargin * 2),
-            fileNameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageAudioViewMargin * 2),
+            fileNameLabel.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: ConstantSizes.messageAudioViewMargin * 2),
+            fileNameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageAudioViewMargin * 2),
             fileNameLabel.topAnchor.constraint(equalTo: progressButton.topAnchor),
             
-            waveView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: MessageRowSizes.messageAudioViewMargin * 2),
-            waveView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageAudioViewMargin * 2),
+            waveView.leadingAnchor.constraint(equalTo: progressButton.trailingAnchor, constant: ConstantSizes.messageAudioViewMargin * 2),
+            waveView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageAudioViewMargin * 2),
             waveView.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor),
-            waveView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewFileWaveFormHeight),
+            waveView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewFileWaveFormHeight),
             
             fileSizeLabel.leadingAnchor.constraint(equalTo: waveView.leadingAnchor),
-            fileSizeLabel.topAnchor.constraint(equalTo: waveView.bottomAnchor, constant: MessageRowSizes.messageAudioViewMargin),
+            fileSizeLabel.topAnchor.constraint(equalTo: waveView.bottomAnchor, constant: ConstantSizes.messageAudioViewMargin),
             fileSizeLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-            fileSizeLabel.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewFileNameWidth),
+            fileSizeLabel.widthAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewFileNameWidth),
             
-            timeLabel.leadingAnchor.constraint(equalTo: fileSizeLabel.trailingAnchor, constant: MessageRowSizes.messageAudioViewMargin),
+            timeLabel.leadingAnchor.constraint(equalTo: fileSizeLabel.trailingAnchor, constant: ConstantSizes.messageAudioViewMargin),
             timeLabel.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor),
             timeLabel.trailingAnchor.constraint(equalTo: fileNameLabel.trailingAnchor, constant: 0),
             timeLabel.bottomAnchor.constraint(equalTo: fileSizeLabel.bottomAnchor),
             
-            playbackSpeedButton.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewPlaybackSpeedWidth),
-            playbackSpeedButton.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAudioViewPlaybackSpeedHeight),
-            playbackSpeedButton.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor, constant: -MessageRowSizes.messageAudioViewPlaybackSpeedTopMargin),
-            playbackSpeedButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageAudioViewMargin),
+            playbackSpeedButton.widthAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewPlaybackSpeedWidth),
+            playbackSpeedButton.heightAnchor.constraint(equalToConstant: ConstantSizes.messageAudioViewPlaybackSpeedHeight),
+            playbackSpeedButton.topAnchor.constraint(equalTo: fileSizeLabel.topAnchor, constant: -ConstantSizes.messageAudioViewPlaybackSpeedTopMargin),
+            playbackSpeedButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ConstantSizes.messageAudioViewMargin),
         ])
         
         if isMe {
-            playbackSpeedButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageAudioViewMargin).isActive = true
+            playbackSpeedButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ConstantSizes.messageAudioViewMargin).isActive = true
         } else {
-            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageAudioViewMargin).isActive = true
+            playbackSpeedButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageAudioViewMargin).isActive = true
         }
     }
     
@@ -156,7 +156,7 @@ final class MessageAudioView: UIView {
         fileSizeLabel.text = viewModel.calMessage.computedFileSize
         fileNameLabel.text = viewModel.calMessage.fileName
         fileNameLabel.isHidden = viewModel.message.type == .voice || viewModel.message.type == .podSpaceVoice
-        fileNameHeightConstraint?.constant = fileNameLabel.isHidden ? 0 : MessageRowSizes.messageAudioViewFileNameHeight
+        fileNameHeightConstraint?.constant = fileNameLabel.isHidden ? 0 : ConstantSizes.messageAudioViewFileNameHeight
         waveView.setPlaybackProgress(Double(viewModel.calMessage.avPlayerItem?.progress ?? 0.0))
         waveView.setImage(to: viewModel.calMessage.avPlayerItem?.waveFormImage)
         timeLabel.text = viewModel.calMessage.avPlayerItem?.audioTimerString()

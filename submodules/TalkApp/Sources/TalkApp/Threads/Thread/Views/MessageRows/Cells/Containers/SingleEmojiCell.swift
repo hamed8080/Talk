@@ -22,11 +22,11 @@ final class SingleEmojiView: UILabel {
 
     private func configureView(isMe: Bool) {
         translatesAutoresizingMaskIntoConstraints = true
-        font = .systemFont(ofSize: MessageRowSizes.messageSingleEmojiViewFontSize)
+        font = .systemFont(ofSize: ConstantSizes.messageSingleEmojiViewFontSize)
         accessibilityIdentifier = "labelUnreadBubbleCell"
         
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageSingleEmojiViewHeight),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageSingleEmojiViewHeight),
         ])
     }
     

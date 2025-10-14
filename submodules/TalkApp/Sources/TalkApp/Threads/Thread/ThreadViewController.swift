@@ -109,6 +109,8 @@ final class ThreadViewController: UIViewController {
     }
 }
 
+extension ThreadViewController: ConversationNavigationProtocol { }
+
 // MARK: Configure Views
 extension ThreadViewController {
     func configureViews() {
@@ -124,9 +126,9 @@ extension ThreadViewController {
         loadingManager.configureLoadings(parent: view, tableView: tableView)
         let vStackOverlayButtonsConstraint: NSLayoutConstraint
         if Language.isRTL {
-            vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: MessageRowSizes.vStackButtonsLeadingMargin)
+            vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: ConstantSizes.vStackButtonsLeadingMargin)
         } else {
-            vStackOverlayButtonsConstraint = vStackOverlayButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -MessageRowSizes.vStackButtonsLeadingMargin)
+            vStackOverlayButtonsConstraint = vStackOverlayButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -ConstantSizes.vStackButtonsLeadingMargin)
         }
         
         sendContainerBottomConstraint = sendContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -470,8 +472,8 @@ extension ThreadViewController {
         let view = SelectConversationOrContactList { [weak self] (conversation, contact) in
             self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
         }
-            .environmentObject(AppState.shared.objectsContainer.threadsVM)
-            .contextMenuContainer()
+            .injectAllObjects()
+            .contextMenuContainer(viewModel: AppState.shared.objectsContainer.contextMenuModel)
         
         let hostVC = UIHostingController(rootView: view)
         hostVC.modalPresentationStyle = .formSheet

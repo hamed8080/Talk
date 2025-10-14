@@ -35,7 +35,7 @@ struct DoubleTapEmojiPickerView: View {
         }
         .padding(.horizontal, 8)
         .background(Color.App.bgPrimary)
-        .normalToolbarView(title: "Settings.DoubleTap.title", innerBack: true, type: DoubleTapEmojiPickerNavigationValue.self)
+        .normalToolbarView(title: "Settings.DoubleTap.title", innerBack: true, type: String.self)
         .onAppear {
             let action = AppSettingsModel.restore().doubleTapAction
             if case .specialEmoji(let sticker) = action {

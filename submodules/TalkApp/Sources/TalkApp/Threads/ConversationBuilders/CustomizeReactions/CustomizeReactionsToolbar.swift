@@ -26,6 +26,8 @@ public final class CustomizeReactionsToolbar: UIView {
     }
 
     private func configure() {
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
         let blurEffect = UIBlurEffect(style: .systemThickMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
         effectView.accessibilityIdentifier = "effectViewTopThreadToolbar"
@@ -37,6 +39,7 @@ public final class CustomizeReactionsToolbar: UIView {
         backButton.imageView.image = UIImage(systemName: "chevron.backward")
         backButton.imageView.tintColor = Color.App.accentUIColor
         backButton.imageView.contentMode = .scaleAspectFit
+        backButton.imageView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         backButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
         backButton.action = { [weak self] in
             (self?.viewModel?.delegate as? UIViewController)?.navigationController?.popViewController(animated: true)
@@ -46,7 +49,7 @@ public final class CustomizeReactionsToolbar: UIView {
 
 
         title.text = "EditGroup.customizedReactions".bundleLocalized()
-        title.textColor = Color.App.textPrimaryUIColor
+        title.textColor = Color.App.accentUIColor
         title.font = UIFont.fSubheadline
         title.translatesAutoresizingMaskIntoConstraints = false
         addSubview(title)

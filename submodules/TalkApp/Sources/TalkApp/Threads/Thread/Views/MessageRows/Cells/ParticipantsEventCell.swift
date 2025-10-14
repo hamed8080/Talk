@@ -13,8 +13,8 @@ import TalkViewModels
 
 final class ParticipantsEventCell: UITableViewCell {
     private let label = PaddingUILabel(frame: .zero,
-                                       horizontal: MessageRowSizes.messageParticipantsEventCellLableHorizontalPadding,
-                                       vertical: MessageRowSizes.messageParticipantsEventCellLableVerticalPadding)
+                                       horizontal: ConstantSizes.messageParticipantsEventCellLableHorizontalPadding,
+                                       vertical: ConstantSizes.messageParticipantsEventCellLableVerticalPadding)
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -30,7 +30,7 @@ final class ParticipantsEventCell: UITableViewCell {
         label.label.font = UIFont.fBody
         label.label.numberOfLines = 0
         label.label.textColor = Color.App.textPrimaryUIColor
-        label.layer.cornerRadius = MessageRowSizes.messageParticipantsEventCellCornerRadius
+        label.layer.cornerRadius = ConstantSizes.messageParticipantsEventCellCornerRadius
         label.layer.masksToBounds = true
         label.label.textAlignment = .center
         label.backgroundColor = .black.withAlphaComponent(0.4)
@@ -40,9 +40,9 @@ final class ParticipantsEventCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 1, constant: -MessageRowSizes.messageParticipantsEventCellWidthRedaction),
-            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: MessageRowSizes.messageParticipantsEventCellMargin),
-            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -MessageRowSizes.messageParticipantsEventCellMargin),
+            label.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, multiplier: 1, constant: -ConstantSizes.messageParticipantsEventCellWidthRedaction),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: ConstantSizes.messageParticipantsEventCellMargin),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -ConstantSizes.messageParticipantsEventCellMargin),
         ])
 
         // Set content compression resistance priority

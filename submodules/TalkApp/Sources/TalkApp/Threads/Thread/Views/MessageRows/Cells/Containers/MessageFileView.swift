@@ -37,11 +37,11 @@ final class MessageFileView: UIStackView {
     }
 
     private func configureView(isMe: Bool) {
-        layoutMargins = .init(top: MessageRowSizes.messageFileViewStackLayoutMarginSize, left: MessageRowSizes.messageFileViewStackLayoutMarginSize, bottom: 0, right: 0)
+        layoutMargins = .init(top: ConstantSizes.messageFileViewStackLayoutMarginSize, left: ConstantSizes.messageFileViewStackLayoutMarginSize, bottom: 0, right: 0)
         isLayoutMarginsRelativeArrangement = true
         axis = .horizontal
         alignment = .top
-        spacing = MessageRowSizes.messageFileViewStackSpacing
+        spacing = ConstantSizes.messageFileViewStackSpacing
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         isOpaque = true
 
@@ -102,9 +102,9 @@ final class MessageFileView: UIStackView {
         addArrangedSubview(vStack)
 
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageFileViewHeight),
-            progressButton.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageFileViewProgressButtonSize),
-            progressButton.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageFileViewProgressButtonSize),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageFileViewHeight),
+            progressButton.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFileViewProgressButtonSize),
+            progressButton.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFileViewProgressButtonSize),
         ])
     }
 

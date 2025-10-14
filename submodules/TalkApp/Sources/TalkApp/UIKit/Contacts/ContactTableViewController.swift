@@ -17,22 +17,26 @@ class ContactTableViewController: UIViewController {
     let viewModel: ContactsViewModel
     private let navBar = ContactsNavigationBar()
     static let resuableIdentifier = "CONTACTROW"
-    
+    static let headerResuableIdentifier = "CONTACTS_TABLE_VIEW_HEADER"
+
     init(viewModel: ContactsViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
         tableView.register(ContactCell.self, forCellReuseIdentifier: ContactTableViewController.resuableIdentifier)
+        tableView.register(ContactsTableViewHeaderCell.self, forCellReuseIdentifier: ContactTableViewController.headerResuableIdentifier)
+        configureViews()
         configureDataSource()
+        
+        /// Force to show loading at start
+        updateUI(animation: true, reloadSections: true)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-       
+    private func configureViews() {
         view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -43,13 +47,7 @@ class ContactTableViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.sectionHeaderTopPadding = 0
-        
-        let header = ContactsTableViewHeader()
-        header.startLoading()
-        header.viewController = self
-        header.translatesAutoresizingMaskIntoConstraints = false
-        tableView.tableHeaderView = header
-        
+    
         view.addSubview(tableView)
         
         /// Toolbar
@@ -62,24 +60,16 @@ class ContactTableViewController: UIViewController {
             navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
-            header.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
-            header.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
-            header.widthAnchor.constraint(equalTo: tableView.widthAnchor),
-            header.heightAnchor.constraint(equalToConstant: 140),
-            
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.contentInset = .init(top: navBar.frame.height + view.safeAreaInsets.top,
+        tableView.contentInset = .init(top: 52 + view.safeAreaInsets.top,
                                        left: 0,
-                                       bottom: 52 + view.safeAreaInsets.bottom,
+                                       bottom: ConstantSizes.bottomToolbarSize + view.safeAreaInsets.bottom,
                                        right: 0)
+        tableView.scrollIndicatorInsets = tableView.contentInset
     }
 }
 
@@ -88,6 +78,21 @@ extension ContactTableViewController {
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, contact) -> UITableViewCell? in
             guard let self = self else { return nil }
+            if indexPath.section == ContactListSection.header.rawValue {
+                let cell = tableView.dequeueReusableCell(
+                    withIdentifier: ContactTableViewController.headerResuableIdentifier,
+                    for: indexPath
+                ) as? ContactsTableViewHeaderCell
+                
+                if viewModel.contacts.isEmpty {
+                    cell?.startLoading()
+                } else {
+                    cell?.removeLoading()
+                }
+                cell?.viewController = self
+                
+                return cell
+            }
             let cell = tableView.dequeueReusableCell(
                 withIdentifier: ContactTableViewController.resuableIdentifier,
                 for: indexPath
@@ -103,16 +108,20 @@ extension ContactTableViewController {
 
 extension ContactTableViewController: UIContactsViewControllerDelegate {
     func updateUI(animation: Bool, reloadSections: Bool) {
-        (tableView.tableHeaderView as? ContactsTableViewHeader)?.removeLoading()
-        
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
         
         /// Configure
-        snapshot.appendSections([.main])
+        snapshot.appendSections([.header, .main])
+        snapshot.appendItems([Contact(id: -1)], toSection: .header)
         snapshot.appendItems(list, toSection: .main)
         if reloadSections {
-            snapshot.reloadSections([.main])
+            snapshot.reloadSections([.header, .main])
+        }
+        
+        /// Force to reload header section to stop the loading
+        if !reloadSections && !viewModel.contacts.isEmpty {
+            snapshot.reloadSections([.header])
         }
         
         /// Apply
@@ -177,9 +186,18 @@ extension ContactTableViewController: UITableViewDelegate {
         let config = UISwipeActionsConfiguration(actions: [editAction, blockAction, deleteAction])
         return config
     }
+    
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
         viewModel.loadMore(id: contact.id)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.section == ContactListSection.header.rawValue {
+            return 140
+        } else {
+            return 96
+        }
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -217,8 +235,7 @@ extension ContactTableViewController {
         
         if #available(iOS 16.4, *) {
             let rootView = AddOrEditContactView()
-                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-                .environmentObject(viewModel)
+                .injectAllObjects()
                 .onDisappear { [weak self] in
                     guard let self = self else { return }
                     /// Clearing the view for when the user cancels the sheet by dropping it down.

@@ -81,7 +81,7 @@ struct AutomaticDownloadSettings: View {
         .font(.fSubheadline)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .normalToolbarView(title: "Settings.download", type: AutomaticDownloadsNavigationValue.self)
+        .normalToolbarView(title: "Settings.download", type: String.self)
         .onChange(of: model) { _ in
             model.save()
         }

@@ -49,7 +49,8 @@ public final class ConversationSubtitleViewModel {
     }
     
     private func getParticipantsCountOrLastSeen() -> String? {
-        let threadsItem = viewModel?.threadsViewModel?.threads.first(where: {$0.id == thread?.id})
+        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        let threadsItem = threadsVM.threads.first(where: {$0.id == thread?.id})
         let count = thread?.participantCount ?? threadsItem?.participantCount ?? 0
         if thread?.group == true, let participantsCount = count.localNumber(locale: Language.preferredLocale) {
             let localizedLabel = "Thread.Toolbar.participants".bundleLocalized()

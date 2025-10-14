@@ -27,7 +27,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     func setEvent(smt: SMT?, conversation: CalculatedConversation)
     func indexPath<T: UITableViewCell>(for: T) -> IndexPath?
     func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation?
-    func scrollToTop()
+    func scrollToFirstIndex()
     var contextMenuContainer: ContextMenuContainerView? { get set }
     func createThreadViewController(conversation: Conversation) -> UIViewController
 }
@@ -261,8 +261,8 @@ public final class ThreadsViewModel: ObservableObject {
     
     private func moveToTopIfWasDisconnected(topItemId: Int?) {
         if wasDisconnected {
-            /// scroll To first if we were way down in the list to show correct row
-            delegate?.scrollToTop()
+            /// Scroll To the first index if we were way down in the list to show correct row
+            delegate?.scrollToFirstIndex()
         }
     }
     
@@ -657,8 +657,8 @@ public final class ThreadsViewModel: ObservableObject {
             /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
             let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
-                vm?.viewModel.thread = thread.toStruct()
-                vm?.viewModel.historyVM.updateThread(conversation: thread.toStruct())
+                vm?.viewModel?.thread = thread.toStruct()
+                vm?.viewModel?.historyVM.updateThread(conversation: thread.toStruct())
             }
         }
     }

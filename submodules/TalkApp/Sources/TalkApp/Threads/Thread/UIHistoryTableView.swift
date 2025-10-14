@@ -36,7 +36,7 @@ class UIHistoryTableView: UITableView {
         delegate = self
         dataSource = self
         estimatedRowHeight = 128
-        sectionHeaderHeight = MessageRowSizes.sectionHeaderViewHeight
+        sectionHeaderHeight = ConstantSizes.sectionHeaderViewHeight
         rowHeight = UITableView.automaticDimension
         tableFooterView = UIView()
         separatorStyle = .none

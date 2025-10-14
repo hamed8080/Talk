@@ -19,21 +19,22 @@ class ThreadsTableViewController: UIViewController {
     static let resuableIdentifier = "CONCERSATION-ROW"
     public var contextMenuContainer: ContextMenuContainerView?
     private let threadsToolbar = ThreadsTopToolbarView()
+    private var searchListVC: UIViewController? = nil
     
     init(viewModel: ThreadsViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
         tableView.register(ConversationCell.self, forCellReuseIdentifier: ThreadsTableViewController.resuableIdentifier)
+        configureView()
+        configureDataSource()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
+    private func configureView() {
         view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -51,8 +52,14 @@ class ThreadsTableViewController: UIViewController {
         
         /// Toolbar
         threadsToolbar.translatesAutoresizingMaskIntoConstraints = false
+        threadsToolbar.onSearchChanged = { [weak self] isInSearchMode in
+            Task { @MainActor [weak self] in
+                self?.configureUISearchListView(show: isInSearchMode)
+            }
+        }
         view.addSubview(threadsToolbar)
-        tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth, left: 0, bottom: 0, right: 0)
+        tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth, left: 0, bottom: ConstantSizes.bottomToolbarSize, right: 0)
+        tableView.scrollIndicatorInsets = tableView.contentInset
         
         NSLayoutConstraint.activate([
             /// Toolbar
@@ -61,21 +68,15 @@ class ThreadsTableViewController: UIViewController {
             threadsToolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-        configureDataSource()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         contextMenuContainer = .init(delegate: self)
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.contentInset.top = threadsToolbar.frame.height
     }
 }
 
@@ -157,8 +158,10 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
         dataSource?.itemIdentifier(for: indexPath)
     }
     
-    func scrollToTop() {
-        tableView.setContentOffset(.zero, animated: true)
+    func scrollToFirstIndex() {
+        guard !viewModel.threads.isEmpty && tableView.numberOfRows(inSection: 0) > 0 else { return }
+        let indexPath = IndexPath(row: 0, section: 0)
+        tableView.scrollToRow(at: indexPath, at: .top, animated: true)
     }
     
     func createThreadViewController(conversation: Conversation) -> UIViewController {
@@ -255,13 +258,34 @@ extension ThreadsTableViewController: UITableViewDelegate {
     }
 }
 
-struct ThreadsTableViewControllerWrapper: UIViewControllerRepresentable {
-    let viewModel: ThreadsViewModel
-    
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = ThreadsTableViewController(viewModel: viewModel)
-        return vc
+/// Search UI configuration
+extension ThreadsTableViewController {
+    private func configureUISearchListView(show: Bool) {
+        if show {
+            let rootView = ThreadSearchView().injectAllObjects()
+            let searchListVC = UIHostingController(rootView: rootView)
+            searchListVC.view.translatesAutoresizingMaskIntoConstraints = false
+            searchListVC.view.backgroundColor = Color.App.bgPrimaryUIColor
+            self.searchListVC = searchListVC
+            
+            // Embed properly in UIKit hierarchy
+            addChild(searchListVC)
+            view.addSubview(searchListVC.view)
+            searchListVC.didMove(toParent: self)
+            
+            NSLayoutConstraint.activate([
+                searchListVC.view.topAnchor.constraint(equalTo: view.topAnchor, constant: threadsToolbar.frame.maxY),
+                searchListVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                searchListVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                searchListVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
+            
+            view.bringSubviewToFront(threadsToolbar)
+        } else {
+            searchListVC?.willMove(toParent: nil)
+            searchListVC?.view.removeFromSuperview()
+            searchListVC?.removeFromParent()
+            searchListVC = nil
+        }
     }
-    
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 }

@@ -46,7 +46,7 @@ final class UnsentMessageView: UIView {
             btnCancel.leadingAnchor.constraint(equalTo: leadingAnchor),
             btnCancel.topAnchor.constraint(equalTo: topAnchor),
             btnResend.topAnchor.constraint(equalTo: topAnchor),
-            btnResend.leadingAnchor.constraint(equalTo: btnCancel.trailingAnchor, constant: MessageRowSizes.unsentMessageViewBtnResendLeading),
+            btnResend.leadingAnchor.constraint(equalTo: btnCancel.trailingAnchor, constant: ConstantSizes.unsentMessageViewBtnResendLeading),
         ])
     }
 
@@ -55,7 +55,7 @@ final class UnsentMessageView: UIView {
         let canShow = viewModel.message.isUnsentMessage
         btnCancel.setIsHidden(!canShow)
         btnResend.setIsHidden(!canShow)
-        heightConstraint?.constant = canShow ? MessageRowSizes.unsentMessageViewHeight : 0
+        heightConstraint?.constant = canShow ? ConstantSizes.unsentMessageViewHeight : 0
     }
 }
 

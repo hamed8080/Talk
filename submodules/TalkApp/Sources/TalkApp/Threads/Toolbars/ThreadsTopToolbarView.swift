@@ -14,10 +14,10 @@ import Combine
 import Chat
 
 @MainActor
-public class ThreadsTopToolbarView: UIView {
+public class ThreadsTopToolbarView: UIStackView {
     /// Views
     private let plusButton = UIImageButton(imagePadding: .init(all: 12))
-    private let logoImageView =  UIImageButton(imagePadding: .init(all: 16))
+    private let logoImageView =  UIImageButton(imagePadding: .init(top: 12, left: 12, bottom: 12, right: -14))
     private let connectionStatusLabel = UILabel()
     private let uploadsButton = UIImageButton(imagePadding: .init(all: 12))
     private let downloadsButton = UIImageButton(imagePadding: .init(all: 12))
@@ -25,19 +25,14 @@ public class ThreadsTopToolbarView: UIView {
     private let searchTextField = UITextField()
     private let filterUnreadMessagesButton = UIImageButton(imagePadding: .init(all: 12))
     private let player = ThreadNavigationPlayer(viewModel: nil)
-    private var searchListVC: UIViewController? = nil
+    private let topRowStack = UIStackView()
+    private let searchRowStack = UIStackView()
     
     /// Models
     private var cancellableSet = Set<AnyCancellable>()
     private var isInSearchMode: Bool = false
     private var isFilterNewMessages: Bool = false
-
-    /// Constraints
-    private var playerHeightConstraint: NSLayoutConstraint?
-    private var serachTextFieldHeightConstraint: NSLayoutConstraint?
-    private var filterUnreadHeightConstraint: NSLayoutConstraint?
-    private var downloadsButtonWidthConstraint: NSLayoutConstraint?
-    private var uploadsButtonWidthConstraint: NSLayoutConstraint?
+    var onSearchChanged: (@Sendable (Bool) -> Void)?
 
     init() {
         super.init(frame: .zero)
@@ -52,6 +47,8 @@ public class ThreadsTopToolbarView: UIView {
     public func configureViews() {
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         translatesAutoresizingMaskIntoConstraints = false
+        axis = .vertical
+        spacing = 0
         
         let blurEffect = UIBlurEffect(style: .systemThickMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
@@ -71,15 +68,13 @@ public class ThreadsTopToolbarView: UIView {
         plusButton.action = { [weak self] in
             self?.onPlusTapped()
         }
-        addSubview(plusButton)
         
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.imageView.image = UIImage(named: Language.isRTL ? "talk_logo_text" : "talk_logo_text_en")
-        logoImageView.imageView.contentMode  = .scaleAspectFill
+        logoImageView.imageView.contentMode  = .scaleAspectFit
         logoImageView.accessibilityIdentifier = "logoImageViewThreadsTopToolbarView"
         logoImageView.isUserInteractionEnabled = false
-        addSubview(logoImageView)
         
         connectionStatusLabel.translatesAutoresizingMaskIntoConstraints = false
         connectionStatusLabel.text = ""
@@ -87,7 +82,6 @@ public class ThreadsTopToolbarView: UIView {
         connectionStatusLabel.textColor = Color.App.toolbarSecondaryTextUIColor
         connectionStatusLabel.textAlignment = Language.isRTL ? .right : .left
         connectionStatusLabel.accessibilityIdentifier = "connectionStatusLabelThreadsTopToolbarView"
-        addSubview(connectionStatusLabel)
         
         searchButton.translatesAutoresizingMaskIntoConstraints = false
         searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
@@ -97,7 +91,6 @@ public class ThreadsTopToolbarView: UIView {
         searchButton.action = { [weak self] in
             self?.onSearchTapped()
         }
-        addSubview(searchButton)
         
         downloadsButton.translatesAutoresizingMaskIntoConstraints = false
         downloadsButton.imageView.image = UIImage(systemName: downloadIconNameCompatible)
@@ -109,7 +102,6 @@ public class ThreadsTopToolbarView: UIView {
         downloadsButton.action = { [weak self] in
             self?.onDownloadsTapped()
         }
-        addSubview(downloadsButton)
         
         uploadsButton.translatesAutoresizingMaskIntoConstraints = false
         uploadsButton.imageView.image = UIImage(systemName: uploadIconNameCompatible)
@@ -121,7 +113,18 @@ public class ThreadsTopToolbarView: UIView {
         uploadsButton.action = { [weak self] in
             self?.onUploadsTapped()
         }
-        addSubview(uploadsButton)
+        
+        topRowStack.axis = .horizontal
+        topRowStack.alignment = .center
+        topRowStack.distribution = .fill
+        topRowStack.spacing = 4
+        topRowStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        topRowStack.addArrangedSubview(plusButton)
+        topRowStack.addArrangedSubview(logoImageView)
+        topRowStack.addArrangedSubview(connectionStatusLabel)
+        topRowStack.addArrangedSubview(uploadsButton)
+        topRowStack.addArrangedSubview(downloadsButton)
+        topRowStack.addArrangedSubview(searchButton)
    
         filterUnreadMessagesButton.translatesAutoresizingMaskIntoConstraints = false
         filterUnreadMessagesButton.imageView.image = UIImage(systemName: "envelope.badge")
@@ -131,13 +134,12 @@ public class ThreadsTopToolbarView: UIView {
         filterUnreadMessagesButton.action = { [weak self] in
             self?.onFilterMessagesTapped()
         }
-        addSubview(filterUnreadMessagesButton)
         
         searchTextField.translatesAutoresizingMaskIntoConstraints = false
         searchTextField.delegate = self
         searchTextField.placeholder = "General.searchHere".bundleLocalized()
         searchTextField.layer.backgroundColor = Color.App.bgSendInputUIColor?.withAlphaComponent(0.8).cgColor
-        searchTextField.layer.cornerRadius = 12
+        searchTextField.layer.cornerRadius = 16
         searchTextField.layer.masksToBounds = true
         searchTextField.font = UIFont.fBody
         searchTextField.textAlignment = Language.isRTL ? .right : .left
@@ -146,105 +148,54 @@ public class ThreadsTopToolbarView: UIView {
         searchTextField.leftViewMode = .always
         searchTextField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
         searchTextField.rightViewMode = .always
-        addSubview(searchTextField)
+        
+        searchRowStack.translatesAutoresizingMaskIntoConstraints = false
+        searchRowStack.axis = .horizontal
+        searchRowStack.distribution = .fill
+        searchRowStack.alignment = .center
+        searchRowStack.layoutMargins = .init(top: 8, left: 0, bottom: 8, right: 8)
+        searchRowStack.isLayoutMarginsRelativeArrangement = true
+        searchRowStack.addArrangedSubview(filterUnreadMessagesButton)
+        searchRowStack.addArrangedSubview(searchTextField)
         
         player.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(player)
+       
+        addArrangedSubview(topRowStack)
+        addArrangedSubview(searchRowStack)
+        addArrangedSubview(player)
 
         NSLayoutConstraint.activate([
-            bottomAnchor.constraint(equalTo: player.bottomAnchor),
             
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
             effectView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
-            effectView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 4),
+            effectView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
             
-            plusButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
-            plusButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             plusButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             plusButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            logoImageView.leadingAnchor.constraint(equalTo: plusButton.trailingAnchor, constant: -16),
-            logoImageView.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            logoImageView.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth - 4),
-            logoImageView.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth - 4),
+            logoImageView.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth - 10),
+            logoImageView.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth - 10),
             
-            connectionStatusLabel.leadingAnchor.constraint(equalTo: logoImageView.trailingAnchor, constant: 4),
-            connectionStatusLabel.trailingAnchor.constraint(equalTo: uploadsButton.leadingAnchor, constant: -4),
-            connectionStatusLabel.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             connectionStatusLabel.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            searchButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             searchButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             searchButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            downloadsButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -4),
-            downloadsButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             downloadsButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            downloadsButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            uploadsButton.trailingAnchor.constraint(equalTo: downloadsButton.leadingAnchor, constant: -4),
-            uploadsButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             uploadsButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            uploadsButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            filterUnreadMessagesButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            filterUnreadMessagesButton.centerYAnchor.constraint(equalTo: searchTextField.centerYAnchor, constant: 0),
+            searchTextField.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            
             filterUnreadMessagesButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
-            
-            searchTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            searchTextField.trailingAnchor.constraint(equalTo: filterUnreadMessagesButton.leadingAnchor, constant: -8),
-            searchTextField.topAnchor.constraint(equalTo: searchButton.bottomAnchor, constant: 0),
-            
-            player.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
-            player.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            player.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 0),
+            filterUnreadMessagesButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
         ])
         
-        downloadsButtonWidthConstraint = downloadsButton.widthAnchor.constraint(equalToConstant: 0)
-        downloadsButtonWidthConstraint?.isActive = true
-        
-        uploadsButtonWidthConstraint = uploadsButton.widthAnchor.constraint(equalToConstant: 0)
-        uploadsButtonWidthConstraint?.isActive = true
-        
-        playerHeightConstraint = player.heightAnchor.constraint(equalToConstant: 0)
-        playerHeightConstraint?.isActive = true
         player.isHidden = true
-        
-        serachTextFieldHeightConstraint = searchTextField.heightAnchor.constraint(equalToConstant: 0)
-        serachTextFieldHeightConstraint?.isActive = true
-        searchTextField.isHidden = true
-        
-        filterUnreadHeightConstraint = filterUnreadMessagesButton.heightAnchor.constraint(equalToConstant: 0)
-        filterUnreadHeightConstraint?.isActive = true
-        filterUnreadMessagesButton.isHidden = true
-    }
-    
-    private func configureUISearchListView(show: Bool) {
-        if show {
-            let obj = AppState.shared.objectsContainer!
-            let rootView = ThreadSearchView()
-                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-                .environmentObject(obj.searchVM)
-                .environmentObject(obj.contactsVM)
-                .environmentObject(obj.threadsVM)
-            let searchListVC = UIHostingController(rootView: rootView)
-            searchListVC.view.translatesAutoresizingMaskIntoConstraints = false
-            searchListVC.view.backgroundColor = Color.App.bgPrimaryUIColor
-            self.searchListVC = searchListVC
-            addSubview(searchListVC.view)
-            
-            let height = (obj.threadsVM.delegate as? UIViewController)?.view.frame.height ?? 0
-            
-            NSLayoutConstraint.activate([
-                searchListVC.view.topAnchor.constraint(equalTo: searchTextField.bottomAnchor),
-                searchListVC.view.heightAnchor.constraint(equalToConstant: height),
-                searchListVC.view.widthAnchor.constraint(equalTo: widthAnchor),
-                searchListVC.view.leadingAnchor.constraint(equalTo: leadingAnchor),
-            ])
-        } else {
-            self.searchListVC?.view.removeFromSuperview()
-            self.searchListVC = nil
-        }
+        searchRowStack.isHidden = true
     }
 
     private func registerObservers() {
@@ -255,7 +206,6 @@ public class ThreadsTopToolbarView: UIView {
         
         AppState.shared.objectsContainer.downloadsManager.$elements.sink { [weak self] newValue in
             guard let self = self else { return }
-            downloadsButtonWidthConstraint?.constant = newValue.isEmpty ? 0 : ToolbarButtonItem.buttonWidth
             downloadsButton.isHidden = newValue.isEmpty
             downloadsButton.isUserInteractionEnabled = !newValue.isEmpty
         }
@@ -263,7 +213,6 @@ public class ThreadsTopToolbarView: UIView {
         
         AppState.shared.objectsContainer.uploadsManager.$elements.sink { [weak self] newValue in
             guard let self = self else { return }
-            uploadsButtonWidthConstraint?.constant = newValue.isEmpty ? 0 : ToolbarButtonItem.buttonWidth
             uploadsButton.isHidden = newValue.isEmpty
             uploadsButton.isUserInteractionEnabled = !newValue.isEmpty
         }
@@ -293,14 +242,13 @@ public class ThreadsTopToolbarView: UIView {
     private func onSearchTapped() {
         isInSearchMode.toggle()
         searchButton.imageView.image = UIImage(systemName: isInSearchMode ? "xmark" : "magnifyingglass")
-        serachTextFieldHeightConstraint?.constant = isInSearchMode ? ToolbarButtonItem.buttonWidth - 12 : 0
+        searchRowStack.isHidden = !isInSearchMode
         searchTextField.isHidden = !isInSearchMode
         searchTextField.isUserInteractionEnabled = isInSearchMode
         isInSearchMode ? searchTextField.becomeFirstResponder() : searchTextField.resignFirstResponder()
         filterUnreadMessagesButton.isUserInteractionEnabled = isInSearchMode
         filterUnreadMessagesButton.isHidden = !isInSearchMode
-        filterUnreadHeightConstraint?.constant = isInSearchMode ? ToolbarButtonItem.buttonWidth : 0
-        configureUISearchListView(show: isInSearchMode)
+        onSearchChanged?(isInSearchMode)
     }
     
     private func onSearchTextChanged(newValue: String) {
@@ -341,9 +289,9 @@ public class ThreadsTopToolbarView: UIView {
     }
     
     private func onPlayerItemChanged(_ item: AVAudioPlayerItem?) {
-        playerHeightConstraint?.constant = item == nil ? 0 : ToolbarButtonItem.buttonWidth
-        player.isHidden = item == nil
-        player.isUserInteractionEnabled = item != nil
+        let shouldShow = item != nil
+        player.isHidden = !shouldShow
+        player.isUserInteractionEnabled = shouldShow
     }
 }
 

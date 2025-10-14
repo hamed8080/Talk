@@ -40,7 +40,7 @@ struct LogView: View {
             .padding(4)
             .background(MixMaterialBackground(color: Color.App.bgToolbar).ignoresSafeArea())
         }
-        .normalToolbarView(title: "Logs.title", type: LogNavigationValue.self, trailingView: EmptyView())
+        .normalToolbarView(title: "Logs.title", type: String.self, trailingView: EmptyView())
         .sheet(isPresented: $viewModel.shareDownloadedFile) {
             if let logFileURL = viewModel.logFileURL {
                 ActivityViewControllerWrapper(activityItems: [logFileURL], title: logFileURL.lastPathComponent)

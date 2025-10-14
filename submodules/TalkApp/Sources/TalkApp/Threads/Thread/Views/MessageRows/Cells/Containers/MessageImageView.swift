@@ -42,7 +42,7 @@ final class MessageImageView: UIImageView {
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = Color.App.bgPrimaryUIColor?.withAlphaComponent(0.5)
-        layer.cornerRadius = MessageRowSizes.messageImageViewCornerRadius
+        layer.cornerRadius = ConstantSizes.messageImageViewCornerRadius
         layer.masksToBounds = true
         contentMode = .scaleAspectFit
         setContentHuggingPriority(.required, for: .horizontal)
@@ -70,13 +70,13 @@ final class MessageImageView: UIImageView {
 
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
-        stack.spacing = MessageRowSizes.messageImageViewStackSpacing
+        stack.spacing = ConstantSizes.messageImageViewStackSpacing
         stack.addArrangedSubview(progressView)
         stack.addArrangedSubview(fileSizeLabel)
         stack.backgroundColor = .white.withAlphaComponent(0.2)
-        stack.layoutMargins = .init(horizontal: MessageRowSizes.messageImageViewStackLayoutMarginSize, vertical: MessageRowSizes.messageImageViewStackLayoutMarginSize)
+        stack.layoutMargins = .init(horizontal: ConstantSizes.messageImageViewStackLayoutMarginSize, vertical: ConstantSizes.messageImageViewStackLayoutMarginSize)
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.layer.cornerRadius = MessageRowSizes.messageImageViewStackCornerRadius
+        stack.layer.cornerRadius = ConstantSizes.messageImageViewStackCornerRadius
         stack.isUserInteractionEnabled = false
         stack.accessibilityIdentifier = "stackMessageImageView"
 
@@ -92,8 +92,8 @@ final class MessageImageView: UIImageView {
         NSLayoutConstraint.activate([
             widthConstraint,
             heightConstraint,
-            progressView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageImageViewProgessSize),
-            progressView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageImageViewProgessSize),
+            progressView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageImageViewProgessSize),
+            progressView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageImageViewProgessSize),
         ])
     }
 

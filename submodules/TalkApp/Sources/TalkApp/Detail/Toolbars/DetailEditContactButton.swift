@@ -16,6 +16,7 @@ struct DetailEditContactButton: View {
         if viewModel.partnerContact != nil {
             NavigationLink {
                 EditContactInParticipantDetailView()
+                    .injectAllObjects()
                     .environmentObject(viewModel)
                     .background(Color.App.bgSecondary)
                     .navigationBarBackButtonHidden(true)

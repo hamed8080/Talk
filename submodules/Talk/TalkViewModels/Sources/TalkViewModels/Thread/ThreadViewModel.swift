@@ -44,7 +44,6 @@ public final class ThreadViewModel: ObservableObject {
     public var avatarManager: ThreadAvatarManager = .init()
     public var conversationSubtitle: ConversationSubtitleViewModel = .init()
     private lazy var signalEmitter: ThreadSystemEventEmiter = { ThreadSystemEventEmiter(threadId: thread.id ?? -1) }()
-    public weak var threadsViewModel: ThreadsViewModel?
     public var readOnly = false
     private var cancelable: Set<AnyCancellable> = []
     public var signalMessageText: String?
@@ -59,7 +58,7 @@ public final class ThreadViewModel: ObservableObject {
 
     // MARK: Computed Properties
     public var id: Int
-    public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel.id == id }
+    public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == id }
     public var isSimulatedThared: Bool {
         AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
@@ -74,14 +73,14 @@ public final class ThreadViewModel: ObservableObject {
     
     nonisolated static func setMaxAllowedWidth() {
         
-        let paddingsAndAvatar = (MessageRowSizes.beforeContainerLeading
-        + MessageRowSizes.messageAvatarBeforeLeading
-        + MessageRowSizes.messageAvatarViewSize
-        + MessageRowSizes.messageAvatarAfterTrailing
-        + MessageRowSizes.messageContainerStackViewMargin
-        + MessageRowSizes.messageContainerStackViewMargin
-        + MessageRowSizes.messagebaseCellTrailingSpaceForShowingMoveToBottom
-        + MessageRowSizes.vStackButtonsLeadingMargin
+        let paddingsAndAvatar = (ConstantSizes.beforeContainerLeading
+        + ConstantSizes.messageAvatarBeforeLeading
+        + ConstantSizes.messageAvatarViewSize
+        + ConstantSizes.messageAvatarAfterTrailing
+        + ConstantSizes.messageContainerStackViewMargin
+        + ConstantSizes.messageContainerStackViewMargin
+        + ConstantSizes.messagebaseCellTrailingSpaceForShowingMoveToBottom
+        + ConstantSizes.vStackButtonsLeadingMargin
         )
         
         maxAllowedWidth = min(400, ThreadViewModel.threadWidth - paddingsAndAvatar)
@@ -89,20 +88,19 @@ public final class ThreadViewModel: ObservableObject {
     
     nonisolated static func setMaxAllowedWidthIsMe() {
         
-        let paddingsAndAvatar = (MessageRowSizes.beforeContainerLeading
-        + MessageRowSizes.messageContainerStackViewMargin
-        + MessageRowSizes.messageContainerStackViewMargin
-        + MessageRowSizes.messagebaseCellTrailingSpaceForShowingMoveToBottom
-        + MessageRowSizes.vStackButtonsLeadingMargin
+        let paddingsAndAvatar = (ConstantSizes.beforeContainerLeading
+        + ConstantSizes.messageContainerStackViewMargin
+        + ConstantSizes.messageContainerStackViewMargin
+        + ConstantSizes.messagebaseCellTrailingSpaceForShowingMoveToBottom
+        + ConstantSizes.vStackButtonsLeadingMargin
         )
         
         maxAllowedWidthIsMe = min(400, ThreadViewModel.threadWidth - paddingsAndAvatar)
     }
 
     // MARK: Initializer
-    public init(thread: Conversation, readOnly: Bool = false, threadsViewModel: ThreadsViewModel? = nil) {
+    public init(thread: Conversation, readOnly: Bool = false) {
         self.id = thread.id ?? -1
-        self.threadsViewModel = threadsViewModel
         self.thread = thread
         self.readOnly = readOnly
         setup()

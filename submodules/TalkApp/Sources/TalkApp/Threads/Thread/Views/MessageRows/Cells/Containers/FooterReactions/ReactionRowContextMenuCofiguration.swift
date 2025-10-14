@@ -23,7 +23,7 @@ public class ReactionRowContextMenuCofiguration {
         guard let viewModel = viewModel else { return nil }
         let targetedView = UIPreviewTarget(container: view, center: view.center)
         let isDark = view.traitCollection.userInterfaceStyle == .dark
-        let rowCountWithTabView = RowCountWithTabViewContxtMenu(viewModel, row, isDark)
+        let rowCountWithTabView = RowCountWithTabViewContxtMenu(viewModel, row, isDark).injectAllObjects()
         let vc = hostVC(rootView: rowCountWithTabView)
         return UITargetedPreview(view: vc.view, parameters: params, target: targetedView)
     }

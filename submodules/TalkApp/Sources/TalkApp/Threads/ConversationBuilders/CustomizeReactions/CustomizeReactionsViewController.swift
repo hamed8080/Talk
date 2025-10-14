@@ -44,6 +44,7 @@ final class CustomizeReactionsViewController: UIViewController {
 
     public func configure() {
         view.backgroundColor = Color.App.bgPrimaryUIColor
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         initializeSections()
         configureCollectionView()
         setupDataSource()

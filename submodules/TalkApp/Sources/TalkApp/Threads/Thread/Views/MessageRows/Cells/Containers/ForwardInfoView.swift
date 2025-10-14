@@ -34,7 +34,7 @@ final class ForwardInfoView: UIView {
     private func configureView(isMe: Bool) {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = Color.App.bgPrimaryUIColor?.withAlphaComponent(0.5)
-        layer.cornerRadius = MessageRowSizes.messageForwardInfoViewStackCornerRadius
+        layer.cornerRadius = ConstantSizes.messageForwardInfoViewStackCornerRadius
         layer.masksToBounds = true
         backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
@@ -64,7 +64,7 @@ final class ForwardInfoView: UIView {
 
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.backgroundColor = Color.App.accentUIColor
-        bar.layer.cornerRadius = MessageRowSizes.messageForwardInfoViewBarWidth / 2
+        bar.layer.cornerRadius = ConstantSizes.messageForwardInfoViewBarWidth / 2
         bar.layer.masksToBounds = true
         bar.accessibilityIdentifier = "barForwardInfoView"
         bar.setContentHuggingPriority(.required, for: .horizontal)
@@ -77,21 +77,21 @@ final class ForwardInfoView: UIView {
         addGestureRecognizer(tap)
 
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageForwardInfoViewHeight),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageForwardInfoViewHeight),
             
-            bar.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageForwardInfoViewBarWidth),
-            bar.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageForwardInfoViewMargin),
-            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageForwardInfoViewMargin),
-            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageForwardInfoViewBarMargin),
+            bar.widthAnchor.constraint(equalToConstant: ConstantSizes.messageForwardInfoViewBarWidth),
+            bar.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageForwardInfoViewMargin),
+            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ConstantSizes.messageForwardInfoViewMargin),
+            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ConstantSizes.messageForwardInfoViewBarMargin),
 
-            forwardStaticLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: MessageRowSizes.messageForwardInfoViewMargin),
-            forwardStaticLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageForwardInfoViewMargin),
-            forwardStaticLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageForwardInfoViewMargin),
+            forwardStaticLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ConstantSizes.messageForwardInfoViewMargin),
+            forwardStaticLabel.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageForwardInfoViewMargin),
+            forwardStaticLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageForwardInfoViewMargin),
 
-            participantLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: MessageRowSizes.messageForwardInfoViewMargin),
-            participantLabel.topAnchor.constraint(equalTo: forwardStaticLabel.bottomAnchor, constant: MessageRowSizes.messageForwardInfoViewVerticalSpacing),
-            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageForwardInfoViewMargin),
-            participantLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageForwardInfoViewMargin)
+            participantLabel.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ConstantSizes.messageForwardInfoViewMargin),
+            participantLabel.topAnchor.constraint(equalTo: forwardStaticLabel.bottomAnchor, constant: ConstantSizes.messageForwardInfoViewVerticalSpacing),
+            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageForwardInfoViewMargin),
+            participantLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ConstantSizes.messageForwardInfoViewMargin)
         ])
     }
 

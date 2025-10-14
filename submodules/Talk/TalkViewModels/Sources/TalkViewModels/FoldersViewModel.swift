@@ -20,7 +20,6 @@ public final class FoldersViewModel: ObservableObject {
     private(set) var hasNext: Bool = true
     public var isLoading = false
     private var canLoadMore: Bool { hasNext && !isLoading }
-    private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     public var selectedFolder: Tag?
     public var threads: ContiguousArray<Conversation> = []
     private var objectId = UUID().uuidString

@@ -357,7 +357,7 @@ public final class ThreadSendMessageViewModel {
         guard let conversationId = conversation.id else { return }
         let navVM = AppState.shared.objectsContainer.navVM
         
-        if navVM.presentedThreadViewModel?.viewModel.id == LocalId.emptyThread.rawValue {
+        if navVM.presentedThreadViewModel?.threadId == LocalId.emptyThread.rawValue {
             viewModel?.thread.id = conversationId
             viewModel?.id = conversationId
             viewModel?.historyVM.updateThreadId(id: conversationId)

@@ -52,6 +52,6 @@ public final class MuteChannelBarView: UIView {
 
     @objc private func muteTapped(_ sender: UIButton) {
         guard let viewModel = viewModel else { return }
-        viewModel.threadsViewModel?.toggleMute(viewModel.thread)
+        AppState.shared.objectsContainer.threadsVM.toggleMute(viewModel.thread)
     }
 }

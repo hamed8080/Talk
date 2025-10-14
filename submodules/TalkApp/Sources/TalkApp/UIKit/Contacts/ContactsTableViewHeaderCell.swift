@@ -1,5 +1,5 @@
 //
-//  ContactCell.swift
+//  ContactsTableViewHeaderCell.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 9/23/21.
@@ -11,24 +11,31 @@ import SwiftUI
 import Combine
 import TalkUI
 
-class ContactsTableViewHeader: UIView {
+class ContactsTableViewHeaderCell: UITableViewCell {
     weak var viewController: UIViewController?
     private let stack = UIStackView()
     private var cancellable: AnyCancellable?
     private let loadingView = UILoadingView()
     private let loadingContainer = UIView()
     
-    init() {
-        super.init(frame: .zero)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         configureView()
     }
-    
-    required init(coder: NSCoder) {
+
+    required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     private func configureView() {
+        /// Background color once is selected or tapped
+        selectionStyle = .none
+        
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        translatesAutoresizingMaskIntoConstraints = true
+        contentView.backgroundColor = .clear
+        backgroundColor = .clear
         
         stack.axis = .vertical
         stack.alignment = .leading
@@ -48,6 +55,8 @@ class ContactsTableViewHeader: UIView {
         addSubview(stack)
         
         NSLayoutConstraint.activate([
+            heightAnchor.constraint(equalToConstant: 140),
+            
             loadingContainer.widthAnchor.constraint(equalTo: widthAnchor),
             loadingContainer.heightAnchor.constraint(equalToConstant: 36),
             
@@ -103,7 +112,6 @@ class ContactsTableViewHeader: UIView {
     }
     
     @objc private func onCreateContact() {
-        let viewModel = AppState.shared.objectsContainer.contactsVM
         if #available(iOS 16.4, *) {
             let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
             let isDarkModeStorage = AppSettingsModel.restore().isDarkModeEnabled == true
@@ -111,8 +119,7 @@ class ContactsTableViewHeader: UIView {
             let isDarkMode = nilDarkMode ? systemDarModeIsEnabled : isDarkModeStorage
             
             let rootView = AddOrEditContactView()
-                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-                .environmentObject(viewModel)
+                .injectAllObjects()
                 .environment(\.colorScheme, isDarkMode ? .dark : .light)
                 .preferredColorScheme(isDarkMode ? .dark : .light)
             var sheetVC = UIHostingController(rootView: rootView)

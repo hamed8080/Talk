@@ -7,7 +7,6 @@ public final class NavigationModel: ObservableObject {
     /// This is the SplitViewController or the root vc of the applicaiton
     public weak var rootVC: UIViewController?
     @Published public var selectedId: Int?
-    @Published public var paths = NavigationPath()
     var pathsTracking: [Any] = []
     var detailsStack: [ThreadDetailViewModel] = []
     public private(set) var navigationProperties: NavigationProperties = .init()
@@ -26,30 +25,7 @@ public final class NavigationModel: ObservableObject {
 
     public func wrapAndPush<T: View>(view: T) {
         let container = AppState.shared.objectsContainer!
-        let injected = view
-            .environmentObject(container.navVM)
-            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-            .environmentObject(AppState.shared)
-            .environmentObject(container)
-            .environmentObject(container.navVM)
-            .environmentObject(container.settingsVM)
-            .environmentObject(container.contactsVM)
-            .environmentObject(container.threadsVM)
-            .environmentObject(container.archivesVM)
-            .environmentObject(container.loginVM)
-            .environmentObject(container.tokenVM)
-            .environmentObject(container.tagsVM)
-            .environmentObject(container.userConfigsVM)
-            .environmentObject(container.logVM)
-            .environmentObject(container.audioPlayerVM)
-            .environmentObject(container.conversationBuilderVM)
-            .environmentObject(container.userProfileImageVM)
-            .environmentObject(container.banVM)
-            .environmentObject(container.sizeClassObserver)
-            .environmentObject(container.appOverlayVM)
-            .environmentObject(container.downloadsManager)
-            .environmentObject(container.uploadsManager)
-
+        let injected = view.injectAllObjects()
         let vc = UIHostingController(rootView: injected)
         appendUIKit(value: vc)
     }
@@ -59,22 +35,24 @@ public final class NavigationModel: ObservableObject {
         if splitVC?.isCollapsed == true {
             // iPhone — push onto the existing navigation stack
             navigationController?.pushViewController(value, animated: true)
+            pathsTracking.append(value)
         } else {
             // iPad — show in secondary column
             if (splitVC?.viewController(for: .secondary) as? UINavigationController)?.viewControllers.count ?? 0 >= 1 {
                 (splitVC?.viewController(for: .secondary) as? UINavigationController)?.pushViewController(value, animated: true)
+                pathsTracking.append(value)
             } else {
                 splitVC?.showDetailViewController(value, sender: nil)
+                pathsTracking.append(value)
+                
+                if let nav = splitVC?.viewController(for: .secondary) {
+                    nav.navigationController?.setNavigationBarHidden(true, animated: false)
+                }
             }
         }
     }
 
     public func popAllPaths() {
-        if paths.count > 0 {
-            for _ in 0...paths.count - 1 {
-                popLastPath()
-            }
-        }
         pathsTracking.removeAll()
     }
     
@@ -103,14 +81,10 @@ public final class NavigationModel: ObservableObject {
         }
     }
 
-    public func popLastPath() {
-        if !paths.isEmpty {
-            paths.removeLast()
-        }
-    }
-
     public func removeUIKit() {
         if splitVC?.isCollapsed == false, let nav = splitVC?.viewController(for: .secondary) as? UINavigationController {
+            nav.popViewController(animated: true)
+        } else if splitVC?.isCollapsed == false, let nav = splitVC?.viewController(for: .secondary)?.navigationController {
             nav.popViewController(animated: true)
         } else {
             navigationController?.popViewController(animated: true)
@@ -137,8 +111,8 @@ public extension NavigationModel {
             detail.thread?.title ?? ""
         } else if let detail = previousItem as? ParticipantDetailViewModel {
             detail.participant.name ?? ""
-        } else if let navTitle = previousItem as? NavigationTitle {
-            navTitle.title
+        } else if let navTitle = previousItem as? NavigationTitleProtocol {
+            navTitle.navigationTitle
         } else {
             ""
         }
@@ -151,11 +125,12 @@ public extension NavigationModel {
 
 // ThreadViewModel
 public extension NavigationModel {
-    private var threadsViewModel: ThreadsViewModel? { AppState.shared.objectsContainer.threadsVM }
-    private var threadStack: [ConversationNavigationValue] { pathsTracking.compactMap{ $0 as? ConversationNavigationValue } }
+    private var threadStack: [ConversationNavigationProtocol] {
+        pathsTracking.compactMap{ $0 as? ConversationNavigationProtocol }
+    }
     
     func switchFromThreadListUIKit(viewController: UIViewController, conversation: Conversation) {
-        presentedThreadViewModel?.viewModel.cancelAllObservers()
+        presentedThreadViewModel?.viewModel?.cancelAllObservers()
         popAllPathsUIKit()
         appendUIKit(vc: viewController, conversation: conversation)
     }
@@ -198,54 +173,46 @@ public extension NavigationModel {
     }
     
     private func popUntilSameConversation(threadId: Int) {
-        if threadStack.contains(where: {$0.threadId == threadId }) {
-            if !paths.isEmpty {
-                paths.removeLast(paths.count)
+        if threadStack.contains(where: { $0.viewModel?.thread.id == threadId }) {
+            if !pathsTracking.isEmpty {
                 pathsTracking.removeAll()
                 detailsStack.removeAll()
             }
         }
     }
 
-    private func createViewModel(conversation: Conversation) -> ThreadViewModel {
-       return ThreadViewModel(thread: conversation, threadsViewModel: threadsViewModel)
-    }
-
-    var presentedThreadViewModel: ConversationNavigationValue? {
+    var presentedThreadViewModel: ConversationNavigationProtocol? {
         threadStack.last
     }
 
     func viewModel(for threadId: Int) -> ThreadViewModel? {
-        return threadStack.first(where: {$0.viewModel.id == threadId})?.viewModel
+        return threadStack.first(where: { $0.threadId == threadId})?.viewModel
     }
 
     func setSelectedThreadId() {
-        selectedId = threadStack.last?.viewModel.id
+        selectedId = threadStack.last?.threadId
         animateObjectWillChange()
     }
 
     func remove(threadId: Int? = nil) {
         if threadId != nil {
-            presentedThreadViewModel?.viewModel.cancelAllObservers()
+            presentedThreadViewModel?.viewModel?.cancelAllObservers()
         }
         removeUIKit()
         if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.id == threadId {
             popLastPathTracking()
-            popLastPath()
-        } else if paths.count > 0 {
-            popLastPath()
         }
         setSelectedThreadId()
     }
 
     func cleanOnPop(threadId: Int) {
-        if threadId == presentedThreadViewModel?.threadId {
-            presentedThreadViewModel?.viewModel.cancelAllObservers()
+        if threadId == presentedThreadViewModel?.viewModel?.thread.id {
+            presentedThreadViewModel?.viewModel?.cancelAllObservers()
         }
-        if let detailNavValue = pathsTracking.last as? ConversationDetailNavigationValue, threadId == detailNavValue.threadId {
+        if let detailNavValue = pathsTracking.last as? ConversationDetailNavigationProtocol, threadId == detailNavValue.threadId {
             popLastPathTracking()
         }
-        if threadId == threadStack.last?.viewModel.id {
+        if threadId == threadStack.last?.threadId {
             popLastPathTracking()
         }
         setSelectedThreadId()
@@ -268,7 +235,6 @@ public extension NavigationModel {
     }
 
     func removeDetail(id: Int) {
-        popLastPath()
         popLastPathTracking()
         popLastDetail()
         
@@ -287,7 +253,7 @@ public extension NavigationModel {
 
 public extension NavigationModel {
     func updateConversationInViewModel(_ conversation: CalculatedConversation) {
-        if let vm = threadStack.first(where: {$0.viewModel.id == conversation.id})?.viewModel {
+        if let vm = threadStack.first(where: { $0.threadId == conversation.id })?.viewModel {
             vm.updateConversation(conversation.toStruct())
         }
     }

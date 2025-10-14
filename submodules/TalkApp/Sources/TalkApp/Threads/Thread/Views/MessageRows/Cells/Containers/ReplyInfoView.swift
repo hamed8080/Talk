@@ -41,7 +41,7 @@ final class ReplyInfoView: UIView {
     }
 
     private func configureView(isMe: Bool) {
-        layer.cornerRadius = MessageRowSizes.messageReplyInfoViewCornerRadius
+        layer.cornerRadius = ConstantSizes.messageReplyInfoViewCornerRadius
         layer.masksToBounds = true
         backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
         isOpaque = true
@@ -54,7 +54,7 @@ final class ReplyInfoView: UIView {
         imageIconView.contentMode = .scaleAspectFit
         imageIconView.accessibilityIdentifier = "imageIconViewReplyInfoView"
         imageIconView.setContentHuggingPriority(.required, for: .horizontal)
-        imageIconView.layer.cornerRadius = MessageRowSizes.messageReplyInfoViewImageIconCornerRadius
+        imageIconView.layer.cornerRadius = ConstantSizes.messageReplyInfoViewImageIconCornerRadius
         imageIconView.layer.masksToBounds = true
         addSubview(imageIconView)
 
@@ -94,39 +94,39 @@ final class ReplyInfoView: UIView {
 
         bar.translatesAutoresizingMaskIntoConstraints = false
         bar.backgroundColor = Color.App.accentUIColor
-        bar.layer.cornerRadius = MessageRowSizes.messageReplyInfoViewBarCornerRadius
+        bar.layer.cornerRadius = ConstantSizes.messageReplyInfoViewBarCornerRadius
         bar.layer.masksToBounds = true
         bar.accessibilityIdentifier = "barReplyInfoView"
         addSubview(bar)
 
-        imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin)
+        imageIconViewLeadingConstriant = imageIconView.leadingAnchor.constraint(equalTo: bar.trailingAnchor, constant: ConstantSizes.messageReplyInfoViewMargin)
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewHeight),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewHeight),
             
-            bar.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewBarWidth),
-            bar.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
-            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageReplyInfoViewBarMargin),
+            bar.widthAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewBarWidth),
+            bar.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageReplyInfoViewMargin),
+            bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -ConstantSizes.messageReplyInfoViewMargin),
+            bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ConstantSizes.messageReplyInfoViewBarMargin),
 
             imageIconViewLeadingConstriant,
             imageIconView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            imageIconView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewImageSize),
-            imageIconView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewImageSize),
+            imageIconView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewImageSize),
+            imageIconView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewImageSize),
 
-            participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            participantLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewLableHeight),
-            participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
+            participantLabel.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageReplyInfoViewMargin),
+            participantLabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewLableHeight),
+            participantLabel.leadingAnchor.constraint(equalTo: imageIconView.trailingAnchor, constant: ConstantSizes.messageReplyInfoViewMargin),
+            participantLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageReplyInfoViewMargin),
 
-            deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            deletedLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewLableHeight),
+            deletedLabel.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageReplyInfoViewMargin),
+            deletedLabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewLableHeight),
             deletedLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
-            deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin),
+            deletedLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageReplyInfoViewMargin),
 
-            replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: MessageRowSizes.messageReplyInfoViewMargin),
-            replyLabel.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReplyInfoViewLableHeight),
+            replyLabel.topAnchor.constraint(equalTo: participantLabel.bottomAnchor, constant: ConstantSizes.messageReplyInfoViewMargin),
+            replyLabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageReplyInfoViewLableHeight),
             replyLabel.leadingAnchor.constraint(equalTo: participantLabel.leadingAnchor),
-            replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReplyInfoViewMargin)
+            replyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageReplyInfoViewMargin)
         ])
     }
 
@@ -152,7 +152,7 @@ final class ReplyInfoView: UIView {
             setReplyImage()
         }
         imageIconView.setIsHidden(!hasImage)
-        imageIconViewLeadingConstriant.constant = hasImage ? MessageRowSizes.messageReplyInfoViewMargin : -MessageRowSizes.messageReplyInfoViewImageSize
+        imageIconViewLeadingConstriant.constant = hasImage ? ConstantSizes.messageReplyInfoViewMargin : -ConstantSizes.messageReplyInfoViewImageSize
     }
 
     @objc func onReplyTapped(_ sender: UIGestureRecognizer) {

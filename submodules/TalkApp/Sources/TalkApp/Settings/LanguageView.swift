@@ -43,7 +43,7 @@ struct LanguageView: View {
         }
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .normalToolbarView(title: "Settings.language", type: LanguageNavigationValue.self)
+        .normalToolbarView(title: "Settings.language", type: String.self)
     }
 
     func changeLanguage(language: TalkModels.Language) {

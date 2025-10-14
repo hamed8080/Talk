@@ -40,7 +40,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = UIHostingController(rootView: LeitnerBoxHomeView()) // CustomUIHosting is Needed for change status bar color per page
+            window.rootViewController = UIHostingController(rootView: LeitnerBoxHomeView().injectAllObjects()) // CustomUIHosting is Needed for change status bar color per page
             self.window = window
             window.makeKeyAndVisible()
         }
@@ -110,9 +110,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
                 self?.window = window
             }
             let rootView = LoginNavigationContainerView(onNewUserAdded: loginCompletion)
-                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-                .environmentObject(container.loginVM)
-                .environmentObject(container.tokenVM)
+                .injectAllObjects()
             window.rootViewController = UIHostingController(rootView: rootView)
         }
         self.window = window

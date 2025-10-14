@@ -111,7 +111,9 @@ extension ThreadHistoryViewModel {
             try? await Task.sleep(for: .microseconds(500))
             self?.hasSentHistoryRequest = true
         }
-        if let savedScrollModel = viewModel?.threadsViewModel?.saveScrollPositionVM.savedPosition(threadId) {
+        
+        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        if let savedScrollModel = threadsVM.saveScrollPositionVM.savedPosition(threadId) {
             
             cancelTasks()
             
@@ -1600,9 +1602,10 @@ extension ThreadHistoryViewModel {
             thread.lastMessageVO = viewModel?.thread.lastMessageVO
             thread.lastSeenMessageId = viewModel?.thread.lastSeenMessageId
             
-            if let index = viewModel?.threadsViewModel?.threads.firstIndex(where: {$0.id as? Int == threadId}) {
-                viewModel?.threadsViewModel?.threads[index].lastMessageVO = viewModel?.thread.lastMessageVO
-                viewModel?.threadsViewModel?.threads[index].lastSeenMessageId = viewModel?.thread.lastSeenMessageId
+            let threadsVM = AppState.shared.objectsContainer.threadsVM
+            if let index = threadsVM.threads.firstIndex(where: {$0.id as? Int == threadId}) {
+                threadsVM.threads[index].lastMessageVO = viewModel?.thread.lastMessageVO
+                threadsVM.threads[index].lastSeenMessageId = viewModel?.thread.lastSeenMessageId
             }
             
             return thread.lastMessageVO?.id ?? -1
@@ -2023,14 +2026,14 @@ extension ThreadHistoryViewModel {
     /// Clear save position if last message is visible.
     private func clearSavedScrollPosition() {
         if let threadId = viewModel?.thread.id {
-            viewModel?.threadsViewModel?.saveScrollPositionVM.remove(threadId)
+            AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM.remove(threadId)
         }
     }
     
     private func saveScrollPosition(_ message: Message) {
-        let vm = viewModel?.threadsViewModel?.saveScrollPositionVM
+        let vm = AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM
         guard let threadId = viewModel?.id, let tb = delegate?.tb else { return }
-        vm?.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)
+        vm.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)
     }
 }
 

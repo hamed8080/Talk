@@ -24,7 +24,7 @@ final class AvatarView: UIImageView {
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = true
         backgroundColor = Color.App.color1UIColor?.withAlphaComponent(0.4)
-        layer.cornerRadius = MessageRowSizes.messageAvatarViewSize / 2
+        layer.cornerRadius = ConstantSizes.messageAvatarViewSize / 2
         layer.masksToBounds = true
         contentMode = .scaleAspectFill
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onTap))
@@ -36,16 +36,16 @@ final class AvatarView: UIImageView {
         label.textColor = Color.App.whiteUIColor
         label.textAlignment = .center
         label.backgroundColor = Color.App.color1UIColor?.withAlphaComponent(0.4)
-        label.layer.cornerRadius = MessageRowSizes.messageAvatarViewSize / 2
+        label.layer.cornerRadius = ConstantSizes.messageAvatarViewSize / 2
         label.layer.masksToBounds = true
         label.accessibilityIdentifier = "labelAvatarView"
         addSubview(label)
         
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(equalToConstant: MessageRowSizes.messageAvatarViewSize),
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAvatarViewSize),
-            label.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageAvatarViewSize),
-            label.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageAvatarViewSize),
+            widthAnchor.constraint(equalToConstant: ConstantSizes.messageAvatarViewSize),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageAvatarViewSize),
+            label.widthAnchor.constraint(equalToConstant: ConstantSizes.messageAvatarViewSize),
+            label.heightAnchor.constraint(equalToConstant: ConstantSizes.messageAvatarViewSize),
             label.centerXAnchor.constraint(equalTo: centerXAnchor),
             label.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])

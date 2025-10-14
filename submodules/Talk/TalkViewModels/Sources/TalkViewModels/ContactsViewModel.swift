@@ -15,8 +15,9 @@ import TalkExtensions
 import Logger
 import UIKit
 
-public enum ContactListSection: Sendable {
-    case main
+public enum ContactListSection: Int, Sendable {
+    case header = 0
+    case main = 1
 }
 
 @MainActor
@@ -441,7 +442,7 @@ public class ContactsViewModel: ObservableObject {
 
     public func updateActiveThreadsContactName(contact: Contact) {
         let historyVMS = AppState.shared.objectsContainer.navVM.pathsTracking
-            .compactMap{$0 as? ConversationNavigationValue}
+            .compactMap{$0 as? ConversationNavigationProtocol }
             .compactMap{$0.viewModel}
             .compactMap{$0.historyVM}
         

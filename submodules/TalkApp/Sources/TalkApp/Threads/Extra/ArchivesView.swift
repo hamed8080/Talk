@@ -16,7 +16,7 @@ struct ArchivesView: View {
     var body: some View {
         ArchivesTableViewControllerWrapper(viewModel: viewModel)
             .background(Color.App.bgPrimary)
-            .normalToolbarView(title: "Tab.archives", type: ArchivesNavigationValue.self)
+            .normalToolbarView(title: "Tab.archives", type: String.self)
             .onAppear {
                 Task {
                     await viewModel.getArchivedThreads()

@@ -2,6 +2,7 @@ import Combine
 import SwiftUI
 import Chat
 import TalkModels
+import ActionableContextMenu
 
 @MainActor
 public final class ObjectsContainer: ObservableObject {
@@ -27,6 +28,7 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var sizeClassObserver = SizeClassObserver()
     @Published public var downloadsManager = DownloadsManager()
     @Published public var uploadsManager = UploadsManager()
+    public let contextMenuModel: ContextMenuModel = .init()
     public var chatRequestQueue = ChatRequestQueue()
 
     /// As a result of a bug in the SwiftUI sheet where it can't release the memory, we have to keep a global object and rest its values to default to prevent memory leak unless we end up not receiving server messages.

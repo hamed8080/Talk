@@ -127,8 +127,10 @@ extension ForwardConversationTableViewController: UIThreadsViewControllerDelegat
         dataSource?.itemIdentifier(for: indexPath)
     }
     
-    func scrollToTop() {
-        tableView.setContentOffset(.zero, animated: true)
+    func scrollToFirstIndex() {
+        guard !viewModel.conversations.isEmpty && tableView.numberOfRows(inSection: 0) > 0 else { return }
+        let indexPath = IndexPath(row: 0, section: 0)
+        tableView.scrollToRow(at: indexPath, at: .top, animated: true)
     }
     
     func createThreadViewController(conversation: Conversation) -> UIViewController {

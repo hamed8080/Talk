@@ -100,7 +100,7 @@ struct NotificationSettings: View {
         .onChange(of: model) { _ in
             model.save()
         }
-        .normalToolbarView(title: "Settings.notifictionSettings", type: PreferenceNavigationValue.self)
+        .normalToolbarView(title: "Settings.notifictionSettings", type: String.self)
     }
 }
 

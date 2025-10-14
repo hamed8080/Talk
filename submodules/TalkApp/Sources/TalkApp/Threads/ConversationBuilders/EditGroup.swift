@@ -38,6 +38,7 @@ struct EditGroup: View {
         .padding(0)
         .listStyle(.plain)
         .background(Color.App.bgSecondary)
+        .font(Font.fBody)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             SubmitBottomButton(text: "General.done", enableButton: Binding(get: {!viewModel.isLoading}, set: {_ in}), isLoading: $viewModel.isLoading) {
                 viewModel.submitEditGroup()

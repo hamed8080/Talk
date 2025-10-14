@@ -127,8 +127,8 @@ public final class ParticipantDetailViewModel: ObservableObject, @preconcurrency
                     
                     let active = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
                     if active?.threadId == viewModel?.thread.id {
-                        active?.viewModel.thread.title = participant.contactName
-                        active?.viewModel.delegate?.updateTitleTo(participant.contactName)
+                        active?.viewModel?.thread.title = participant.contactName
+                        active?.viewModel?.delegate?.updateTitleTo(participant.contactName)
                     }
                 }
             }

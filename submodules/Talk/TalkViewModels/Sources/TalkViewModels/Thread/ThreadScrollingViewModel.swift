@@ -42,7 +42,7 @@ public final class ThreadScrollingViewModel {
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
             if let messageId = thread.lastMessageVO?.id, let time = thread.lastMessageVO?.time {
-                viewModel?.threadsViewModel?.saveScrollPositionVM.remove(thread.id ?? -1)
+                AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM.remove(thread.id ?? -1)
                 await viewModel?.historyVM.moveToTime(time, messageId, highlight: false, moveToBottom: true)
             }
         }

@@ -25,7 +25,7 @@ struct ManageSessionsView: View {
         .font(.fSubheadline)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .normalToolbarView(title: "Settings.ManageSessions.title", innerBack: true, type: ManageSessionsNavigationValue.self)
+        .normalToolbarView(title: "Settings.ManageSessions.title", innerBack: true, type: String.self)
         .animation(.easeInOut, value: viewModel.sessions.count)
         .animation(.easeInOut, value: viewModel.isLoading)
         .task {

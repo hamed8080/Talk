@@ -64,7 +64,7 @@ struct DoubleTapSettingView: View {
         .environment(\.defaultMinListRowHeight, 8)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .normalToolbarView(title: "Settings.DoubleTap.title", innerBack: true, type: DoubleTapSettingNavigationValue.self)
+        .normalToolbarView(title: "Settings.DoubleTap.title", innerBack: true, type: String.self)
         .onAppear {
             selectedMode = AppSettingsModel.restore().doubleTapAction
         }

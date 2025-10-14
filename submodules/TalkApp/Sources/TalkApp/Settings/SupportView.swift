@@ -52,7 +52,7 @@ struct SupportView: View {
         .padding(EdgeInsets(top: 16, leading: 24, bottom: 30, trailing: 24))
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
         .background(Color.App.bgPrimary)
-        .normalToolbarView(title: "Settings.about", type: SupportNavigationValue.self)
+        .normalToolbarView(title: "Settings.about", type: String.self)
     }
 }
 

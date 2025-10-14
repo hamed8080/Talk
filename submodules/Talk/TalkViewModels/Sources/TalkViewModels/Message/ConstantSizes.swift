@@ -1,5 +1,5 @@
 //
-//  MessageRowSizes.swift
+//  ConstantSizes.swift
 //  TalkViewModels
 //
 //  Created by Hamed Hosseini on 5/27/21.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MessageRowSizes: Sendable {
+public struct ConstantSizes: Sendable {
     
     /// Paddings and margins in a message row
     nonisolated(unsafe) public static let beforeContainerLeading: CGFloat = 8
@@ -168,6 +168,9 @@ public struct MessageRowSizes: Sendable {
     
     /// Buttons vertical stack for mention/jump to bottom
     nonisolated(unsafe) public static let vStackButtonsLeadingMargin: CGFloat = 8
+    
+    /// Bottom toolbar size
+    nonisolated(unsafe) public static let bottomToolbarSize: CGFloat = 52
 
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0

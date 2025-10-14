@@ -45,7 +45,7 @@ struct MessageParticipantsSeen: View {
             ListLoadingView(isLoading: $viewModel.isLoading)
                 .id(UUID())
         }
-        .normalToolbarView(title: "SeenParticipants.title", type: MessageParticipantsSeenNavigationValue.self)
+        .normalToolbarView(title: "SeenParticipants.title", type: String.self)
         .onAppear {
             viewModel.getParticipants()
             AppState.shared.objectsContainer.navVM.pushToLinkId(id: "MessageParticipantsSeen-\(viewModel.message.id ?? 0)")

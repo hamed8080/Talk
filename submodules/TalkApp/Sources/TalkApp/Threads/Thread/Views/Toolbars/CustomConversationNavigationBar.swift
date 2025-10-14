@@ -75,7 +75,6 @@ public class CustomConversationNavigationBar: UIView {
         subtitleLabel.textAlignment = Language.isRTL ? .right : .left
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
         detailViewButton.addSubview(subtitleLabel)
-        
 
         let isSelfThread = viewModel?.thread.type == .selfThread
         if isSelfThread {
@@ -106,7 +105,7 @@ public class CustomConversationNavigationBar: UIView {
         backButton.imageView.contentMode = .scaleAspectFit
         backButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
         backButton.action = { [weak self] in
-            self?.viewModel?.threadsViewModel?.deselectActiveThread()
+            AppState.shared.objectsContainer.threadsVM.deselectActiveThread()
             AppState.shared.objectsContainer.navVM.popCurrentViewController(id: self?.viewModel?.thread.id ?? 0)
         }
         
@@ -132,6 +131,14 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButton.imageView.contentMode = .scaleAspectFit
         fullScreenButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
         fullScreenButton.action = {
+            let currentState = AppState.isInSlimMode == false
+            let vc = AppState.shared.objectsContainer.threadsVM.delegate as? UIViewController
+            let secondaryOnly = vc?.splitViewController?.displayMode == .secondaryOnly
+            if secondaryOnly {
+                vc?.splitViewController?.show(.primary)
+            } else {
+                vc?.splitViewController?.hide(.primary)
+            }
             AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
             NotificationCenter.closeSideBar.post(name: Notification.Name.closeSideBar, object: nil)
         }
@@ -162,7 +169,8 @@ public class CustomConversationNavigationBar: UIView {
             
             detailViewButton.topAnchor.constraint(equalTo: topAnchor),
             detailViewButton.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
+            detailViewButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: 0),
+
             threadImageButton.topAnchor.constraint(equalTo: detailViewButton.topAnchor, constant: 4),
             threadImageButton.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: -4),
             threadImageButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth + 8),
@@ -223,7 +231,7 @@ public class CustomConversationNavigationBar: UIView {
         
         let detailViewModel = ThreadDetailViewModel()
         detailViewModel.setup(threadVM: viewModel)
-        let detailVC = UIHostingController(rootView: DetailViewWrapper(detailViewModel: detailViewModel))
+        let detailVC = UIHostingController(rootView: DetailViewWrapper(detailViewModel: detailViewModel).injectAllObjects())
         let navigationController = (viewModel.delegate as? ThreadViewController)?.navigationController
         
         AppState.shared.objectsContainer.navVM.appendThreadDetailUIKit(vc: detailVC,
@@ -391,6 +399,7 @@ public class CustomConversationNavigationBar: UIView {
     private func onSearchTapped() {
         if viewModel?.id != nil, viewModel?.historyVM.sections.isEmpty == false, let viewModel = viewModel {
             let rootView = ThreadSearchMessages(threadVM: viewModel)
+                .injectAllObjects()
                 .environmentObject(viewModel.searchedMessagesViewModel)
             
             let vc = UIHostingController(rootView: rootView)
@@ -432,7 +441,7 @@ public class CustomConversationNavigationBar: UIView {
     }
     
     private var cachedImageLoaderVM: ImageLoaderViewModel? {
-        let threads = (viewModel?.threadsViewModel?.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
+        let threads = (AppState.shared.objectsContainer.threadsVM.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
         return threads.first(where: { $0.id == self.viewModel?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }
     

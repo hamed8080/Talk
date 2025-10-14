@@ -114,38 +114,38 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         progressButton.translatesAutoresizingMaskIntoConstraints = false
         progressButton.accessibilityIdentifier = "progressButtonMessageVideoView"
         addSubview(progressButton)
-        let widthConstraint = widthAnchor.constraint(greaterThanOrEqualToConstant: MessageRowSizes.messageVideoViewMinWidth)
+        let widthConstraint = widthAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.messageVideoViewMinWidth)
         widthConstraint.priority = .defaultHigh
 
-        fileNameLabelTrailingConstarint = fileNameLabel.trailingAnchor.constraint(equalTo: progressButton.leadingAnchor, constant: -MessageRowSizes.messageVideoViewMargin)
+        fileNameLabelTrailingConstarint = fileNameLabel.trailingAnchor.constraint(equalTo: progressButton.leadingAnchor, constant: -ConstantSizes.messageVideoViewMargin)
 
         bringSubviewToFront(playOverlayView)
         
         NSLayoutConstraint.activate([
             widthConstraint,
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageVideoViewHeight),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageVideoViewHeight),
 
             fileNameLabelTrailingConstarint,
-            fileNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageVideoViewMargin),
+            fileNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ConstantSizes.messageVideoViewMargin),
             fileNameLabel.centerYAnchor.constraint(equalTo: progressButton.centerYAnchor),
 
-            progressButton.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageVideoViewProgressButtonSize),
-            progressButton.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageVideoViewProgressButtonSize),
-            progressButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageVideoViewMargin),
-            progressButton.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageVideoViewMargin),
+            progressButton.widthAnchor.constraint(equalToConstant: ConstantSizes.messageVideoViewProgressButtonSize),
+            progressButton.heightAnchor.constraint(equalToConstant: ConstantSizes.messageVideoViewProgressButtonSize),
+            progressButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageVideoViewMargin),
+            progressButton.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageVideoViewMargin),
 
             fileTypeLabel.trailingAnchor.constraint(equalTo: fileNameLabel.trailingAnchor),
-            fileTypeLabel.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor, constant: MessageRowSizes.messageVideoViewVerticalSpacing),
-            fileSizeLabel.trailingAnchor.constraint(equalTo: fileTypeLabel.leadingAnchor, constant: -MessageRowSizes.messageVideoViewMargin),
-            fileSizeLabel.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor, constant: MessageRowSizes.messageVideoViewVerticalSpacing),
+            fileTypeLabel.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor, constant: ConstantSizes.messageVideoViewVerticalSpacing),
+            fileSizeLabel.trailingAnchor.constraint(equalTo: fileTypeLabel.leadingAnchor, constant: -ConstantSizes.messageVideoViewMargin),
+            fileSizeLabel.topAnchor.constraint(equalTo: fileNameLabel.bottomAnchor, constant: ConstantSizes.messageVideoViewVerticalSpacing),
 
             playOverlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
             playOverlayView.trailingAnchor.constraint(equalTo: trailingAnchor),
             playOverlayView.topAnchor.constraint(equalTo: topAnchor),
             playOverlayView.heightAnchor.constraint(equalTo: heightAnchor),
 
-            playIcon.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageVideoViewPlayIconSize),
-            playIcon.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageVideoViewPlayIconSize),
+            playIcon.widthAnchor.constraint(equalToConstant: ConstantSizes.messageVideoViewPlayIconSize),
+            playIcon.heightAnchor.constraint(equalToConstant: ConstantSizes.messageVideoViewPlayIconSize),
             playIcon.centerXAnchor.constraint(equalTo: centerXAnchor),
             playIcon.centerYAnchor.constraint(equalTo: centerYAnchor),
             
@@ -170,14 +170,14 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         fileTypeLabel.text = viewModel.calMessage.extName
 
         // To stick to the leading if we downloaded/uploaded
-        fileNameLabelTrailingConstarint.constant = canShowProgress ? -MessageRowSizes.messageVideoViewMargin : MessageRowSizes.messageVideoViewProgressButtonSize
+        fileNameLabelTrailingConstarint.constant = canShowProgress ? -ConstantSizes.messageVideoViewMargin : ConstantSizes.messageVideoViewProgressButtonSize
     }
 
     func updateWidthConstarints() {
         guard let superview = superview else { return }
         NSLayoutConstraint.activate([
-            leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: MessageRowSizes.messageVideoViewMargin),
-            trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -MessageRowSizes.messageVideoViewMargin)
+            leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: ConstantSizes.messageVideoViewMargin),
+            trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -ConstantSizes.messageVideoViewMargin)
         ])
     }
 
@@ -218,7 +218,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         if !viewModel.calMessage.rowType.isVideo { return }
         bringSubviewToFront(progressButton)
         updateProgress(viewModel: viewModel)
-        fileNameLabelTrailingConstarint.constant = MessageRowSizes.messageVideoViewProgressButtonSize
+        fileNameLabelTrailingConstarint.constant = ConstantSizes.messageVideoViewProgressButtonSize
         if let fileURL = viewModel.calMessage.fileURL {
             prepareUIForPlayback(url: fileURL)
         }

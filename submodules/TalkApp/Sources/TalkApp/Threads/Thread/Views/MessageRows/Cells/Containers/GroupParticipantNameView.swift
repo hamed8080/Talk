@@ -28,7 +28,7 @@ final class GroupParticipantNameView: UILabel {
         isOpaque = true
         textAlignment = .left
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.groupParticipantNameViewHeight)
+            heightAnchor.constraint(equalToConstant: ConstantSizes.groupParticipantNameViewHeight)
         ])
     }
 

@@ -13,8 +13,8 @@ import TalkUI
 
 final class SectionHeaderView: UITableViewHeaderFooterView {
     private var label = PaddingUILabel(frame: .zero,
-                                       horizontal: MessageRowSizes.sectionHeaderViewLableHorizontalPadding,
-                                       vertical: MessageRowSizes.sectionHeaderViewLableVerticalPadding)
+                                       horizontal: ConstantSizes.sectionHeaderViewLableHorizontalPadding,
+                                       vertical: ConstantSizes.sectionHeaderViewLableVerticalPadding)
     public weak var delegate: ThreadViewDelegate?
 
     override init(reuseIdentifier: String?) {
@@ -33,7 +33,7 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.label.font = UIFont.fBoldCaption
         label.label.textColor = .white
-        label.layer.cornerRadius = MessageRowSizes.sectionHeaderViewLabelCornerRadius
+        label.layer.cornerRadius = ConstantSizes.sectionHeaderViewLabelCornerRadius
         label.layer.masksToBounds = true
         label.label.textAlignment = .center
         label.backgroundColor = .black.withAlphaComponent(0.4)

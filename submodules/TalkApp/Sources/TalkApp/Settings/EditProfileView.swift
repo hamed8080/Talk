@@ -179,7 +179,7 @@ struct EditProfileView: View {
                 }
             }
         }
-        .normalToolbarView(title: "Settings.EditProfile.title", type: EditProfileNavigationValue.self)
+        .normalToolbarView(title: "Settings.EditProfile.title", type: String.self)
         .onReceive(viewModel.$dismiss) { newValue in
             if newValue {
                 dismiss()

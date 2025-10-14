@@ -30,7 +30,7 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
 
     private func configureView(isMe: Bool) {
         translatesAutoresizingMaskIntoConstraints = false
-        layer.cornerRadius = MessageRowSizes.messageReactionRowViewCornerRadius
+        layer.cornerRadius = ConstantSizes.messageReactionRowViewCornerRadius
         layer.masksToBounds = true
         semanticContentAttribute = isMe == true ? .forceRightToLeft : .forceLeftToRight
 
@@ -42,12 +42,12 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
         addSubview(reactionEmojiCount)
 
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(greaterThanOrEqualToConstant: MessageRowSizes.messageReactionRowViewTotalWidth),
-            heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReactionRowViewHeight),
-            reactionEmojiCount.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageReactionRowViewEmojiWidth),
-            reactionEmojiCount.topAnchor.constraint(equalTo: topAnchor, constant: MessageRowSizes.messageReactionRowViewTopMargin),
-            reactionEmojiCount.leadingAnchor.constraint(equalTo: leadingAnchor, constant: MessageRowSizes.messageReactionRowViewMargin),
-            reactionEmojiCount.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageReactionRowViewMargin),
+            widthAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.messageReactionRowViewTotalWidth),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageReactionRowViewHeight),
+            reactionEmojiCount.heightAnchor.constraint(equalToConstant: ConstantSizes.messageReactionRowViewEmojiWidth),
+            reactionEmojiCount.topAnchor.constraint(equalTo: topAnchor, constant: ConstantSizes.messageReactionRowViewTopMargin),
+            reactionEmojiCount.leadingAnchor.constraint(equalTo: leadingAnchor, constant: ConstantSizes.messageReactionRowViewMargin),
+            reactionEmojiCount.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageReactionRowViewMargin),
         ])
 
         let menu = UIContextMenuInteraction(delegate: self)

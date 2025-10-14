@@ -68,12 +68,12 @@ public final class MessageContainerStackView: UIStackView {
     public func configureView(isMe: Bool) {
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         axis = .vertical
-        spacing = MessageRowSizes.messageContainerStackViewStackSpacing
+        spacing = ConstantSizes.messageContainerStackViewStackSpacing
         alignment = .top
         distribution = .fill
-        layoutMargins = .init(all: MessageRowSizes.messageContainerStackViewMargin)
+        layoutMargins = .init(all: ConstantSizes.messageContainerStackViewMargin)
         isLayoutMarginsRelativeArrangement = true
-        layer.cornerRadius = MessageRowSizes.messageContainerStackViewCornerRadius
+        layer.cornerRadius = ConstantSizes.messageContainerStackViewCornerRadius
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         registerGestures()
         
@@ -101,12 +101,12 @@ public final class MessageContainerStackView: UIStackView {
         tailImageView.tintColor = isMe ? Color.App.bgChatMeUIColor : Color.App.bgChatUserUIColor!
         addSubview(tailImageView)
 
-        tailImageView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageTailViewWidth).isActive = true
-        tailImageView.heightAnchor.constraint(equalToConstant: MessageRowSizes.messageTailViewHeight).isActive = true
-        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: isMe ? -MessageRowSizes.messageTailViewLeading + 2 : -MessageRowSizes.messageTailViewLeading).isActive = true
+        tailImageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewWidth).isActive = true
+        tailImageView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewHeight).isActive = true
+        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: isMe ? -ConstantSizes.messageTailViewLeading + 2 : -ConstantSizes.messageTailViewLeading).isActive = true
         tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         
-        minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: MessageRowSizes.messageContainerStackViewMinWidth)
+        minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageContainerStackViewMinWidth)
         minWidthConstraint?.isActive = true
     }
 
@@ -138,7 +138,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isReply {
             replyInfoMessageRow.set(viewModel)
             addArrangedSubview(replyInfoMessageRow)
-            replyInfoMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageContainerStackViewMargin).isActive = true
+            replyInfoMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageContainerStackViewMargin).isActive = true
         } else {
             replyInfoMessageRow.removeFromSuperview()
         }
@@ -146,7 +146,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isForward {
             forwardMessageRow.set(viewModel)
             addArrangedSubview(forwardMessageRow)
-            forwardMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -MessageRowSizes.messageContainerStackViewMargin).isActive = true
+            forwardMessageRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageContainerStackViewMargin).isActive = true
         } else {
             forwardMessageRow.removeFromSuperview()
         }

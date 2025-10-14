@@ -73,7 +73,7 @@ class ContactsNavigationBar: UIView {
         addSubview(menuButton)
         
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 64),
+            heightAnchor.constraint(equalToConstant: 52),
             
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -81,18 +81,18 @@ class ContactsNavigationBar: UIView {
             effectView.bottomAnchor.constraint(equalTo: bottomAnchor),
     
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 10),
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor, constant: 16),
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor, constant: 0),
             
             searchButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            searchButton.heightAnchor.constraint(equalToConstant: 48),
+            searchButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            searchButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
 
             searchField.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             searchField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             searchField.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -8),
             
             menuButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
-            menuButton.leadingAnchor.constraint(equalTo: searchField.trailingAnchor, constant: 16),
             menuButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -16),
             menuButton.widthAnchor.constraint(equalToConstant: 72)
         ])

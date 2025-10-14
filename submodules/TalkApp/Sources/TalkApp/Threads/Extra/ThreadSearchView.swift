@@ -63,6 +63,7 @@ struct ThreadSearchView: View {
             .environment(\.defaultMinListRowHeight, 24)
             .animation(.easeInOut, value: viewModel.searchedContacts.count)
             .animation(.easeInOut, value: viewModel.searchedConversations.count)
+            .padding(.bottom, ConstantSizes.bottomToolbarSize)
             .gesture(dragToHideKeyboardGesture)
         }
     }

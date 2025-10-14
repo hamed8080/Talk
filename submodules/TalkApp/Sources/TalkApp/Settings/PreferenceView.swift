@@ -54,7 +54,7 @@ struct PreferenceView: View {
             model.isSyncOn = newValue
             model.save()
         }
-        .normalToolbarView(title: "Settings.title", type: PreferenceNavigationValue.self)
+        .normalToolbarView(title: "Settings.title", type: String.self)
     }
 }
 

@@ -70,24 +70,8 @@ struct DetailViewWrapper: View {
     
     var body: some View {
         ThreadDetailView()
-            .environmentObject(detailViewModel)
-            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-            .environmentObject(AppState.shared)
-            .environmentObject(container)
-            .environmentObject(container.navVM)
-            .environmentObject(container.settingsVM)
-            .environmentObject(container.contactsVM)
-            .environmentObject(container.threadsVM)
-            .environmentObject(container.loginVM)
-            .environmentObject(container.tokenVM)
-            .environmentObject(container.tagsVM)
-            .environmentObject(container.userConfigsVM)
-            .environmentObject(container.logVM)
-            .environmentObject(container.audioPlayerVM)
-            .environmentObject(container.conversationBuilderVM)
-            .environmentObject(container.userProfileImageVM)
-            .environmentObject(container.banVM)
-            .environmentObject(container.sizeClassObserver)
+            .injectAllObjects()
+            .environmentObject(detailViewModel)        
     }
 }
 

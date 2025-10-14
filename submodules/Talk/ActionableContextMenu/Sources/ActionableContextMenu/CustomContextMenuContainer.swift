@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct CustomContextMenuContainer: ViewModifier {
-    let viewModel: ContextMenuModel = .init()
+    let viewModel: ContextMenuModel
 
     func body(content: Content) -> some View {
         ZStack(alignment: .leading) {
@@ -72,7 +72,7 @@ struct MutableContextMenuOverlayView: View {
 }
 
 public extension View {
-    func contextMenuContainer() -> some View {
-        modifier(CustomContextMenuContainer())
+    func contextMenuContainer(viewModel: ContextMenuModel) -> some View {
+        modifier(CustomContextMenuContainer(viewModel: viewModel))
     }
 }

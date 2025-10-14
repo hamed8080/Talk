@@ -48,7 +48,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
 //    public var textLayer: CATextLayer?
     public var textRect: CGRect?
 
-    public var sizes = MessageRowSizes()
+    public var sizes = ConstantSizes()
     public var state = MessageRowState()
     public var rowType = MessageViewRowType()
     

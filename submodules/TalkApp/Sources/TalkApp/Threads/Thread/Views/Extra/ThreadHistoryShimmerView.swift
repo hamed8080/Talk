@@ -26,7 +26,7 @@ struct ThreadHistoryShimmerView: View {
                         }
                     }
                 }
-                .padding(.bottom, 52)
+                .padding(.bottom, ConstantSizes.bottomToolbarSize)
                 .environmentObject(viewModel.itemViewModel)
                 .listStyle(.plain)
                 .background(ThreadbackgroundView(threadId: 0))
@@ -85,15 +85,15 @@ struct MessageRowShimmer: View {
                 if !isMe && !isSameUserMessage {
                     Rectangle()
                         .fill(color)
-                        .frame(width: MessageRowSizes.messageAvatarViewSize, height: MessageRowSizes.messageAvatarViewSize)
-                        .clipShape(RoundedRectangle(cornerRadius:(MessageRowSizes.messageAvatarViewSize / 2)))
-                        .shimmer(cornerRadius: MessageRowSizes.messageAvatarViewSize / 2, startFromLeading: !isMe)
+                        .frame(width: ConstantSizes.messageAvatarViewSize, height: ConstantSizes.messageAvatarViewSize)
+                        .clipShape(RoundedRectangle(cornerRadius:(ConstantSizes.messageAvatarViewSize / 2)))
+                        .shimmer(cornerRadius: ConstantSizes.messageAvatarViewSize / 2, startFromLeading: !isMe)
                         .padding(.trailing, 2)
                 } else {
                     /// Empty avatar
                     Rectangle()
                         .fill(Color.clear)
-                        .frame(width: MessageRowSizes.messageAvatarViewSize, height: MessageRowSizes.messageAvatarViewSize)
+                        .frame(width: ConstantSizes.messageAvatarViewSize, height: ConstantSizes.messageAvatarViewSize)
                         .padding(.trailing, 2)
                 }
             }
