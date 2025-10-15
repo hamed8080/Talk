@@ -35,22 +35,24 @@ struct AppOverlayFactory: View {
                 }
             }
         case .toast(let leadingView, let message, let messageColor):
-            ToastView(message: message, messageColor: messageColor) {
-                leadingView
-            }
+            ToastViewWrapper(message: message,
+                             messageColor: messageColor!,
+                             leadingView: leadingView)
         case .error(let error):
             let isUnknown = error?.code == ServerErrorType.unknownError.rawValue
             if EnvironmentValues.isTalkTest, isUnknown {
                 let title = String(format: "Errors.occuredTitle".bundleLocalized(), "\(error?.code ?? 0)")
-                ToastView(title: title, message: error?.message ?? "", showSandBox: true) {}
+                ToastViewWrapper(title: title,
+                                 message: error?.message ?? "",
+                                 showSandbox: true)
             } else if !isUnknown {
                 if let localizedError = error?.localizedError {
-                    ToastView(title: "", message: localizedError) {}
+                    ToastViewWrapper(title: "", message: localizedError)
                 } else if error?.isPresentable == true {
                     let title = String(format: "Errors.occuredTitle".bundleLocalized(), "\(error?.code ?? 0)")
-                    ToastView(title: title, message: error?.message ?? "") {}
+                    ToastViewWrapper(title: title, message: error?.message ?? "")
                 } else if let appError = AppErrorTypes(rawValue: error?.code ?? 0) {
-                    ToastView(title: "", message: appError.localized) {}
+                    ToastViewWrapper(title: "", message: appError.localized)
                 }
             }
         case .none:

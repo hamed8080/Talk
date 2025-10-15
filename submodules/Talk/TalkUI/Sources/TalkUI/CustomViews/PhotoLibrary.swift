@@ -44,14 +44,11 @@ public final class PhotoLibrary {
             AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(SaveToAlbumDialogView())
             return
         }
-        let icon = Image(systemName: "externaldrive.badge.checkmark")
-            .fontWeight(.semibold)
-            .foregroundStyle(Color.App.white)
-        
+        let imageView = UIImageView(image: UIImage(systemName: "externaldrive.badge.checkmark"))
         AppState.shared.objectsContainer.appOverlayVM.toast(
-            leadingView: icon,
+            leadingView: imageView,
             message: failed ? "" : "General.videoSaved",
-            messageColor: failed ? Color.red : Color.App.white
+            messageColor: failed ? UIColor.red : Color.App.whiteUIColor!
         )
     }
     

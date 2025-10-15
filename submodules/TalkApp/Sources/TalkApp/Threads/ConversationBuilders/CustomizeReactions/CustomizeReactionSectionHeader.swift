@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import SwiftUI
+import TalkModels
 
 final class CustomizeReactionSectionHeader: UICollectionReusableView {
     static let reuseIdentifier = String(describing: CustomizeReactionSectionHeader.self)
@@ -28,6 +29,7 @@ final class CustomizeReactionSectionHeader: UICollectionReusableView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = Color.App.textPrimaryUIColor
         label.font = UIFont.fSubheadline
+        label.textAlignment = Language.isRTL ? .right : .left
 
         NSLayoutConstraint.activate([
             label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),

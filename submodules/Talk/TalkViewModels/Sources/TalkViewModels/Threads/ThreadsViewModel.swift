@@ -840,10 +840,10 @@ public final class ThreadsViewModel: ObservableObject {
     
     public func toggleArchive(_ conversation: Conversation) { AppState.shared.objectsContainer.archivesVM.toggleArchive(conversation)
         if conversation.isArchive == false || conversation.isArchive == nil {
-            let leadingView = Image(systemName: "tray.and.arrow.up")
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: leadingView,
+            let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
+            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: imageView,
                                                                 message: "ArchivedTab.guide".bundleLocalized(),
-                                                                messageColor: Color("text_primary") ?? Color.white,
+                                                                messageColor: UIColor(named: "text_primary") ?? UIColor.white,
                                                                 duration: .slow)
         }
     }
@@ -853,6 +853,10 @@ public final class ThreadsViewModel: ObservableObject {
         if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
         
         if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
+            
+            /// Deselect current selected
+            setSelected(for: AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId ?? -1, selected: false)
+            
             /// to update isSeleted for bar and background color
             setSelected(for: conversation.id ?? -1, selected: true)
             AppState.shared.objectsContainer.navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)

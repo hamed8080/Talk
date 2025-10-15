@@ -62,7 +62,6 @@ public final class ObjectsContainer: ObservableObject {
         contactsVM.clear()
         tagsVM.clear()
         tagsVM.getTagList()
-        navVM.clear()
         logVM.clearLogs()
         appOverlayVM.clear()
         conversationBuilderVM.clear()

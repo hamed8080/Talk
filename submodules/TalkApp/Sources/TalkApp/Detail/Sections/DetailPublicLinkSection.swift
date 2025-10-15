@@ -22,10 +22,12 @@ struct DetailPublicLinkSection: View {
         if viewModel.thread?.uniqueName != nil {
             Button {
                 UIPasteboard.general.string = joinLink
-                let icon = Image(systemName: "doc.on.doc")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.App.textPrimary)
-                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.copied", messageColor: Color.App.textPrimary)
+                let imageView = UIImageView(image: UIImage(systemName: "doc.on.doc"))
+                AppState.shared.objectsContainer.appOverlayVM.toast(
+                    leadingView: imageView,
+                    message: "General.copied",
+                    messageColor: Color.App.textPrimaryUIColor!
+                )
             } label: {
                 SectionRowContainer(key: "Thread.inviteLink", value: shortJoinLink, lineLimit: 1, button: AnyView(EmptyView()))
             }

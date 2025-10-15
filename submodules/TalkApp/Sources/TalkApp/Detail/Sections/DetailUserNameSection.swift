@@ -16,11 +16,13 @@ struct DetailUserNameSection: View {
             SectionRowContainer(key: "Settings.userName", value: participantName)
                 .onTapGesture {
                     UIPasteboard.general.string = participantName
-                    let icon = Image(systemName: "person")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.App.textPrimary)
+                    let imageView = UIImageView(image: UIImage(systemName: "person"))
                     let key = "Settings.userNameCopied".bundleLocalized()
-                    AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: key, messageColor: Color.App.textPrimary)
+                    AppState.shared.objectsContainer.appOverlayVM.toast(
+                        leadingView: imageView,
+                        message: key,
+                        messageColor: Color.App.textPrimaryUIColor!
+                    )
                 }
         }
     }

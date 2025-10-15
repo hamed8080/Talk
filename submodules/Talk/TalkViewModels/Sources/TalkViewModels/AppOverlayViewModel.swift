@@ -29,7 +29,7 @@ public enum AppOverlayTypes {
     case gallery(GalleryMessage)
     case galleryImageView(uiimage: UIImage)
     case error(error: ChatError?)
-    case toast(leadingView: AnyView?, message: String, messageColor: Color)
+    case toast(leadingView: UIView?, message: String, messageColor: UIColor?)
     case dialog
     case none
 }
@@ -38,6 +38,7 @@ public enum AppOverlayTypes {
 public class AppOverlayViewModel: ObservableObject {
     @Published public var isPresented = false
     public var type: AppOverlayTypes = .none
+    public weak var toastAttachToVC: UIViewController?
     public var isToast: Bool = false
     public var isError: Bool { error != nil }
     public var canDismiss: Bool = true
@@ -129,8 +130,8 @@ public class AppOverlayViewModel: ObservableObject {
         }
     }
 
-    public func toast<T: View>(leadingView: T, message: String, messageColor: Color, duration: ToastDuration = .fast) {
-        type = .toast(leadingView: AnyView(leadingView), message: message, messageColor: messageColor)
+    public func toast(leadingView: UIView?, message: String, messageColor: UIColor, duration: ToastDuration = .fast) {
+        type = .toast(leadingView: leadingView, message: message, messageColor: messageColor)
         isToast = true
         isPresented = true
         animateObjectWillChange()
@@ -141,6 +142,7 @@ public class AppOverlayViewModel: ObservableObject {
                 self?.isToast = false
                 self?.type = .none
                 self?.isPresented = false
+                self?.toastAttachToVC = nil
                 self?.animateObjectWillChange()
             }
         }
@@ -149,6 +151,7 @@ public class AppOverlayViewModel: ObservableObject {
     public func clear() {
         /// Prevent memory leak by preventing setting type to .none to prevent recalling AppOverlayFactory Views twice.
         type = .none
+        toastAttachToVC = nil
         galleryMessage = nil
         galleryImageView = nil
     }

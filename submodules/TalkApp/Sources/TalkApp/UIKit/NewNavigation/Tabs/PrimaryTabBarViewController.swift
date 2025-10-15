@@ -55,10 +55,24 @@ class PrimaryTabBarViewController: UIViewController {
         container.translatesAutoresizingMaskIntoConstraints = false
         container.accessibilityIdentifier = "containerPrimaryTabBarViewController"
         
+        // Prevent click on the bottom part of the tabbar
+        let touchBlockerView = UIView()
+        touchBlockerView.translatesAutoresizingMaskIntoConstraints = false
+        touchBlockerView.backgroundColor = .clear
+        touchBlockerView.isUserInteractionEnabled = true
+        view.addSubview(touchBlockerView)
+        
         view.addSubview(container)
         view.addSubview(tabBar)
+        view.bringSubviewToFront(touchBlockerView)
+        view.bringSubviewToFront(tabBar)
 
         NSLayoutConstraint.activate([
+            touchBlockerView.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor),
+            touchBlockerView.trailingAnchor.constraint(equalTo: tabBar.trailingAnchor),
+            touchBlockerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            touchBlockerView.topAnchor.constraint(equalTo: tabBar.topAnchor),
+            
             tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0),
             tabBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),

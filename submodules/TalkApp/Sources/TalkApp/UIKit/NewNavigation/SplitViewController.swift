@@ -63,19 +63,24 @@ public class SplitViewController: UISplitViewController {
                 AppOverlayFactory()
             }.injectAllObjects()
             let overlayVC = UIHostingController(rootView: injected)
+            overlayVC.view.backgroundColor = .clear
             overlayVC.view.translatesAutoresizingMaskIntoConstraints = false
-            addChild(overlayVC)
-            overlayVC.didMove(toParent: self)
-            view.addSubview(overlayVC.view)
+            
+            let parentVC = AppState.shared.objectsContainer.appOverlayVM.toastAttachToVC ?? self
+            
+            parentVC.addChild(overlayVC)
+            overlayVC.didMove(toParent: parentVC)
+            parentVC.view.addSubview(overlayVC.view)
             
             NSLayoutConstraint.activate([
-                overlayVC.view.topAnchor.constraint(equalTo: view.topAnchor),
-                overlayVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                overlayVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                overlayVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                overlayVC.view.topAnchor.constraint(equalTo: parentVC.view.topAnchor),
+                overlayVC.view.bottomAnchor.constraint(equalTo: parentVC.view.bottomAnchor),
+                overlayVC.view.leadingAnchor.constraint(equalTo: parentVC.view.leadingAnchor),
+                overlayVC.view.trailingAnchor.constraint(equalTo: parentVC.view.trailingAnchor),
             ])
             
             self.overlayVC = overlayVC
+            parentVC.view.bringSubviewToFront(overlayVC.view)
         } else {
             overlayVC?.view.removeFromSuperview()
         }

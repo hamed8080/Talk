@@ -118,7 +118,7 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
     
     private func onFailedUpdate() {
         isLoading = false // To reset the state of the button and make it availbale again to submit
-        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: EmptyView(),
+        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: nil,
                                                             message: "Errors.failedTryAgain".bundleLocalized(),
                                                             messageColor: .red)
     }
@@ -255,7 +255,7 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
 
     private func onDeletedConversation(_ response: ChatResponse<Participant>) {
         if response.subjectId == threadVM?.id {
-            AppState.shared.objectsContainer.navVM.popAllPaths()
+            AppState.shared.objectsContainer.navVM.popAllPathsAndClearSplitVCUIKit()
             animateObjectWillChange()
         }
     }

@@ -7,10 +7,12 @@
 
 import Foundation
 import SwiftUI
+import TalkUI
 
 struct EmptyResultViewInTabs: View {
     var body: some View {
         Text("General.noResult")
             .fontWeight(.bold)
+            .font(Font.fBody)
     }
 }

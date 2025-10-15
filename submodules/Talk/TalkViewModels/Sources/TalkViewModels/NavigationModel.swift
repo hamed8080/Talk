@@ -4,6 +4,9 @@ import TalkModels
 
 @MainActor
 public final class NavigationModel: ObservableObject {
+    
+    // MARK: Stored properties
+    
     /// This is the SplitViewController or the root vc of the applicaiton
     public weak var rootVC: UIViewController?
     @Published public var selectedId: Int?
@@ -11,15 +14,20 @@ public final class NavigationModel: ObservableObject {
     var detailsStack: [ThreadDetailViewModel] = []
     public private(set) var navigationProperties: NavigationProperties = .init()
     public var twoRowTappedAtSameTime = false
-    private var splitVC: UISplitViewController? { rootVC as? UISplitViewController }
-    private var navigationController: UINavigationController? { splitVC?.viewControllers.first as? UINavigationController }
     
     /// Once we navigate to a view with NavigationLink in SwiftUI
     /// insted of appending to the paths.
     private var presntedNavigationLinkId: Any?
     
-    // MARK: Persist old navId to be restored on pop.
+    /// Persist old navId to be restored on pop.
     private var prevLinkId: Any? = nil
+    
+    // MARK: Computed properties
+    
+    private var splitVC: UISplitViewController? { rootVC as? UISplitViewController }
+    private var secondaryVC: UIViewController? { splitVC?.viewController(for: .secondary) }
+    private var splitSecondaryNavVC: UINavigationController? { secondaryVC as? UINavigationController }
+    private var navigationController: UINavigationController? { splitVC?.viewControllers.first as? UINavigationController }
     
     public init() {}
 
@@ -38,25 +46,21 @@ public final class NavigationModel: ObservableObject {
             pathsTracking.append(value)
         } else {
             // iPad — show in secondary column
-            if (splitVC?.viewController(for: .secondary) as? UINavigationController)?.viewControllers.count ?? 0 >= 1 {
-                (splitVC?.viewController(for: .secondary) as? UINavigationController)?.pushViewController(value, animated: true)
+            if splitSecondaryNavVC?.viewControllers.count ?? 0 >= 1 {
+                splitSecondaryNavVC?.pushViewController(value, animated: true)
                 pathsTracking.append(value)
             } else {
                 splitVC?.showDetailViewController(value, sender: nil)
                 pathsTracking.append(value)
                 
-                if let nav = splitVC?.viewController(for: .secondary) {
+                if let nav = secondaryVC {
                     nav.navigationController?.setNavigationBarHidden(true, animated: false)
                 }
             }
         }
     }
-
-    public func popAllPaths() {
-        pathsTracking.removeAll()
-    }
     
-    public func popAllPathsUIKit() {
+    public func popAllPathsAndClearSplitVCUIKit() {
         
         // iPhone (collapsed)
         // on iPhone PrimaryTabBarViewController is the root view controller of the navigation stack,
@@ -67,6 +71,7 @@ public final class NavigationModel: ObservableObject {
         }
         // iPad (side-by-side)
         else if let splitVC = splitVC {
+            pathsTracking.removeAll()
             splitVC.setViewController(nil, for: .secondary)
         }
     }
@@ -82,10 +87,20 @@ public final class NavigationModel: ObservableObject {
     }
 
     public func removeUIKit() {
-        if splitVC?.isCollapsed == false, let nav = splitVC?.viewController(for: .secondary) as? UINavigationController {
-            nav.popViewController(animated: true)
-        } else if splitVC?.isCollapsed == false, let nav = splitVC?.viewController(for: .secondary)?.navigationController {
-            nav.popViewController(animated: true)
+        let isCollapsed = splitVC?.isCollapsed == true
+        
+        if !isCollapsed {
+            if let nav = splitSecondaryNavVC {
+                nav.popViewController(animated: true)
+            } else if let nav = secondaryVC?.navigationController {
+                if nav.viewControllers.count > 1 {
+                    nav.popViewController(animated: true)
+                } else {
+                    popAllPathsAndClearSplitVCUIKit()
+                }
+            } else {
+                popAllPathsAndClearSplitVCUIKit()
+            }
         } else {
             navigationController?.popViewController(animated: true)
         }
@@ -117,21 +132,18 @@ public extension NavigationModel {
             ""
         }
     }
-
-    func clear() {
-        animateObjectWillChange()
-    }
 }
 
 // ThreadViewModel
 public extension NavigationModel {
     private var threadStack: [ConversationNavigationProtocol] {
-        pathsTracking.compactMap{ $0 as? ConversationNavigationProtocol }
+        pathsTracking.compactMap { $0 as? ConversationNavigationProtocol } +
+        pathsTracking.compactMap { ($0 as? UINavigationController)?.viewControllers.compactMap({ $0 as? ConversationNavigationProtocol }) }.flatMap{ $0 }
     }
     
     func switchFromThreadListUIKit(viewController: UIViewController, conversation: Conversation) {
         presentedThreadViewModel?.viewModel?.cancelAllObservers()
-        popAllPathsUIKit()
+        popAllPathsAndClearSplitVCUIKit()
         appendUIKit(vc: viewController, conversation: conversation)
     }
     
@@ -142,7 +154,6 @@ public extension NavigationModel {
         appendUIKit(value: vc)
         selectedId = conversation.id
         // We have to update the object with animateObjectWillChange because inside the ThreadRow we use a chagne listener on this
-        animateObjectWillChange()
     }
     
     func createAndAppend(conversation: Conversation) {
@@ -168,7 +179,7 @@ public extension NavigationModel {
         }
         // iPad (side-by-side)
         else if let splitVC = splitVC {
-            splitVC.setViewController(nil, for: .secondary)
+            popAllPathsAndClearSplitVCUIKit()
         }
     }
     
@@ -191,7 +202,6 @@ public extension NavigationModel {
 
     func setSelectedThreadId() {
         selectedId = threadStack.last?.threadId
-        animateObjectWillChange()
     }
 
     func remove(threadId: Int? = nil) {
@@ -230,8 +240,8 @@ public extension NavigationModel {
         // iPad — Push to navigation controller instead of replacing the whole secondary view controller in split view controller
         navigationController?.pushViewController(vc, animated: true)
         detailsStack.append(detailViewModel)
+        pathsTracking.append(vc)
         selectedId = conversationId
-        animateObjectWillChange()
     }
 
     func removeDetail(id: Int) {

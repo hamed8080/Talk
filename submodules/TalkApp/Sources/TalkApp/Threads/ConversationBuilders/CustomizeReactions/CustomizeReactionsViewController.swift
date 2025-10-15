@@ -303,7 +303,7 @@ extension CustomizeReactionsViewController: UICollectionViewDelegate {
         let unselectedsCount = sections.last?.rows.count ?? 0
 
         let canMoveToSelected = !isSelected && unselectedsCount > 1
-        let canMoveToUNSelected = isSelected && selectedsCount > 1
+        let canMoveToUNSelected = isSelected && selectedsCount > 0
 
         return canMoveToSelected || canMoveToUNSelected
     }

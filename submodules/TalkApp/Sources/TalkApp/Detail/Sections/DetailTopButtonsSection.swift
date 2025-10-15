@@ -72,6 +72,9 @@ struct DetailTopButtonsSection: View {
                         UserActionMenu(showPopover: $showPopover, participant: participant)
                     }
                 }
+                .environment(\.locale, Locale.current)
+                .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+                .font(Font.fBody)
                 .foregroundColor(.primary)
                 .frame(width: 246)
                 .background(MixMaterialBackground())

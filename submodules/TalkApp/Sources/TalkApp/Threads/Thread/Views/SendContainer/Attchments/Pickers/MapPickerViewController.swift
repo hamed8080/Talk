@@ -6,13 +6,13 @@
 //
 
 import Chat
+import ChatCore
+import Combine
 import MapKit
 import SwiftUI
 import TalkModels
 import TalkUI
 import TalkViewModels
-import ChatCore
-import Combine
 import WebKit
 
 @MainActor
@@ -21,7 +21,6 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
     private let mapView = MKMapView()
     private let btnClose = UIImageButton(imagePadding: .init(all: 8))
     private let btnSubmit = SubmitBottomButtonUIView(text: "General.add")
-    private let toastView = ToastUIView(message: AppErrorTypes.location_access_denied.localized, disableWidthConstraint: true)
     private let btnLocateMe = UIButton()
     private let btnMapSwap = UIButton()
     private var webView = WKWebView()
@@ -59,7 +58,6 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
         config.userContentController.add(self, name: "consoleHandler") // Add log handler
         webView = WKWebView(frame: .zero, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
-  
         
         // Swap between Apple Maps and OSM
         btnMapSwap.translatesAutoresizingMaskIntoConstraints = false
@@ -103,17 +101,8 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
         }
         view.addSubview(btnSubmit)
 
-        toastView.translatesAutoresizingMaskIntoConstraints = false
-        toastView.accessibilityIdentifier = "toastViewMapPickerViewController"
-        toastView.setIsHidden(true)
-        view.addSubview(toastView)
-
         heightSubmitConstraint = btnSubmit.heightAnchor.constraint(greaterThanOrEqualToConstant: 64)
         NSLayoutConstraint.activate([
-            toastView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            toastView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            toastView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            toastView.heightAnchor.constraint(equalToConstant: 96),
             btnClose.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             btnClose.widthAnchor.constraint(equalToConstant: 42),
             btnClose.heightAnchor.constraint(equalToConstant: 42),
@@ -249,6 +238,8 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
     }
 
     @objc private func closeTapped(_ sender: UIImageButton) {
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "locationHandler")
+        webView.configuration.userContentController.removeScriptMessageHandler(forName: "consoleHandler")
         dismiss(animated: true)
     }
     
@@ -257,15 +248,12 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
     }
 
     private func onError() {
-        toastView.setIsHidden(false)
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: false) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                withAnimation {
-                    self?.locationManager.error = nil
-                    self?.toastView.setIsHidden(true)
-                }
-            }
-        }
+        AppState.shared.objectsContainer.appOverlayVM.toastAttachToVC = self
+        AppState.shared.objectsContainer.appOverlayVM.toast(
+            leadingView: nil,
+            message: AppErrorTypes.location_access_denied.localized,
+            messageColor: Color.App.textPrimaryUIColor!,
+            duration: .slow)
     }
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -305,6 +293,12 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
     private func moveOSMTo(location: CLLocationCoordinate2D) {
         let jsCode = "moveMapToLocation(\(location.latitude), \(location.longitude));"
         webView.evaluateJavaScript(jsCode, completionHandler: nil)
+    }
+    
+    deinit {
+#if DEBUG
+        print("Deinit called for MapPickerViewController")
+#endif
     }
 }
 
@@ -353,6 +347,12 @@ final class LocationManager: NSObject, @preconcurrency CLLocationManagerDelegate
     }
 
     func locationManager(_: CLLocationManager, didFailWithError error: Error) {
+    }
+    
+    deinit {
+#if DEBUG
+        print("Deinit called for LocationManager")
+#endif
     }
 }
 

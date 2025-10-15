@@ -79,11 +79,12 @@ public struct GalleryPageView: View {
     }
     
     private var savedToastView: some View {
-        ToastView(title: "", message: "General.imageSaved", messageColor: Color.App.textPrimary) {
-            Image(systemName: "externaldrive.badge.checkmark")
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.App.textPrimary)
-        }
+        ToastViewWrapper(
+            title: "",
+            message: "General.imageSaved",
+            messageColor: Color.App.textPrimaryUIColor!,
+            leadingView: UIImageView(image: UIImage(systemName: "externaldrive.badge.checkmark"))
+        )
         .onAppear {
             Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
                 Task { @MainActor in

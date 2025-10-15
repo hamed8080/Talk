@@ -134,7 +134,7 @@ struct SettingSettingSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "gearshape.fill", title: "Settings.title", color: .gray, showDivider: false) {
-            navModel.wrapAndPush(view: PreferenceView())
+            navModel.wrapAndPush(view: PreferenceView().font(Font.fBody))
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -174,11 +174,11 @@ struct UserInformationSection: View {
             .listRowSeparatorTint(Color.App.dividerPrimary)
             .contentShape(Rectangle())
             .onTapGesture {
-                let icon = Image(systemName: "person")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.App.textPrimary)
+                let imageView = UIImageView(image: UIImage(systemName: "person"))
                 let key = "Settings.userNameCopied".bundleLocalized()
-                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: key, messageColor: Color.App.textPrimary)
+                AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: imageView,
+                                                                    message: key,
+                                                                    messageColor: Color.App.textPrimaryUIColor!)
                 UIPasteboard.general.string = userName
             }
         }

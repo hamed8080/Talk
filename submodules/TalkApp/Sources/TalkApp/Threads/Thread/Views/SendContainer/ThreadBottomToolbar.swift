@@ -27,7 +27,7 @@ public final class ThreadBottomToolbar: UIStackView {
     public let selectionView: SelectionView
     private let muteBarView: MuteChannelBarView
     private let closedBarView: ClosedBarView
-    public var onUpdateHeight: ((CGFloat) -> Void)?
+    public var onUpdateHeight: (@Sendable (CGFloat) -> Void)?
 
     public init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel

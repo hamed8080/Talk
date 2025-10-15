@@ -124,21 +124,21 @@ struct ParticipantRowContainer: View {
     private var popoverBody: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == false {
-                ContextMenuButton(title: "Participant.addAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle) {
+                ContextMenuButton(title: "Participant.addAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                     viewModel.makeAdmin(participant)
                     showPopover.toggle()
                 }
             }
 
             if !isMe, viewModel.thread?.admin == true, (participant.admin ?? false) == true {
-                ContextMenuButton(title: "Participant.removeAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.minus", bundle: Language.preferedBundle) {
+                ContextMenuButton(title: "Participant.removeAdminAccess".bundleLocalized(), image: "person.crop.circle.badge.minus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                     viewModel.removeAdminRole(participant)
                     showPopover.toggle()
                 }
             }
 
             if !isMe, viewModel.thread?.admin == true {
-                ContextMenuButton(title: "General.delete".bundleLocalized(), image: "trash", bundle: Language.preferedBundle) {
+                ContextMenuButton(title: "General.delete".bundleLocalized(), image: "trash", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                     let dialog = AnyView(
                         DeleteParticipantDialog(participant: participant)
                             .environmentObject(viewModel)
@@ -149,6 +149,7 @@ struct ParticipantRowContainer: View {
                 .foregroundStyle(Color.App.red)
             }
         }
+        .font(Font.fBody)
         .foregroundColor(.primary)
         .frame(width: 246)
         .background(MixMaterialBackground())

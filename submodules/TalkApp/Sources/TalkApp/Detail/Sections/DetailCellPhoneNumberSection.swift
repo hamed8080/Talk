@@ -16,10 +16,12 @@ struct DetailCellPhoneNumberSection: View {
             SectionRowContainer(key: "Participant.Search.Type.cellphoneNumber", value: cellPhoneNumber)
                 .onTapGesture {
                     UIPasteboard.general.string = cellPhoneNumber
-                    let icon = Image(systemName: "phone")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.App.textPrimary)
-                    AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: icon, message: "General.copied", messageColor: Color.App.textPrimary)
+                    let imageView = UIImageView(image: UIImage(systemName: "phone"))
+                    AppState.shared.objectsContainer.appOverlayVM.toast(
+                        leadingView: imageView,
+                        message: "General.copied",
+                        messageColor: Color.App.textPrimaryUIColor!
+                    )
                 }
         }
     }

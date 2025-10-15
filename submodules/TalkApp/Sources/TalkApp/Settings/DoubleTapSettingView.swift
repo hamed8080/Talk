@@ -61,6 +61,7 @@ struct DoubleTapSettingView: View {
                 }
             }
         }
+        .font(Font.fBody)
         .environment(\.defaultMinListRowHeight, 8)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)

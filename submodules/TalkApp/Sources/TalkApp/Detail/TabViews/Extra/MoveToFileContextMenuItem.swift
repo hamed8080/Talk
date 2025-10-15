@@ -26,7 +26,7 @@ struct MoveToFileContextMenuItemViewModifier<V: View>: ViewModifier {
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } menus: {
                 VStack {
-                    ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill", bundle: Language.preferedBundle) {
+                    ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                         rowModel.moveToMessage(viewModel)
                     }
                 }
@@ -43,5 +43,6 @@ struct MoveToFileContextMenuItemViewModifier<V: View>: ViewModifier {
 extension View {
     func appyDetailViewContextMenu<V: View>(_ newInstance: V, _ rowModel: TabRowModel, _ viewModel: ThreadDetailViewModel) -> some View {
         self.modifier(MoveToFileContextMenuItemViewModifier(newInstance: newInstance, viewModel: viewModel, rowModel: rowModel))
+            .font(Font.fBody)
     }
 }

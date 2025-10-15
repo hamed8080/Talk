@@ -280,7 +280,7 @@ public final class ConversationBuilderViewModel: ContactsViewModel, Sendable {
         if response.pop(prepend: CREATE_THREAD_CONVERSATION_BUILDER_KEY) != nil {
             await clear()
             isCreateLoading = false
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: EmptyView(),
+            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: nil,
                                                                 message: response.error?.message ?? "",
                                                                 messageColor: .red)
         }

@@ -36,6 +36,7 @@ public class ContactsViewModel: ObservableObject {
     @Published public var searchType: SearchParticipantType = .name
     @Published public var searchedContacts: ContiguousArray<Contact> = []
     @Published public var searchContactString: String = ""
+    public var nothingFound = false
     public var blockedContacts: ContiguousArray<BlockedContactResponse> = []
     public var addContact: Contact?
     public var editContact: Contact?
@@ -192,6 +193,7 @@ public class ContactsViewModel: ObservableObject {
             for contact in contacts {
                 addImageLoader(contact)
             }
+            nothingFound = contacts.isEmpty
             
             /// We should not set animation to true beacause it will lead to incorrect animation,
             /// due to the fact that Contact.id is the idetifier and diffable dataSource see them as one.
@@ -228,6 +230,7 @@ public class ContactsViewModel: ObservableObject {
     }
 
     public func clear() {
+        nothingFound = false
         searchContactString = ""
         firstSuccessResponse = false
         lazyList.reset()

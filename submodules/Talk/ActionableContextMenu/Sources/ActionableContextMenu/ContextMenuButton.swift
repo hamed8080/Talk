@@ -14,18 +14,20 @@ public struct ContextMenuButton: View {
     private let showSeparator: Bool
     private let iconColor: Color?
     private let bundle: Bundle
+    private let isRTL: Bool
     private let action: (() -> Void)?
     @State private var scale: CGFloat = 0.0001
     @EnvironmentObject var viewModel: ContextMenuModel
     @Environment(\.colorScheme) var scheme
 
-    public init(title: String, image: String, iconColor: Color? = nil, showSeparator: Bool = true, bundle: Bundle, action: ( () -> Void)?) {
+    public init(title: String, image: String, iconColor: Color? = nil, showSeparator: Bool = true, bundle: Bundle, isRTL: Bool, action: ( () -> Void)?) {
         self.title = title
         self.image = image
         self.showSeparator = showSeparator
         self.action = action
         self.bundle = bundle
         self.iconColor = iconColor
+        self.isRTL = isRTL
     }
 
     public var body: some View {
@@ -48,18 +50,12 @@ public struct ContextMenuButton: View {
             .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             .scaleEffect(x: scale, y: scale, anchor: .center)
         }
-        .environment(\.layoutDirection, isRTLLanguage ? .rightToLeft : .leftToRight)
+        .environment(\.layoutDirection, isRTL ? .rightToLeft : .leftToRight)
         .padding(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
         .onAppear {
             withAnimation(.interpolatingSpring(mass: 1.0, stiffness: 0.3, damping: 0.5, initialVelocity: 0).speed(30)) {
                 scale = 1.0
             }
         }
-    }
-
-    private var isRTLLanguage: Bool {
-        let rtlIdentifiers = ["fa", "ar"]
-        let identifier = Locale.current.identifier
-        return rtlIdentifiers.first(where: {identifier.contains($0)}) != nil
     }
 }

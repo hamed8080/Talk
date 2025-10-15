@@ -12,12 +12,14 @@ import SwiftUI
 import TalkUI
 
 class ContactTableViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
-    var tableView: UITableView = UITableView(frame: .zero)
+    private var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
+    private var tableView: UITableView = UITableView(frame: .zero)
+    private let noResultView = NothingFoundView()
     let viewModel: ContactsViewModel
     private let navBar = ContactsNavigationBar()
-    static let resuableIdentifier = "CONTACTROW"
-    static let headerResuableIdentifier = "CONTACTS_TABLE_VIEW_HEADER"
+    private static let resuableIdentifier = "CONTACTROW"
+    private static let headerResuableIdentifier = "CONTACTS_TABLE_VIEW_HEADER"
+    private var viewHasEverAppeared = false
 
     init(viewModel: ContactsViewModel) {
         self.viewModel = viewModel
@@ -53,6 +55,8 @@ class ContactTableViewController: UIViewController {
         /// Toolbar
         navBar.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         navBar.translatesAutoresizingMaskIntoConstraints = false
+        navBar.viewModel = viewModel
+        navBar.setFilter()
         view.addSubview(navBar)
         
         NSLayoutConstraint.activate([
@@ -71,6 +75,40 @@ class ContactTableViewController: UIViewController {
                                        right: 0)
         tableView.scrollIndicatorInsets = tableView.contentInset
     }
+    
+    private func attachNoResultIfNeeded() {
+        if isInSearch && viewModel.nothingFound {
+            noResultView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(noResultView)
+            NSLayoutConstraint.activate([
+                noResultView.topAnchor.constraint(equalTo: navBar.bottomAnchor, constant: 24),
+                noResultView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                noResultView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            ])
+        } else {
+            noResultView.removeFromSuperview()
+        }
+    }
+    
+    private func fixScrollPositionForFirstTime() {
+        guard !viewHasEverAppeared else { return }
+        viewHasEverAppeared = true
+
+        // Wait until layout is done and data is visible
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  self.viewModel.contacts.count > 0,
+                  self.tableView.numberOfSections > 0,
+                  self.tableView.numberOfRows(inSection: 0) > 0
+            else { return }
+            self.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+        }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        fixScrollPositionForFirstTime()
+    }
 }
 
 extension ContactTableViewController {
@@ -78,7 +116,7 @@ extension ContactTableViewController {
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, contact) -> UITableViewCell? in
             guard let self = self else { return nil }
-            if indexPath.section == ContactListSection.header.rawValue {
+            if indexPath.section == ContactListSection.header.rawValue && !isInSearch {
                 let cell = tableView.dequeueReusableCell(
                     withIdentifier: ContactTableViewController.headerResuableIdentifier,
                     for: indexPath
@@ -93,6 +131,7 @@ extension ContactTableViewController {
                 
                 return cell
             }
+            
             let cell = tableView.dequeueReusableCell(
                 withIdentifier: ContactTableViewController.resuableIdentifier,
                 for: indexPath
@@ -110,22 +149,29 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
     func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
+        let sections: [ContactListSection] = isInSearch ? [.main] : [.header, .main]
         
         /// Configure
-        snapshot.appendSections([.header, .main])
-        snapshot.appendItems([Contact(id: -1)], toSection: .header)
+        snapshot.appendSections(sections)
+        
+        if !isInSearch {
+            snapshot.appendItems([Contact(id: -1)], toSection: .header)
+        }
+        
         snapshot.appendItems(list, toSection: .main)
         if reloadSections {
-            snapshot.reloadSections([.header, .main])
+            snapshot.reloadSections(sections)
         }
         
         /// Force to reload header section to stop the loading
-        if !reloadSections && !viewModel.contacts.isEmpty {
+        if !reloadSections && !viewModel.contacts.isEmpty && !isInSearch {
             snapshot.reloadSections([.header])
         }
         
         /// Apply
         dataSource.apply(snapshot, animatingDifferences: animation)
+        
+        attachNoResultIfNeeded()
     }
     
     func updateImage(image: UIImage?, id: Int) {
@@ -134,11 +180,11 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
     
     private func cell(id: Int) -> ContactCell? {
         guard let index = list.firstIndex(where: { $0.id == id }) else { return nil }
-        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ContactCell
+        return tableView.cellForRow(at: IndexPath(row: index, section: isInSearch ? 0 : 1)) as? ContactCell
     }
     
     private var isInSearch: Bool {
-        viewModel.searchedContacts.count > 0 && !viewModel.searchContactString.isEmpty
+        viewModel.searchedContacts.count > 0 || !viewModel.searchContactString.isEmpty
     }
     
     private var list: [Contact] {
@@ -193,11 +239,8 @@ extension ContactTableViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if indexPath.section == ContactListSection.header.rawValue {
-            return 140
-        } else {
-            return 96
-        }
+        let showHeaders = indexPath.section == ContactListSection.header.rawValue && !isInSearch
+        return showHeaders ? 140 : 96
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {

@@ -65,11 +65,18 @@ final class ThreadViewController: UIViewController {
         
         var hasAnyInstanceInStack = false
         isViewControllerVisible = false
-        navigationController?.viewControllers.forEach({ hostVC in
-            hostVC.children.forEach { vc in
+        navigationController?.viewControllers.forEach({ vc in
+            
+            /// Check host children in a SwiftUI Hosting environment
+            vc.children.forEach { vc in
                 if vc == self {
                     hasAnyInstanceInStack = true
                 }
+            }
+            
+            /// Check if the vc is eqaul to itself
+            if vc == self {
+                hasAnyInstanceInStack = true
             }
         })
         if !hasAnyInstanceInStack, let viewModel = viewModel {
@@ -166,9 +173,12 @@ extension ThreadViewController {
         sendContainer.accessibilityIdentifier = "sendContainerThreadViewController"
         view.addSubview(sendContainer)
         sendContainer.onUpdateHeight = { [weak self] (height: CGFloat) in
-            self?.onSendHeightChanged(height)
-            if self?.animatingKeyboard == false {
-                self?.moveTolastMessageIfVisible()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.onSendHeightChanged(height)
+                if self.animatingKeyboard == false {
+                    self.moveTolastMessageIfVisible()
+                }
             }
         }
     }

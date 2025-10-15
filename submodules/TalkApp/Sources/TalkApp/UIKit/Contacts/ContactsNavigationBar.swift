@@ -12,10 +12,12 @@ import TalkUI
 
 class ContactsNavigationBar: UIView {
     private let titleLabel = UILabel()
-    private let searchButton = UIButton(type: .system)
+    private let searchButton = UIImageButton(imagePadding: .init(all: 12))
     private let searchField = UITextField()
     private let menuButton = UIButton(type: .system)
+    private let dropDownImageView = UIImageView()
     private var searchActive = false
+    weak var viewModel: ContactsViewModel?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -40,62 +42,97 @@ class ContactsNavigationBar: UIView {
         titleLabel.textColor = Color.App.toolbarButtonUIColor
         addSubview(titleLabel)
         
-        searchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
         searchButton.translatesAutoresizingMaskIntoConstraints = false
-        searchButton.addTarget(self, action: #selector(toggleSearch), for: .touchUpInside)
+        searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
+        searchButton.imageView.tintColor = Color.App.accentUIColor
+        searchButton.imageView.contentMode = .scaleAspectFit
+        searchButton.accessibilityIdentifier = "searchButtonThreadsTopToolbarView"
+        searchButton.action = { [weak self] in
+            self?.toggleSearch()
+        }
+        
         addSubview(searchButton)
         
         // Configure search field
-        searchField.placeholder = "Search..."
-        searchField.borderStyle = .roundedRect
         searchField.alpha = 0
         searchField.translatesAutoresizingMaskIntoConstraints = false
-        searchField.layer.cornerRadius = 8
+        searchField.delegate = self
+        searchField.placeholder = "General.searchHere".bundleLocalized()
+        searchField.layer.backgroundColor = Color.App.bgSendInputUIColor?.withAlphaComponent(0.8).cgColor
+        searchField.layer.cornerRadius = 16
         searchField.layer.masksToBounds = true
+        searchField.font = UIFont.fBody
+        searchField.textAlignment = Language.isRTL ? .right : .left
+        searchField.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        searchField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
+        searchField.leftViewMode = .always
+        searchField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
+        searchField.rightViewMode = .always
         addSubview(searchField)
         
         // Configure menu button
-        menuButton.setTitle("Test", for: .normal)
         menuButton.alpha = 0
         menuButton.translatesAutoresizingMaskIntoConstraints = false
         menuButton.showsMenuAsPrimaryAction = true
-        menuButton.menu = UIMenu(title: "", children: [
-            UIAction(title: "Sort", image: UIImage(systemName: "arrow.up.arrow.down")) { _ in
-                print("Sort tapped")
-            },
-            UIAction(title: "Filter", image: UIImage(systemName: "line.3.horizontal.decrease.circle")) { _ in
-                print("Filter tapped")
-            },
-            UIAction(title: "Settings", image: UIImage(systemName: "gearshape")) { _ in
-                print("Settings tapped")
+        menuButton.titleLabel?.font = UIFont.fBoldCaption3
+        menuButton.titleLabel?.textAlignment = Language.isRTL ? .right : .left
+        menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+                
+        let actions = SearchParticipantType.allCases.filter({ $0 != .admin }).compactMap({ type in
+            UIAction(title: type.rawValue.bundleLocalized(), image: nil) { [weak self] _ in
+                self?.viewModel?.searchType = type
+                self?.menuButton.setTitle(type.rawValue.bundleLocalized() ?? "", for: .normal)
             }
-        ])
+        })
+        menuButton.menu = UIMenu(title: "", children: actions)
         addSubview(menuButton)
         
+        let config = UIImage.SymbolConfiguration(pointSize: 12)
+        let dropDownImage = UIImage(systemName: "chevron.down")?.applyingSymbolConfiguration(config)
+        dropDownImageView.image = dropDownImage
+        dropDownImageView.contentMode = .scaleAspectFit
+        dropDownImageView.tintColor = Color.App.accentUIColor
+        dropDownImageView.translatesAutoresizingMaskIntoConstraints = false
+        dropDownImageView.alpha = 0.0
+        addSubview(dropDownImageView)
+        
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 52),
+            heightAnchor.constraint(equalToConstant: 48),
             
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
             effectView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
             effectView.bottomAnchor.constraint(equalTo: bottomAnchor),
     
-            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 10),
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0),
             titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor, constant: 0),
             
             searchButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            searchButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+            searchButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             searchButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
 
             searchField.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             searchField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             searchField.trailingAnchor.constraint(equalTo: menuButton.leadingAnchor, constant: -8),
-            
+            searchField.heightAnchor.constraint(equalToConstant: 36),
+
             menuButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
-            menuButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -16),
-            menuButton.widthAnchor.constraint(equalToConstant: 72)
+            menuButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -8),
+            menuButton.widthAnchor.constraint(equalToConstant: 92),
+            
+            dropDownImageView.centerYAnchor.constraint(equalTo: menuButton.centerYAnchor, constant: 0),
+            dropDownImageView.widthAnchor.constraint(equalToConstant: 16),
+            dropDownImageView.heightAnchor.constraint(equalToConstant: 16),
         ])
+        
+        if let buttonLabel = menuButton.titleLabel {
+            dropDownImageView.leadingAnchor.constraint(equalTo: buttonLabel.trailingAnchor, constant: 4).isActive = true
+        }
+    }
+    
+    public func setFilter() {
+        menuButton.setTitle(viewModel?.searchType.rawValue.bundleLocalized() ?? "", for: .normal)
     }
     
     // MARK: - Behavior
@@ -109,15 +146,36 @@ class ContactsNavigationBar: UIView {
             self.titleLabel.alpha = showSearch ? 0 : 1
             self.searchField.alpha = showSearch ? 1 : 0
             self.menuButton.alpha = showSearch ? 1 : 0
+            self.dropDownImageView.alpha = showSearch ? 1 : 0
             
             let iconName = showSearch ? "xmark" : "magnifyingglass"
-            self.searchButton.setImage(UIImage(systemName: iconName), for: .normal)
+            self.searchButton.imageView.image = UIImage(systemName: iconName)
         }
         
         if showSearch {
             searchField.becomeFirstResponder()
         } else {
             searchField.resignFirstResponder()
+            searchField.text = ""
+            
+            /// Reset search type filter
+            viewModel?.searchType = .name
+            setFilter()
+            
+            viewModel?.searchContactString = ""
+            /// We have to call UpdateUI her,
+            /// because the searchContactString newValue is different than the old value inside the
+            /// ContactsViewModel.searchContactString
+            viewModel?.delegate?.updateUI(animation: false, reloadSections: true)
         }
+    }
+}
+
+extension ContactsNavigationBar: UITextFieldDelegate {
+    public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let currentText = textField.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+        viewModel?.searchContactString = newText
+        return true
     }
 }

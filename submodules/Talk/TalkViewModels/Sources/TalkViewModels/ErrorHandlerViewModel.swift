@@ -30,7 +30,7 @@ public final class ErrorHandlerViewModel: ObservableObject {
            let thread = AppState.shared.objectsContainer.threadsVM.threads.first(where: {$0.id == request.threadId})
         {
             let message = thread.type?.isChannelType == true ? "Thread.onlyChannelAdminError" : "Thread.onlyGroupAdminError"
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: EmptyView(),
+            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: nil,
                                                                 message: message,
                                                                 messageColor: .red)
         }

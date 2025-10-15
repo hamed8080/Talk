@@ -23,14 +23,14 @@ struct ThreadRowActionMenu: View {
 
     var body: some View {
         if canPinUnPin {
-            ContextMenuButton(title: pinUnpinTitle, image: "pin", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: pinUnpinTitle, image: "pin", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onPinUnpinTapped()
             }
         }
 
         let isArchive = thread.isArchive == true
         if canMuteUnmute {
-            ContextMenuButton(title: muteUnmuteTitle, image: "speaker.slash", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: muteUnmuteTitle, image: "speaker.slash", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onMuteUnmuteTapped()
             }
             .opacity(isArchive ? 0.4 : 1.0)
@@ -39,35 +39,35 @@ struct ThreadRowActionMenu: View {
         }
 
         if !isDetailView, !thread.closed, thread.type != .selfThread {
-            ContextMenuButton(title: archiveTitle, image: archiveImage, bundle: Language.preferedBundle) {
+            ContextMenuButton(title: archiveTitle, image: archiveImage, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onArchiveUnArchiveTapped()
             }
         }
 
         if EnvironmentValues.isTalkTest {
-            ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onClearHistoryTapped()
             }
             .sandboxLabel()
             
-            ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onAddToFolderTapped()
             }
             .sandboxLabel()
             
-            ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onSpamTapped()
             }
             .sandboxLabel()
             
             if canAddParticipant {
-                ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle) {
+                ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                     onInviteTapped()
                 }
                 .sandboxLabel()
             }
             
-            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 UIPasteboard.general.string = "\(thread.id ?? -1)"
                 dump(thread)
             }
@@ -75,7 +75,7 @@ struct ThreadRowActionMenu: View {
         }
 
         if isDetailView, thread.group == true {
-            ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red, bundle: Language.preferedBundle) {
+            ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onLeaveConversationTapped()
             }
             .foregroundStyle(Color.App.red)
@@ -83,7 +83,7 @@ struct ThreadRowActionMenu: View {
 
         /// You should be admin or the thread should be a p2p thread with two people.
         if isDetailView, thread.admin == true || thread.group == false {
-            ContextMenuButton(title: deleteTitle, image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle) {
+            ContextMenuButton(title: deleteTitle, image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onDeleteConversationTapped()
             }
             .foregroundStyle(Color.App.red)
@@ -91,7 +91,7 @@ struct ThreadRowActionMenu: View {
 
         if isDetailView, thread.group == true, thread.type?.isChannelType == false, thread.admin == true {
             Divider()
-            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock", bundle: Language.preferedBundle) {
+            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onCloseConversationTapped()
             }
         }
@@ -216,10 +216,10 @@ struct ThreadRowActionMenu: View {
     }
 
     private func showArchivePopupIfNeeded() {
-        let leadingView = Image(systemName: "tray.and.arrow.up")
-        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: leadingView,
+        let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
+        AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: imageView,
                                                             message: "ArchivedTab.guide".bundleLocalized(),
-                                                            messageColor: Color.App.textPrimary,
+                                                            messageColor: Color.App.textPrimaryUIColor!,
                                                             duration: .slow)
     }
 }
