@@ -82,7 +82,10 @@ public class SplitViewController: UISplitViewController {
             self.overlayVC = overlayVC
             parentVC.view.bringSubviewToFront(overlayVC.view)
         } else {
+            overlayVC?.willMove(toParent: nil)
             overlayVC?.view.removeFromSuperview()
+            overlayVC?.removeFromParent()
+            overlayVC = nil
         }
     }
     
