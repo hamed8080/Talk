@@ -73,7 +73,8 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
     func setValue(row: ReactionRowsCalculated.Row) {
         self.row = row
         reactionEmojiCount.text = "\(row.emoji) \(row.countText)"
-        backgroundColor = row.isMyReaction ? Color.App.color1UIColor?.withAlphaComponent(0.9) : Color.App.accentUIColor?.withAlphaComponent(0.1)
+        layer.borderColor = row.isMyReaction ? Color.App.accentUIColor?.cgColor : nil
+        layer.borderWidth = row.isMyReaction ? 1.5 : 0.0
     }
 
     @objc private func onTapped(_ sender: UIGestureRecognizer) {

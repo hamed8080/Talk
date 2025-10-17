@@ -78,6 +78,7 @@ final class FooterReactionsCountView: UIStackView {
             if index < rows.count, let rowView = view as? ReactionCountRowView {
                 rowView.setIsHidden(false)
                 rowView.setValue(row: rows[index])
+                rowView.backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
                 rowView.viewModel = viewModel
             } else {
                 view.setIsHidden(true)
