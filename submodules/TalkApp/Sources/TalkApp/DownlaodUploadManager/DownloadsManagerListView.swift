@@ -12,7 +12,6 @@ import TalkUI
 
 public struct DownloadsManagerListView: View {
     @EnvironmentObject var downloadManager: DownloadsManager
-    @Environment(\.dismiss) var dismiss
     @State private var pausedAll: Bool = false
     
     public var body: some View {
@@ -53,7 +52,7 @@ public struct DownloadsManagerListView: View {
     
     private var leadingView: some View {
         NavigationBackButton(automaticDismiss: false) {
-            dismiss()
+            AppState.shared.objectsContainer.navVM.removeUIKit()
         }
     }
     

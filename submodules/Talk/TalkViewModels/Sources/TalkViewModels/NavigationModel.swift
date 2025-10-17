@@ -179,7 +179,11 @@ public extension NavigationModel {
         }
         // iPad (side-by-side)
         else if let splitVC = splitVC {
-            popAllPathsAndClearSplitVCUIKit()
+            if splitSecondaryNavVC?.viewControllers.count ?? 0 > 1 {
+                removeUIKit()
+            } else {
+                popAllPathsAndClearSplitVCUIKit()
+            }
         }
     }
     
