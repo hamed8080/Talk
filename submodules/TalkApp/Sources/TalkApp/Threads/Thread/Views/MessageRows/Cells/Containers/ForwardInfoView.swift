@@ -110,15 +110,45 @@ final class ForwardInfoView: UIView {
         print("on forward tapped")
 #endif
     }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        if touches.first?.view == participantLabel {
+            setDimColor(dim: true)
+        }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        if touches.first?.view == participantLabel {
+            setDimColor(dim: false)
+        }
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        if touches.first?.view == participantLabel {
+            setDimColor(dim: false)
+        }
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        if touches.first?.view == participantLabel {
+            setDimColor(dim: false)
+        }
+    }
+    
+    private func setDimColor(dim: Bool) {
+        participantLabel.textColor = Color.App.accentUIColor?.withAlphaComponent(dim ? 0.5 : 1.0)
+    }
 
     @objc private func onTappedParticpant(_ sender: UIGestureRecognizer) {
         let isMe = viewModel?.message.forwardInfo?.participant?.id == AppState.shared.user?.id
         if let participant = viewModel?.message.forwardInfo?.participant, !isMe {
-            participantLabel.backgroundColor = Color.App.textPlaceholderUIColor?.withAlphaComponent(0.8)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 Task { [weak self] in
                     try await AppState.shared.objectsContainer.navVM.openThread(participant: participant)
-                    self?.participantLabel.backgroundColor = .clear
                 }
             }
         }
