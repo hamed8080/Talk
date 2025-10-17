@@ -19,7 +19,7 @@ class ThreadNavigationPlayer: UIView {
     private let timerLabel = UILabel()
     private let titleLabel = UILabel()
     private let closeButton = UIImageButton(imagePadding: .init(all: 8))
-    private let playButton = UIImageButton(imagePadding: .init(top: 8, left: 0, bottom: 8, right: 8))
+    private let playButton = UIImageButton(imagePadding: .init(all: 8))
     private let progress = UIProgressView(progressViewStyle: .bar)
     private weak var viewModel: ThreadViewModel?
     private var cancellableSet = Set<AnyCancellable>()
@@ -53,6 +53,8 @@ class ThreadNavigationPlayer: UIView {
         timerLabel.textColor = .gray
         timerLabel.font = .fCaption2
         timerLabel.accessibilityIdentifier = "timerLabelThreadNavigationPlayer"
+        timerLabel.setContentHuggingPriority(.required, for: .horizontal)
+        timerLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         addSubview(timerLabel)
 
         progress.translatesAutoresizingMaskIntoConstraints = false
@@ -81,7 +83,7 @@ class ThreadNavigationPlayer: UIView {
         playButton.translatesAutoresizingMaskIntoConstraints = false
         playButton.tintColor = Color.App.accentUIColor
         playButton.imageView.image = UIImage(systemName: "play.fill")
-        playButton.imageView.contentMode = .scaleAspectFit
+        playButton.imageView.contentMode = Language.isRTL ? .right : .left
         playButton.imageView.tintColor = Color.App.accentUIColor
         playButton.accessibilityIdentifier = "playButtonThreadNavigationPlayer"
         playButton.action = { [weak self] in
@@ -94,7 +96,7 @@ class ThreadNavigationPlayer: UIView {
 
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
-            playButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0), // -6 for moving the icon close the edge
+            playButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             playButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -2),
             playButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             

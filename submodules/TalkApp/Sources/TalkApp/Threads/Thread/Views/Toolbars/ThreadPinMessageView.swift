@@ -18,7 +18,7 @@ public final class ThreadPinMessageView: UIStackView {
     private let pinImageView = UIImageView(frame: .zero)
     private let imageView = UIImageView(frame: .zero)
     private let textButton = UIButton(type: .system)
-    private let unpinButton = UIImageButton(imagePadding: .init(all: 4))
+    private let unpinButton = UIImageButton(imagePadding: .init(all: 8))
     private weak var viewModel: ThreadPinMessageViewModel?
     weak var stack: UIStackView?
 
@@ -65,12 +65,17 @@ public final class ThreadPinMessageView: UIStackView {
         imageView.contentMode = .scaleAspectFit
         imageView.layer.masksToBounds = true
         imageView.accessibilityIdentifier = "imageViewThreadPinMessageView"
-
+        
+        
+        // Get the system-preferred font for a text style
+        let font = UIFont.preferredFont(forTextStyle: .body)
+        // Create a symbol configuration based on the font
+        let config = UIImage.SymbolConfiguration(pointSize: font.pointSize, weight: .bold)
         unpinButton.translatesAutoresizingMaskIntoConstraints = false
-        let image = UIImage(systemName: "xmark")
+        let image = UIImage(systemName: "xmark", withConfiguration: config)
         unpinButton.imageView.image = image
         unpinButton.imageView.contentMode = .scaleAspectFit
-        unpinButton.imageView.tintColor = Color.App.iconSecondaryUIColor
+        unpinButton.imageView.tintColor = Color.App.textSecondaryUIColor
         unpinButton.accessibilityIdentifier = "unpinButtonThreadPinMessageView"
         unpinButton.action = { [weak self] in
             self?.onUnpinMessageTapped()
@@ -96,8 +101,7 @@ public final class ThreadPinMessageView: UIStackView {
             pinImageView.heightAnchor.constraint(equalToConstant: 14),
             imageView.widthAnchor.constraint(equalToConstant: 24),
             imageView.heightAnchor.constraint(equalToConstant: 24),
-            unpinButton.widthAnchor.constraint(equalToConstant: 28),
-            unpinButton.heightAnchor.constraint(equalToConstant: 28),
+            unpinButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
         ])
     }
 
