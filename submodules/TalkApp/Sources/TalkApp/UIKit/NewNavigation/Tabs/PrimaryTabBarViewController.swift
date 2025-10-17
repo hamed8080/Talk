@@ -113,8 +113,13 @@ class PrimaryTabBarViewController: UIViewController {
         NSLayoutConstraint.activate([
             vc.view.topAnchor.constraint(equalTo: container.topAnchor),
             vc.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            vc.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
         ])
+        
+        if Language.isRTL {
+            vc.view.leadingAnchor.constraint(equalTo: container.leadingAnchor).isActive = true
+        } else {
+            vc.view.trailingAnchor.constraint(equalTo: container.trailingAnchor).isActive = true
+        }
         
         if splitViewController?.isCollapsed == true {
             vc.view.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
