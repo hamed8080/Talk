@@ -28,14 +28,14 @@ public struct ConstantSizes: Sendable {
 
     /// MessageAvatarView sizes
     nonisolated(unsafe) public static let messageAvatarViewSize: CGFloat = 37
-    nonisolated(unsafe) public static let messageAvatarViewBottomMargin: CGFloat = 8
+    nonisolated(unsafe) public static let messageAvatarViewBottomMargin: CGFloat = 6
     nonisolated(unsafe) public static let messageAvatarBeforeLeading: CGFloat = 8
     nonisolated(unsafe) public static let messageAvatarAfterTrailing: CGFloat = 8
     
     /// MessageTailView sizes
-    nonisolated(unsafe) public static let messageTailViewWidth: CGFloat = 16
-    nonisolated(unsafe) public static let messageTailViewHeight: CGFloat = 32
-    nonisolated(unsafe) public static let messageTailViewLeading: CGFloat = 12
+    nonisolated(unsafe) public static let messageTailViewWidth: CGFloat = 7.88
+    nonisolated(unsafe) public static let messageTailViewHeight: CGFloat = 12.52
+    nonisolated(unsafe) public static let messageTailViewLeading: CGFloat = 7.0
 
     /// MessageFileView sizes
     nonisolated(unsafe) public static let messageFileViewHeight: CGFloat = 48

@@ -103,7 +103,7 @@ public final class MessageContainerStackView: UIStackView {
 
         tailImageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewWidth).isActive = true
         tailImageView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewHeight).isActive = true
-        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: isMe ? -ConstantSizes.messageTailViewLeading + 2 : -ConstantSizes.messageTailViewLeading).isActive = true
+        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -ConstantSizes.messageTailViewLeading).isActive = true
         tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         
         minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageContainerStackViewMinWidth)

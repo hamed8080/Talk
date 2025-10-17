@@ -86,7 +86,7 @@ public class MessageBaseCell: UITableViewCell {
             messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: ConstantSizes.messageAvatarAfterTrailing)
         }
         messageStackLeadingToRadioTrailingConstraint = messageContainer.leadingAnchor.constraint(equalTo: radio.trailingAnchor, constant: 0)
-        messageStackLeadingToContainerLeadingConstarint = messageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: isMe ? ConstantSizes.beforeContainerLeading : 0)
+        messageStackLeadingToContainerLeadingConstarint = messageContainer.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant:ConstantSizes.beforeContainerLeading)
     }
 
     private func attachOrDetachRadio(viewModel: MessageRowViewModel) {
