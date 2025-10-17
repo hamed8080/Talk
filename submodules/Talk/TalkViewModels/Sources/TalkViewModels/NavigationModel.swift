@@ -24,7 +24,7 @@ public final class NavigationModel: ObservableObject {
     
     // MARK: Computed properties
     
-    private var splitVC: UISplitViewController? { rootVC as? UISplitViewController }
+    public var splitVC: UISplitViewController? { rootVC as? UISplitViewController }
     private var secondaryVC: UIViewController? { splitVC?.viewController(for: .secondary) }
     private var splitSecondaryNavVC: UINavigationController? { secondaryVC as? UINavigationController }
     private var navigationController: UINavigationController? { splitVC?.viewControllers.first as? UINavigationController }

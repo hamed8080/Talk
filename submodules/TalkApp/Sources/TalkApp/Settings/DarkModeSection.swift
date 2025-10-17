@@ -46,10 +46,13 @@ struct DarkModeSection: View {
         .onChange(of: isDarkModeEnabled) { value in
             var model = AppSettingsModel.restore()
             model.isDarkModeEnabled = value
+            AppState.shared.objectsContainer.navVM.splitVC?.overrideUserInterfaceStyle = value ? .dark : .light
             model.save()
         }
         .onAppear {
-            isDarkModeEnabled = currentSystemScheme == .dark
+            if AppSettingsModel.restore().isDarkModeEnabled == nil {
+                isDarkModeEnabled = currentSystemScheme == .dark
+            }
         }
     }
 }
