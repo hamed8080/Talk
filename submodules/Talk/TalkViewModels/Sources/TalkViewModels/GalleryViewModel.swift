@@ -207,8 +207,7 @@ public final class GalleryViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             if let time = message?.time, let id = message?.id {
                 vm?.historyVM.cancelTasks()
-                let task: Task<Void, any Error> = Task { [weak self] in
-                    guard let self = self else { return }                   
+                let task: Task<Void, any Error> = Task {
                     await vm?.historyVM.moveToTime(time, id)
                 }
                 vm?.historyVM.setTask(task)
