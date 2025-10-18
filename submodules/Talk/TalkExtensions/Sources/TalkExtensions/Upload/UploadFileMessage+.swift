@@ -45,7 +45,7 @@ public extension UploadFileMessage {
         if isReplyRequest {
             replyRequest = ReplyMessageRequest(threadId: model.threadId,
                                                   repliedTo: model.replyMessage?.id ?? -1,
-                                                  textMessage: "",
+                                                  textMessage: model.textMessage,
                                                   messageType: .podSpacePicture
             )
         }
