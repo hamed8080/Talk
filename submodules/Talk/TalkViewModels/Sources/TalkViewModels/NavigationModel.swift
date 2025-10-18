@@ -73,6 +73,7 @@ public final class NavigationModel: ObservableObject {
         else if let splitVC = splitVC {
             pathsTracking.removeAll()
             splitVC.setViewController(nil, for: .secondary)
+            splitVC.show(.primary)
         }
     }
 
