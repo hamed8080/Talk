@@ -304,6 +304,12 @@ public class ThreadsTopToolbarView: UIStackView {
     
     private func onPlayerItemChanged(_ item: AVAudioPlayerItem?) {
         let shouldShow = item != nil
+        
+        /// Once closing with colse button player object internally remove itself from the superView
+        /// So we need to add it manually again
+        if shouldShow && player.superview == nil {
+            addArrangedSubview(player)
+        }
         player.isHidden = !shouldShow
         player.isUserInteractionEnabled = shouldShow
     }
