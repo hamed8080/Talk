@@ -453,7 +453,7 @@ extension ThreadViewController: BottomToolbarDelegate {
         viewModel?.replyMessage = message as? Message
         sendContainer.openReplyMode(message)
         viewModel?.scrollVM.disableExcessiveLoading()
-        scrollTo(uniqueId: message?.uniqueId ?? "", position: hasExternalKeyboard ? .none : .middle)
+        scrollTo(uniqueId: message?.uniqueId ?? "", messageId: message?.id ?? -1, position: hasExternalKeyboard ? .none : .middle)
     }
 
     func focusOnTextView(focus: Bool) {
@@ -524,8 +524,8 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     
-    func scrollTo(uniqueId: String, position: UITableView.ScrollPosition, animate: Bool = true) {
-        if let indexPath = sections.indicesByMessageUniqueId(uniqueId) {
+    func scrollTo(uniqueId: String, messageId: Int, position: UITableView.ScrollPosition, animate: Bool = true) {
+        if let indexPath = sections.findIncicesBy(uniqueId: uniqueId, id: messageId) {
             scrollTo(index: indexPath, position: position, animate: animate)
         }
     }

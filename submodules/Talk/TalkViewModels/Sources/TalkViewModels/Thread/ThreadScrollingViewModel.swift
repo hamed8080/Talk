@@ -34,8 +34,8 @@ public final class ThreadScrollingViewModel {
         isAtBottomOfTheList = thread.lastMessageVO?.id == thread.lastSeenMessageId || thread.lastSeenMessageId ?? 0 > thread.lastMessageVO?.id ?? 0
     }
 
-    private func scrollTo(_ uniqueId: String, position: UITableView.ScrollPosition = .bottom, animate: Bool) {
-        viewModel?.historyVM.delegate?.scrollTo(uniqueId: uniqueId, position: position, animate: animate)
+    private func scrollTo(_ uniqueId: String, messageId: Int, position: UITableView.ScrollPosition = .bottom, animate: Bool) {
+        viewModel?.historyVM.delegate?.scrollTo(uniqueId: uniqueId, messageId: messageId, position: position, animate: animate)
     }
 
     public func scrollToBottom() {
@@ -54,10 +54,10 @@ public final class ThreadScrollingViewModel {
             disableExcessiveLoading()
             if !didEndScrollingAnimation {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                    self?.scrollTo(uniqueId, animate: true)
+                    self?.scrollTo(uniqueId, messageId: message.id ?? -1, animate: true)
                 }
             } else {
-                scrollTo(uniqueId, animate: true)
+                scrollTo(uniqueId, messageId: message.id ?? -1, animate: true)
             }
             isAtBottomOfTheList = true
             viewModel?.delegate?.showMoveToBottom(show: false)
@@ -68,7 +68,7 @@ public final class ThreadScrollingViewModel {
         let message = lastMessageOrLastUploadingMessage()
         if isAtBottomOfTheList, let uniqueId = message?.uniqueId {
             disableExcessiveLoading()
-            scrollTo(uniqueId, animate: true)
+            scrollTo(uniqueId, messageId: message?.id ?? -1, animate: true)
         }
     }
 

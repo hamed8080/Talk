@@ -88,6 +88,16 @@ extension ContiguousArray where Element == MessageSection {
         else { return nil }
         return .init(row: messageIndex, section: sectionIndex)
     }
+    
+    public func findIncicesBy(uniqueId: String, id: Int) -> IndexPath? {
+        if isEmpty { return nil }
+        guard
+            uniqueId.isEmpty == false,
+            let sectionIndex = firstIndex(where: { $0.vms.contains(where: { $0.message.uniqueId == uniqueId && $0.id == id }) }),
+            let messageIndex = self[sectionIndex].vms.firstIndex(where: { $0.message.uniqueId == uniqueId && $0.id == id })
+        else { return nil }
+        return .init(row: messageIndex, section: sectionIndex)
+    }
 
     internal func findIncicesBy(uniqueId: String?, _ id: Int?) -> IndexPath? {
         if isEmpty { return nil }

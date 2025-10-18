@@ -79,6 +79,6 @@ final class ThreadHighlightViewModel {
         if highlight {
             setHighlight(messageId)
         }
-        delegate?.scrollTo(uniqueId: uniqueId, position: position, animate: animate)
+        delegate?.scrollTo(uniqueId: uniqueId, messageId: messageId, position: position, animate: animate)
     }
 }
