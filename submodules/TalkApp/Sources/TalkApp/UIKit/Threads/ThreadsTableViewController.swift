@@ -282,6 +282,8 @@ extension ThreadsTableViewController {
             
             view.bringSubviewToFront(threadsToolbar)
         } else {
+            AppState.shared.objectsContainer.searchVM.closedSearchUI()
+            
             searchListVC?.willMove(toParent: nil)
             searchListVC?.view.removeFromSuperview()
             searchListVC?.removeFromParent()

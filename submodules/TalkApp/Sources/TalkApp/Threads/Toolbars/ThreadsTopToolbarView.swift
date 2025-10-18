@@ -262,6 +262,9 @@ public class ThreadsTopToolbarView: UIStackView {
         filterUnreadMessagesButton.isUserInteractionEnabled = isInSearchMode
         filterUnreadMessagesButton.isHidden = !isInSearchMode
         onSearchChanged?(isInSearchMode)
+        if !isInSearchMode {
+            searchTextField.text = nil
+        }
     }
     
     private func onSearchTextChanged(newValue: String) {
