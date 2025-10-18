@@ -159,6 +159,7 @@ private extension MessageContainerStackView {
         guard let message = model.message as? Message else { return }
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
         model.threadVM?.replyMessage = message
+        model.threadVM?.sendContainerViewModel.setReplyMessageDraft(message)
         model.threadVM?.delegate?.openReplyMode(message)
     }
 

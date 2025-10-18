@@ -13,9 +13,12 @@ import TalkModels
 import Chat
 
 public final class ReplyMessagePlaceholderView: UIStackView {
+    /// Views
     private let nameLabel = UILabel()
     private let messageLabel = UILabel()
     private var replyImage = UIImageButton(imagePadding: .init(all: 4))
+    
+    /// Models
     private weak var viewModel: ThreadViewModel?
     
     public init(viewModel: ThreadViewModel?) {

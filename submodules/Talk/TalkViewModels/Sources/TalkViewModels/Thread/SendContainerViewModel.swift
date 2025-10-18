@@ -53,6 +53,7 @@ public final class SendContainerViewModel: ObservableObject {
         setText(newValue: "")
         onTextChanged?(textMessage)
         setEditMessageDraft(nil)
+        setReplyMessageDraft(nil)
     }
 
     public func isTextEmpty() -> Bool {
@@ -129,6 +130,14 @@ public final class SendContainerViewModel: ObservableObject {
 
     private func getDraftEditMessage() -> Message? {
         draftManager.editMessageText(threadId: threadId)
+    }
+    
+    public func setReplyMessageDraft(_ replyMessage: Message?) {
+        draftManager.setReplyMessageDraft(replyMessage, threadId: threadId)
+    }
+
+    public func getDraftReplyMessage() -> Message? {
+        draftManager.replyMessageText(threadId: threadId)
     }
 
     private func isSimulated() -> Bool {

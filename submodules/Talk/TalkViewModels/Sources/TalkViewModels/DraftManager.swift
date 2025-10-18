@@ -12,6 +12,7 @@ public final class DraftManager: Sendable {
     private let contactKey = "contact-draft-"
     private let conversationKey = "conversation-draft-"
     private let eidtMessageKey = "edit-draft-"
+    private let replyMessageKey = "reply-draft-"
     private init() {}
 
     public func get(threadId: Int) -> String? {
@@ -66,6 +67,19 @@ public final class DraftManager: Sendable {
         let message: Message? = UserDefaults.standard.codableValue(forKey: getEditMessageKey(threadId: threadId))
         return message
     }
+    
+    public func replyMessageText(threadId: Int) -> Message? {
+        let message: Message? = UserDefaults.standard.codableValue(forKey: getReplyMessageKey(threadId: threadId))
+        return message
+    }
+    
+    public func setReplyMessageDraft(_ replyMessage: Message?, threadId: Int) {
+        if replyMessage == nil {
+            clearReplyMessage(threadId: threadId)
+        } else if let replyMessage = replyMessage {
+            UserDefaults.standard.setValue(codable: replyMessage, forKey: getReplyMessageKey(threadId: threadId))
+        }
+    }
 
     public func clear(threadId: Int) {
         UserDefaults.standard.removeObject(forKey: getConversationKey(threadId: threadId))
@@ -75,8 +89,12 @@ public final class DraftManager: Sendable {
         UserDefaults.standard.removeObject(forKey: getContactKey(contactId: contactId))
     }
 
-    public func clearEditMessage(threadId: Int) {
+    private func clearEditMessage(threadId: Int) {
         UserDefaults.standard.removeObject(forKey: getEditMessageKey(threadId: threadId))
+    }
+    
+    private func clearReplyMessage(threadId: Int) {
+        UserDefaults.standard.removeObject(forKey: getReplyMessageKey(threadId: threadId))
     }
 
     private func getConversationKey(threadId: Int) -> String {
@@ -85,6 +103,10 @@ public final class DraftManager: Sendable {
 
     private func getEditMessageKey(threadId: Int) -> String {
         "\(eidtMessageKey)\(threadId)"
+    }
+    
+    private func getReplyMessageKey(threadId: Int) -> String {
+        "\(replyMessageKey)\(threadId)"
     }
 
     private func getContactKey(contactId: Int) -> String {

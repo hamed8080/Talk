@@ -45,6 +45,7 @@ final class ThreadViewController: UIViewController {
         registerKeyboard()
         viewModel?.delegate = self
         viewModel?.historyVM.delegate = self
+        showReplyOnOpen()
         startCenterAnimation(true)
     }
 
@@ -726,20 +727,6 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 }
 
-struct UIKitThreadViewWrapper: UIViewControllerRepresentable {
-    let threadVM: ThreadViewModel
-
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = ThreadViewController()
-        vc.viewModel = threadVM
-        return vc
-    }
-
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-
-    }
-}
-
 // MARK: Keyboard apperance
 extension ThreadViewController {
     private func registerKeyboard() {
@@ -824,6 +811,15 @@ extension ThreadViewController {
 
     @objc private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+extension ThreadViewController {
+    private func showReplyOnOpen() {
+        if let replyMessage = viewModel?.sendContainerViewModel.getDraftReplyMessage() {
+            self.viewModel?.replyMessage = replyMessage
+            openReplyMode(replyMessage)
+        }
     }
 }
 
