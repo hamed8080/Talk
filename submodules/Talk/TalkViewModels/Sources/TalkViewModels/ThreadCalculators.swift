@@ -456,7 +456,7 @@ public class ThreadCalculators {
         let uiImage = UIImage(systemName: imageName) ?? UIImage()
         let imgColor = UIColor(named: message.type == .startCall ? "color2" : "red")
         let imgAttachment = NSTextAttachment(image: uiImage.withTintColor(imgColor ?? .gray))
-        imgAttachment.bounds = CGRect(x: 0, y: -2, width: 20, height: isEnded ? 12 : 16)
+        imgAttachment.bounds = CGRect(x: 0, y: -2, width: 20, height: isEnded ? 8 : 16)
         let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
         mutable.append(attachmentAttribute)
         mutable.append(NSAttributedString(string: " "))
@@ -474,6 +474,16 @@ public class ThreadCalculators {
             .font: UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12)
         ]))
         mutable.append(NSAttributedString(string: " "))
+        
+        if isEnded {
+            let duration = (message.callHistory?.endTime ?? 0) - (message.callHistory?.startTime ?? 0)
+            let seconds = duration / 1000
+            let durationString = seconds.timerStringTripleSection(locale: Language.preferredLocale) ?? ""
+            
+            let textDuration = "Thread.callEndedDuration".bundleLocalized()
+            mutable.append(NSAttributedString(string: String(format: textDuration, durationString)))
+        }
+
         return mutable
     }
 
