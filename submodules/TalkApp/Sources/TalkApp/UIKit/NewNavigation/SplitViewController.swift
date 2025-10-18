@@ -92,9 +92,4 @@ public class SplitViewController: UISplitViewController {
     private func onDismiss() {
         AppState.shared.objectsContainer.appOverlayVM.clear()
     }
-    
-    public override var overrideUserInterfaceStyle: UIUserInterfaceStyle {
-        get { AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light }
-        set { super.overrideUserInterfaceStyle = newValue }
-    }
 }

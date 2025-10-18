@@ -11,11 +11,13 @@ import SwiftUI
 import TalkUI
 
 class ContactsNavigationBar: UIView {
+    private let overBlurEffectColorView = UIView()
     private let titleLabel = UILabel()
     private let searchButton = UIImageButton(imagePadding: .init(all: 12))
     private let searchField = UITextField()
     private let menuButton = UIButton(type: .system)
     private let dropDownImageView = UIImageView()
+    
     private var searchActive = false
     weak var viewModel: ContactsViewModel?
     
@@ -36,6 +38,11 @@ class ContactsNavigationBar: UIView {
         effectView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(effectView)
         
+        overBlurEffectColorView.translatesAutoresizingMaskIntoConstraints = false
+        overBlurEffectColorView.accessibilityIdentifier = "overBlurEffectColorViewContactsNavigationBar"
+        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        addSubview(overBlurEffectColorView)
+        
         titleLabel.text = "Contacts"
         titleLabel.font = UIFont.fBoldSubheadline
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -44,7 +51,7 @@ class ContactsNavigationBar: UIView {
         
         searchButton.translatesAutoresizingMaskIntoConstraints = false
         searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
-        searchButton.imageView.tintColor = Color.App.accentUIColor
+        searchButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         searchButton.imageView.contentMode = .scaleAspectFit
         searchButton.accessibilityIdentifier = "searchButtonThreadsTopToolbarView"
         searchButton.action = { [weak self] in
@@ -98,6 +105,11 @@ class ContactsNavigationBar: UIView {
         
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 48),
+            
+            overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            overBlurEffectColorView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
+            overBlurEffectColorView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
             
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -168,6 +180,10 @@ class ContactsNavigationBar: UIView {
             /// ContactsViewModel.searchContactString
             viewModel?.delegate?.updateUI(animation: false, reloadSections: true)
         }
+    }
+    
+    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
     }
 }
 

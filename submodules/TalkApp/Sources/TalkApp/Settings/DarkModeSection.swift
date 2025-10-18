@@ -46,7 +46,7 @@ struct DarkModeSection: View {
         .onChange(of: isDarkModeEnabled) { value in
             var model = AppSettingsModel.restore()
             model.isDarkModeEnabled = value
-            AppState.shared.objectsContainer.navVM.splitVC?.overrideUserInterfaceStyle = value ? .dark : .light
+            AppState.shared.objectsContainer.navVM.splitVC?.view.window?.overrideUserInterfaceStyle = value ? .dark : .light
             model.save()
         }
         .onAppear {

@@ -40,7 +40,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = UIHostingController(rootView: LeitnerBoxHomeView().injectAllObjects()) // CustomUIHosting is Needed for change status bar color per page
+            window.rootViewController = UIHostingController(rootView: LeitnerBoxHomeView()) // CustomUIHosting is Needed for change status bar color per page
             self.window = window
             window.makeKeyAndVisible()
         }
@@ -100,7 +100,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
 //        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
         
         /// This object reference will not be released and will be hold by the AppState automatically
-        let container = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
+        let _ = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
         
         if TokenManager.shared.isLoggedIn {
             window.rootViewController = SplitViewController(style: .doubleColumn)
@@ -113,6 +113,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
                 .injectAllObjects()
             window.rootViewController = UIHostingController(rootView: rootView)
         }
+       
+        let defaultSystemDarkModeisEnabled = window.traitCollection.userInterfaceStyle
+        let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
+        let customDarkMode = AppSettingsModel.restore().isDarkModeEnabled == true
+        window.overrideUserInterfaceStyle = nilDarkMode ? defaultSystemDarkModeisEnabled : customDarkMode ? .dark : .light
         self.window = window
         window.makeKeyAndVisible()
     }

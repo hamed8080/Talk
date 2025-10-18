@@ -16,6 +16,7 @@ import Chat
 @MainActor
 public class ThreadsTopToolbarView: UIStackView {
     /// Views
+    private let overBlurEffectColorView = UIView()
     private let plusButton = UIImageButton(imagePadding: .init(all: 12))
     private let logoImageView =  UIImageButton(imagePadding: .init(top: 12, left: 12, bottom: 12, right: -14))
     private let connectionStatusLabel = UILabel()
@@ -49,12 +50,17 @@ public class ThreadsTopToolbarView: UIStackView {
         translatesAutoresizingMaskIntoConstraints = false
         axis = .vertical
         spacing = 0
-        
+       
         let blurEffect = UIBlurEffect(style: .systemThickMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
         effectView.accessibilityIdentifier = "effectViewThreadsTopToolbarView"
         effectView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(effectView)
+        
+        overBlurEffectColorView.translatesAutoresizingMaskIntoConstraints = false
+        overBlurEffectColorView.accessibilityIdentifier = "overBlurEffectColorViewThreadsTopToolbarView"
+        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        addSubview(overBlurEffectColorView)
 
         plusButton.translatesAutoresizingMaskIntoConstraints = false
         plusButton.layer.cornerRadius = 22
@@ -62,6 +68,7 @@ public class ThreadsTopToolbarView: UIStackView {
         plusButton.imageView.layer.cornerRadius = 22
         plusButton.imageView.layer.masksToBounds = true
         plusButton.imageView.contentMode  = .scaleAspectFill
+        plusButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         plusButton.imageView.image = UIImage(systemName: "plus")
         plusButton.accessibilityIdentifier = "plusButtonThreadsTopToolbarView"
         plusButton.isUserInteractionEnabled = true
@@ -73,6 +80,7 @@ public class ThreadsTopToolbarView: UIStackView {
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.imageView.image = UIImage(named: Language.isRTL ? "talk_logo_text" : "talk_logo_text_en")
         logoImageView.imageView.contentMode  = .scaleAspectFit
+        logoImageView.imageView.tintColor = Color.App.toolbarButtonUIColor
         logoImageView.accessibilityIdentifier = "logoImageViewThreadsTopToolbarView"
         logoImageView.isUserInteractionEnabled = false
         
@@ -87,6 +95,7 @@ public class ThreadsTopToolbarView: UIStackView {
         searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
         searchButton.imageView.tintColor = Color.App.accentUIColor
         searchButton.imageView.contentMode = .scaleAspectFit
+        searchButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         searchButton.accessibilityIdentifier = "searchButtonThreadsTopToolbarView"
         searchButton.action = { [weak self] in
             self?.onSearchTapped()
@@ -165,7 +174,11 @@ public class ThreadsTopToolbarView: UIStackView {
         addArrangedSubview(player)
 
         NSLayoutConstraint.activate([
-            
+            overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            overBlurEffectColorView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
+            overBlurEffectColorView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
+
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
             effectView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
@@ -293,6 +306,11 @@ public class ThreadsTopToolbarView: UIStackView {
         let shouldShow = item != nil
         player.isHidden = !shouldShow
         player.isUserInteractionEnabled = shouldShow
+    }
+    
+    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        searchTextField.layer.backgroundColor = Color.App.bgSendInputUIColor?.withAlphaComponent(0.8).cgColor
+        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
     }
 }
 
