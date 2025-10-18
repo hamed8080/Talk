@@ -675,6 +675,8 @@ class MessageRowCalculators {
     class func calculateText(message: HistoryMessageType) -> String? {
         if let text = message.message, !text.isEmpty {
             return text
+        } else if let replyTextMessageUploadMessage = (message as? UploadFileMessage)?.replyRequest?.textMessage {
+          return replyTextMessageUploadMessage
         } else {
             return nil
         }
