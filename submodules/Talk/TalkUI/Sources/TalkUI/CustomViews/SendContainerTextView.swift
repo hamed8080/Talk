@@ -73,7 +73,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
             textView.heightAnchor.constraint(equalTo: heightAnchor),
             
             placeholderLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: 0),
-            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -16),
+            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Language.isRTL ? -16 : 16),
             placeholderLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2.5),
             placeholderLabel.heightAnchor.constraint(equalTo: heightAnchor),
         ])
