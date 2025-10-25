@@ -431,6 +431,9 @@ extension ThreadHistoryViewModel {
             /// Append it to the sections array.
             appendSort(vms)
             
+            /// Fix first and the last message of topVMS.last and bottomVMS.first
+            StitchAvatarCalculator.onMoveToTime(sections)
+            
             /// Calculate appended sections and rows.
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: 0, vms)
             
