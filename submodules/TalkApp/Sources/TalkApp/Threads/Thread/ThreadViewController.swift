@@ -76,14 +76,18 @@ final class ThreadViewController: UIViewController {
             }
             
             /// Check if the vc is eqaul to itself
-            if vc == self {
+            if vc == self, splitViewController?.viewController(for: .secondary) != nil {
                 hasAnyInstanceInStack = true
             }
         })
-        if !hasAnyInstanceInStack, let viewModel = viewModel {
-            AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.id)
-            AppState.shared.objectsContainer.threadsVM.setSelected(for: viewModel.id, selected: false)
-            AppState.shared.objectsContainer.archivesVM.setSelected(for: viewModel.id, selected: false)
+        if !hasAnyInstanceInStack,
+           let viewModel = viewModel,
+           let objc = AppState.shared.objectsContainer
+        {
+            let id = viewModel.id
+            objc.navVM.cleanOnPop(threadId: id)
+            objc.threadsVM.setSelected(for: id, selected: false)
+            objc.archivesVM.setSelected(for: id, selected: false)
         }
     }
 

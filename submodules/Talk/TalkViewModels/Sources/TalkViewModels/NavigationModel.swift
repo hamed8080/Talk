@@ -149,11 +149,12 @@ public extension NavigationModel {
     }
     
     func appendUIKit(vc: UIViewController, conversation: Conversation) {
-        pushToLinkId(id: "Thread-\(conversation.id)")
+        let id = conversation.id ?? -1
+        pushToLinkId(id: "Thread-\(id)")
         // Pop until the same thread if exist
-        popUntilSameConversation(threadId: conversation.id ?? 0)
+        popUntilSameConversation(threadId: id)
         appendUIKit(value: vc)
-        selectedId = conversation.id
+        selectedId = id
         // We have to update the object with animateObjectWillChange because inside the ThreadRow we use a chagne listener on this
     }
     
