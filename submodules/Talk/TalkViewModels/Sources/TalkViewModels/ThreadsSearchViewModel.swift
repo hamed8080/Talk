@@ -98,6 +98,10 @@ public final class ThreadsSearchViewModel: ObservableObject {
         lazyList.prepareForLoadMore()
         await searchThreads(searchText, new: showUnreadConversations, loadMore: true)
     }
+    
+    public func loadOnOpen() async {
+        await resetUnreadConversations()
+    }
 
     private func onMessageEvent(_ event: MessageEventTypes?) async {
         switch event {
@@ -114,7 +118,10 @@ public final class ThreadsSearchViewModel: ObservableObject {
         do {
             let calThreads = try await search(text: text, new: new, loadMore: loadMore)
             lazyList.setLoading(false)
-            lazyList.setHasNext(calThreads.count >= lazyList.count)
+            
+            /// Check greater than zero because of archive threads can lead hasNext to be set to false.
+            lazyList.setHasNext(calThreads.count > 0)
+            
             searchedConversations.append(contentsOf: calThreads)
             searchedConversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
             searchedConversations.sort(by: { $0.pin == true && $1.pin == false })
@@ -146,7 +153,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
         do {
             let calThreads = try await publicConversations(text: text)
             lazyList.setLoading(false)
-            lazyList.setHasNext(calThreads.count >= lazyList.count)
+            lazyList.setHasNext(calThreads.count > 0)
             searchedConversations.append(contentsOf: calThreads)
         } catch {
             log("Failed to get search public threads with error: \(error.localizedDescription)")

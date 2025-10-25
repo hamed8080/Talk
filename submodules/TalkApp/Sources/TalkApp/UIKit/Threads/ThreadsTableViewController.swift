@@ -263,6 +263,7 @@ extension ThreadsTableViewController {
     private func configureUISearchListView(show: Bool) {
         if show {
             let rootView = ThreadSearchView().injectAllObjects()
+
             let searchListVC = UIHostingController(rootView: rootView)
             searchListVC.view.translatesAutoresizingMaskIntoConstraints = false
             searchListVC.view.backgroundColor = Color.App.bgPrimaryUIColor
@@ -281,6 +282,12 @@ extension ThreadsTableViewController {
             ])
             
             view.bringSubviewToFront(threadsToolbar)
+            
+            
+            Task {
+                /// Load on open the sheet.
+                await AppState.shared.objectsContainer.searchVM.loadOnOpen()
+            }
         } else {
             AppState.shared.objectsContainer.searchVM.closedSearchUI()
             
