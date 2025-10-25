@@ -184,6 +184,8 @@ private extension MessageContainerStackView {
             model.threadVM?.delegate?.setTableRowSelected(indexPath)
         }
         cell?.select()
+        
+        model.threadVM?.delegate?.openForwardPicker()        
     }
 
     func onEditAction(_ model: ActionModel) {

@@ -43,11 +43,13 @@ public final class ForwardMessagePlaceholderView: UIStackView {
         vStack.axis = .vertical
         vStack.spacing = 0
         vStack.alignment = .leading
+        vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         vStack.accessibilityIdentifier = "vStackForwardMessagePlaceholderView"
 
         staticForwardLabel.textColor = Color.App.accentUIColor
         staticForwardLabel.numberOfLines = 1
         staticForwardLabel.font = UIFont.fCaption
+        staticForwardLabel.textAlignment = Language.isRTL ? .right : .left
         staticForwardLabel.accessibilityIdentifier = "staticForwardLabelForwardMessagePlaceholderView"
 
         messageLabel.font = UIFont.fCaption2
