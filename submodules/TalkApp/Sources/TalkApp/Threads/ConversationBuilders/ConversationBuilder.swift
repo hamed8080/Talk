@@ -14,6 +14,7 @@ import Chat
 struct ConversationBuilder: View {
     @EnvironmentObject var viewModel: ConversationBuilderViewModel
     @State private var showNextPage = false
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         NavigationStack {
@@ -375,6 +376,7 @@ struct BuilderContactRowContainer: View {
     @EnvironmentObject var viewModel: ConversationBuilderViewModel
     let contact: Contact
     let isSearchRow: Bool
+    var onTap: (() -> Void)? = nil
     var separatorColor: Color {
         if !isSearchRow {
             return viewModel.contacts.last == contact ? Color.clear : Color.App.dividerPrimary
@@ -404,6 +406,7 @@ struct BuilderContactRowContainer: View {
                         await viewModel.clear()
                         try await AppState.shared.objectsContainer.navVM.openThread(contact: contact)
                     }
+                    onTap?()
                 }
             }
     }

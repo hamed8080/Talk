@@ -80,7 +80,10 @@ struct StartThreadContactPickerView: View {
                 StickyHeaderSection(header: "Contacts.sortLabel")
                     .listRowInsets(.zero)
                 ForEach(viewModel.contacts) { contact in
-                    BuilderContactRowContainer(contact: contact, isSearchRow: false)
+                    BuilderContactRowContainer(contact: contact, isSearchRow: false) {
+                        /// On Tap
+                        dismiss()
+                    }
                 }
             }
             .listStyle(.plain)
