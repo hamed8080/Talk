@@ -39,7 +39,7 @@ public final class ThreadUnreadMentionsViewModel {
     }
 
     public func fetchAllUnreadMentions() {
-        guard let threadId = thread?.id else { return }
+        guard let threadId = thread?.id, viewModel?.thread.mentioned == true else { return }
         let req = GetHistoryRequest(threadId: threadId, count: 25, offset: 0, order: "desc", unreadMentioned: true)
         RequestsManager.shared.append(prepend: UNREAD_MENTIONS_KEY, value: req)
         Task {
@@ -58,13 +58,13 @@ public final class ThreadUnreadMentionsViewModel {
 
     func onUnreadMentions(_ response: ChatResponse<[Message]>) {
         guard
-            let newuUnreadMentions = response.result,
+            let newUnreadMentions = response.result,
             response.subjectId == thread?.id,
             !response.cache
         else { return }
         if response.pop(prepend: UNREAD_MENTIONS_KEY) != nil {
             unreadMentions.removeAll()
-            unreadMentions.append(contentsOf: newuUnreadMentions)
+            unreadMentions.append(contentsOf: newUnreadMentions)
             unreadMentions.sort(by: {$0.time ?? 0 < $1.time ?? 1})
             hasMention = viewModel?.thread.mentioned == true && unreadMentions.count > 0
             viewModel?.delegate?.onChangeUnreadMentions()
@@ -86,6 +86,7 @@ public final class ThreadUnreadMentionsViewModel {
         guard let message = response.result else { return }
         let isMe = message.isMe(currentUserId: AppState.shared.user?.id ?? -1) == true
         if response.subjectId == thread?.id, !isMe, message.mentioned == true {
+            viewModel?.thread.mentioned = true
             unreadMentions.append(message)
             hasMention = true
             viewModel?.delegate?.onChangeUnreadMentions()
