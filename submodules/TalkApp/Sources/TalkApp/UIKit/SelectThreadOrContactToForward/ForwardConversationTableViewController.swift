@@ -18,6 +18,8 @@ class ForwardConversationTableViewController: UIViewController {
     static let resuableIdentifier = "CONCERSATION-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
     var contextMenuContainer: ContextMenuContainerView? = nil
+    private var previousOffset: CGPoint? = nil
+    private var previousContentSize: CGSize? = nil
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel
@@ -76,21 +78,16 @@ extension ForwardConversationTableViewController {
 }
 
 extension ForwardConversationTableViewController: UIThreadsViewControllerDelegate {
-    func updateUI(animation: Bool, reloadSections: Bool) {
-        /// Create
-        var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
-        
-        /// Configure
-        snapshot.appendSections([.main])
-        snapshot.appendItems(Array(viewModel.conversations), toSection: .main)
-        if reloadSections {
-            snapshot.reloadSections([.main])
-        }
-        
-        /// Apply
-        Task { @AppBackgroundActor in
-            await dataSource?.apply(snapshot, animatingDifferences: animation)
-        }
+    var contentSize: CGSize { tableView.contentSize }
+
+    var contentOffset: CGPoint { tableView.contentOffset }
+
+    func setContentOffset(offset: CGPoint) {
+        tableView.contentOffset = offset
+    }
+
+    func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
     func updateImage(image: UIImage?, id: Int) {

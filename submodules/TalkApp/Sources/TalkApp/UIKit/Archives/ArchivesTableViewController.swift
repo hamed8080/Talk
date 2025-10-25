@@ -74,21 +74,16 @@ extension ArchivesTableViewController {
 }
 
 extension ArchivesTableViewController: UIThreadsViewControllerDelegate {
-    func updateUI(animation: Bool, reloadSections: Bool) {
-        /// Create
-        var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
-        
-        /// Configure
-        snapshot.appendSections([.main])
-        snapshot.appendItems(Array(viewModel.archives), toSection: .main)
-        if reloadSections {
-            snapshot.reloadSections([.main])
-        }
-        
-        /// Apply
-        Task { @AppBackgroundActor in
-            await dataSource?.apply(snapshot, animatingDifferences: animation)
-        }
+    var contentSize: CGSize { tableView.contentSize }
+
+    var contentOffset: CGPoint { tableView.contentOffset }
+
+    func setContentOffset(offset: CGPoint) {
+        tableView.contentOffset = offset
+    }
+
+    func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
     func updateImage(image: UIImage?, id: Int) {

@@ -10,6 +10,7 @@ import Combine
 import Chat
 import TalkModels
 import Logger
+import UIKit
 
 @MainActor
 public class ThreadOrContactPickerViewModel: ObservableObject {
@@ -22,9 +23,53 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public var conversationsLazyList = LazyListViewModel()
     private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
     public weak var delegate: UIThreadsViewControllerDelegate?
+    
+    private var previousOffset: CGPoint? = nil
+    private var previousContentSize: CGSize? = nil
+    @AppBackgroundActor
+    private var isCompleted = false
 
     public init() {
         setupObservers()
+    }
+    
+    func updateUI(animation: Bool, reloadSections: Bool) {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
+        
+        /// Configure
+        snapshot.appendSections([.main])
+        snapshot.appendItems(Array(conversations), toSection: .main)
+        if reloadSections {
+            snapshot.reloadSections([.main])
+        }
+        
+        /// Apply
+        Task { @AppBackgroundActor in
+            isCompleted = false
+            await MainActor.run {
+                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+            }
+            self.isCompleted = true
+        }
+    }
+    
+    public func savePreviousContentOffset() {
+        guard let contentSize = delegate?.contentSize, let contentOffset = delegate?.contentOffset else { return }
+        self.previousContentSize = contentSize
+        self.previousOffset = contentOffset
+    }
+    
+    public func moveToContentOffset() async {
+        while await !isCompleted {}
+        if let previousOffset = previousOffset, let previousContentSize = previousContentSize {
+            self.previousContentSize = nil
+            self.previousOffset = nil
+            
+            let newContentSize = self.delegate?.contentSize ?? .zero
+            let yDiff = newContentSize.height - previousContentSize.height
+            self.delegate?.setContentOffset(offset: CGPoint(x: previousOffset.x, y: previousOffset.y + yDiff))
+        }
     }
     
     public func start() {
@@ -144,7 +189,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 return firstIndex < secondIndex
             })
             
-            delegate?.updateUI(animation: false, reloadSections: false)
+            updateUI(animation: false, reloadSections: false)
             
             for cal in calThreads {
                 addImageLoader(cal)

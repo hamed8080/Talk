@@ -25,6 +25,11 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var cache: Bool = true
     public weak var delegate: UIThreadsViewControllerDelegate?
     
+    private var previousOffset: CGPoint? = nil
+    private var previousContentSize: CGSize? = nil
+    @AppBackgroundActor
+    private var isCompleted = false
+    
     // MARK: Computed properties
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var myId: Int { AppState.shared.user?.id ?? -1 }
@@ -72,6 +77,45 @@ public final class ArchiveThreadsViewModel: ObservableObject {
                 }
             }
             .store(in: &cancelable)
+    }
+    
+    func updateUI(animation: Bool, reloadSections: Bool) {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
+        
+        /// Configure
+        snapshot.appendSections([.main])
+        snapshot.appendItems(Array(archives), toSection: .main)
+        if reloadSections {
+            snapshot.reloadSections([.main])
+        }
+        
+        /// Apply
+        Task { @AppBackgroundActor in
+            isCompleted = false
+            await MainActor.run {
+                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+            }
+            self.isCompleted = true
+        }
+    }
+    
+    public func savePreviousContentOffset() {
+        guard let contentSize = delegate?.contentSize, let contentOffset = delegate?.contentOffset else { return }
+        self.previousContentSize = contentSize
+        self.previousOffset = contentOffset
+    }
+    
+    public func moveToContentOffset() async {
+        while await !isCompleted {}
+        if let previousOffset = previousOffset, let previousContentSize = previousContentSize {
+            self.previousContentSize = nil
+            self.previousOffset = nil
+            
+            let newContentSize = self.delegate?.contentSize ?? .zero
+            let yDiff = newContentSize.height - previousContentSize.height
+            self.delegate?.setContentOffset(offset: CGPoint(x: previousOffset.x, y: previousOffset.y + yDiff))
+        }
     }
 
     public func loadMore(id: Int?) async {
@@ -193,7 +237,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         let threshold = await splitThreshold(sorted)
       
         self.archives = sorted
-        delegate?.updateUI(animation: false, reloadSections: false)
+        updateUI(animation: false, reloadSections: false)
         for conversation in archives {
             addImageLoader(conversation)
         }
@@ -235,7 +279,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             /// threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
             await threadsVM.sortInPlace()
             threadsVM.animateObjectWillChange()
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         } else if
             let conversationId = response.result,
@@ -244,7 +288,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             let myId = AppState.shared.user?.id ?? -1
             let calThreads = await ThreadCalculators.calculate(conversation, myId)
             archives.append(calThreads)
-            delegate?.updateUI(animation: false, reloadSections: false)
+            updateUI(animation: false, reloadSections: false)
         }
     }
 
@@ -254,7 +298,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             conversation.isArchive = false
             conversation.mute = false
             archives.remove(at: index)
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
            
             await threadsVM.append(conversation)
@@ -323,13 +367,17 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
             
+            savePreviousContentOffset()
             archives = await sort(threads: archives)
-            delegate?.updateUI(animation: false, reloadSections: false)
+            updateUI(animation: false, reloadSections: false)
+            await moveToContentOffset()
         } else if
             let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId), conversation.isArchive == true {
+            savePreviousContentOffset()
             let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
             await calculateAppendSortAnimate(conversation)
             updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
+            await moveToContentOffset()
         }
     }
     
@@ -356,7 +404,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             /// Sort is essential after deleting the last message of the thread.
             /// It will cause to move down by sorting if the previous message is older another thread
             archives = await sort(threads: archives)
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
         }
     }
     
@@ -369,7 +417,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if isMe, let conversationId = response.subjectId {
             deselectActiveThread()
             archives.removeAll(where: {$0.id == response.subjectId})
-            delegate?.updateUI(animation: true, reloadSections: true)
+            updateUI(animation: true, reloadSections: true)
             animateObjectWillChange()
             
             /// Pop detail sa view and thread view at the same time
@@ -438,7 +486,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if let threadId = response.subjectId, let index = archives.firstIndex(where: {$0.id == threadId }) {
             deselectActiveThread()
             archives.remove(at: index)
-            delegate?.updateUI(animation: true, reloadSections: true)
+            updateUI(animation: true, reloadSections: true)
             animateObjectWillChange()
             
             if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
@@ -554,7 +602,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: archives)
         let sorted = await sort(threads: appendedThreads)
         archives = sorted
-        delegate?.updateUI(animation: true, reloadSections: false)
+        updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
     }
     
@@ -565,7 +613,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             recalculateAndAnimate(archives[index])
             
             archives.remove(at: index)
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
             AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }
@@ -586,7 +634,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             /// We have to reload the table view data source because,
             /// when we send or recive forward messages the lower thread will be moved to the top
             /// and in the above line we sort them again so reload data source is a must.
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         }
     }

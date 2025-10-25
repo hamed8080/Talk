@@ -47,7 +47,7 @@ extension ThreadsViewModel: PinThreadProtocol {
             
             threads[threadIndex].animateObjectWillChange()
             await sortInPlace()
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
     }
@@ -59,7 +59,7 @@ extension ThreadsViewModel: PinThreadProtocol {
             delegate?.reloadCellWith(conversation: threads[threadIndex])
             threads[threadIndex].animateObjectWillChange()
             await sortInPlace()
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         }
     }

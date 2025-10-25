@@ -19,7 +19,10 @@ public enum ThreadsListSection: Sendable {
 
 @MainActor
 public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate {
-    func updateUI(animation: Bool, reloadSections: Bool)
+    var contentSize: CGSize { get }
+    var contentOffset: CGPoint { get }
+    func setContentOffset(offset: CGPoint)
+    func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool)
     func updateImage(image: UIImage?, id: Int)
     func reloadCellWith(conversation: CalculatedConversation)
     func selectionChanged(conversation: CalculatedConversation)
@@ -51,6 +54,11 @@ public final class ThreadsViewModel: ObservableObject {
     internal let incNewQueue = IncommingNewMessagesQueue()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
     public weak var delegate: UIThreadsViewControllerDelegate?
+    
+    private var previousOffset: CGPoint? = nil
+    private var previousContentSize: CGSize? = nil
+    @AppBackgroundActor
+    private var isCompleted = false
 
     internal var objectId = UUID().uuidString
     internal let CHANNEL_TO_KEY: String
@@ -71,6 +79,45 @@ public final class ThreadsViewModel: ObservableObject {
         incForwardQueue.viewModel = self
         incNewQueue.viewModel = self
     }
+    
+    func updateUI(animation: Bool, reloadSections: Bool) {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
+        
+        /// Configure
+        snapshot.appendSections([.main])
+        snapshot.appendItems(Array(threads), toSection: .main)
+        if reloadSections {
+            snapshot.reloadSections([.main])
+        }
+        
+        /// Apply
+        Task { @AppBackgroundActor in
+            isCompleted = false
+            await MainActor.run {
+                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+            }
+            self.isCompleted = true
+        }
+    }
+    
+    public func savePreviousContentOffset() {
+        guard let contentSize = delegate?.contentSize, let contentOffset = delegate?.contentOffset else { return }
+        self.previousContentSize = contentSize
+        self.previousOffset = contentOffset
+    }
+    
+    public func moveToContentOffset() async {
+        while await !isCompleted {}
+        if let previousOffset = previousOffset, let previousContentSize = previousContentSize {
+            self.previousContentSize = nil
+            self.previousOffset = nil
+            
+            let newContentSize = self.delegate?.contentSize ?? .zero
+            let yDiff = newContentSize.height - previousContentSize.height
+            self.delegate?.setContentOffset(offset: CGPoint(x: previousOffset.x, y: previousOffset.y + yDiff))
+        }
+    }
 
     func onCreate(_ response: ChatResponse<Conversation>) async {
         lazyList.setLoading(false)
@@ -81,7 +128,7 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 
-    public func onNewMessage(_ messages: [Message], conversationId: Int) async -> Bool {
+    public func onNewMessage(_ messages: [Message], conversationId: Int) async {
         if let index = firstIndex(conversationId) {
             let reference = threads[index]
             let old = reference.toStruct()
@@ -94,16 +141,17 @@ public final class ThreadsViewModel: ObservableObject {
             }
             recalculateAndAnimate(updated)
             updateActiveConversationOnNewMessage(messages, updated.toStruct(), old)
-            delegate?.updateUI(animation: false, reloadSections: false)
+            savePreviousContentOffset()
+            updateUI(animation: false, reloadSections: false)
+            await moveToContentOffset()
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
-            return true
         } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId), conversation.isArchive != true {
+            savePreviousContentOffset()
             let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
             await calculateAppendSortAnimate(conversation)
             updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
-            return false
+            await moveToContentOffset()
         }
-        return false
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
@@ -130,7 +178,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// We have to reload the table view data source because,
             /// when we send or recive forward messages the lower thread will be moved to the top
             /// and in the above line we sort them again so reload data source is a must.
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
             await calculateAppendSortAnimate(conversation)
@@ -193,7 +241,7 @@ public final class ThreadsViewModel: ObservableObject {
                 threads.removeAll()
                 /// After a disconnect it is essential to reload the diffable,
                 /// becuase if there is any new message it won't show up.
-                delegate?.updateUI(animation: false, reloadSections: false)
+                updateUI(animation: false, reloadSections: false)
             }
                         
             await onThreads(filtered)
@@ -217,7 +265,7 @@ public final class ThreadsViewModel: ObservableObject {
         threads.append(calThreads)
         await sortInPlace()
         calThreads.animateObjectWillChange()
-        delegate?.updateUI(animation: true, reloadSections: false)
+        updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
     }
 
@@ -234,7 +282,7 @@ public final class ThreadsViewModel: ObservableObject {
         let threshold = await splitThreshold(sorted)
       
         self.threads = sorted
-        delegate?.updateUI(animation: false, reloadSections: false)
+        updateUI(animation: false, reloadSections: false)
         for conversation in threads {
             addImageLoader(conversation)
         }
@@ -437,7 +485,7 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.reset()
         threads = []
         firstSuccessResponse = false
-        delegate?.updateUI(animation: false, reloadSections: false)
+        updateUI(animation: false, reloadSections: false)
         animateObjectWillChange()
     }
 
@@ -453,7 +501,7 @@ public final class ThreadsViewModel: ObservableObject {
         guard let index = firstIndex(thread.id) else { return }
         deselectActiveThread()
         _ = threads.remove(at: index)
-        delegate?.updateUI(animation: true, reloadSections: false)
+        updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
     }
 
@@ -607,7 +655,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// Sort is essential after deleting the last message of the thread.
             /// It will cause to move down by sorting if the previous message is older another thread
             await sortInPlace()
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
         }
     }
 
@@ -618,7 +666,7 @@ public final class ThreadsViewModel: ObservableObject {
             recalculateAndAnimate(threads[index])
             
             threads.remove(at: index)
-            delegate?.updateUI(animation: true, reloadSections: false)
+            updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
             AppState.shared.objectsContainer.navVM.remove(threadId: id)
         }
@@ -790,7 +838,7 @@ public final class ThreadsViewModel: ObservableObject {
         let appendedThreads = await appendThreads(newThreads: calThreads, oldThreads: threads)
         let sorted = await sort(threads: appendedThreads, serverSortedPins: serverSortedPins)
         threads = sorted
-        delegate?.updateUI(animation: false, reloadSections: false)
+        updateUI(animation: false, reloadSections: false)
         for conversation in threads {
             addImageLoader(conversation)
         }
