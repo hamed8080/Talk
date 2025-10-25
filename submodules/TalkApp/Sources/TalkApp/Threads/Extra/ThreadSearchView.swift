@@ -11,6 +11,7 @@ import TalkUI
 
 struct ThreadSearchView: View {
     @EnvironmentObject var viewModel: ThreadsSearchViewModel
+    @State var isKeyboardHidden = false
 
     var body: some View {
         if viewModel.isInSearchMode {
@@ -63,8 +64,11 @@ struct ThreadSearchView: View {
             .environment(\.defaultMinListRowHeight, 24)
             .animation(.easeInOut, value: viewModel.searchedContacts.count)
             .animation(.easeInOut, value: viewModel.searchedConversations.count)
-            .padding(.bottom, ConstantSizes.bottomToolbarSize)
+            .padding(.bottom, isKeyboardHidden ? ConstantSizes.bottomToolbarSize : 0)
             .gesture(dragToHideKeyboardGesture)
+            .onKeyboardSize { size in
+                isKeyboardHidden = size.height <= 0
+            }
         }
     }
     
