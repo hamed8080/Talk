@@ -844,6 +844,11 @@ extension ThreadHistoryViewModel {
                     viewModel.scrollVM.scrollToNewMessageIfIsAtBottomOrMe(message)
                 }
                 
+                let isMyMessage = message.isMe(currentUserId: appUserId)
+                if isMyMessage {
+                    clearSavedScrollPosition()
+                }
+                
                 /// Reload stitch point if it has changed.
                 reloadIfStitchChangedOnNewMessage(bottomVMBeforeJoin, message)
             }
