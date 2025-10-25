@@ -119,6 +119,15 @@ public final class ThreadsSearchViewModel: ObservableObject {
             searchedConversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
             searchedConversations.sort(by: { $0.pin == true && $1.pin == false })
             
+            let serverSortedPins = AppState.shared.objectsContainer.threadsVM.serverSortedPins
+            searchedConversations.sort(by: { (firstItem, secondItem) in
+                guard let firstIndex = serverSortedPins.firstIndex(where: {$0 == firstItem.id}),
+                      let secondIndex = serverSortedPins.firstIndex(where: {$0 == secondItem.id}) else {
+                    return false // Handle the case when an element is not found in the server-sorted array
+                }
+                return firstIndex < secondIndex
+            })
+            
             for cal in calThreads {
                 addImageLoader(cal)
             }
