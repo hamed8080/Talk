@@ -18,6 +18,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
     @Published public var searchedConversations: ContiguousArray<CalculatedConversation> = []
     @Published public var searchedContacts: ContiguousArray<Contact> = []
     @Published public var searchText: String = ""
+    private var oldSearchValue = ""
     private var cancelable: Set<AnyCancellable> = []
     @Published public var selectedFilterThreadType: ThreadTypes?
     @Published public var showUnreadConversations: Bool? = nil
@@ -45,7 +46,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             .store(in: &cancelable)
         $searchText
             .dropFirst() // Drop first to prevent send request for the first time app launches
-            .debounce(for: 0.5, scheduler: RunLoop.main)
+            .debounce(for: 0.8, scheduler: RunLoop.main)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .removeDuplicates()
             .sink { [weak self] newValue in
@@ -71,6 +72,8 @@ public final class ThreadsSearchViewModel: ObservableObject {
     }
 
     private func onSearchTextChanged(_ newValue: String) async {
+        if newValue == oldSearchValue { return }
+        oldSearchValue = newValue
         if newValue.first == "@", newValue.count > 2 {
             reset()
             let startIndex = newValue.index(newValue.startIndex, offsetBy: 1)
@@ -82,6 +85,11 @@ public final class ThreadsSearchViewModel: ObservableObject {
             await searchContacts(newValue)
         } else if newValue.count == 0, await !lazyList.isLoading {
             reset()
+            
+            /// Refetch normal conversations on clearing the text to show normal list
+            if showUnreadConversations == false || showUnreadConversations == nil {
+                await searchThreads("", new: nil)
+            }
         }
     }
 
@@ -175,6 +183,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
     public func closedSearchUI() {
         reset()
         searchText = ""
+        oldSearchValue = ""
         showUnreadConversations = false
     }
 
