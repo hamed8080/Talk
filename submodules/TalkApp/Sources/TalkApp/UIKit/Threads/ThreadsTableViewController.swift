@@ -159,7 +159,7 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     }
     
     func scrollToFirstIndex() {
-        guard !viewModel.threads.isEmpty && tableView.numberOfRows(inSection: 0) > 0 else { return }
+        guard !viewModel.threads.isEmpty && tableView.numberOfSections > 0 && tableView.numberOfRows(inSection: 0) > 0 else { return }
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.scrollToRow(at: indexPath, at: .top, animated: true)
     }
