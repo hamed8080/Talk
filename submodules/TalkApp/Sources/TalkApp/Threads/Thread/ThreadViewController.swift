@@ -63,32 +63,10 @@ final class ThreadViewController: UIViewController {
         super.viewDidDisappear(animated)
         
         shouldScrollToBottomAtReapperance = viewModel?.scrollVM.isAtBottomOfTheList == true
-        
-        var hasAnyInstanceInStack = false
         isViewControllerVisible = false
-        navigationController?.viewControllers.forEach({ vc in
-            
-            /// Check host children in a SwiftUI Hosting environment
-            vc.children.forEach { vc in
-                if vc == self {
-                    hasAnyInstanceInStack = true
-                }
-            }
-            
-            /// Check if the vc is eqaul to itself
-            if vc == self, splitViewController?.viewController(for: .secondary) != nil {
-                hasAnyInstanceInStack = true
-            }
-        })
-        if !hasAnyInstanceInStack,
-           let viewModel = viewModel,
-           let objc = AppState.shared.objectsContainer
-        {
-            let id = viewModel.id
-            objc.navVM.cleanOnPop(threadId: id)
-            objc.threadsVM.setSelected(for: id, selected: false)
-            objc.archivesVM.setSelected(for: id, selected: false)
-        }
+        
+        /// Clean up navigation if we are moving backward, not forward.
+        AppState.shared.objectsContainer.navVM.popOnDisappearIfNeeded(viewController: self, id: viewModel?.id ?? -1)
     }
 
     override func viewDidAppear(_ animated: Bool) {
