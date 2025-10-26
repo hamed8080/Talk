@@ -8,6 +8,7 @@ import SwiftUI
 public class GalleryImageItemViewModel: ObservableObject, @preconcurrency Identifiable {
     public var id: Int { message.id ?? -1 }
     public let message: Message
+    @Published public var image: UIImage?
     
     @Published public var percent: Int64 = 0
     @Published public var state: DownloadFileState = .undefined
@@ -16,6 +17,7 @@ public class GalleryImageItemViewModel: ObservableObject, @preconcurrency Identi
     private let DOWNLOAD_IMAGE_GALLERY_VIEW_KEY: String
     private var objectId = UUID().uuidString
     private var cancelable: AnyCancellable?
+    public var isFetchingImage: Bool = false
     
     public init(message: Message) {
         self.message = message
@@ -106,30 +108,25 @@ public final class GalleryViewModel: ObservableObject {
     var thread: Conversation? { starter.conversation }
     var threadId: Int? { thread?.id ?? starter.threadId }
     private var cancelable: Set<AnyCancellable> = .init()
-    private var objectId = UUID().uuidString
-    private let FETCH_GALLERY_MESSAGES_KEY: String
     @Published public var selectedTabId: Int?
     
     public init(message: Message) {
-        FETCH_GALLERY_MESSAGES_KEY = "FETCH-GALLERY-MESSAGES-KEY-\(objectId)"
         self.starter = message
         selectedTabId = message.id
         loadStarterFileURL()
-        getPictureMessages(toTime: message.time?.advanced(by: 1)) // to get the message itself
-        getPictureMessages(fromTime: message.time?.advanced(by: 1)) // to do not getting the message itself but get them in advance if user want to scroll to leading side
-        NotificationCenter.message.publisher(for: .message)
-            .compactMap { $0.object as? MessageEventTypes }
-            .sink { [weak self] value in
-                self?.onMessageEvent(value)
-            }
-            .store(in: &cancelable)
+        Task {
+            try await getLeftAndRightMessages(message: starter)
+        }
         /// We will wait for 200 milliseconds to then send the request
         /// to the server to prvent the page stay in the middle
         /// while user was scrolling and we were appending at the same time at the end of the list.
         $selectedTabId
+            .dropFirst()
             .debounce(for: .milliseconds(200), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.handleScrollFinished()
+                Task {
+                    try? await self?.handleScrollFinished()
+                }
             }
             .store(in: &cancelable)
     }
@@ -139,21 +136,11 @@ public final class GalleryViewModel: ObservableObject {
         if !pictures.contains(where: { $0.id == starter.id }) {
             let vm = GalleryImageItemViewModel(message: starter)
             pictures.append(vm)
+            downloadImage(item: vm)
         }
     }
     
-    private func onMessageEvent(_ event: MessageEventTypes){
-        switch event {
-        case .history(let chatResponse):
-            onMessages(chatResponse)
-        default:
-            break
-        }
-    }
-    
-    private func onMessages(_ response: ChatResponse<[Message]>) {
-        if response.pop(prepend: FETCH_GALLERY_MESSAGES_KEY) == nil { return }
-        let newPictures = response.result ?? []
+    private func appendAndSort(_ newPictures: [Message]) {
         for newPicture in newPictures {
             if !pictures.contains(where: { $0.id == newPicture.id }) {
                 let vm = GalleryImageItemViewModel(message: newPicture)
@@ -163,8 +150,15 @@ public final class GalleryViewModel: ObservableObject {
         pictures.sort(by: { $0.message.time ?? 0 > $1.message.time ?? 0 })
     }
     
-    private func getPictureMessages(count: Int = 15, fromTime: UInt? = nil, toTime: UInt? = nil) {
-        guard let threadId else { return }
+    private func getLeftAndRightMessages(message: Message) async throws {
+        async let leftMessages = getPictureMessages(toTime: message.time?.advanced(by: 1)) // to get the message itself
+        async let rightMessages = getPictureMessages(fromTime: message.time?.advanced(by: 1)) // to do not getting the message itself but get them in advance if user want to scroll to leading side
+        let allMessages = (try await leftMessages) + (try await rightMessages)
+        appendAndSort(allMessages)
+    }
+    
+    private func getPictureMessages(count: Int = 15, fromTime: UInt? = nil, toTime: UInt? = nil) async throws -> [Message] {
+        guard let threadId else { return [] }
         let req = GetHistoryRequest(threadId: threadId,
                                     count: count,
                                     fromTime: fromTime,
@@ -172,10 +166,7 @@ public final class GalleryViewModel: ObservableObject {
                                     order: toTime != nil ? "DESC" : "ASC",
                                     toTime: toTime
         )
-        RequestsManager.shared.append(prepend: FETCH_GALLERY_MESSAGES_KEY, value: req)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.message.history(req)
-        }
+        return try await GetHistoryReuqester(key: "").getMessages(req)
     }
     
     public func downloadImage(item: GalleryImageItemViewModel) {
@@ -186,12 +177,14 @@ public final class GalleryViewModel: ObservableObject {
         downloadImage(item: item)
     }
     
-    private func handleScrollFinished() {
+    private func handleScrollFinished() async throws {
         guard let item = pictures.first(where: {$0.id == selectedTabId}) else { return }
         if pictures.first?.message.id == item.id {
-            getPictureMessages(fromTime: item.message.time)
+            let leftMessages = try await getPictureMessages(fromTime: item.message.time)
+            appendAndSort(leftMessages)
         } else if pictures.last?.message.id == item.id {
-            getPictureMessages(toTime: item.message.time)
+            let rightMessages = try await getPictureMessages(toTime: item.message.time)
+            appendAndSort(rightMessages)
         }
     }
     

@@ -171,27 +171,36 @@ struct GalleryImageViewData: View {
     let forceLeftToRight: Bool
     @EnvironmentObject var viewModel: GalleryImageItemViewModel
     @EnvironmentObject var offsetVM: GalleyOffsetViewModel
-    @State var image: UIImage?
     
     /// Check whether the image is at maximum size or not.
     @State private var isInScaleMode = false
     
     var body: some View {
         ZStack {
-            if let image = image {
+            if let image = viewModel.image {
                 GalleryImageView(uiimage: image)
                     .transition(.opacity)
+            } else if viewModel.image == nil {
+                ProgressView()
+                    .progressViewStyle(.circular)
             }
         }
-        .animation(.smooth, value: image)
-        .onChange(of: viewModel.state) { _ in
+        .animation(.smooth, value: viewModel.image)
+        .onChange(of: viewModel.state) { newState in
+            log("on change state: \(newState) for id: \(viewModel.id)")
             scaledImage()
         }
         .onChange(of: offsetVM.baseScale) { newValue in
+            log("on change base scale: \(newValue) for id: \(viewModel.id)")
             scaledImage()
         }
         .onAppear {
-            scaledImage()
+            log("on appear for id: \(viewModel.id)")
+            if viewModel.image == nil {
+                scaledImage()
+            } else {
+                log("prevent fetching image on appear as it has image for id: \(viewModel.id)")
+            }
         }
     }
     
@@ -200,13 +209,25 @@ struct GalleryImageViewData: View {
     /// total bytes of the image from the disk.
     /// We also revert back to the scaled image if the user reverts back to a non-zoom mode.
     private func scaledImage() {
+        if viewModel.isFetchingImage { return }
+        
         /// Prevent fetching image twice.
         if isInScaleMode && offsetVM.baseScale > 1.0 { return }
         
         isInScaleMode = offsetVM.baseScale > 1.0
+        
+        viewModel.isFetchingImage = true
+        
         Task {
-            image = await viewModel.getImage(scale: isInScaleMode ? offsetVM.baseScale : 1.0)
+            viewModel.image = await viewModel.getImage(scale: isInScaleMode ? offsetVM.baseScale : 1.0)
+            viewModel.isFetchingImage = false
         }
+    }
+    
+    private func log(_ message: String) {
+#if DEBUG
+            print("[GALLERY] \(message)")
+#endif
     }
 }
 

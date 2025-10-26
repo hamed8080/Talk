@@ -32,6 +32,12 @@ public class GetHistoryReuqester {
     
     public func get(_ req: GetHistoryRequest, queueable: Bool = false) async throws -> [MessageRowViewModel] {
         let key = KEY
+        let messages = try await getMessages(req, queueable: queueable)
+        return await calculateViewModels(messages)
+    }
+    
+    public func getMessages(_ req: GetHistoryRequest, queueable: Bool = false) async throws -> [Message] {
+        let key = KEY
         return try await withCheckedThrowingContinuation { [weak self] continuation in
             self?.sink(continuation)
             Task { @ChatGlobalActor [weak self] in
@@ -45,7 +51,7 @@ public class GetHistoryReuqester {
         }
     }
     
-    private func sink(_ continuation: CheckedContinuation<[MessageRowViewModel], any Error>) {
+    private func sink(_ continuation: CheckedContinuation<[Message], any Error>) {
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in
@@ -75,9 +81,9 @@ public class GetHistoryReuqester {
             .store(in: &cancellableSet)
     }
     
-    private func handleEvent(_ event: MessageEventTypes) async -> [MessageRowViewModel]? {
+    private func handleEvent(_ event: MessageEventTypes) async -> [Message]? {
         if case .history(let resp) = event, resp.pop(prepend: KEY) != nil, let messages = resp.result {
-            return await calculateViewModels(messages.sortedByTime())
+            return messages.sortedByTime()
         }
         return nil
     }
