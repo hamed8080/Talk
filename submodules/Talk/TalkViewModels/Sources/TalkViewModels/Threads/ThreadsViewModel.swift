@@ -676,9 +676,6 @@ public final class ThreadsViewModel: ObservableObject {
     public func onLastSeenMessageUpdated(_ response: ChatResponse<LastSeenMessageResponse>) async {
         if let index = firstIndex(response.subjectId) {
             var thread = threads[index]
-            if response.result?.unreadCount == 0, thread.mentioned == true {
-                thread.mentioned = false
-            }
             if response.result?.lastSeenMessageTime ?? 0 > thread.lastSeenMessageTime ?? 0 {
                 thread.lastSeenMessageTime = response.result?.lastSeenMessageTime
                 thread.lastSeenMessageId = response.result?.lastSeenMessageId
@@ -908,6 +905,13 @@ public final class ThreadsViewModel: ObservableObject {
             /// to update isSeleted for bar and background color
             setSelected(for: conversation.id ?? -1, selected: true)
             AppState.shared.objectsContainer.navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
+        }
+    }
+    
+    public func clearUnreadMention(for threadId: Int) {
+        if let index = threads.firstIndex(where: { $0.id == threadId }) {
+            threads[index].mentioned = false
+            updateUI(animation: false, reloadSections: false)
         }
     }
 }
