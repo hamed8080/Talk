@@ -53,5 +53,14 @@ public class StitchAvatarCalculator {
         else { return nil }
         return indexPath
     }
+    
+    public static func onMoveToTime(_ sections: ContiguousArray<MessageSection>) {
+        guard let suffix = sections.last?.vms.suffix(2) else { return }
+        
+        if suffix.count == 2, suffix.first?.message.ownerId == suffix.last?.message.ownerId {
+            suffix.first?.calMessage.isLastMessageOfTheUser = false
+            suffix.last?.calMessage.isFirstMessageOfTheUser = false
+        }
+    }
 }
 

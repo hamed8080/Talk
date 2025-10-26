@@ -149,11 +149,12 @@ public extension NavigationModel {
     }
     
     func appendUIKit(vc: UIViewController, conversation: Conversation) {
-        pushToLinkId(id: "Thread-\(conversation.id)")
+        let id = conversation.id ?? -1
+        pushToLinkId(id: "Thread-\(id)")
         // Pop until the same thread if exist
-        popUntilSameConversation(threadId: conversation.id ?? 0)
+        popUntilSameConversation(threadId: id)
         appendUIKit(value: vc)
-        selectedId = conversation.id
+        selectedId = id
         // We have to update the object with animateObjectWillChange because inside the ThreadRow we use a chagne listener on this
     }
     
@@ -202,7 +203,7 @@ public extension NavigationModel {
     }
 
     func viewModel(for threadId: Int) -> ThreadViewModel? {
-        return threadStack.first(where: { $0.threadId == threadId})?.viewModel
+        return threadStack.first(where: { $0.threadId == threadId })?.viewModel
     }
 
     func setSelectedThreadId() {
@@ -438,5 +439,40 @@ public extension NavigationModel {
     
     func updateForwardToThreadId(id: Int) {
         navigationProperties.forwardMessageRequest?.threadId = id
+    }
+}
+
+extension NavigationModel {
+    /// This method will only remove if we are moving backward.
+    /// For instance, if we press back button in the navigation bar or swipe to right to close the ThreadViewController.
+    /// It will not do anything at all if we move forward for example open map or pick a file or move to detail view.
+    ///
+    /// - Parameters:
+    ///   - viewController: ThreadViewController instance.
+    ///   - id: Thread id of the view controller.
+    public func popOnDisappearIfNeeded(viewController: UIViewController, id: Int) {
+        var hasAnyInstanceInStack = false
+        navigationController?.viewControllers.forEach({ vc in
+            
+            /// Check host children in a SwiftUI Hosting environment
+            vc.children.forEach { vc in
+                if vc == viewController {
+                    hasAnyInstanceInStack = true
+                }
+            }
+            
+            /// Check if the vc is eqaul to itself
+            if splitVC?.isCollapsed == false, splitVC?.viewController(for: .secondary) != nil, vc == viewController {
+                hasAnyInstanceInStack = true
+            } else if splitVC?.isCollapsed == true, vc == viewController {
+                hasAnyInstanceInStack = true
+            }
+        })
+        
+        if !hasAnyInstanceInStack {
+            cleanOnPop(threadId: id)
+            AppState.shared.objectsContainer.threadsVM.setSelected(for: id, selected: false)
+            AppState.shared.objectsContainer.archivesVM.setSelected(for: id, selected: false)
+        }
     }
 }

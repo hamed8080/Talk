@@ -79,19 +79,23 @@ public class GalleryImageItemViewModel: ObservableObject, @preconcurrency Identi
         }
     }
     
-    public func getImage() async -> UIImage? {
+    public func getImage(scale: CGFloat) async -> UIImage? {
         if state == .completed {
-            return await prepareImage(url: fileURL)
+            return await prepareImage(url: fileURL, scale: scale)
         }
         return nil
     }
     
     @AppBackgroundActor
-    private func prepareImage(url: URL?) async -> UIImage? {
-        if let url = url, let image = UIImage(contentsOfFile: url.path()) {
+    private func prepareImage(url: URL?, scale: CGFloat) async -> UIImage? {
+        guard let url = url else { return nil }
+        if scale == 1.0, let cgImage = url.imageScale(width: 1024)?.image {
+            return UIImage(cgImage: cgImage)
+        } else if let image = UIImage(contentsOfFile: url.path()) {
             return image
+        } else {
+            return nil
         }
-        return nil
     }
 }
 

@@ -170,7 +170,11 @@ public struct PageItem: View {
 struct GalleryImageViewData: View {
     let forceLeftToRight: Bool
     @EnvironmentObject var viewModel: GalleryImageItemViewModel
+    @EnvironmentObject var offsetVM: GalleyOffsetViewModel
     @State var image: UIImage?
+    
+    /// Check whether the image is at maximum size or not.
+    @State private var isInScaleMode = false
     
     var body: some View {
         ZStack {
@@ -181,14 +185,27 @@ struct GalleryImageViewData: View {
         }
         .animation(.smooth, value: image)
         .onChange(of: viewModel.state) { _ in
-            Task {
-                image = await viewModel.getImage()
-            }
+            scaledImage()
+        }
+        .onChange(of: offsetVM.baseScale) { newValue in
+            scaledImage()
         }
         .onAppear {
-            Task {
-                image = await viewModel.getImage()
-            }
+            scaledImage()
+        }
+    }
+    
+    /// Reduce memory usage by fetching much smaller image at maximum size of 1024,
+    /// and if the user tried to zoom on the image we will increase the image size to its maximum resolution by fetching the
+    /// total bytes of the image from the disk.
+    /// We also revert back to the scaled image if the user reverts back to a non-zoom mode.
+    private func scaledImage() {
+        /// Prevent fetching image twice.
+        if isInScaleMode && offsetVM.baseScale > 1.0 { return }
+        
+        isInScaleMode = offsetVM.baseScale > 1.0
+        Task {
+            image = await viewModel.getImage(scale: isInScaleMode ? offsetVM.baseScale : 1.0)
         }
     }
 }

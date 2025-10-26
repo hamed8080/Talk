@@ -63,28 +63,10 @@ final class ThreadViewController: UIViewController {
         super.viewDidDisappear(animated)
         
         shouldScrollToBottomAtReapperance = viewModel?.scrollVM.isAtBottomOfTheList == true
-        
-        var hasAnyInstanceInStack = false
         isViewControllerVisible = false
-        navigationController?.viewControllers.forEach({ vc in
-            
-            /// Check host children in a SwiftUI Hosting environment
-            vc.children.forEach { vc in
-                if vc == self {
-                    hasAnyInstanceInStack = true
-                }
-            }
-            
-            /// Check if the vc is eqaul to itself
-            if vc == self {
-                hasAnyInstanceInStack = true
-            }
-        })
-        if !hasAnyInstanceInStack, let viewModel = viewModel {
-            AppState.shared.objectsContainer.navVM.cleanOnPop(threadId: viewModel.id)
-            AppState.shared.objectsContainer.threadsVM.setSelected(for: viewModel.id, selected: false)
-            AppState.shared.objectsContainer.archivesVM.setSelected(for: viewModel.id, selected: false)
-        }
+        
+        /// Clean up navigation if we are moving backward, not forward.
+        AppState.shared.objectsContainer.navVM.popOnDisappearIfNeeded(viewController: self, id: viewModel?.id ?? -1)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -476,10 +458,7 @@ extension ThreadViewController: BottomToolbarDelegate {
 
 // MARK: Sheets Delegate
 extension ThreadViewController {
-    func openForwardPicker() {
-        let selectVM = viewModel?.selectedMessagesViewModel
-        let messages = selectVM?.getSelectedMessages().compactMap{$0.message as? Message} ?? []
-        
+    func openForwardPicker(messages: [Message]) {
         let view = SelectConversationOrContactList { [weak self] (conversation, contact) in
             self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
         }

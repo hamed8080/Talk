@@ -268,13 +268,14 @@ public class ThreadsTopToolbarView: UIStackView {
     }
     
     private func onSearchTextChanged(newValue: String) {
-        AppState.shared.objectsContainer.contactsVM.searchContactString = newValue
         AppState.shared.objectsContainer.searchVM.searchText = newValue
     }
     
     private func onFilterMessagesTapped() {
         isFilterNewMessages.toggle()
-        filterUnreadMessagesButton.imageView.tintColor = isFilterNewMessages ? Color.App.accentUIColor: Color.App.toolbarSecondaryTextUIColor
+        let isLightMode = traitCollection.userInterfaceStyle == .light
+        let selectedColor = isLightMode ? UIColor.black : Color.App.accentUIColor
+        filterUnreadMessagesButton.imageView.tintColor = isFilterNewMessages ? selectedColor : Color.App.toolbarSecondaryTextUIColor
         AppState.shared.objectsContainer.searchVM.showUnreadConversations = isFilterNewMessages
     }
     

@@ -59,7 +59,10 @@ struct StartThreadContactPickerView: View {
                     StickyHeaderSection(header: "Contacts.searched")
                         .listRowInsets(.zero)
                     ForEach(viewModel.searchedContacts) { contact in
-                        BuilderContactRowContainer(contact: contact, isSearchRow: true)
+                        BuilderContactRowContainer(contact: contact, isSearchRow: true) {
+                            /// On Tap
+                            dismiss()
+                        }
                     }
                 } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                     if viewModel.isTypinginSearchString {

@@ -55,6 +55,7 @@ public class UploadFileStateMediator {
     }
     
     internal func append(elements: [UploadManagerElement]) async {
+        print("path tracking count: \(AppState.shared.objectsContainer.navVM.pathsTracking.count)")
         if let element = elements.first, let threadVM = viewModel(element) {
             let historyVM = threadVM.historyVM
             let beforeSectionCount = historyVM.sections.count
