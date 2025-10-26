@@ -23,6 +23,7 @@ public final class ThreadScrollingViewModel {
     public var scrollingUP = false
     public weak var viewModel: ThreadViewModel?
     private var thread: Conversation { viewModel?.thread ?? .init(id: -1)}
+    private var lastMessageVO: LastMessageVO? { viewModel?.historyVM.lastMessageVO() }
     public var isAtBottomOfTheList: Bool = false
     public var lastContentOffsetY: CGFloat = 0
     public var didEndScrollingAnimation = true
@@ -31,7 +32,7 @@ public final class ThreadScrollingViewModel {
 
     public func setup(viewModel: ThreadViewModel) {
         self.viewModel = viewModel
-        isAtBottomOfTheList = thread.lastMessageVO?.id == thread.lastSeenMessageId || thread.lastSeenMessageId ?? 0 > thread.lastMessageVO?.id ?? 0
+        isAtBottomOfTheList = lastMessageVO?.id == thread.lastSeenMessageId || thread.lastSeenMessageId ?? 0 > lastMessageVO?.id ?? 0
     }
 
     private func scrollTo(_ uniqueId: String, messageId: Int, position: UITableView.ScrollPosition = .bottom, animate: Bool) {
@@ -41,7 +42,8 @@ public final class ThreadScrollingViewModel {
     public func scrollToBottom() {
         let task: Task<Void, any Error> = Task { [weak self] in
             guard let self = self else { return }
-            if let messageId = thread.lastMessageVO?.id, let time = thread.lastMessageVO?.time {
+            let lstVO = lastMessageVO
+            if let messageId = lstVO?.id, let time = lstVO?.time {
                 AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM.remove(thread.id ?? -1)
                 await viewModel?.historyVM.moveToTime(time, messageId, highlight: false, moveToBottom: true)
             }
@@ -77,7 +79,7 @@ public final class ThreadScrollingViewModel {
         if let lastUploadElement = lastUploadElement {
             return lastUploadElement.viewModel.message
         } else {
-            return viewModel?.thread.lastMessageVO?.toMessage
+            return lastMessageVO?.toMessage
         }
     }
 

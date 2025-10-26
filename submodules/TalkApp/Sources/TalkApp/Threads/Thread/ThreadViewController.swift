@@ -525,7 +525,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     private func moveTolastMessageIfVisible() {
-        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id)?.indexPath {
+        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel?.lastMessageVO()?.id)?.indexPath {
             scrollTo(index: indexPath, position: .bottom)
         }
     }

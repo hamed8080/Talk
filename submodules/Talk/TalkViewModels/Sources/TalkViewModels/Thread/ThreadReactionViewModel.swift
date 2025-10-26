@@ -130,7 +130,7 @@ public final class ThreadReactionViewModel {
     }
 
     func scrollToLastMessageIfLastMessageReacionChanged(_ response: ChatResponse<ReactionMessageResponse>) {
-        if response.subjectId == threadId, response.result?.messageId == thread?.lastMessageVO?.id {
+        if response.subjectId == threadId, response.result?.messageId == threadVM?.lastMessageVO()?.id {
             threadVM?.scrollVM.scrollToLastMessageOnlyIfIsAtBottom()
         }
     }

@@ -15,7 +15,12 @@ import CoreGraphics
 
 @MainActor
 public final class ThreadHistoryViewModel {
+
     // MARK: Stored Properties
+    private var thread: Conversation
+    private var threadId: Int = -1
+    private var hasBeenDisconnectedEver = false
+    
     internal weak var viewModel: ThreadViewModel?
     public weak var delegate: HistoryScrollDelegate?
     public private(set) var sections: ContiguousArray<MessageSection> = .init()
@@ -45,10 +50,6 @@ public final class ThreadHistoryViewModel {
     private var lastScrollTime: Date = .distantPast
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
 
-    // MARK: Computed Properties
-    private var thread: Conversation = Conversation()
-    private var threadId: Int = -1
-    
     // MARK: Initializer
     public init(thread: Conversation, readOnly: Bool = false) {
         self.thread = thread
@@ -57,6 +58,14 @@ public final class ThreadHistoryViewModel {
         highlightVM.setup(self)
         setupNotificationObservers()
         deleteQueue.viewModel = self
+    }
+    
+    public func lastMessageVO() -> LastMessageVO? {
+        thread.lastMessageVO
+    }
+    
+    public func viewModelLastMessageVO() -> LastMessageVO? {
+        viewModel?.thread.lastMessageVO
     }
     
     public func updateThreadId(id: Int) {
@@ -457,7 +466,7 @@ extension ThreadHistoryViewModel {
             /// because we know that we are not at the end of the thread.
             /// Note: If the requested message is equal to the last message so we are going to end of the thread,
             /// hence we should hide the move to bottom.
-            let wasTheLastMessage = thread.lastMessageVO?.id == messageId
+            let wasTheLastMessage = lastMessageVO()?.id == messageId
             viewModel?.scrollVM.isAtBottomOfTheList = wasTheLastMessage
             viewModel?.delegate?.showMoveToBottom(show: !wasTheLastMessage)
             
@@ -476,7 +485,7 @@ extension ThreadHistoryViewModel {
             
             /// If requested messageId to move to is equal to last message of the thread
             /// it means that we don't have more bottom.
-            if messageId == thread.lastMessageVO?.id {
+            if messageId == lastMessageVO()?.id {
                 setHasMoreBottom(false)
             }
             
@@ -499,7 +508,7 @@ extension ThreadHistoryViewModel {
     // MARK: Scenario 9
     /// When a new thread has been built and there is no message inside the thread yet.
     private func tryNinthScenario() {
-        if hasThreadNeverOpened() && thread.lastMessageVO == nil {
+        if hasThreadNeverOpened() && lastMessageVO() == nil {
             showCenterLoading(false)
             showEmptyThread(show: true)
         }
@@ -521,7 +530,7 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 11
     public func moveToTimeByDate(time: UInt) {
-        if time > thread.lastMessageVO?.time ?? 0 { return }
+        if time > lastMessageVO()?.time ?? 0 { return }
         
         cancelTasks()
         
@@ -591,8 +600,8 @@ extension ThreadHistoryViewModel {
         
         cancelTasks()
         
-        let lastMsgId = thread.lastMessageVO?.id ?? 0
-        let lastMsgTime = thread.lastMessageVO?.time ?? 0
+        let lastMsgId = lastMessageVO()?.id ?? 0
+        let lastMsgTime = lastMessageVO()?.time ?? 0
         
         if canJumpToLastMessageLocally() || unreadCount == 0 {
             /// Block loadMoreBottom, if not it will cancel this task and it will stop immediately scrolling,
@@ -660,7 +669,6 @@ extension ThreadHistoryViewModel {
             var vms = removeDuplicateMessagesBeforeAppend(viewModels)
             
             /// We have to store section count and last top message before appending them to the threads array
-            let wasEmpty = sections.isEmpty
             let topVMBeforeJoin = sections.first?.vms.first
             let lastTopMessageVM = sections.first?.vms.first
             let beforeSectionCount = sections.count
@@ -686,15 +694,7 @@ extension ThreadHistoryViewModel {
             }
             
             showTopLoading(false)
-                    
-            /// We should not detect last message deleted if we are going to fetch with middleFetcher
-            /// because the list is empty before we move to time, so it will calculate it wrongly.
-            /// And if we moveToTime, and start scrolling to top the list is not empty anymore,
-            /// so the wasEmpty is false.
-            if wasEmpty {
-                detectLastMessageDeleted(sortedMessages: vms.compactMap { $0.message })
-            }
-       
+            
             fetchReactionsAndAvatars(vms)
             
         } catch {
@@ -1011,7 +1011,7 @@ extension ThreadHistoryViewModel {
     internal func onDeleteMessage(_ messages: [Message], conversationId: Int) async {
         guard threadId == conversationId else { return }
         // We have to update the lastMessageVO to keep moveToBottom hide if the lastMessaegId deleted
-        thread.lastMessageVO = viewModel?.thread.lastMessageVO
+        thread.lastMessageVO = viewModelLastMessageVO()
         let indicies = findDeletedIndicies(messages)
         
         /// Reload cell last message first message before deleting rows.
@@ -1234,8 +1234,8 @@ extension ThreadHistoryViewModel {
            !isLastMessageVisible(),
            isSectionAndRowExist(indexPath)
         {
-            let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id
-            let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModel?.thread.lastMessageVO?.id ?? 0
+            let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModelLastMessageVO()?.id
+            let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModelLastMessageVO()?.id ?? 0
             changeLastMessageIfNeeded(isVisible: isSame || isGreater)
         }
         
@@ -1243,7 +1243,7 @@ extension ThreadHistoryViewModel {
         log("Message appear id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         await seenVM?.onAppear(message)
         
-        if message.id == thread.lastMessageVO?.id {
+        if message.id == lastMessageVO()?.id {
             changeLastMessageIfNeeded(isVisible: true)
         }
     }
@@ -1252,7 +1252,7 @@ extension ThreadHistoryViewModel {
         guard let message = sections.viewModelWith(indexPath)?.message else { return }
         log("Message disappeared id: \(message.id ?? 0) uniqueId: \(message.uniqueId ?? "") text: \(message.message ?? "")")
         
-        if message.id == thread.lastMessageVO?.id {
+        if message.id == lastMessageVO()?.id {
             changeLastMessageIfNeeded(isVisible: false)
         }
     }
@@ -1314,7 +1314,7 @@ extension ThreadHistoryViewModel {
             await self?.viewModel?.scrollVM.isEndedDecelerating = true
         }
         
-        Task { [weak self] in
+        task = Task { [weak self] in
             await self?.fetchInvalidVisibleReactions()
         }
         
@@ -1350,7 +1350,7 @@ extension ThreadHistoryViewModel {
         /// because if we delete or add a message lastMessageVO.id
         /// is not equal with last we have to check it with two last item two find it.
         for indexPath in indexPaths.suffix(2) {
-            var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == viewModel?.thread.lastMessageVO?.id ?? 0
+            var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == viewModelLastMessageVO()?.id ?? 0
             
             /// We reduce 16 from contentInset bottom to sort of accept it as fully visible
             if isVisible, delegate?.isCellFullyVisible(at: indexPath, bottomPadding: -24) == true {
@@ -1459,7 +1459,7 @@ extension ThreadHistoryViewModel {
         let reactions = try await fetchReactions(messageIds)
         if Task.isCancelled {
 #if DEBUG
-print("reactions updated was canceled nothign will be updated")
+print("reactions updated was canceled nothing will be updated")
 #endif
             return
         }
@@ -1573,19 +1573,9 @@ extension ThreadHistoryViewModel {
     
     private func canGetNewMessagesAfterConnectionEstablished(_ status: ConnectionStatus) -> Bool {
         /// Prevent updating bottom if we have moved to a specific date
-        if sections.last?.vms.last?.message.id != thread.lastMessageVO?.id { return false }
+        if sections.last?.vms.last?.message.id != lastMessageVO()?.id { return false }
         let isActiveThread = viewModel?.isActiveThread == true
         return !isSimulated() && status == .connected && isFetchedServerFirstResponse == true && isActiveThread
-    }
-    
-    private func detectLastMessageDeleted(sortedMessages: [HistoryMessageType]) {
-        if isLastMessageEqualToLastSeen(), !isLastMessageExistInSortedMessages(sortedMessages) {
-            let lastSortedMessage = sortedMessages.last
-            viewModel?.thread.lastMessageVO = (lastSortedMessage as? Message)?.toLastMessageVO
-            highlightVM.showHighlighted(lastSortedMessage?.uniqueId ?? "",
-                                                lastSortedMessage?.id ?? -1,
-                                                highlight: false)
-        }
     }
     
     private func reloadIfStitchChangedOnNewMessage(_ bottomVMBeforeJoin: MessageRowViewModel?, _ newMessage: Message) {
@@ -1609,16 +1599,16 @@ extension ThreadHistoryViewModel {
             viewModel?.thread.lastSeenMessageId = sections.last?.vms.last?.message.id
             viewModel?.scrollVM.isAtBottomOfTheList = true
             
-            thread.lastMessageVO = viewModel?.thread.lastMessageVO
+            thread.lastMessageVO = viewModelLastMessageVO()
             thread.lastSeenMessageId = viewModel?.thread.lastSeenMessageId
             
             let threadsVM = AppState.shared.objectsContainer.threadsVM
             if let index = threadsVM.threads.firstIndex(where: {$0.id as? Int == threadId}) {
-                threadsVM.threads[index].lastMessageVO = viewModel?.thread.lastMessageVO
+                threadsVM.threads[index].lastMessageVO = viewModelLastMessageVO()
                 threadsVM.threads[index].lastSeenMessageId = viewModel?.thread.lastSeenMessageId
             }
             
-            return thread.lastMessageVO?.id ?? -1
+            return lastMessageVO()?.id ?? -1
         }
         return nil
     }
@@ -1760,6 +1750,11 @@ extension ThreadHistoryViewModel {
             await tryFifthScenario()
         }
         
+        if status == .disconnected {
+            hasBeenDisconnectedEver = true
+            clearSavedScrollPosition()
+        }
+        
         if status == .connected, hasSentHistoryRequest {
             await clearReactionsOnReconnect()
             await fetchInvalidVisibleReactions()
@@ -1877,12 +1872,12 @@ extension ThreadHistoryViewModel {
     }
     
     private func isLastMessageExistInSortedMessages(_ sortedMessages: [HistoryMessageType]) -> Bool {
-        let lastMessageId = viewModel?.thread.lastMessageVO?.id
+        let lastMessageId = viewModelLastMessageVO()?.id
         return sortedMessages.contains(where: {$0.id == lastMessageId})
     }
 
     private func hasUnreadMessage() -> Bool {
-        thread.lastMessageVO?.id ?? 0 > thread.lastSeenMessageId ?? 0 && thread.unreadCount ?? 0 > 0
+        lastMessageVO()?.id ?? 0 > thread.lastSeenMessageId ?? 0 && thread.unreadCount ?? 0 > 0
     }
 
     private func canMoveToMessageLocally(_ messageId: Int) -> String? {
@@ -1918,7 +1913,7 @@ extension ThreadHistoryViewModel {
     }
     
     public var lastMessageIndexPath: IndexPath? {
-        sections.viewModelAndIndexPath(for: viewModel?.thread.lastMessageVO?.id ?? -1)?.indexPath
+        sections.viewModelAndIndexPath(for: viewModelLastMessageVO()?.id ?? -1)?.indexPath
     }
     
     private func fetchReactionsAndAvatars(_ vms: [MessageRowViewModel]) {
@@ -2041,6 +2036,9 @@ extension ThreadHistoryViewModel {
     }
     
     private func saveScrollPosition(_ message: Message) {
+        /// Prevent saving scroll position if we got disconnected
+        if hasBeenDisconnectedEver { return }
+        
         let vm = AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM
         guard let threadId = viewModel?.id, let tb = delegate?.tb else { return }
         vm.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)

@@ -106,6 +106,10 @@ public final class ThreadViewModel: ObservableObject {
         setup()
         print("created class ThreadViewModel: \(thread.computedTitle)")
     }
+    
+    public func lastMessageVO() -> LastMessageVO? {
+        thread.lastMessageVO
+    }
 
     private func setup() {
         participant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread

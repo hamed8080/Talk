@@ -26,6 +26,7 @@ public final class HistorySeenViewModel {
     
     private var historyVM: ThreadHistoryViewModel? { threadVM?.historyVM }
     private var thread: Conversation { threadVM?.thread ?? Conversation(id: 0) }
+    private var lastMessageVO: LastMessageVO? { threadVM?.lastMessageVO() }
     private var threadId: Int { thread.id ?? 0 }
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     private var archivesVM: ArchiveThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
@@ -128,7 +129,7 @@ public final class HistorySeenViewModel {
     }
     
     internal func sendSeenForAllUnreadMessages() {
-        if let message = thread.lastMessageVO,
+        if let message = lastMessageVO,
            (message.seen == nil || message.seen == false),
            message.participant?.id != currentUserId,
            unreadCount() > 0
@@ -181,7 +182,7 @@ public final class HistorySeenViewModel {
     @available(iOS 13.0, *)
     @objc private func onSceneBecomeActive(_: Notification) {
         let hasLastMessageSeen = thread.lastMessageVO?.id != lastSeenMessageId()
-        let lastMessage = thread.lastMessageVO
+        let lastMessage = lastMessageVO
         
         Task { [weak self] in
             let isAtEndOfTheList = self?.threadVM?.scrollVM.isAtBottomOfTheList == true

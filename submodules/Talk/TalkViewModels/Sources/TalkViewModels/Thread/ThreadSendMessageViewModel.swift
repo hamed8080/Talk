@@ -39,7 +39,7 @@ public final class ThreadSendMessageViewModel {
     public func sendTextMessage() async {
         
         /// Move to the bottom of the thread first then send.
-        let lastMsg = viewModel?.thread.lastMessageVO
+        let lastMsg = viewModel?.lastMessageVO()
         if let id = lastMsg?.id, let time = lastMsg?.time {
             await viewModel?.historyVM.moveToTime(time, id, highlight: false)
         }
