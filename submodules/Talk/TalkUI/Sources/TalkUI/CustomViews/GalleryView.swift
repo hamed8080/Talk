@@ -180,7 +180,7 @@ struct GalleryImageViewData: View {
             if let image = viewModel.image {
                 GalleryImageView(uiimage: image)
                     .transition(.opacity)
-            } else if viewModel.image == nil {
+            } else if viewModel.image == nil, viewModel.isFetchingImage == true {
                 ProgressView()
                     .progressViewStyle(.circular)
             }
