@@ -268,7 +268,6 @@ public class ThreadsTopToolbarView: UIStackView {
     }
     
     private func onSearchTextChanged(newValue: String) {
-        AppState.shared.objectsContainer.contactsVM.searchContactString = newValue
         AppState.shared.objectsContainer.searchVM.searchText = newValue
     }
     
