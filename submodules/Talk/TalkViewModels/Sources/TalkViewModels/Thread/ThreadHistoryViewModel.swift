@@ -676,7 +676,8 @@ extension ThreadHistoryViewModel {
             appendSort(vms)
             /// 4- Disable excessive loading on the top part.
             viewModel?.scrollVM.disableExcessiveLoading()
-            setHasMoreTop(vms.count >= count)
+            /// Compare duplicate none filtered messages, to not block loading more at top
+            setHasMoreTop(viewModels.count >= count)
             let tuple = sections.insertedIndices(insertTop: true, beforeSectionCount: beforeSectionCount, vms)
             delegate?.insertedWithContentOffsset(tuple.sections, tuple.rows)
             
@@ -744,7 +745,8 @@ extension ThreadHistoryViewModel {
 
             /// 4- Disable excessive loading on the top part.
             viewModel?.scrollVM.disableExcessiveLoading()
-            setHasMoreBottom(vms.count >= count)
+            /// Compare duplicate none filtered messages, to not block loading more at bottom
+            setHasMoreBottom(viewModels.count >= count)
             let tuple = sections.insertedIndices(insertTop: false, beforeSectionCount: beforeSectionCount, vms)
             delegate?.inserted(tuple.sections, tuple.rows, nil, .bottom, false)
 
