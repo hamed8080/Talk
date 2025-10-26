@@ -273,7 +273,9 @@ public class ThreadsTopToolbarView: UIStackView {
     
     private func onFilterMessagesTapped() {
         isFilterNewMessages.toggle()
-        filterUnreadMessagesButton.imageView.tintColor = isFilterNewMessages ? Color.App.accentUIColor: Color.App.toolbarSecondaryTextUIColor
+        let isLightMode = traitCollection.userInterfaceStyle == .light
+        let selectedColor = isLightMode ? UIColor.black : Color.App.accentUIColor
+        filterUnreadMessagesButton.imageView.tintColor = isFilterNewMessages ? selectedColor : Color.App.toolbarSecondaryTextUIColor
         AppState.shared.objectsContainer.searchVM.showUnreadConversations = isFilterNewMessages
     }
     
