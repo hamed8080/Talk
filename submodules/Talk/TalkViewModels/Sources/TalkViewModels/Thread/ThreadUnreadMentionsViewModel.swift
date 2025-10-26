@@ -53,6 +53,11 @@ public final class ThreadUnreadMentionsViewModel {
             hasMention = false
             viewModel?.thread.mentioned = false
             viewModel?.delegate?.onChangeUnreadMentions()
+            
+            let threadId = viewModel?.thread.id ?? -1
+            
+            AppState.shared.objectsContainer.threadsVM.clearUnreadMention(for: threadId)
+            AppState.shared.objectsContainer.archivesVM.clearUnreadMention(for: threadId)
         }
     }
 
@@ -65,9 +70,8 @@ public final class ThreadUnreadMentionsViewModel {
         if response.pop(prepend: UNREAD_MENTIONS_KEY) != nil {
             /// As a result of a bug in the chat server we have to prune and filter out the result.
             let lastSeenId = viewModel?.thread.lastSeenMessageId
-            let filtered = newUnreadMentions.filter({ $0.id != lastSeenId })
             unreadMentions.removeAll()
-            unreadMentions.append(contentsOf: filtered)
+            unreadMentions.append(contentsOf: newUnreadMentions)
             unreadMentions.sort(by: {$0.time ?? 0 < $1.time ?? 1})
             hasMention = viewModel?.thread.mentioned == true && unreadMentions.count > 0
             viewModel?.delegate?.onChangeUnreadMentions()

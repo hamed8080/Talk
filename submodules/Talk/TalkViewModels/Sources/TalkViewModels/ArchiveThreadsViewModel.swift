@@ -523,9 +523,6 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     public func onLastSeenMessageUpdated(_ response: ChatResponse<LastSeenMessageResponse>) async {
         if let index = firstIndex(response.subjectId) {
             var thread = archives[index]
-            if response.result?.unreadCount == 0, thread.mentioned == true {
-                thread.mentioned = false
-            }
             if response.result?.lastSeenMessageTime ?? 0 > thread.lastSeenMessageTime ?? 0 {
                 thread.lastSeenMessageTime = response.result?.lastSeenMessageTime
                 thread.lastSeenMessageId = response.result?.lastSeenMessageId
@@ -722,6 +719,13 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             }
         default:
             break
+        }
+    }
+    
+    public func clearUnreadMention(for threadId: Int) {
+        if let index = archives.firstIndex(where: { $0.id == threadId }) {
+            archives[index].mentioned = false
+            updateUI(animation: false, reloadSections: false)
         }
     }
 }
