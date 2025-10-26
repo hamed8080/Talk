@@ -10,6 +10,7 @@ import TalkViewModels
 import TalkExtensions
 import TalkUI
 import TalkModels
+import Chat
 
 public final class SelectionView: UIStackView {
     // Views
@@ -94,7 +95,9 @@ public final class SelectionView: UIStackView {
     }
 
     private func forwardSelectedMessageTapped() {
-        viewModel?.delegate?.openForwardPicker()
+        let selectVM = viewModel?.selectedMessagesViewModel
+        let messages = selectVM?.getSelectedMessages().compactMap{$0.message as? Message} ?? []
+        viewModel?.delegate?.openForwardPicker(messages: messages)
     }
 
     private func deleteSelectedMessageTapped() {

@@ -178,14 +178,9 @@ private extension MessageContainerStackView {
         model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.delegate?.openReplyMode(nil)
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
-        model.threadVM?.delegate?.setSelection(true)
-        if let uniqueId = model.message.uniqueId,
-           let indexPath = model.threadVM?.historyVM.sections.indicesByMessageUniqueId(uniqueId) {
-            model.threadVM?.delegate?.setTableRowSelected(indexPath)
-        }
-        cell?.select()
         
-        model.threadVM?.delegate?.openForwardPicker()        
+        let messages = [model.message as? Message].compactMap { $0 }
+        model.threadVM?.delegate?.openForwardPicker(messages: messages)
     }
 
     func onEditAction(_ model: ActionModel) {

@@ -74,7 +74,7 @@ public protocol LastMessageAppearedDelegate {
 
 @MainActor
 public protocol SheetsDelegate {
-    func openForwardPicker()
+    func openForwardPicker(messages: [Message])
     func openShareFiles(urls: [URL], title: String?, sourceView: UIView?)
     func openMoveToDatePicker()
 }
