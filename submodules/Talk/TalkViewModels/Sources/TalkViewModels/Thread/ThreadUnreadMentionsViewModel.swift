@@ -63,8 +63,11 @@ public final class ThreadUnreadMentionsViewModel {
             !response.cache
         else { return }
         if response.pop(prepend: UNREAD_MENTIONS_KEY) != nil {
+            /// As a result of a bug in the chat server we have to prune and filter out the result.
+            let lastSeenId = viewModel?.thread.lastSeenMessageId
+            let filtered = newUnreadMentions.filter({ $0.id != lastSeenId })
             unreadMentions.removeAll()
-            unreadMentions.append(contentsOf: newUnreadMentions)
+            unreadMentions.append(contentsOf: filtered)
             unreadMentions.sort(by: {$0.time ?? 0 < $1.time ?? 1})
             hasMention = viewModel?.thread.mentioned == true && unreadMentions.count > 0
             viewModel?.delegate?.onChangeUnreadMentions()
