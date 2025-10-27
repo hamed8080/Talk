@@ -35,7 +35,7 @@ public final class ThreadViewModel: ObservableObject {
     public var sendContainerViewModel: SendContainerViewModel = .init()
     public var audioRecoderVM: AudioRecordingViewModel = .init()
     public var scrollVM: ThreadScrollingViewModel = .init()
-    public lazy var historyVM: ThreadHistoryViewModel = { .init(thread: thread) }()
+    public var historyVM: ThreadHistoryViewModel = .init()
     public var sendMessageViewModel: ThreadSendMessageViewModel = .init()
     public var participantsColorVM: ParticipantsColorViewModel = .init()
     public var threadPinMessageViewModel: ThreadPinMessageViewModel = .init()
@@ -110,6 +110,14 @@ public final class ThreadViewModel: ObservableObject {
     public func lastMessageVO() -> LastMessageVO? {
         thread.lastMessageVO
     }
+    
+    public func setLastMessageVO(_ lastMessageVO: LastMessageVO?) {
+        thread.lastMessageVO = lastMessageVO
+    }
+    
+    public func updateThread(conversation: Conversation) {
+        self.thread = conversation
+    }
 
     private func setup() {
         participant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread
@@ -121,6 +129,7 @@ public final class ThreadViewModel: ObservableObject {
         threadPinMessageViewModel.setup(viewModel: self)
         participantsViewModel.setup(viewModel: self)
         historyVM.viewModel = self
+        historyVM.setup(threadId: thread.id ?? -1)
         sendMessageViewModel.setup(viewModel: self)
         scrollVM.setup(viewModel: self)
         unsentMessagesViewModel.setup(viewModel: self)

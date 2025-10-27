@@ -17,7 +17,6 @@ import CoreGraphics
 public final class ThreadHistoryViewModel {
 
     // MARK: Stored Properties
-    private var thread: Conversation
     private var threadId: Int = -1
     private var hasBeenDisconnectedEver = false
     
@@ -51,10 +50,10 @@ public final class ThreadHistoryViewModel {
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
 
     // MARK: Initializer
-    public init(thread: Conversation, readOnly: Bool = false) {
-        self.thread = thread
-        threadId = thread.id ?? -1
-        
+    public init() {}
+    
+    internal func setup(threadId: Int) {
+        self.threadId = threadId
         highlightVM.setup(self)
         setupNotificationObservers()
         deleteQueue.viewModel = self
@@ -62,6 +61,10 @@ public final class ThreadHistoryViewModel {
     
     public func lastMessageVO() -> LastMessageVO? {
         thread.lastMessageVO
+    }
+    
+    private var thread: Conversation {
+        viewModel?.thread ?? Conversation()
     }
     
     public func viewModelLastMessageVO() -> LastMessageVO? {
@@ -72,14 +75,9 @@ public final class ThreadHistoryViewModel {
         self.threadId = id
     }
     
-    public func updateThread(conversation: Conversation) {
-        self.thread = conversation
-    }
-    
     deinit {
-        let title = thread.title ?? ""
 #if DEBUG
-        print("deinit called in class ThreadHistoryViewModel: \(title)")
+        print("deinit called in class ThreadHistoryViewModel")
 #endif
     }
 }
@@ -824,7 +822,6 @@ extension ThreadHistoryViewModel {
 
     // It will be only called by ThreadsViewModel
     public func onNewMessage(_ messages: [Message], _ oldConversation: Conversation?, _ updatedConversation: Conversation) async {
-        thread = updatedConversation
         guard let viewModel = viewModel else { return }
         let wasAtBottom = isLastMessageInsideTheSections(oldConversation)
         if wasAtBottom || isFirstMessageSentByMe(newMessages: messages) {
@@ -1010,8 +1007,6 @@ extension ThreadHistoryViewModel {
     /// Delete a message with an Id is needed, once the message has persisted before.
     internal func onDeleteMessage(_ messages: [Message], conversationId: Int) async {
         guard threadId == conversationId else { return }
-        // We have to update the lastMessageVO to keep moveToBottom hide if the lastMessaegId deleted
-        thread.lastMessageVO = viewModelLastMessageVO()
         let indicies = findDeletedIndicies(messages)
         
         /// Reload cell last message first message before deleting rows.
@@ -1598,9 +1593,6 @@ extension ThreadHistoryViewModel {
             viewModel?.thread.lastMessageVO = (sections.last?.vms.last?.message as? Message)?.toLastMessageVO
             viewModel?.thread.lastSeenMessageId = sections.last?.vms.last?.message.id
             viewModel?.scrollVM.isAtBottomOfTheList = true
-            
-            thread.lastMessageVO = viewModelLastMessageVO()
-            thread.lastSeenMessageId = viewModel?.thread.lastSeenMessageId
             
             let threadsVM = AppState.shared.objectsContainer.threadsVM
             if let index = threadsVM.threads.firstIndex(where: {$0.id as? Int == threadId}) {

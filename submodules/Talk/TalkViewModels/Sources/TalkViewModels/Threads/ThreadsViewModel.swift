@@ -703,7 +703,6 @@ public final class ThreadsViewModel: ObservableObject {
             let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
                 vm?.viewModel?.thread = thread.toStruct()
-                vm?.viewModel?.historyVM.updateThread(conversation: thread.toStruct())
             }
         }
     }

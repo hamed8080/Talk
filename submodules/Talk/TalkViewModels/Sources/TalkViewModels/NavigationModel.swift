@@ -461,13 +461,20 @@ extension NavigationModel {
                 }
             }
             
-            /// Check if the vc is eqaul to itself
-            if splitVC?.isCollapsed == false, splitVC?.viewController(for: .secondary) != nil, vc == viewController {
-                hasAnyInstanceInStack = true
-            } else if splitVC?.isCollapsed == true, vc == viewController {
+            /// Check if the vc is eqaul to itself on iPhone
+            if splitVC?.isCollapsed == true, vc == viewController {
                 hasAnyInstanceInStack = true
             }
         })
+        
+        /// Check if the vc is equal to itself on iPad split view
+        if splitVC?.isCollapsed == false {
+            (splitVC?.viewController(for: .secondary) as? UINavigationController)?.viewControllers.forEach { vc in
+                if vc == viewController {
+                    hasAnyInstanceInStack = true
+                }
+            }
+        }
         
         if !hasAnyInstanceInStack {
             cleanOnPop(threadId: id)
