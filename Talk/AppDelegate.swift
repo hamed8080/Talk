@@ -23,9 +23,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let center = UNUserNotificationCenter.current()
+        center.delegate = self
         FirebaseApp.configure()
         center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
         application.registerForRemoteNotifications()
+        Messaging.messaging().delegate = self
         ChatDelegateImplementation.sharedInstance.initialize()
         return true
     }
@@ -38,7 +40,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
     }
     
-    @objc func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         print("firebase token is: \(String(describing: fcmToken))")
     }
 
