@@ -31,6 +31,15 @@
 		AC90FBB02E1C2ED500890CDA /* Talk.docc in Sources */ = {isa = PBXBuildFile; fileRef = 0506DE1E2AD42AF00009701E /* Talk.docc */; };
 		AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
+		ACDC0A082EAF5C290094A423 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = ACDC0A072EAF5C290094A423 /* FirebaseCore */; };
+		ACDC0A0A2EAF5C290094A423 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = ACDC0A092EAF5C290094A423 /* FirebaseMessaging */; };
+		ACDC0A0C2EAF5C350094A423 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = ACDC0A0B2EAF5C350094A423 /* FirebaseCore */; };
+		ACDC0A0E2EAF5C350094A423 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = ACDC0A0D2EAF5C350094A423 /* FirebaseMessaging */; };
+		ACDC0A102EAF5C3E0094A423 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = ACDC0A0F2EAF5C3E0094A423 /* FirebaseCore */; };
+		ACDC0A122EAF5C3E0094A423 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = ACDC0A112EAF5C3E0094A423 /* FirebaseMessaging */; };
+		ACDC0A142EAF5E830094A423 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ACDC0A132EAF5E830094A423 /* GoogleService-Info.plist */; };
+		ACDC0A152EAF5E830094A423 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ACDC0A132EAF5E830094A423 /* GoogleService-Info.plist */; };
+		ACDC0A162EAF5E830094A423 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ACDC0A132EAF5E830094A423 /* GoogleService-Info.plist */; };
 		ACF538602DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 		ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 /* End PBXBuildFile section */
@@ -72,6 +81,7 @@
 		AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ACA238F22D76CB8E00D8E43A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LeitnerBox.entitlements; sourceTree = "<group>"; };
+		ACDC0A132EAF5E830094A423 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ACE1EFAC2D7861E9003DEEDB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFAF2D7861EE003DEEDB /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB02D7861F3003DEEDB /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -90,6 +100,8 @@
 			files = (
 				AC7408952D777A86009217C8 /* TalkApp in Frameworks */,
 				05D493932B21FF3800508472 /* PhotosUI.framework in Frameworks */,
+				ACDC0A122EAF5C3E0094A423 /* FirebaseMessaging in Frameworks */,
+				ACDC0A102EAF5C3E0094A423 /* FirebaseCore in Frameworks */,
 				AC90FBAA2E1C2DA000890CDA /* LeitnerBoxApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -100,6 +112,8 @@
 			files = (
 				AC7408932D777A81009217C8 /* TalkApp in Frameworks */,
 				05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */,
+				ACDC0A0E2EAF5C350094A423 /* FirebaseMessaging in Frameworks */,
+				ACDC0A0C2EAF5C350094A423 /* FirebaseCore in Frameworks */,
 				AC90FBAC2E1C2DA500890CDA /* LeitnerBoxApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -108,7 +122,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACDC0A0A2EAF5C290094A423 /* FirebaseMessaging in Frameworks */,
 				AC90FBA72E1C2D4000890CDA /* TalkApp in Frameworks */,
+				ACDC0A082EAF5C290094A423 /* FirebaseCore in Frameworks */,
 				AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -148,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */,
+				ACDC0A132EAF5E830094A423 /* GoogleService-Info.plist */,
 				0570CBC12AAEE98E001832E9 /* Preview Content */,
 				AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */,
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
@@ -199,6 +216,8 @@
 			packageProductDependencies = (
 				AC7408942D777A86009217C8 /* TalkApp */,
 				AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */,
+				ACDC0A0F2EAF5C3E0094A423 /* FirebaseCore */,
+				ACDC0A112EAF5C3E0094A423 /* FirebaseMessaging */,
 			);
 			productName = Talk;
 			productReference = 0570CB172AAEE02A001832E9 /* Talk.app */;
@@ -221,6 +240,8 @@
 			packageProductDependencies = (
 				AC7408922D777A81009217C8 /* TalkApp */,
 				AC90FBAB2E1C2DA500890CDA /* LeitnerBoxApp */,
+				ACDC0A0B2EAF5C350094A423 /* FirebaseCore */,
+				ACDC0A0D2EAF5C350094A423 /* FirebaseMessaging */,
 			);
 			productName = Talk;
 			productReference = 0570CB332AAEE04B001832E9 /* Talk-Test.app */;
@@ -242,6 +263,8 @@
 			packageProductDependencies = (
 				AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */,
 				AC90FBA62E1C2D4000890CDA /* TalkApp */,
+				ACDC0A072EAF5C290094A423 /* FirebaseCore */,
+				ACDC0A092EAF5C290094A423 /* FirebaseMessaging */,
 			);
 			productName = "Talk-AppStore";
 			productReference = ACE77E772E1C24D800450E13 /* Talk.app */;
@@ -286,6 +309,7 @@
 			packageReferences = (
 				AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */,
 				ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */,
+				ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 0570CB182AAEE02A001832E9 /* Products */;
 			projectDirPath = "";
@@ -305,6 +329,7 @@
 			files = (
 				AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
+				ACDC0A162EAF5E830094A423 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,6 +339,7 @@
 			files = (
 				AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
+				ACDC0A152EAF5E830094A423 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,6 +349,7 @@
 			files = (
 				AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */,
 				AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */,
+				ACDC0A142EAF5E830094A423 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -820,6 +847,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		AC7408922D777A81009217C8 /* TalkApp */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -850,6 +888,36 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
 			productName = LeitnerBoxApp;
+		};
+		ACDC0A072EAF5C290094A423 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		ACDC0A092EAF5C290094A423 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		ACDC0A0B2EAF5C350094A423 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		ACDC0A0D2EAF5C350094A423 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		ACDC0A0F2EAF5C3E0094A423 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		ACDC0A112EAF5C3E0094A423 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

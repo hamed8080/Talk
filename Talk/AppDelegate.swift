@@ -7,9 +7,11 @@
 
 import UIKit
 import TalkApp
+import FirebaseCore
+import FirebaseMessaging
 
 @main
-final class AppDelegate: UIResponder, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
 
     override init() {
         super.init()
@@ -19,11 +21,25 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         UIApplication.shared.delegate as? AppDelegate
     }
 
-    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in}
+        FirebaseApp.configure()
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+        application.registerForRemoteNotifications()
         ChatDelegateImplementation.sharedInstance.initialize()
         return true
+    }
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) { }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    }
+    
+    @objc func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        print("firebase token is: \(String(describing: fcmToken))")
     }
 
     // MARK: UISceneSession Lifecycle
