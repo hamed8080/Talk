@@ -145,17 +145,7 @@ public final class HistorySeenViewModel {
     }
     
     private func setUnreadCount(newUnreadCount: Int) async {
-        threadVM?.thread.unreadCount = newUnreadCount
-        
-        if let index = threads.firstIndex(where: { $0.id == threadId }) {
-            threads[index].unreadCount = newUnreadCount
-            await ThreadCalculators.reCalculateUnreadCount(threads[index])
-            if let index = threads.firstIndex(where: { $0.id == threadId }) {
-                threadsVM.delegate?.unreadCountChanged(conversation: threads[index])
-            }
-            threads[index].animateObjectWillChange()
-        }
-        
+        await threadVM?.setUnreadCount(newUnreadCount)
         threadVM?.delegate?.onUnreadCountChanged()
     }
     
@@ -164,11 +154,7 @@ public final class HistorySeenViewModel {
     }
     
     private func setLastSeenMessageId(messageId: Int) {
-        threadVM?.thread.lastSeenMessageId = messageId
-        
-        if let index = threads.firstIndex(where: { $0.id == threadId }) {
-            threads[index].lastSeenMessageId = messageId
-        }
+        threadVM?.setLastSeenMessageId(messageId)
     }
     
     // MARK: - Helpers

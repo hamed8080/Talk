@@ -230,10 +230,10 @@ public final class EditConversationViewModel: ObservableObject, @preconcurrency 
     }
 
     private func onChangeThreadType(_ response: ChatResponse<Conversation>) {
-        self.threadVM?.thread.type = response.result?.type
+        self.threadVM?.setType(response.result?.type)
         isPublic = thread.type?.isPrivate == false
         if let req = response.pop(prepend: CHANGE_TO_PUBLIC_KEY) as? ChangeThreadTypeRequest {
-            threadVM?.thread.uniqueName = req.uniqueName
+            threadVM?.setUniqueName(req.uniqueName)
         }
         animateObjectWillChange()
     }

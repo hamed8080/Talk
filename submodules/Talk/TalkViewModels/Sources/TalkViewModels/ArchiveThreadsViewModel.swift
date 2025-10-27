@@ -436,7 +436,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if let id = response.result, let index = archives.firstIndex(where: { $0.id == id }) {
             archives[index].closed = true
             let activeThread = navVM.viewModel(for: id)
-            activeThread?.thread = archives[index].toStruct()
+            activeThread?.setThread(archives[index].toStruct())
             activeThread?.delegate?.onConversationClosed()
             delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
@@ -469,7 +469,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
 
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.thread = calculated.toStruct()
+            activeThread?.setThread(calculated.toStruct())
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
@@ -704,7 +704,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
         if wasDisconnected,
            let activeVM = navVM.presentedThreadViewModel?.viewModel,
            let updatedThread = archives.first(where: {($0.id ?? 0) as Int == activeVM.id as Int}) {
-            activeVM.thread = updatedThread.toStruct()
+            activeVM.setThread(updatedThread.toStruct())
             activeVM.delegate?.onUnreadCountChanged()
         }
     }

@@ -159,7 +159,7 @@ public final class ThreadDetailViewModel: ObservableObject {
         /// Update thread title inside the thread if we don't have any messages with the partner yet or it's p2p thread so the title of the thread is equal to contactName
         guard let thread = thread else { return }
         if thread.group == false || thread.id ?? 0 == LocalId.emptyThread.rawValue, let contactName = participantDetailViewModel?.participant.contactName {
-            threadVM?.thread.title = contactName
+            threadVM?.setTitle(contactName)
 //            threadVM?.animateObjectWillChange()
         }
     }

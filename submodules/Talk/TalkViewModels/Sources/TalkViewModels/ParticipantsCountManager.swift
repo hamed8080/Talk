@@ -81,7 +81,7 @@ public class ParticipantsCountManager {
         if let index = threadsVM.threads.firstIndex(where: {$0.id == threadId}) {
             threadsVM.threads[index].participantCount = count
             let vm = threadViewModel(threadId: threadId)
-            vm?.thread.participantCount = count
+            vm?.setParticipantsCount(count)
             vm?.conversationSubtitle.updateSubtitle()
             AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
@@ -91,7 +91,7 @@ public class ParticipantsCountManager {
         if let index = archivesVM.archives.firstIndex(where: {$0.id == threadId}) {
             archivesVM.archives[index].participantCount = count
             let vm = threadViewModel(threadId: threadId)
-            vm?.thread.participantCount = count
+            vm?.setParticipantsCount(count)
             vm?.conversationSubtitle.updateSubtitle()
             AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }

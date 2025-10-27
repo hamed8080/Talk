@@ -344,7 +344,7 @@ public final class ThreadsViewModel: ObservableObject {
         if wasDisconnected,
            let activeVM = navVM.presentedThreadViewModel?.viewModel,
            let updatedThread = threads.first(where: {($0.id ?? 0) as Int == activeVM.id as Int}) {
-            activeVM.thread = updatedThread.toStruct()
+            activeVM.setThread(updatedThread.toStruct())
             activeVM.delegate?.onUnreadCountChanged()
         }
     }
@@ -631,7 +631,7 @@ public final class ThreadsViewModel: ObservableObject {
 
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.thread = arrItem.toStruct()
+            activeThread?.setThread(arrItem.toStruct())
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
             activeThread?.delegate?.refetchImageOnUpdateInfo()
 
@@ -702,7 +702,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
             let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
-                vm?.viewModel?.thread = thread.toStruct()
+                vm?.viewModel?.setThread(thread.toStruct())
             }
         }
     }
@@ -755,7 +755,7 @@ public final class ThreadsViewModel: ObservableObject {
             animateObjectWillChange()
 
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.thread = threads[index].toStruct()
+            activeThread?.setThread(threads[index].toStruct())
             activeThread?.delegate?.onConversationClosed()
         }
     }

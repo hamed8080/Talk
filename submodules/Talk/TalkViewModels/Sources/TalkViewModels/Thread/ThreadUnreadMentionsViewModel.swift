@@ -51,7 +51,7 @@ public final class ThreadUnreadMentionsViewModel {
         unreadMentions.removeAll(where: { $0.id == id })
         if unreadMentions.isEmpty {
             hasMention = false
-            viewModel?.thread.mentioned = false
+            viewModel?.setMentioned(false)
             viewModel?.delegate?.onChangeUnreadMentions()
             
             let threadId = viewModel?.thread.id ?? -1
@@ -93,7 +93,7 @@ public final class ThreadUnreadMentionsViewModel {
         guard let message = response.result else { return }
         let isMe = message.isMe(currentUserId: AppState.shared.user?.id ?? -1) == true
         if response.subjectId == thread?.id, !isMe, message.mentioned == true {
-            viewModel?.thread.mentioned = true
+            viewModel?.setMentioned(true)
             unreadMentions.append(message)
             hasMention = true
             viewModel?.delegate?.onChangeUnreadMentions()

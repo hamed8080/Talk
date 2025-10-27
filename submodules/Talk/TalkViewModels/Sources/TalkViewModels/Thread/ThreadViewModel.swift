@@ -22,7 +22,7 @@ public final class ThreadViewModel: ObservableObject {
     }
 
     // MARK: Stored Properties
-    public var thread: Conversation
+    public private(set) var thread: Conversation
     public var replyMessage: Message?
     public var exportMessagesViewModel: ExportMessagesViewModel = .init()
     public var unsentMessagesViewModel: ThreadUnsentMessagesViewModel = .init()
@@ -58,6 +58,7 @@ public final class ThreadViewModel: ObservableObject {
 
     // MARK: Computed Properties
     public var id: Int
+    private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
     public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == id }
     public var isSimulatedThared: Bool {
         AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
@@ -105,18 +106,6 @@ public final class ThreadViewModel: ObservableObject {
         self.readOnly = readOnly
         setup()
         print("created class ThreadViewModel: \(thread.computedTitle)")
-    }
-    
-    public func lastMessageVO() -> LastMessageVO? {
-        thread.lastMessageVO
-    }
-    
-    public func setLastMessageVO(_ lastMessageVO: LastMessageVO?) {
-        thread.lastMessageVO = lastMessageVO
-    }
-    
-    public func updateThread(conversation: Conversation) {
-        self.thread = conversation
     }
 
     private func setup() {
@@ -413,5 +402,103 @@ public extension ThreadViewModel {
     
     func cancelSignal() {
         signalEmitter.stopSignal()
+    }
+}
+
+// MARK: Getters and setters to centralize access to the thread instance.
+extension ThreadViewModel {
+    public func setThread(_ conversation: Conversation) {
+        self.thread = conversation
+    }
+    
+    public func updateThreadId(_ id: Int?) {
+        self.thread.id = id
+    }
+    
+    public func lastMessageVO() -> LastMessageVO? {
+        thread.lastMessageVO
+    }
+    
+    public func setLastMessageVO(_ lastMessageVO: LastMessageVO?) {
+        thread.lastMessageVO = lastMessageVO
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].lastMessageVO = lastMessageVO
+    }
+    
+    public func setLastSeenMessageId(_ id: Int?) {
+        thread.lastSeenMessageId = id
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].lastSeenMessageId = id
+    }
+    
+    public func setParticipantsCount(_ count: Int) {
+        thread.participantCount = count
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].participantCount = count
+    }
+    
+    public func setType(_ type: ThreadTypes?) {
+        thread.type = type
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].type = type
+    }
+    
+    public func setUniqueName(_ uniqueName: String?) {
+        thread.uniqueName = uniqueName
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].uniqueName = uniqueName
+    }
+
+    public func setTitle(_ title: String?) {
+        thread.title = title
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].title = title
+    }
+    
+    private func indexInThreadsVM() -> Int? {
+        let threadId = thread.id
+        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        if let index = threadsVM.threads.firstIndex(where: {$0.id as? Int == threadId }) {
+            return index
+        }
+        return nil
+    }
+    
+    public func setUnreadCount(_ unreadCount: Int) async {
+        thread.unreadCount = unreadCount
+        
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].unreadCount = unreadCount
+        
+        await ThreadCalculators.reCalculateUnreadCount(threadsVM.threads[index])
+        
+        /// Reread the index, that’s because there is a chance that during calculation,
+        /// the index has been changed.
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.delegate?.unreadCountChanged(conversation: threadsVM.threads[index])
+    }
+    
+    public func setMute(_ mute: Bool?) {
+        thread.mute = mute
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].mute = mute
+    }
+    
+    public func setReactionStatus(_ reactionStatus: ReactionStatus?) {
+        thread.reactionStatus = reactionStatus
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].reactionStatus = reactionStatus
+    }
+    
+    public func setMentioned(_ mentioned: Bool?) {
+        thread.mentioned = mentioned
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].mentioned = mentioned
+    }
+    
+    public func setPinMessage(_ pinMessage: PinMessage?) {
+        thread.pinMessage = pinMessage
+        guard let index = indexInThreadsVM() else { return }
+        threadsVM.threads[index].pinMessage = pinMessage
     }
 }
