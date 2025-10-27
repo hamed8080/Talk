@@ -78,6 +78,17 @@ class ThreadsTableViewController: UIViewController {
         super.viewDidAppear(animated)
         contextMenuContainer = .init(delegate: self)
     }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        /// Update content inset once player is appeared or disappeared
+        UIView.animate(withDuration: 0.15) { [weak self] in
+            guard let self = self else { return }
+            tableView.contentInset.top = threadsToolbar.frame.height
+            tableView.scrollIndicatorInsets = tableView.contentInset
+        }
+    }
 }
 
 extension ThreadsTableViewController {

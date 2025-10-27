@@ -242,6 +242,16 @@ class ThreadNavigationPlayer: UIView {
             }
         }
     }
+    
+    public func setTintColors(color: UIColor) {
+        playButton.tintColor = color
+        playButton.imageView.tintColor = color
+        
+        closeButton.tintColor = color
+        closeButton.imageView.tintColor = color
+        
+        progress.tintColor = color
+    }
 }
 
 struct NavigationPlayerWrapper: UIViewRepresentable {

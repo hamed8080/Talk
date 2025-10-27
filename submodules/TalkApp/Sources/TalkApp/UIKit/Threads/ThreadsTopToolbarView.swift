@@ -168,6 +168,7 @@ public class ThreadsTopToolbarView: UIStackView {
         searchRowStack.addArrangedSubview(searchTextField)
         
         player.translatesAutoresizingMaskIntoConstraints = false
+        player.setTintColors(color: Color.App.toolbarButtonUIColor ?? .white)
        
         addArrangedSubview(topRowStack)
         addArrangedSubview(searchRowStack)
