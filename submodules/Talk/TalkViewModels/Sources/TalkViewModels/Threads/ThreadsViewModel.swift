@@ -33,6 +33,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     func scrollToFirstIndex()
     var contextMenuContainer: ContextMenuContainerView? { get set }
     func createThreadViewController(conversation: Conversation) -> UIViewController
+    func setImageFor(id: Int, image: UIImage?)
 }
 
 @MainActor
@@ -54,6 +55,7 @@ public final class ThreadsViewModel: ObservableObject {
     internal let incNewQueue = IncommingNewMessagesQueue()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
     public weak var delegate: UIThreadsViewControllerDelegate?
+    private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
     
     private var previousOffset: CGPoint? = nil
     private var previousContentSize: CGSize? = nil
@@ -629,17 +631,19 @@ public final class ThreadsViewModel: ObservableObject {
                 threads[index].animateObjectWillChange()
             }
 
+            let newThread = arrItem.toStruct()
+            
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.setThread(arrItem.toStruct())
+            activeThread?.setThread(newThread)
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
-            activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
             if let detailVM = navVM.detailViewModel(threadId: threadId) {
-                detailVM.updateThreadInfo(arrItem.toStruct())
+                detailVM.updateThreadInfo(newThread)
             }
             animateObjectWillChange()
+            refetchImageOnUpdateInfo(thread: newThread)
         }
     }
 
@@ -912,6 +916,50 @@ public final class ThreadsViewModel: ObservableObject {
             threads[index].mentioned = false
             updateUI(animation: false, reloadSections: false)
         }
+    }
+}
+
+/// Update image for threadViewController/DetailViewController
+extension ThreadsViewModel {
+    private func refetchImageOnUpdateInfo(thread: Conversation) {
+        guard let id = thread.id else { return }
+        let config = ImageLoaderConfig(url: imageLink(thread: thread),
+                                       size: .MEDIUM,
+                                       metaData: thread.metadata,
+                                       userName: String.splitedCharacter(thread.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        imageLoaders[id] = ImageLoaderViewModel(config: config)
+        imageLoaders[id]?.onImage = { @Sendable [weak self] image in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                updateThreadImage(image: image, threadId: thread.id ?? -1)
+                imageLoaders.removeValue(forKey: id)
+            }
+        }
+        imageLoaders[id]?.fetch()
+    }
+    
+    private func imageLink(thread: Conversation) -> String {
+        thread.computedImageURL?.replacingOccurrences(of: "http://", with: "https://") ?? ""
+    }
+    
+    private func updateThreadImage(image: UIImage?, threadId: Int) {
+        // Update thread list image view
+        delegate?.updateImage(image: image, id: threadId)
+        
+        // Update image inside the calculated because we will use this for thread rows
+        if let calculateConversation = threads.first(where: { $0.id == threadId }), let image = image {
+            (calculateConversation.imageLoader as? ImageLoaderViewModel)?.updateImage(image: image)
+        }
+        
+        // Update thread image view
+        let activeThread = navVM.viewModel(for: threadId)
+        activeThread?.delegate?.updateImageTo(image)
+        
+        // Update thread detail view image
+        let detailVM = navVM.detailViewModel(threadId: threadId)
+        detailVM?.updateImageTo(image)
     }
 }
 

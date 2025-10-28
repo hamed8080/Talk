@@ -385,4 +385,8 @@ class ConversationCell: UITableViewCell {
             contentView: ThreadRowContextMenuUIKit(conversation: conversation, image: avatar.image, container: delegate?.contextMenuContainer)
         )
     }
+    
+    public func setImage(image: UIImage) {
+        avatar.image = image
+    }
 }

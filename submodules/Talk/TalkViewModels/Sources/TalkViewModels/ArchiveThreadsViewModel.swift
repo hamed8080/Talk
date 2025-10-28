@@ -24,6 +24,7 @@ public final class ArchiveThreadsViewModel: ObservableObject {
     private var wasDisconnected = false
     private var cache: Bool = true
     public weak var delegate: UIThreadsViewControllerDelegate?
+    private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
     
     private var previousOffset: CGPoint? = nil
     private var previousContentSize: CGSize? = nil
@@ -452,9 +453,11 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             /// In the update thread info, the image property is nil and the metadata link is been filled by the server.
             /// So to update the UI properly we have to set it to link.
             var arrItem = archives[index]
-            if let metadatImagelink = thread.metaData?.file?.link {
-                arrItem.image = metadatImagelink
+            if let metadata = thread.metaData {
+                arrItem.image = metadata.file?.link
+                arrItem.computedImageURL = ThreadCalculators.calculateImageURL( arrItem.image, metadata)
             }
+            arrItem.metadata = thread.metadata
             arrItem.title = replacedEmoji
             arrItem.titleRTLString = ThreadCalculators.calculateTitleRTLString(replacedEmoji, thread)
             arrItem.closed = thread.closed
@@ -466,19 +469,22 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             
             archives[index] = calculated
             archives[index].animateObjectWillChange()
+            
+            let newThread = calculated.toStruct()
 
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.setThread(calculated.toStruct())
+            activeThread?.setThread(newThread)
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
-            activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
             if let detailVM = navVM.detailViewModel(threadId: threadId) {
-                detailVM.updateThreadInfo(calculated.toStruct())
+                detailVM.updateThreadInfo(newThread)
             }
             delegate?.reloadCellWith(conversation: archives[index])
             animateObjectWillChange()
+            
+            refetchImageOnUpdateInfo(thread: newThread)
         }
     }
     
@@ -727,6 +733,50 @@ public final class ArchiveThreadsViewModel: ObservableObject {
             archives[index].mentioned = false
             updateUI(animation: false, reloadSections: false)
         }
+    }
+}
+
+/// Update image for threadViewController/DetailViewController
+extension ArchiveThreadsViewModel {
+    private func refetchImageOnUpdateInfo(thread: Conversation) {
+        guard let id = thread.id else { return }
+        let config = ImageLoaderConfig(url: imageLink(thread: thread),
+                                       size: .MEDIUM,
+                                       metaData: thread.metadata,
+                                       userName: String.splitedCharacter(thread.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        imageLoaders[id] = ImageLoaderViewModel(config: config)
+        imageLoaders[id]?.onImage = { @Sendable [weak self] image in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                updateThreadImage(image: image, threadId: thread.id ?? -1)
+                imageLoaders.removeValue(forKey: id)
+            }
+        }
+        imageLoaders[id]?.fetch()
+    }
+    
+    private func imageLink(thread: Conversation) -> String {
+        thread.computedImageURL?.replacingOccurrences(of: "http://", with: "https://") ?? ""
+    }
+    
+    private func updateThreadImage(image: UIImage?, threadId: Int) {
+        // Update thread list image view
+        delegate?.updateImage(image: image, id: threadId)
+        
+        // Update image inside the calculated because we will use this for thread rows
+        if let calculateConversation = archives.first(where: { $0.id == threadId }), let image = image {
+            (calculateConversation.imageLoader as? ImageLoaderViewModel)?.updateImage(image: image)
+        }
+        
+        // Update thread image view
+        let activeThread = navVM.viewModel(for: threadId)
+        activeThread?.delegate?.updateImageTo(image)
+        
+        // Update thread detail view image
+        let detailVM = navVM.detailViewModel(threadId: threadId)
+        detailVM?.updateImageTo(image)
     }
 }
 

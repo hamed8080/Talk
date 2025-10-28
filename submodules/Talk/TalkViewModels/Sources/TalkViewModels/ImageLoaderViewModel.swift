@@ -111,7 +111,7 @@ public final class ImageLoaderViewModel: ObservableObject {
         }
     }
 
-    private func updateImage(image: UIImage) {
+    public func updateImage(image: UIImage) {
         self.image = image
         isFetching = false
         onImage?(image)

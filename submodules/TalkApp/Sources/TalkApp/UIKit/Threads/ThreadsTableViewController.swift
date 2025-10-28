@@ -144,6 +144,10 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
             .setConversation(conversation: conversation)
     }
     
+    func setImageFor(id: Int, image: UIImage?) {
+        cell(id: id)?.setImage(image)
+    }
+    
     func selectionChanged(conversation: CalculatedConversation) {
         cell(id: conversation.id ?? -1)?.selectionChanged(conversation: conversation)
     }

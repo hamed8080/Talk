@@ -140,17 +140,16 @@ public final class ThreadDetailViewModel: ObservableObject {
             break
         }
     }
+    
+    public func updateImageTo(_ image: UIImage?) {
+        cachedImage = image
+        if let image = image {
+            avatarVM?.updateImage(image: image)
+        }
+    }
 
     public func updateThreadInfo(_ newThread: Conversation) {
         thread = newThread
-        
-        let imageLoader = ImageLoaderViewModel(conversation: newThread)
-        imageLoader.onImage = { [weak self] image in
-            Task { @MainActor [weak self] in
-                self?.cachedImage = image
-            }
-        }
-        imageLoader.fetch()
         setupFullScreenAvatarConfig()
         animateObjectWillChange()
     }
