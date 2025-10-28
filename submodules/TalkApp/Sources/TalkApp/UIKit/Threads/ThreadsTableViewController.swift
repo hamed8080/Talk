@@ -72,6 +72,10 @@ class ThreadsTableViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
+        
+        if viewModel.isArchive == true {
+            threadsToolbar.removeFromSuperview()
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -213,6 +217,8 @@ extension ThreadsTableViewController: UITableViewDelegate {
         if splitViewController?.isCollapsed == true {
             vc.navigationController?.setNavigationBarHidden(true, animated: false)
             // iPhone — push onto the existing navigation stack
+            viewModel.onTapped(viewController: vc, conversation: conversation.toStruct())
+        } else if conversation.isArchive == true {
             viewModel.onTapped(viewController: vc, conversation: conversation.toStruct())
         } else {
             // iPad — show in secondary column

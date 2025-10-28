@@ -72,7 +72,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
     
     private var cachedAvatarVM: ImageLoaderViewModel? {
-        let threads = objs.threadsVM.threads + objs.archivesVM.archives
+        let threads = objs.threadsVM.threads + objs.archivesVM.threads
         return threads
             .first(where: { $0.id == threadVM?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }

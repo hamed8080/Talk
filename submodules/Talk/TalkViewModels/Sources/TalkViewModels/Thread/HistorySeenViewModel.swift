@@ -29,8 +29,8 @@ public final class HistorySeenViewModel {
     private var lastMessageVO: LastMessageVO? { threadVM?.lastMessageVO() }
     private var threadId: Int { thread.id ?? 0 }
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
-    private var archivesVM: ArchiveThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
-    private var threads: ContiguousArray<CalculatedConversation> { threadVM?.thread.isArchive == true ? archivesVM.archives : threadsVM.threads }
+    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
+    private var threads: ContiguousArray<CalculatedConversation> { threadVM?.thread.isArchive == true ? archivesVM.threads : threadsVM.threads }
     private var isAppActive: Bool { AppState.shared.lifeCycleState == .active || AppState.shared.lifeCycleState == .foreground }
     private var currentUserId: Int? { AppState.shared.user?.id }
     

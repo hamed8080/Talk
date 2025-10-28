@@ -177,7 +177,7 @@ public extension NavigationModel {
             AppState.shared.objectsContainer.threadsVM.deselectActiveThread()
         }
         
-        if AppState.shared.objectsContainer.archivesVM.archives.contains(where: { $0.id == id && $0.isSelected == true }) {
+        if AppState.shared.objectsContainer.archivesVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
             AppState.shared.objectsContainer.archivesVM.deselectActiveThread()
         }
         // iPhone (collapsed)
@@ -375,7 +375,7 @@ public extension NavigationModel {
     }
     
     private func checkForP2POffline(coreUserId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.archives
+        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.threads
         
         return threads.first(where: {
             ($0.partner == coreUserId || ($0.participants?.contains(where: { $0.coreUserId == coreUserId }) ?? false)) &&
@@ -385,7 +385,7 @@ public extension NavigationModel {
     }
     
     private func checkForOffline(threadId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.archives
+        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.threads
         return threads.first(where: { $0.id == threadId })?.toStruct()
     }
     

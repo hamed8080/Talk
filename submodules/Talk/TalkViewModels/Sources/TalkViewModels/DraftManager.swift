@@ -36,7 +36,7 @@ public final class DraftManager: Sendable {
             }
             
             let archivesVM = AppState.shared.objectsContainer.archivesVM
-            if let conversation = archivesVM.archives.first(where: { $0.id == threadId}) {
+            if let conversation = archivesVM.threads.first(where: { $0.id == threadId}) {
                 archivesVM.recalculateAndAnimate(conversation)
             }
             NotificationCenter.draft.post(name: .draft, object: threadId)

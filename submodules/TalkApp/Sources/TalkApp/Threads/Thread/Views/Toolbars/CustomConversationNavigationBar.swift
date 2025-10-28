@@ -441,7 +441,7 @@ public class CustomConversationNavigationBar: UIView {
     }
     
     private var cachedImageLoaderVM: ImageLoaderViewModel? {
-        let threads = (AppState.shared.objectsContainer.threadsVM.threads ?? []) + AppState.shared.objectsContainer.archivesVM.archives
+        let threads = (AppState.shared.objectsContainer.threadsVM.threads ?? []) + AppState.shared.objectsContainer.archivesVM.threads
         return threads.first(where: { $0.id == self.viewModel?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }
     

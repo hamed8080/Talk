@@ -140,6 +140,10 @@ extension ThreadsViewModel {
             onLeftThread(response)
         case .closed(let response):
             onClosed(response)
+        case .archive(let response):
+            await onArchive(response)
+        case .unArchive(let response):
+            await onUNArchive(response)
         default:
             break
         }
