@@ -299,7 +299,6 @@ extension ThreadsTableViewController {
             
             view.bringSubviewToFront(threadsToolbar)
             
-            
             Task {
                 /// Load on open the sheet.
                 await AppState.shared.objectsContainer.searchVM.loadOnOpen()

@@ -206,7 +206,7 @@ extension ThreadsViewModel {
                 animateObjectWillChange()
 
                 // Update Active view model
-                let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
+                let activeVM = navVM.presentedThreadViewModel?.viewModel
                 if let activeVM = activeVM, activeVM.id == response.subjectId {
                     activeVM.setReactionStatus(response.result?.reactionStatus)
                     if activeVM.thread.reactionStatus == .enable {

@@ -43,7 +43,7 @@ extension ThreadsViewModel: MuteThreadProtocol {
             delegate?.reloadCellWith(conversation: threads[index])
             threads[index].animateObjectWillChange()
             await sortInPlace()
-            let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+            let activeVM = navVM.presentedThreadViewModel
             if activeVM?.viewModel?.thread.id == threadId {
                 activeVM?.viewModel?.setMute(mute)
                 activeVM?.viewModel?.delegate?.muteChanged()

@@ -71,7 +71,7 @@ public final class ThreadsViewModel: ObservableObject {
     internal let LEAVE_KEY: String
 
     // MARK: Computed properties
-    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+    var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var myId: Int { AppState.shared.user?.id ?? -1 }
 
     public init(isArchive: Bool? = nil, isForwardList: Bool? = nil) {
@@ -531,7 +531,7 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func delete(_ threadId: Int?) {
         guard let threadId = threadId else { return }
-        let allThreads = AppState.shared.objectsContainer.navVM.allThreads
+        let allThreads = navVM.allThreads
         let conversation = allThreads.first(where: { $0.id == threadId})
         let isGroup = conversation?.group == true
         if isGroup {
@@ -550,8 +550,8 @@ public final class ThreadsViewModel: ObservableObject {
         if let threadId = response.subjectId, let thread = threads.first(where: { $0.id == threadId }) {
             removeThread(thread)
             
-            if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
-                AppState.shared.objectsContainer.navVM.remove(threadId: threadId)
+            if navVM.presentedThreadViewModel?.threadId == threadId {
+                navVM.remove(threadId: threadId)
             }
         }
     }
@@ -695,7 +695,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads.remove(at: index)
             updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
-            AppState.shared.objectsContainer.navVM.remove(threadId: id)
+            navVM.remove(threadId: id)
         }
     }
 
@@ -727,7 +727,7 @@ public final class ThreadsViewModel: ObservableObject {
             
             /// Update active conversation thread value struct inside HistoryViewModel and ThreadViewModel.
             /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
-            let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+            let vm = navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
                 vm?.viewModel?.setThread(thread.toStruct())
             }
@@ -744,7 +744,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) async {
         if let conversation = response.result {
             if conversation.participants?.first?.id == myId, response.pop(prepend: JOIN_TO_PUBLIC_GROUP_KEY) != nil {
-                AppState.shared.objectsContainer.navVM.createAndAppend(conversation: conversation)
+                navVM.createAndAppend(conversation: conversation)
             }
             
             if let id = conversation.id, let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(id) {
@@ -911,19 +911,19 @@ public final class ThreadsViewModel: ObservableObject {
     
     public func onTapped(viewController: UIViewController, conversation: Conversation) {
         /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
-        if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
+        if conversation.id == navVM.presentedThreadViewModel?.threadId { return }
         
-        if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
+        if navVM.canNavigateToConversation() {
             
             /// Deselect current selected
-            setSelected(for: AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId ?? -1, selected: false)
+            setSelected(for: navVM.presentedThreadViewModel?.threadId ?? -1, selected: false)
             
             /// to update isSeleted for bar and background color
             setSelected(for: conversation.id ?? -1, selected: true)
-            if conversation.isArchive == true && AppState.shared.objectsContainer.navVM.splitVC?.isCollapsed == true {
-                AppState.shared.objectsContainer.navVM.appendUIKit(value: viewController)
+            if conversation.isArchive == true && navVM.splitVC?.isCollapsed == true {
+                navVM.appendUIKit(value: viewController)
             } else {
-                AppState.shared.objectsContainer.navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
+                navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
             }
         }
     }

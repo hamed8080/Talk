@@ -28,6 +28,7 @@ public final class NavigationModel: ObservableObject {
     private var secondaryVC: UIViewController? { splitVC?.viewController(for: .secondary) }
     private var splitSecondaryNavVC: UINavigationController? { secondaryVC as? UINavigationController }
     private var navigationController: UINavigationController? { splitVC?.viewControllers.first as? UINavigationController }
+    private var objc: ObjectsContainer { AppState.shared.objectsContainer }
     
     public init() {}
 
@@ -167,18 +168,18 @@ public extension NavigationModel {
     }
     
     func createAndAppend(conversation: Conversation) {
-        if let vc = AppState.shared.objectsContainer.threadsVM.delegate?.createThreadViewController(conversation: conversation) {
+        if let vc = objc.threadsVM.delegate?.createThreadViewController(conversation: conversation) {
             appendUIKit(vc: vc, conversation: conversation)
         }
     }
     
     func popCurrentViewController(id: Int) {
-        if AppState.shared.objectsContainer.threadsVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
-            AppState.shared.objectsContainer.threadsVM.deselectActiveThread()
+        if objc.threadsVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
+            objc.threadsVM.deselectActiveThread()
         }
         
-        if AppState.shared.objectsContainer.archivesVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
-            AppState.shared.objectsContainer.archivesVM.deselectActiveThread()
+        if objc.archivesVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
+            objc.archivesVM.deselectActiveThread()
         }
         // iPhone (collapsed)
         // on iPhone PrimaryTabBarViewController is the root view controller of the navigation stack,
@@ -375,7 +376,7 @@ public extension NavigationModel {
     }
     
     private func checkForP2POffline(coreUserId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.navVM.allThreads
+        let threads = objc.navVM.allThreads
         
         return threads.first(where: {
             ($0.partner == coreUserId || ($0.participants?.contains(where: { $0.coreUserId == coreUserId }) ?? false)) &&
@@ -385,7 +386,7 @@ public extension NavigationModel {
     }
     
     private func checkForOffline(threadId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.navVM.allThreads
+        let threads = objc.navVM.allThreads
         return threads.first(where: { $0.id == threadId })?.toStruct()
     }
     
@@ -486,15 +487,14 @@ extension NavigationModel {
         
         if !hasAnyInstanceInStack {
             cleanOnPop(threadId: id)
-            AppState.shared.objectsContainer.threadsVM.setSelected(for: id, selected: false)
-            AppState.shared.objectsContainer.archivesVM.setSelected(for: id, selected: false)
+            objc.threadsVM.setSelected(for: id, selected: false)
+            objc.archivesVM.setSelected(for: id, selected: false)
         }
     }
 }
 
 public extension NavigationModel {
     var allThreads: ContiguousArray<CalculatedConversation> {
-        let objc = AppState.shared.objectsContainer!
         return objc.threadsVM.threads ?? [] + objc.archivesVM.threads
     }
 }
