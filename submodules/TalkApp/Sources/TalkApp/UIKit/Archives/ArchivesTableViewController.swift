@@ -16,6 +16,10 @@ struct ArchivesTableViewControllerWrapper: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> some UIViewController {
         let vc = ThreadsTableViewController(viewModel: viewModel)
+        if !viewModel.isArchiveObserverInitialized {
+            viewModel.setupObservers()
+            viewModel.isArchiveObserverInitialized = true
+        }
         return vc
     }
     

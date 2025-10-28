@@ -86,8 +86,7 @@ public final class MoveToBottomButton: UIButton {
     }
 
     public func updateUnreadCount() {
-        let isArchive = viewModel?.thread.isArchive == true
-        let threads = isArchive ? AppState.shared.objectsContainer.archivesVM.threads : AppState.shared.objectsContainer.threadsVM.threads ?? []
+        let threads = AppState.shared.objectsContainer.navVM.allThreads
         let thread = threads.first(where: {$0.id == viewModel?.id})
         let unreadCount = thread?.unreadCount ?? 0
         

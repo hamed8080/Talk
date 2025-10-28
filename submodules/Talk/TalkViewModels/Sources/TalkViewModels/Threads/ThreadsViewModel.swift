@@ -57,6 +57,7 @@ public final class ThreadsViewModel: ObservableObject {
     public weak var delegate: UIThreadsViewControllerDelegate?
     private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
     public let isArchive: Bool?
+    public var isArchiveObserverInitialized = false
     public let isForwardList: Bool?
     
     private var previousOffset: CGPoint? = nil
@@ -75,12 +76,15 @@ public final class ThreadsViewModel: ObservableObject {
 
     public init(isArchive: Bool? = nil, isForwardList: Bool? = nil) {
         self.isArchive = isArchive
+        print("init threadsView model isArchive:\(isArchive)")
         self.isForwardList = isForwardList
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
         
-        setupObservers()
+        if isArchive == nil {
+            setupObservers()
+        }
         
         incForwardQueue.viewModel = self
         incNewQueue.viewModel = self
@@ -137,6 +141,13 @@ public final class ThreadsViewModel: ObservableObject {
     public func onNewMessage(_ messages: [Message], conversationId: Int) async {
         if let index = firstIndex(conversationId) {
             let reference = threads[index]
+            
+            let isReferenceArchived = reference.isArchive == true
+            
+            /// Prevent calling wrong object instance
+            if isReferenceArchived && isArchive == nil { return }
+            if !isReferenceArchived && isArchive == true { return }
+            
             let old = reference.toStruct()
             let updated = reference.updateOnNewMessage(messages.last ?? .init(), meId: myId)
             threads[index] = updated
@@ -151,7 +162,13 @@ public final class ThreadsViewModel: ObservableObject {
             updateUI(animation: false, reloadSections: false)
             await moveToContentOffset()
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
-        } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId), conversation.isArchive != true {
+        } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
+            
+            let isReferenceArchived = conversation.isArchive == true
+            /// Prevent calling wrong object instance
+            if isReferenceArchived && isArchive == nil { return }
+            if !isReferenceArchived && isArchive == true { return }
+            
             savePreviousContentOffset()
             let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
             await calculateAppendSortAnimate(conversation)
@@ -514,7 +531,8 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func delete(_ threadId: Int?) {
         guard let threadId = threadId else { return }
-        let conversation = threads.first(where: { $0.id == threadId}) ?? AppState.shared.objectsContainer.archivesVM.threads.first(where: { $0.id == threadId })
+        let allThreads = AppState.shared.objectsContainer.navVM.allThreads
+        let conversation = allThreads.first(where: { $0.id == threadId})
         let isGroup = conversation?.group == true
         if isGroup {
             Task { @ChatGlobalActor in

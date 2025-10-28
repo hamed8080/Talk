@@ -21,7 +21,6 @@ public extension View {
         .environmentObject(container.settingsVM)
         .environmentObject(container.contactsVM)
         .environmentObject(container.threadsVM)
-        .environmentObject(container.archivesVM)
         .environmentObject(container.loginVM)
         .environmentObject(container.tokenVM)
         .environmentObject(container.tagsVM)

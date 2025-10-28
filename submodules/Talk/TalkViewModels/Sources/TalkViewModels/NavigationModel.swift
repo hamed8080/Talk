@@ -375,7 +375,7 @@ public extension NavigationModel {
     }
     
     private func checkForP2POffline(coreUserId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.threads
+        let threads = AppState.shared.objectsContainer.navVM.allThreads
         
         return threads.first(where: {
             ($0.partner == coreUserId || ($0.participants?.contains(where: { $0.coreUserId == coreUserId }) ?? false)) &&
@@ -385,7 +385,7 @@ public extension NavigationModel {
     }
     
     private func checkForOffline(threadId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.threads
+        let threads = AppState.shared.objectsContainer.navVM.allThreads
         return threads.first(where: { $0.id == threadId })?.toStruct()
     }
     
@@ -489,5 +489,12 @@ extension NavigationModel {
             AppState.shared.objectsContainer.threadsVM.setSelected(for: id, selected: false)
             AppState.shared.objectsContainer.archivesVM.setSelected(for: id, selected: false)
         }
+    }
+}
+
+public extension NavigationModel {
+    var allThreads: ContiguousArray<CalculatedConversation> {
+        let objc = AppState.shared.objectsContainer!
+        return objc.threadsVM.threads ?? [] + objc.archivesVM.threads
     }
 }

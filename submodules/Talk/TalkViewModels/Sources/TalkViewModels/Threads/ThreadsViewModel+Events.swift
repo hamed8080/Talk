@@ -10,7 +10,7 @@ import Chat
 
 extension ThreadsViewModel {
 
-    func setupObservers() {
+    public func setupObservers() {
         lazyList.objectWillChange.sink { [weak self] _ in
             self?.animateObjectWillChange()
         }
