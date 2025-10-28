@@ -50,12 +50,12 @@ public class SplitViewController: UISplitViewController {
     
     private func registerOverlay() {
         AppState.shared.objectsContainer.appOverlayVM.$isPresented.sink { [weak self] isPresented in
-            self?.onOverlayPresentChange(isPresented)
+            self?.onOverlayPresentChange(isPresented, fullOverlay: !AppState.shared.objectsContainer.appOverlayVM.isToast)
         }
         .store(in: &cancellableSet)
     }
     
-    private func onOverlayPresentChange(_ isPresented: Bool) {
+    private func onOverlayPresentChange(_ isPresented: Bool, fullOverlay: Bool = true) {
         if isPresented {
             let injected = AppOverlayView() { [weak self] in
                 self?.onDismiss()
@@ -73,11 +73,17 @@ public class SplitViewController: UISplitViewController {
             parentVC.view.addSubview(overlayVC.view)
             
             NSLayoutConstraint.activate([
-                overlayVC.view.topAnchor.constraint(equalTo: parentVC.view.topAnchor),
                 overlayVC.view.bottomAnchor.constraint(equalTo: parentVC.view.bottomAnchor),
                 overlayVC.view.leadingAnchor.constraint(equalTo: parentVC.view.leadingAnchor),
                 overlayVC.view.trailingAnchor.constraint(equalTo: parentVC.view.trailingAnchor),
             ])
+                        
+            if fullOverlay {
+                overlayVC.view.topAnchor.constraint(equalTo: parentVC.view.topAnchor).isActive = true
+            } else {
+                let height = overlayVC.view.sizeThatFits(view.frame.size).height
+                overlayVC.view.heightAnchor.constraint(equalToConstant: height + 64).isActive = true
+            }
             
             self.overlayVC = overlayVC
             parentVC.view.bringSubviewToFront(overlayVC.view)
