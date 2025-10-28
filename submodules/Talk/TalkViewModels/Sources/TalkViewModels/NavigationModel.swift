@@ -32,10 +32,18 @@ public final class NavigationModel: ObservableObject {
     public init() {}
 
     public func wrapAndPush<T: View>(view: T) {
-        let container = AppState.shared.objectsContainer!
         let injected = view.injectAllObjects()
         let vc = UIHostingController(rootView: injected)
         appendUIKit(value: vc)
+    }
+    
+    public func wrapAndPresentFullScreen<T: View>(view: T) {
+        let injected = view.injectAllObjects()
+        let vc = UIHostingController(rootView: injected)
+        vc.modalPresentationStyle = .fullScreen
+        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled ?? false ? .dark : .light
+        splitVC?.present(vc, animated: true)
+        pathsTracking.append(vc)
     }
     
     public func appendUIKit<T: UIViewController>(value: T) {
