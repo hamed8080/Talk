@@ -13,11 +13,11 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     private let scrollView = UIScrollView()
     private let imageView = UIImageView()
     private let btnClose = CircularSymbolButton("xmark")
-    private let btnReset = CircularSymbolButton("arrow.trianglehead.2.counterclockwise.rotate.90")
+    private let btnReset = CircularSymbolButton(ImageEditorView.resetIconName)
     private let btnDoneCropping = CircularSymbolButton("checkmark", imageIconSize: 36)
     private let buttonsHStack = UIStackView()
     private let btnAddText = CircularSymbolButton("t.square", width: 32, height: 32, radius: 0, addBGEffect: false)
-    private let btnFlip = CircularSymbolButton("arrow.trianglehead.left.and.right.righttriangle.left.righttriangle.right", width: 32, height: 32, radius: 0, addBGEffect: false)
+    private let btnFlip = CircularSymbolButton(ImageEditorView.flipIconName, width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnRotate = CircularSymbolButton("rotate.left", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnCrop = CircularSymbolButton("crop", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnDone = UIButton(type: .system)
@@ -398,4 +398,22 @@ extension ImageEditorView {
             }
         }
     }
+}
+
+extension ImageEditorView {
+    private static let resetIconName: String = {
+        if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
+            return "arrow.trianglehead.2.counterclockwise.rotate.90"
+        } else {
+            return "arrow.2.circlepath"
+        }
+    }()
+    
+    private static let flipIconName: String = {
+        if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
+            return "arrow.trianglehead.left.and.right.righttriangle.left.righttriangle.right"
+        } else {
+            return "flip.horizontal"
+        }
+    }()
 }
