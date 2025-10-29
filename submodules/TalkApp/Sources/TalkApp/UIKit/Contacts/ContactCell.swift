@@ -88,6 +88,7 @@ class ContactCell: UITableViewCell {
         avatar.translatesAutoresizingMaskIntoConstraints = false
         avatar.layer.cornerRadius = 22
         avatar.layer.masksToBounds = true
+        avatar.contentMode = .scaleAspectFill
         contentView.addSubview(avatar)
         
         avatarInitialLable.accessibilityIdentifier = "ContactCell.avatarInitialLable"

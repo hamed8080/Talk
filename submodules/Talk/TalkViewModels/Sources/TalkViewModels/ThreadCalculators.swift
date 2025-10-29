@@ -207,7 +207,7 @@ public class ThreadCalculators {
         } else if conversation.group == true, conversation.type?.isChannelType == false, let image = UIImage(systemName: "person.2.fill")?.withTintColor(.gray) {
             let mutable = NSMutableAttributedString(attributedString: NSAttributedString(string: ""))
             let imgAttachment = NSTextAttachment(image: image)
-            imgAttachment.bounds = CGRect(x: 0, y: -4, width: 19, height: 16)
+            imgAttachment.bounds = CGRect(x: 0, y: -4, width: 22, height: 16)
             let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
             mutable.append(attachmentAttribute)
             mutable.append(NSAttributedString(string: " "))
