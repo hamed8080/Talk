@@ -98,6 +98,28 @@ struct DetailInfoViewSection: View {
     }
 }
 
+struct SelfThreadImageView: View {
+    let imageSize: CGFloat
+    let iconSize: CGFloat
+    var body: some View {
+        let startColor = Color(red: 255/255, green: 145/255, blue: 98/255)
+        let endColor = Color(red: 255/255, green: 90/255, blue: 113/255)
+        Circle()
+            .foregroundColor(.clear)
+            .scaledToFit()
+            .frame(width: imageSize, height: imageSize)
+            .background(LinearGradient(colors: [startColor, endColor], startPoint: .top, endPoint: .bottom))
+            .clipShape(RoundedRectangle(cornerRadius:((imageSize / 2) - 3)))
+            .overlay {
+                Image("bookmark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSize, height: iconSize)
+                    .foregroundStyle(Color.App.textPrimary)
+            }
+    }
+}
+
 struct DetailInfoViewSection_Previews: PreviewProvider {
     static var previews: some View {
         DetailInfoViewSection(threadVM: .init(thread: .init()))

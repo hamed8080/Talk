@@ -107,8 +107,11 @@ extension ThreadsTableViewController {
             
             // Set properties
             cell?.setConversation(conversation: conversation)
-            cell?.delegate = self
-            
+            cell?.onContextMenu = { [weak self] sender in
+                if sender.state == .began {
+                    self?.showContextMenu(indexPath, contentView: UIView())
+                }
+            }
             return cell
         }
     }
@@ -191,6 +194,11 @@ extension ThreadsTableViewController: ContextMenuDelegate {
             let indexPath = indexPath,
             let conversation = dataSource.itemIdentifier(for: indexPath)
         else { return }
+        
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
+        let cell = tableView.cellForRow(at: indexPath) as? ConversationCell
+        let contentView = ThreadRowContextMenuUIKit(conversation: conversation, image: cell?.avatar.image, container: contextMenuContainer)
         contextMenuContainer?.setContentView(contentView, indexPath: indexPath)
         contextMenuContainer?.show()
     }
@@ -277,9 +285,7 @@ extension ThreadsTableViewController: UITableViewDelegate {
 extension ThreadsTableViewController {
     private func configureUISearchListView(show: Bool) {
         if show {
-            let rootView = ThreadSearchView().injectAllObjects()
-
-            let searchListVC = UIHostingController(rootView: rootView)
+            let searchListVC = ThreadsSearchTableViewController(viewModel: AppState.shared.objectsContainer.searchVM)
             searchListVC.view.translatesAutoresizingMaskIntoConstraints = false
             searchListVC.view.backgroundColor = Color.App.bgPrimaryUIColor
             self.searchListVC = searchListVC
@@ -290,11 +296,14 @@ extension ThreadsTableViewController {
             searchListVC.didMove(toParent: self)
             
             NSLayoutConstraint.activate([
-                searchListVC.view.topAnchor.constraint(equalTo: view.topAnchor, constant: threadsToolbar.frame.maxY),
+                searchListVC.view.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
                 searchListVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 searchListVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                 searchListVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             ])
+            
+            searchListVC.tableView.contentInset.top = threadsToolbar.frame.height
+            searchListVC.tableView.scrollIndicatorInsets = searchListVC.tableView.contentInset
             
             view.bringSubviewToFront(threadsToolbar)
             

@@ -70,8 +70,6 @@ extension ForwardConversationTableViewController {
             
             // Set properties
             cell?.setConversation(conversation: conversation)
-            cell?.delegate = self
-            
             return cell
         }
     }

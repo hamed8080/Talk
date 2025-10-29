@@ -1,5 +1,5 @@
 //
-//  ThreadRowActionMenu.swift
+//  ThreadDetailRowActionMenu.swift
 //  Talk
 //
 //  Created by hamed on 6/27/23.
@@ -14,7 +14,7 @@ import Chat
 import TalkModels
 import TalkUI
 
-struct ThreadRowActionMenu: View {
+struct ThreadDetailRowActionMenu: View {
     @Binding var showPopover: Bool
     var isDetailView: Bool = false
     var thread: CalculatedConversation

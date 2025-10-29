@@ -13,6 +13,36 @@ import TalkModels
 import TalkExtensions
 import Logger
 
+public enum ThreadsSearchListSection: Int, Sendable {
+    case conversations = 0
+    case contacts = 1
+}
+
+public enum ThreadSearchItem: Hashable, Sendable {
+    case contact(Contact)
+    case conversation(CalculatedConversation)
+    case noConversationFound
+    case noContactFound
+}
+
+@MainActor
+public protocol UIThreadsSearchViewControllerDelegate: AnyObject {
+    var contentSize: CGSize { get }
+    var contentOffset: CGPoint { get }
+    func setContentOffset(offset: CGPoint)
+    func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsSearchListSection, ThreadSearchItem>, animatingDifferences: Bool)
+    func updateImage(image: UIImage?, id: Int)
+    func reloadCellWith(conversation: CalculatedConversation)
+    func selectionChanged(conversation: CalculatedConversation)
+    func unreadCountChanged(conversation: CalculatedConversation)
+    func setEvent(smt: SMT?, conversation: CalculatedConversation)
+    func indexPath<T: UITableViewCell>(for: T) -> IndexPath?
+    func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation?
+    func scrollToFirstIndex()
+    func createThreadViewController(conversation: Conversation) -> UIViewController
+    func setImageFor(id: Int, image: UIImage?)
+}
+
 @MainActor
 public final class ThreadsSearchViewModel: ObservableObject {
     @Published public var searchedConversations: ContiguousArray<CalculatedConversation> = []
@@ -25,9 +55,46 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private var cachedAttribute: [String: AttributedString] = [:]
     public var isInSearchMode: Bool { searchText.count > 0 || (!searchedConversations.isEmpty || !searchedContacts.isEmpty) }
     public private(set) var lazyList = LazyListViewModel()
+    public weak var delegate: UIThreadsSearchViewControllerDelegate?
+    @AppBackgroundActor
+    private var isCompleted = false
+    
+    // MARK: Computed properties
+    var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
 
     public init() {
         setupObservers()
+    }
+    
+    func updateUI(animation: Bool, reloadSections: Bool) {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<ThreadsSearchListSection, ThreadSearchItem>()
+        
+        snapshot.appendSections([.conversations, .contacts])
+        
+        /// Configure
+        snapshot.appendItems(searchedConversations.compactMap{ .conversation($0) }, toSection: .conversations)
+        snapshot.appendItems(searchedContacts.compactMap{ .contact($0) }, toSection: .contacts)
+        if searchedConversations.isEmpty {
+            snapshot.appendItems([.noConversationFound], toSection: .conversations)
+        }
+        
+        if searchedContacts.isEmpty {
+            snapshot.appendItems([.noContactFound], toSection: .contacts)
+        }
+        
+        if reloadSections {
+            snapshot.reloadSections([.conversations, .contacts])
+        }
+        
+        /// Apply
+        Task { @AppBackgroundActor in
+            isCompleted = false
+            await MainActor.run {
+                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+            }
+            self.isCompleted = true
+        }
     }
 
     private func setupObservers() {
@@ -150,6 +217,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             if new == true {
                 searchedConversations.sort(by: { $0.unreadCount ?? 0 > $1.unreadCount ?? 0 })
             }
+            updateUI(animation: false, reloadSections: false)
         } catch {
             log("Failed to get serach threads with error: \(error.localizedDescription)")
         }
@@ -163,6 +231,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             lazyList.setLoading(false)
             lazyList.setHasNext(calThreads.count > 0)
             searchedConversations.append(contentsOf: calThreads)
+            updateUI(animation: false, reloadSections: false)
         } catch {
             log("Failed to get search public threads with error: \(error.localizedDescription)")
         }
@@ -175,6 +244,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             let contacts = try await GetSearchContactsRequester().get(req, withCache: false)
             searchedContacts.removeAll()
             searchedContacts.append(contentsOf: contacts)
+            updateUI(animation: false, reloadSections: false)
         } catch {
             log("Failed to get search contacts with error: \(error.localizedDescription)")
         }
@@ -192,6 +262,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
         searchedConversations.removeAll()
         searchedContacts.removeAll()
         cachedAttribute.removeAll()
+        updateUI(animation: false, reloadSections: false)
     }
 
     private func getUnreadConversations() async {
@@ -242,6 +313,19 @@ public final class ThreadsSearchViewModel: ObservableObject {
             calculatedConversation.subtitleAttributedString = ThreadCalculators.caculateSubtitle(conversation: conversation, myId: myId, isFileType: message?.isFileType == true)
             calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
             calculatedConversation.animateObjectWillChange()
+        }
+    }
+    
+    public func onTapped(viewController: UIViewController, conversation: Conversation) {
+        /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
+        if conversation.id == navVM.presentedThreadViewModel?.threadId { return }
+        
+        if navVM.canNavigateToConversation() {
+            if conversation.isArchive == true && navVM.splitVC?.isCollapsed == true {
+                navVM.appendUIKit(value: viewController)
+            } else {
+                navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
+            }
         }
     }
 }
