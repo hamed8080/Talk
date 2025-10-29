@@ -18,7 +18,7 @@ import Chat
 public class ParticipantsCountManager {
     public var cancelable: Set<AnyCancellable> = []
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
-    private var archivesVM: ArchiveThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
+    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
 
     init() {
         NotificationCenter.thread.publisher(for: .thread)
@@ -81,17 +81,17 @@ public class ParticipantsCountManager {
         if let index = threadsVM.threads.firstIndex(where: {$0.id == threadId}) {
             threadsVM.threads[index].participantCount = count
             let vm = threadViewModel(threadId: threadId)
-            vm?.thread.participantCount = count
+            vm?.setParticipantsCount(count)
             vm?.conversationSubtitle.updateSubtitle()
             AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
     }
     
     private func updateArchivesVMCount(count: Int, threadId: Int) {
-        if let index = archivesVM.archives.firstIndex(where: {$0.id == threadId}) {
-            archivesVM.archives[index].participantCount = count
+        if let index = archivesVM.threads.firstIndex(where: {$0.id == threadId}) {
+            archivesVM.threads[index].participantCount = count
             let vm = threadViewModel(threadId: threadId)
-            vm?.thread.participantCount = count
+            vm?.setParticipantsCount(count)
             vm?.conversationSubtitle.updateSubtitle()
             AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
@@ -104,7 +104,7 @@ public class ParticipantsCountManager {
     private func currentCount(threadId: Int?) -> Int {
         if let thread = threadsVM.threads.first(where: {$0.id == threadId}) {
             return thread.participantCount ?? 0
-        } else if let archiveThread = archivesVM.archives.first(where: {$0.id == threadId}) {
+        } else if let archiveThread = archivesVM.threads.first(where: {$0.id == threadId}) {
             return archiveThread.participantCount ?? 0
         }
         return 0

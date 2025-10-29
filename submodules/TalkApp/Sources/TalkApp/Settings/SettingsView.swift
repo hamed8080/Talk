@@ -306,7 +306,7 @@ struct SettingArchivesSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "archivebox.fill", title: "Tab.archives", color: Color.App.color5, showDivider: false) {
-            navModel.wrapAndPush(view: ArchivesView())
+            navModel.wrapAndPush(view: ArchivesView(viewModel: AppState.shared.objectsContainer.archivesVM))
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)

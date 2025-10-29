@@ -33,6 +33,7 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     func scrollToFirstIndex()
     var contextMenuContainer: ContextMenuContainerView? { get set }
     func createThreadViewController(conversation: Conversation) -> UIViewController
+    func setImageFor(id: Int, image: UIImage?)
 }
 
 @MainActor
@@ -54,6 +55,10 @@ public final class ThreadsViewModel: ObservableObject {
     internal let incNewQueue = IncommingNewMessagesQueue()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
     public weak var delegate: UIThreadsViewControllerDelegate?
+    private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
+    public let isArchive: Bool?
+    public var isArchiveObserverInitialized = false
+    public let isForwardList: Bool?
     
     private var previousOffset: CGPoint? = nil
     private var previousContentSize: CGSize? = nil
@@ -66,15 +71,20 @@ public final class ThreadsViewModel: ObservableObject {
     internal let LEAVE_KEY: String
 
     // MARK: Computed properties
-    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+    var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var myId: Int { AppState.shared.user?.id ?? -1 }
 
-    public init() {
+    public init(isArchive: Bool? = nil, isForwardList: Bool? = nil) {
+        self.isArchive = isArchive
+        print("init threadsView model isArchive:\(isArchive)")
+        self.isForwardList = isForwardList
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
         
-        setupObservers()
+        if isArchive == nil {
+            setupObservers()
+        }
         
         incForwardQueue.viewModel = self
         incNewQueue.viewModel = self
@@ -131,6 +141,13 @@ public final class ThreadsViewModel: ObservableObject {
     public func onNewMessage(_ messages: [Message], conversationId: Int) async {
         if let index = firstIndex(conversationId) {
             let reference = threads[index]
+            
+            let isReferenceArchived = reference.isArchive == true
+            
+            /// Prevent calling wrong object instance
+            if isReferenceArchived && isArchive == nil { return }
+            if !isReferenceArchived && isArchive == true { return }
+            
             let old = reference.toStruct()
             let updated = reference.updateOnNewMessage(messages.last ?? .init(), meId: myId)
             threads[index] = updated
@@ -145,7 +162,13 @@ public final class ThreadsViewModel: ObservableObject {
             updateUI(animation: false, reloadSections: false)
             await moveToContentOffset()
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
-        } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId), conversation.isArchive != true {
+        } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
+            
+            let isReferenceArchived = conversation.isArchive == true
+            /// Prevent calling wrong object instance
+            if isReferenceArchived && isArchive == nil { return }
+            if !isReferenceArchived && isArchive == true { return }
+            
             savePreviousContentOffset()
             let oldConversation = navVM.viewModel(for: conversation.id ?? -1)?.thread
             await calculateAppendSortAnimate(conversation)
@@ -228,14 +251,15 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.setLoading(true)
         do {
             
-            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, cache: cache)
+            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, archived: isArchive, cache: cache)
             let conversations = try await GetThreadsReuqester().getCalculated(req: req,
                                                                               withCache: false,
                                                                               queueable: withQueue,
                                                                               myId: myId,
                                                                               navSelectedId: navVM.selectedId,
                                                                               keepOrder: keepOrder)
-            let filtered = conversations.filter({ $0.isArchive == false || $0.isArchive == nil })
+            let isArchiveViewModel = isArchive == true
+            let filtered = conversations.filter({ $0.isArchive ?? false == isArchiveViewModel })
             if wasDisconnected {
                 /// Clear and remove all threads
                 threads.removeAll()
@@ -344,7 +368,7 @@ public final class ThreadsViewModel: ObservableObject {
         if wasDisconnected,
            let activeVM = navVM.presentedThreadViewModel?.viewModel,
            let updatedThread = threads.first(where: {($0.id ?? 0) as Int == activeVM.id as Int}) {
-            activeVM.thread = updatedThread.toStruct()
+            activeVM.setThread(updatedThread.toStruct())
             activeVM.delegate?.onUnreadCountChanged()
         }
     }
@@ -507,7 +531,8 @@ public final class ThreadsViewModel: ObservableObject {
 
     public func delete(_ threadId: Int?) {
         guard let threadId = threadId else { return }
-        let conversation = threads.first(where: { $0.id == threadId}) ?? AppState.shared.objectsContainer.archivesVM.archives.first(where: { $0.id == threadId })
+        let allThreads = navVM.allThreads
+        let conversation = allThreads.first(where: { $0.id == threadId})
         let isGroup = conversation?.group == true
         if isGroup {
             Task { @ChatGlobalActor in
@@ -525,8 +550,8 @@ public final class ThreadsViewModel: ObservableObject {
         if let threadId = response.subjectId, let thread = threads.first(where: { $0.id == threadId }) {
             removeThread(thread)
             
-            if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == threadId {
-                AppState.shared.objectsContainer.navVM.remove(threadId: threadId)
+            if navVM.presentedThreadViewModel?.threadId == threadId {
+                navVM.remove(threadId: threadId)
             }
         }
     }
@@ -629,17 +654,19 @@ public final class ThreadsViewModel: ObservableObject {
                 threads[index].animateObjectWillChange()
             }
 
+            let newThread = arrItem.toStruct()
+            
             // Update active thread if it is open
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.thread = arrItem.toStruct()
+            activeThread?.setThread(newThread)
             activeThread?.delegate?.updateTitleTo(replacedEmoji)
-            activeThread?.delegate?.refetchImageOnUpdateInfo()
 
             // Update active thread detail view if it is open
             if let detailVM = navVM.detailViewModel(threadId: threadId) {
-                detailVM.updateThreadInfo(arrItem.toStruct())
+                detailVM.updateThreadInfo(newThread)
             }
             animateObjectWillChange()
+            refetchImageOnUpdateInfo(thread: newThread)
         }
     }
 
@@ -668,7 +695,7 @@ public final class ThreadsViewModel: ObservableObject {
             threads.remove(at: index)
             updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
-            AppState.shared.objectsContainer.navVM.remove(threadId: id)
+            navVM.remove(threadId: id)
         }
     }
 
@@ -700,9 +727,9 @@ public final class ThreadsViewModel: ObservableObject {
             
             /// Update active conversation thread value struct inside HistoryViewModel and ThreadViewModel.
             /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
-            let vm = AppState.shared.objectsContainer.navVM.presentedThreadViewModel
+            let vm = navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
-                vm?.viewModel?.thread = thread.toStruct()
+                vm?.viewModel?.setThread(thread.toStruct())
             }
         }
     }
@@ -717,7 +744,7 @@ public final class ThreadsViewModel: ObservableObject {
     public func onJoinedToPublicConversation(_ response: ChatResponse<Conversation>) async {
         if let conversation = response.result {
             if conversation.participants?.first?.id == myId, response.pop(prepend: JOIN_TO_PUBLIC_GROUP_KEY) != nil {
-                AppState.shared.objectsContainer.navVM.createAndAppend(conversation: conversation)
+                navVM.createAndAppend(conversation: conversation)
             }
             
             if let id = conversation.id, let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(id) {
@@ -755,7 +782,7 @@ public final class ThreadsViewModel: ObservableObject {
             animateObjectWillChange()
 
             let activeThread = navVM.viewModel(for: threadId)
-            activeThread?.thread = threads[index].toStruct()
+            activeThread?.setThread(threads[index].toStruct())
             activeThread?.delegate?.onConversationClosed()
         }
     }
@@ -882,28 +909,22 @@ public final class ThreadsViewModel: ObservableObject {
         threads.first(where: { $0.id == id })?.imageLoader as? ImageLoaderViewModel
     }
     
-    public func toggleArchive(_ conversation: Conversation) { AppState.shared.objectsContainer.archivesVM.toggleArchive(conversation)
-        if conversation.isArchive == false || conversation.isArchive == nil {
-            let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: imageView,
-                                                                message: "ArchivedTab.guide".bundleLocalized(),
-                                                                messageColor: UIColor(named: "text_primary") ?? UIColor.white,
-                                                                duration: .slow)
-        }
-    }
-    
     public func onTapped(viewController: UIViewController, conversation: Conversation) {
         /// Ignore opening the same thread on iPad/MacOS, if so it will lead to a bug.
-        if conversation.id == AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId { return }
+        if conversation.id == navVM.presentedThreadViewModel?.threadId { return }
         
-        if AppState.shared.objectsContainer.navVM.canNavigateToConversation() {
+        if navVM.canNavigateToConversation() {
             
             /// Deselect current selected
-            setSelected(for: AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId ?? -1, selected: false)
+            setSelected(for: navVM.presentedThreadViewModel?.threadId ?? -1, selected: false)
             
             /// to update isSeleted for bar and background color
             setSelected(for: conversation.id ?? -1, selected: true)
-            AppState.shared.objectsContainer.navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
+            if conversation.isArchive == true && navVM.splitVC?.isCollapsed == true {
+                navVM.appendUIKit(value: viewController)
+            } else {
+                navVM.switchFromThreadListUIKit(viewController: viewController, conversation: conversation)
+            }
         }
     }
     
@@ -914,6 +935,128 @@ public final class ThreadsViewModel: ObservableObject {
         }
     }
 }
+
+/// Update image for threadViewController/DetailViewController
+extension ThreadsViewModel {
+    private func refetchImageOnUpdateInfo(thread: Conversation) {
+        guard let id = thread.id else { return }
+        let config = ImageLoaderConfig(url: imageLink(thread: thread),
+                                       size: .MEDIUM,
+                                       metaData: thread.metadata,
+                                       userName: String.splitedCharacter(thread.title ?? ""),
+                                       forceToDownloadFromServer: true)
+        imageLoaders[id] = ImageLoaderViewModel(config: config)
+        imageLoaders[id]?.onImage = { @Sendable [weak self] image in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                updateThreadImage(image: image, threadId: thread.id ?? -1)
+                imageLoaders.removeValue(forKey: id)
+            }
+        }
+        imageLoaders[id]?.fetch()
+    }
+    
+    private func imageLink(thread: Conversation) -> String {
+        thread.computedImageURL?.replacingOccurrences(of: "http://", with: "https://") ?? ""
+    }
+    
+    private func updateThreadImage(image: UIImage?, threadId: Int) {
+        // Update thread list image view
+        delegate?.updateImage(image: image, id: threadId)
+        
+        // Update image inside the calculated because we will use this for thread rows
+        if let calculateConversation = threads.first(where: { $0.id == threadId }), let image = image {
+            (calculateConversation.imageLoader as? ImageLoaderViewModel)?.updateImage(image: image)
+        }
+        
+        // Update thread image view
+        let activeThread = navVM.viewModel(for: threadId)
+        activeThread?.delegate?.updateImageTo(image)
+        
+        // Update thread detail view image
+        let detailVM = navVM.detailViewModel(threadId: threadId)
+        detailVM?.updateImageTo(image)
+    }
+}
+
+extension ThreadsViewModel {
+    public func toggleArchive(_ thread: Conversation) {
+        guard let threadId = thread.id else { return }
+        if thread.isArchive == false || thread.isArchive == nil {
+            archive(threadId)
+            let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
+            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: imageView,
+                                                                message: "ArchivedTab.guide".bundleLocalized(),
+                                                                messageColor: UIColor(named: "text_primary") ?? UIColor.white,
+                                                                duration: .slow)
+        } else {
+            unarchive(threadId)
+        }
+    }
+
+    public func archive(_ threadId: Int) {
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.archive(.init(subjectId: threadId))
+        }
+    }
+
+    public func unarchive(_ threadId: Int) {
+        Task { @ChatGlobalActor in
+            ChatManager.activeInstance?.conversation.unarchive(.init(subjectId: threadId))
+        }
+    }
+    
+    func onUNArchive(_ response: ChatResponse<Int>) async {
+        /// Allow only ObjectsContainer.archivesVM to manipulate and prevent ObjectsContainer.threadsVM to make changes.
+        if isArchive == nil { return }
+        
+        if response.result != nil, response.error == nil, let index = threads.firstIndex(where: {$0.id == response.result}) {
+            var conversation = threads[index]
+            conversation.isArchive = false
+            conversation.mute = false
+            threads.remove(at: index)
+            updateUI(animation: true, reloadSections: false)
+            animateObjectWillChange()
+           
+            await AppState.shared.objectsContainer.threadsVM.append(conversation)
+        }
+    }
+    
+    func onArchive(_ response: ChatResponse<Int>) async {
+        /// Allow only ObjectsContainer.archivesVM to manipulate and prevent ObjectsContainer.threadsVM to make changes.
+        if isArchive == nil { return }
+        
+        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
+            var conversation = threadsVM.threads[index]
+            conversation.isArchive = true
+            conversation.mute = true
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
+            threads.append(calThreads)
+            
+            /// Sort archives after appending.
+            self.threads = await sort(threads: threads, serverSortedPins: serverSortedPins)
+        
+            threadsVM.removeThread(threadsVM.threads[index])
+            /// threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
+            await threadsVM.sortInPlace()
+            threadsVM.animateObjectWillChange()
+            updateUI(animation: true, reloadSections: false)
+            animateObjectWillChange()
+        } else if
+            let conversationId = response.result,
+            let conversation = try? await GetThreadsReuqester().get(.init(threadIds: [conversationId])).first {
+            /// New conversation has been archived by another device so we have to fetch the conversation
+            let myId = AppState.shared.user?.id ?? -1
+            let calThreads = await ThreadCalculators.calculate(conversation, myId)
+            threads.append(calThreads)
+            updateUI(animation: false, reloadSections: false)
+        }
+    }
+}
+
 
 public struct CallToJoin {
     public let threadId: Int

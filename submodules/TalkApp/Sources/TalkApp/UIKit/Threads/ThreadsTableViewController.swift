@@ -72,6 +72,10 @@ class ThreadsTableViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
+        
+        if viewModel.isArchive == true {
+            threadsToolbar.removeFromSuperview()
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -103,8 +107,11 @@ extension ThreadsTableViewController {
             
             // Set properties
             cell?.setConversation(conversation: conversation)
-            cell?.delegate = self
-            
+            cell?.onContextMenu = { [weak self] sender in
+                if sender.state == .began {
+                    self?.showContextMenu(indexPath, contentView: UIView())
+                }
+            }
             return cell
         }
     }
@@ -142,6 +149,10 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     func reloadCellWith(conversation: CalculatedConversation) {
         cell(id: conversation.id ?? -1)?
             .setConversation(conversation: conversation)
+    }
+    
+    func setImageFor(id: Int, image: UIImage?) {
+        cell(id: id)?.setImage(image)
     }
     
     func selectionChanged(conversation: CalculatedConversation) {
@@ -183,6 +194,11 @@ extension ThreadsTableViewController: ContextMenuDelegate {
             let indexPath = indexPath,
             let conversation = dataSource.itemIdentifier(for: indexPath)
         else { return }
+        
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
+        let cell = tableView.cellForRow(at: indexPath) as? ConversationCell
+        let contentView = ThreadRowContextMenuUIKit(conversation: conversation, image: cell?.avatar.image, container: contextMenuContainer)
         contextMenuContainer?.setContentView(contentView, indexPath: indexPath)
         contextMenuContainer?.show()
     }
@@ -207,13 +223,14 @@ extension ThreadsTableViewController: UITableViewDelegate {
             
         // Check if container is iPhone navigation controller or iPad split view container or on iPadOS we are in a narrow window
         if splitViewController?.isCollapsed == true {
-            vc.navigationController?.setNavigationBarHidden(true, animated: false)
             // iPhone — push onto the existing navigation stack
+            viewModel.onTapped(viewController: vc, conversation: conversation.toStruct())
+        } else if conversation.isArchive == true {
             viewModel.onTapped(viewController: vc, conversation: conversation.toStruct())
         } else {
             // iPad — show in secondary column
             let nav = FastNavigationController(rootViewController: vc)
-            nav.setNavigationBarHidden(true, animated: false)
+            nav.navigationBar.isHidden = true
             viewModel.onTapped(viewController: nav, conversation: conversation.toStruct())
         }
     }
@@ -268,9 +285,7 @@ extension ThreadsTableViewController: UITableViewDelegate {
 extension ThreadsTableViewController {
     private func configureUISearchListView(show: Bool) {
         if show {
-            let rootView = ThreadSearchView().injectAllObjects()
-
-            let searchListVC = UIHostingController(rootView: rootView)
+            let searchListVC = ThreadsSearchTableViewController(viewModel: AppState.shared.objectsContainer.searchVM)
             searchListVC.view.translatesAutoresizingMaskIntoConstraints = false
             searchListVC.view.backgroundColor = Color.App.bgPrimaryUIColor
             self.searchListVC = searchListVC
@@ -281,14 +296,16 @@ extension ThreadsTableViewController {
             searchListVC.didMove(toParent: self)
             
             NSLayoutConstraint.activate([
-                searchListVC.view.topAnchor.constraint(equalTo: view.topAnchor, constant: threadsToolbar.frame.maxY),
+                searchListVC.view.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
                 searchListVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 searchListVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                 searchListVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             ])
             
-            view.bringSubviewToFront(threadsToolbar)
+            searchListVC.tableView.contentInset.top = threadsToolbar.frame.height
+            searchListVC.tableView.scrollIndicatorInsets = searchListVC.tableView.contentInset
             
+            view.bringSubviewToFront(threadsToolbar)
             
             Task {
                 /// Load on open the sheet.

@@ -70,8 +70,6 @@ extension ForwardConversationTableViewController {
             
             // Set properties
             cell?.setConversation(conversation: conversation)
-            cell?.delegate = self
-            
             return cell
         }
     }
@@ -102,6 +100,10 @@ extension ForwardConversationTableViewController: UIThreadsViewControllerDelegat
     func reloadCellWith(conversation: CalculatedConversation) {
         cell(id: conversation.id ?? -1)?
             .setConversation(conversation: conversation)
+    }
+    
+    func setImageFor(id: Int, image: UIImage?) {
+        cell(id: id)?.setImage(image)
     }
     
     func selectionChanged(conversation: CalculatedConversation) {

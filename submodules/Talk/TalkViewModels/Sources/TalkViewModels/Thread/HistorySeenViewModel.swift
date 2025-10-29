@@ -29,8 +29,8 @@ public final class HistorySeenViewModel {
     private var lastMessageVO: LastMessageVO? { threadVM?.lastMessageVO() }
     private var threadId: Int { thread.id ?? 0 }
     private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
-    private var archivesVM: ArchiveThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
-    private var threads: ContiguousArray<CalculatedConversation> { threadVM?.thread.isArchive == true ? archivesVM.archives : threadsVM.threads }
+    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
+    private var threads: ContiguousArray<CalculatedConversation> { threadVM?.thread.isArchive == true ? archivesVM.threads : threadsVM.threads }
     private var isAppActive: Bool { AppState.shared.lifeCycleState == .active || AppState.shared.lifeCycleState == .foreground }
     private var currentUserId: Int? { AppState.shared.user?.id }
     
@@ -145,17 +145,7 @@ public final class HistorySeenViewModel {
     }
     
     private func setUnreadCount(newUnreadCount: Int) async {
-        threadVM?.thread.unreadCount = newUnreadCount
-        
-        if let index = threads.firstIndex(where: { $0.id == threadId }) {
-            threads[index].unreadCount = newUnreadCount
-            await ThreadCalculators.reCalculateUnreadCount(threads[index])
-            if let index = threads.firstIndex(where: { $0.id == threadId }) {
-                threadsVM.delegate?.unreadCountChanged(conversation: threads[index])
-            }
-            threads[index].animateObjectWillChange()
-        }
-        
+        await threadVM?.setUnreadCount(newUnreadCount)
         threadVM?.delegate?.onUnreadCountChanged()
     }
     
@@ -164,11 +154,7 @@ public final class HistorySeenViewModel {
     }
     
     private func setLastSeenMessageId(messageId: Int) {
-        threadVM?.thread.lastSeenMessageId = messageId
-        
-        if let index = threads.firstIndex(where: { $0.id == threadId }) {
-            threads[index].lastSeenMessageId = messageId
-        }
+        threadVM?.setLastSeenMessageId(messageId)
     }
     
     // MARK: - Helpers

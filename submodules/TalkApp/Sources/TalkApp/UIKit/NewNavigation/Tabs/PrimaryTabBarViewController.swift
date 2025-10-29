@@ -22,7 +22,6 @@ class PrimaryTabBarViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        navigationController?.setNavigationBarHidden(true, animated: false)
         view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         let contactsTab = makeTabItem(image: "person.crop.circle", title: "Tab.contacts")

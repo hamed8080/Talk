@@ -13,13 +13,13 @@ import TalkUI
 
 class ConversationCell: UITableViewCell {
     private var conversation: CalculatedConversation?
-    weak var delegate: UIThreadsViewControllerDelegate?
+    var onContextMenu: ((UIGestureRecognizer) -> Void)?
     
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let radio = SelectMessageRadio()
     private let timeLabel = UILabel(frame: .zero)
-    private let avatar = UIImageView(frame: .zero)
+    let avatar = UIImageView(frame: .zero)
     private let statusImageView = UIImageView(frame: .zero)
     private let avatarInitialLable = UILabel()
     private let pinImageView = UIImageView(image: UIImage(named: "ic_pin"))
@@ -372,17 +372,10 @@ class ConversationCell: UITableViewCell {
     }
     
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
-        guard
-            sender.state == .began,
-            let indexPath = delegate?.indexPath(for: self),
-                let conversation = delegate?.dataSourceItem(for: indexPath)
-        else { return }
-        
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
-        delegate?.showContextMenu(
-            indexPath,
-            contentView: ThreadRowContextMenuUIKit(conversation: conversation, image: avatar.image, container: delegate?.contextMenuContainer)
-        )
+        onContextMenu?(sender)
+    }
+    
+    public func setImage(image: UIImage) {
+        avatar.image = image
     }
 }

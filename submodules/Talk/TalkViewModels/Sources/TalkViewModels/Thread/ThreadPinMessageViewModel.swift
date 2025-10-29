@@ -69,7 +69,7 @@ public final class ThreadPinMessageViewModel {
         switch event {
         case let .pin(response):
             if threadId == response.subjectId {
-                viewModel?.thread.pinMessage = response.result
+                viewModel?.setPinMessage(response.result)
                 message = response.result
                 downloadImageThumbnail()
                 Task { [weak self] in
@@ -79,7 +79,7 @@ public final class ThreadPinMessageViewModel {
             }
         case let .unpin(response):
             if threadId == response.subjectId {
-                viewModel?.thread.pinMessage = nil
+                viewModel?.setPinMessage(nil)
                 message = nil
                 Task { [weak self] in
                     guard let self = self else { return }

@@ -24,7 +24,7 @@ struct DetailEditConversationButton: View {
                             AppState.shared.objectsContainer.navVM.pushToLinkId(id: "DetailEditConversation-\(viewModel.thread.id ?? 0)" )
                         }
                         .onDisappear {
-                            AppState.shared.objectsContainer.navVM.popLinkId()
+                            AppState.shared.objectsContainer.navVM.popLinkId(id: "DetailEditConversation-\(viewModel.thread.id ?? 0)")
                         }
                 }
             } label: {

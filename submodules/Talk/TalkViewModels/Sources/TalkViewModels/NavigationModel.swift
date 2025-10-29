@@ -28,14 +28,23 @@ public final class NavigationModel: ObservableObject {
     private var secondaryVC: UIViewController? { splitVC?.viewController(for: .secondary) }
     private var splitSecondaryNavVC: UINavigationController? { secondaryVC as? UINavigationController }
     private var navigationController: UINavigationController? { splitVC?.viewControllers.first as? UINavigationController }
+    private var objc: ObjectsContainer { AppState.shared.objectsContainer }
     
     public init() {}
 
     public func wrapAndPush<T: View>(view: T) {
-        let container = AppState.shared.objectsContainer!
         let injected = view.injectAllObjects()
         let vc = UIHostingController(rootView: injected)
         appendUIKit(value: vc)
+    }
+    
+    public func wrapAndPresentFullScreen<T: View>(view: T) {
+        let injected = view.injectAllObjects()
+        let vc = UIHostingController(rootView: injected)
+        vc.modalPresentationStyle = .fullScreen
+        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled ?? false ? .dark : .light
+        splitVC?.present(vc, animated: true)
+        pathsTracking.append(vc)
     }
     
     public func appendUIKit<T: UIViewController>(value: T) {
@@ -54,7 +63,7 @@ public final class NavigationModel: ObservableObject {
                 pathsTracking.append(value)
                 
                 if let nav = secondaryVC {
-                    nav.navigationController?.setNavigationBarHidden(true, animated: false)
+                    nav.navigationController?.navigationBar.isHidden = true
                 }
             }
         }
@@ -159,18 +168,18 @@ public extension NavigationModel {
     }
     
     func createAndAppend(conversation: Conversation) {
-        if let vc = AppState.shared.objectsContainer.threadsVM.delegate?.createThreadViewController(conversation: conversation) {
+        if let vc = objc.threadsVM.delegate?.createThreadViewController(conversation: conversation) {
             appendUIKit(vc: vc, conversation: conversation)
         }
     }
     
     func popCurrentViewController(id: Int) {
-        if AppState.shared.objectsContainer.threadsVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
-            AppState.shared.objectsContainer.threadsVM.deselectActiveThread()
+        if objc.threadsVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
+            objc.threadsVM.deselectActiveThread()
         }
         
-        if AppState.shared.objectsContainer.archivesVM.archives.contains(where: { $0.id == id && $0.isSelected == true }) {
-            AppState.shared.objectsContainer.archivesVM.deselectActiveThread()
+        if objc.archivesVM.threads.contains(where: { $0.id == id && $0.isSelected == true }) {
+            objc.archivesVM.deselectActiveThread()
         }
         // iPhone (collapsed)
         // on iPhone PrimaryTabBarViewController is the root view controller of the navigation stack,
@@ -283,7 +292,11 @@ public extension NavigationModel {
         presntedNavigationLinkId = id
     }
     
-    func popLinkId() {
+    func popLinkId(id: Any) {
+        /// There is a change preveLinkId has been chnaged to id parameter before calling this method,
+        /// if so we have to prevent chnaging presentedNavigationLinkId to previous link.
+        if id as? String == prevLinkId as? String { return }
+        
         /// Restore previous linkId.
         presntedNavigationLinkId = prevLinkId
         
@@ -367,7 +380,7 @@ public extension NavigationModel {
     }
     
     private func checkForP2POffline(coreUserId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.archives
+        let threads = objc.navVM.allThreads
         
         return threads.first(where: {
             ($0.partner == coreUserId || ($0.participants?.contains(where: { $0.coreUserId == coreUserId }) ?? false)) &&
@@ -377,7 +390,7 @@ public extension NavigationModel {
     }
     
     private func checkForOffline(threadId: Int) -> Conversation? {
-        let threads = AppState.shared.objectsContainer.threadsVM.threads + AppState.shared.objectsContainer.archivesVM.archives
+        let threads = objc.navVM.allThreads
         return threads.first(where: { $0.id == threadId })?.toStruct()
     }
     
@@ -478,8 +491,14 @@ extension NavigationModel {
         
         if !hasAnyInstanceInStack {
             cleanOnPop(threadId: id)
-            AppState.shared.objectsContainer.threadsVM.setSelected(for: id, selected: false)
-            AppState.shared.objectsContainer.archivesVM.setSelected(for: id, selected: false)
+            objc.threadsVM.setSelected(for: id, selected: false)
+            objc.archivesVM.setSelected(for: id, selected: false)
         }
+    }
+}
+
+public extension NavigationModel {
+    var allThreads: ContiguousArray<CalculatedConversation> {
+        return objc.threadsVM.threads ?? [] + objc.archivesVM.threads
     }
 }

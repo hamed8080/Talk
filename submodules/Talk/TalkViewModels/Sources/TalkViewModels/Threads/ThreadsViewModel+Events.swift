@@ -10,7 +10,7 @@ import Chat
 
 extension ThreadsViewModel {
 
-    func setupObservers() {
+    public func setupObservers() {
         lazyList.objectWillChange.sink { [weak self] _ in
             self?.animateObjectWillChange()
         }
@@ -140,6 +140,10 @@ extension ThreadsViewModel {
             onLeftThread(response)
         case .closed(let response):
             onClosed(response)
+        case .archive(let response):
+            await onArchive(response)
+        case .unArchive(let response):
+            await onUNArchive(response)
         default:
             break
         }
@@ -202,9 +206,9 @@ extension ThreadsViewModel {
                 animateObjectWillChange()
 
                 // Update Active view model
-                let activeVM = AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.viewModel
+                let activeVM = navVM.presentedThreadViewModel?.viewModel
                 if let activeVM = activeVM, activeVM.id == response.subjectId {
-                    activeVM.thread.reactionStatus = response.result?.reactionStatus
+                    activeVM.setReactionStatus(response.result?.reactionStatus)
                     if activeVM.thread.reactionStatus == .enable {
                         activeVM.reactionViewModel.allowedReactions = Sticker.allCases.filter({ $0 != .unknown})
                     } else {

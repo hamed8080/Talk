@@ -48,6 +48,9 @@ public final class ThreadHistoryViewModel {
     
     private var lastScrollTime: Date = .distantPast
     private let debounceInterval: TimeInterval = 0.5 // 500 milliseconds
+    
+    // MARK: Computed properties
+    private var objc: ObjectsContainer { AppState.shared.objectsContainer }
 
     // MARK: Initializer
     public init() {}
@@ -65,10 +68,6 @@ public final class ThreadHistoryViewModel {
     
     private var thread: Conversation {
         viewModel?.thread ?? Conversation()
-    }
-    
-    public func viewModelLastMessageVO() -> LastMessageVO? {
-        viewModel?.thread.lastMessageVO
     }
     
     public func updateThreadId(id: Int) {
@@ -103,7 +102,7 @@ extension ThreadHistoryViewModel {
         /// We check this to prevent recalling these methods when the view reappears again.
         /// If centerLoading is true it is mean theat the array has gotten clear for Scenario 6 to move to a time.
         let isSimulatedThread = viewModel?.isSimulatedThared == true
-        let hasAnythingToLoadOnOpen = AppState.shared.objectsContainer.navVM.navigationProperties.moveToMessageId != nil
+        let hasAnythingToLoadOnOpen = objc.navVM.navigationProperties.moveToMessageId != nil
         moveToMessageTimeOnOpenConversation()
         showEmptyThread(show: false)
         if isSimulatedThread {
@@ -119,7 +118,7 @@ extension ThreadHistoryViewModel {
             self?.hasSentHistoryRequest = true
         }
         
-        let threadsVM = AppState.shared.objectsContainer.threadsVM
+        let threadsVM = objc.threadsVM
         if let savedScrollModel = threadsVM.saveScrollPositionVM.savedPosition(threadId) {
             
             cancelTasks()
@@ -514,7 +513,7 @@ extension ThreadHistoryViewModel {
 
     // MARK: Scenario 10
     private func moveToMessageTimeOnOpenConversation() {
-        let model = AppState.shared.objectsContainer.navVM.navigationProperties
+        let model = objc.navVM.navigationProperties
         if let id = model.moveToMessageId, let time = model.moveToMessageTime {
             
             cancelTasks()
@@ -522,7 +521,7 @@ extension ThreadHistoryViewModel {
             task = Task { [weak self] in
                 await self?.moveToTime(time, id, highlight: true)
             }
-            AppState.shared.objectsContainer.navVM.resetNavigationProperties()
+            objc.navVM.resetNavigationProperties()
         }
     }
 
@@ -793,7 +792,7 @@ extension ThreadHistoryViewModel {
         guard
             let uniqueId = uniqueId,
             let indexPath = sections.viewModelAndIndexPath(uploadElementUniqueId: uniqueId)?.indexPath,
-            AppState.shared.objectsContainer.uploadsManager.element(uniqueId: uniqueId)?.viewModel.userCanceled == true
+            objc.uploadsManager.element(uniqueId: uniqueId)?.viewModel.userCanceled == true
         else { return }
         removeByUniqueId(uniqueId)
         delegate?.delete(sections: [], rows: [indexPath])
@@ -829,7 +828,7 @@ extension ThreadHistoryViewModel {
                 let bottomVMBeforeJoin = sections.last?.vms.last
                 
                 /// Update thread properites
-                self.viewModel?.thread = updatedConversation
+                self.viewModel?.setThread(updatedConversation) 
                 
                 /// Disable scrolling if it was uplaod message.
                 var isUplaod = false
@@ -905,7 +904,7 @@ extension ThreadHistoryViewModel {
      Therefore, the id is greater than the id of the previous conversation.lastMessageVO.id
      */
     private func isLastMessageInsideTheSections(_ oldConversation: Conversation?) -> Bool {
-        let hasAnyUploadMessage = AppState.shared.objectsContainer.uploadsManager.hasAnyUpload(threadId: threadId) ?? false
+        let hasAnyUploadMessage = objc.uploadsManager.hasAnyUpload(threadId: threadId) ?? false
         let isLastMessageExistInLastSection = sections.last?.vms.last?.message.id ?? 0 >= oldConversation?.lastMessageVO?.id ?? 0
         return isLastMessageExistInLastSection || hasAnyUploadMessage
     }
@@ -1229,8 +1228,8 @@ extension ThreadHistoryViewModel {
            !isLastMessageVisible(),
            isSectionAndRowExist(indexPath)
         {
-            let isSame = sections[indexPath.section].vms[indexPath.row].message.id == viewModelLastMessageVO()?.id
-            let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > viewModelLastMessageVO()?.id ?? 0
+            let isSame = sections[indexPath.section].vms[indexPath.row].message.id == lastMessageVO()?.id
+            let isGreater = viewModel?.thread.lastSeenMessageId ?? 0 > lastMessageVO()?.id ?? 0
             changeLastMessageIfNeeded(isVisible: isSame || isGreater)
         }
         
@@ -1345,7 +1344,7 @@ extension ThreadHistoryViewModel {
         /// because if we delete or add a message lastMessageVO.id
         /// is not equal with last we have to check it with two last item two find it.
         for indexPath in indexPaths.suffix(2) {
-            var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == viewModelLastMessageVO()?.id ?? 0
+            var isVisible = sections[indexPath.section].vms[indexPath.row].message.id == lastMessageVO()?.id ?? 0
             
             /// We reduce 16 from contentInset bottom to sort of accept it as fully visible
             if isVisible, delegate?.isCellFullyVisible(at: indexPath, bottomPadding: -24) == true {
@@ -1588,21 +1587,12 @@ extension ThreadHistoryViewModel {
         }
     }
     
-    private func fixLastMessageIfNeeded() -> Int? {
+    private func fixLastMessageIfNeeded() {
         if thread.unreadCount == 0 {
-            viewModel?.thread.lastMessageVO = (sections.last?.vms.last?.message as? Message)?.toLastMessageVO
-            viewModel?.thread.lastSeenMessageId = sections.last?.vms.last?.message.id
+            viewModel?.setLastMessageVO((sections.last?.vms.last?.message as? Message)?.toLastMessageVO)
+            viewModel?.setLastSeenMessageId(sections.last?.vms.last?.message.id)
             viewModel?.scrollVM.isAtBottomOfTheList = true
-            
-            let threadsVM = AppState.shared.objectsContainer.threadsVM
-            if let index = threadsVM.threads.firstIndex(where: {$0.id as? Int == threadId}) {
-                threadsVM.threads[index].lastMessageVO = viewModelLastMessageVO()
-                threadsVM.threads[index].lastSeenMessageId = viewModel?.thread.lastSeenMessageId
-            }
-            
-            return lastMessageVO()?.id ?? -1
         }
-        return nil
     }
     
     private func firstMessageInDayOrNextDay(time: UInt, messageId: Int, appendedVMS: [MessageRowViewModel]) -> HistoryMessageType? {
@@ -1858,13 +1848,12 @@ extension ThreadHistoryViewModel {
         /// though the creator or other participants send lots of messages,
         /// in this case we don't know the top of the thread to move to it,
         /// so we will move to bottom of the thread.
-        let thread = viewModel?.thread
-        if thread?.lastSeenMessageId == 0, thread?.lastMessageVO?.id ?? 0 > 0 { return true }
+        if thread.lastSeenMessageId == 0, lastMessageVO()?.id ?? 0 > 0 { return true }
         return false
     }
     
     private func isLastMessageExistInSortedMessages(_ sortedMessages: [HistoryMessageType]) -> Bool {
-        let lastMessageId = viewModelLastMessageVO()?.id
+        let lastMessageId = lastMessageVO()?.id
         return sortedMessages.contains(where: {$0.id == lastMessageId})
     }
 
@@ -1881,7 +1870,7 @@ extension ThreadHistoryViewModel {
     }
     
     public func isSimulated() -> Bool {
-        let createThread = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil
+        let createThread = objc.navVM.navigationProperties.userToCreateThread != nil
         return createThread && thread.id == LocalId.emptyThread.rawValue
     }
     
@@ -1905,7 +1894,7 @@ extension ThreadHistoryViewModel {
     }
     
     public var lastMessageIndexPath: IndexPath? {
-        sections.viewModelAndIndexPath(for: viewModelLastMessageVO()?.id ?? -1)?.indexPath
+        sections.viewModelAndIndexPath(for: lastMessageVO()?.id ?? -1)?.indexPath
     }
     
     private func fetchReactionsAndAvatars(_ vms: [MessageRowViewModel]) {
@@ -1987,9 +1976,9 @@ extension ThreadHistoryViewModel {
         isReattachedUploads = true
         Task { [weak self] in
             guard let self = self else { return }
-            let elements = AppState.shared.objectsContainer.uploadsManager.elements.filter { $0.threadId  == threadId }
+            let elements = objc.uploadsManager.elements.filter { $0.threadId  == threadId }
             if elements.isEmpty { return }
-            await AppState.shared.objectsContainer.uploadsManager.stateMediator.append(elements: elements)
+            await objc.uploadsManager.stateMediator.append(elements: elements)
         }
     }
 }
@@ -2023,7 +2012,7 @@ extension ThreadHistoryViewModel {
     /// Clear save position if last message is visible.
     private func clearSavedScrollPosition() {
         if let threadId = viewModel?.thread.id {
-            AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM.remove(threadId)
+            objc.threadsVM.saveScrollPositionVM.remove(threadId)
         }
     }
     
@@ -2031,7 +2020,7 @@ extension ThreadHistoryViewModel {
         /// Prevent saving scroll position if we got disconnected
         if hasBeenDisconnectedEver { return }
         
-        let vm = AppState.shared.objectsContainer.threadsVM.saveScrollPositionVM
+        let vm = objc.threadsVM.saveScrollPositionVM
         guard let threadId = viewModel?.id, let tb = delegate?.tb else { return }
         vm.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)
     }

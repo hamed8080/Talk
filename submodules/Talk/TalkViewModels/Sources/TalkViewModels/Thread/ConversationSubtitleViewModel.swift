@@ -146,7 +146,7 @@ public final class ConversationSubtitleViewModel {
             guard let self = self else { return }
             do {
                 if let conversation = try await GetThreadsReuqester().get(req, withCache: false).first {
-                    viewModel?.thread.participantCount = conversation.participantCount
+                    viewModel?.setParticipantsCount(conversation.participantCount ?? 0)
                     updateTo(getParticipantsCountOrLastSeen())
                 }
             } catch {

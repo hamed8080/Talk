@@ -55,7 +55,7 @@ struct MessageParticipantsSeen: View {
             /// We have to pop lastPath tracking because it has been pushed the path tracking once we were about to show this view
             /// So at the top for sure is this path, and disappear can be called either with swipe or back button.
             AppState.shared.objectsContainer.navVM.popLastPathTracking()
-            AppState.shared.objectsContainer.navVM.popLinkId()
+            AppState.shared.objectsContainer.navVM.popLinkId(id: "MessageParticipantsSeen-\(viewModel.message.id ?? 0)")
         }
     }
 }
