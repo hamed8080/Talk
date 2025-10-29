@@ -215,7 +215,6 @@ extension ThreadsTableViewController: UITableViewDelegate {
             
         // Check if container is iPhone navigation controller or iPad split view container or on iPadOS we are in a narrow window
         if splitViewController?.isCollapsed == true {
-            vc.navigationController?.setNavigationBarHidden(true, animated: false)
             // iPhone — push onto the existing navigation stack
             viewModel.onTapped(viewController: vc, conversation: conversation.toStruct())
         } else if conversation.isArchive == true {
@@ -223,7 +222,7 @@ extension ThreadsTableViewController: UITableViewDelegate {
         } else {
             // iPad — show in secondary column
             let nav = FastNavigationController(rootViewController: vc)
-            nav.setNavigationBarHidden(true, animated: false)
+            nav.navigationBar.isHidden = true
             viewModel.onTapped(viewController: nav, conversation: conversation.toStruct())
         }
     }

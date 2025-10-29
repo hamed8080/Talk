@@ -24,7 +24,7 @@ struct DetailEditContactButton: View {
                         AppState.shared.objectsContainer.navVM.pushToLinkId(id: "EditContact-\(viewModel.partnerContact?.id ?? 0)")
                     }
                     .onDisappear {
-                        AppState.shared.objectsContainer.navVM.popLinkId()
+                        AppState.shared.objectsContainer.navVM.popLinkId(id: "EditContact-\(viewModel.partnerContact?.id ?? 0)")
                     }
             } label: {
                 Image("ic_edit")

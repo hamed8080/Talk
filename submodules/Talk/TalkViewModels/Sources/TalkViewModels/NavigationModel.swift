@@ -63,7 +63,7 @@ public final class NavigationModel: ObservableObject {
                 pathsTracking.append(value)
                 
                 if let nav = secondaryVC {
-                    nav.navigationController?.setNavigationBarHidden(true, animated: false)
+                    nav.navigationController?.navigationBar.isHidden = true
                 }
             }
         }
@@ -292,7 +292,11 @@ public extension NavigationModel {
         presntedNavigationLinkId = id
     }
     
-    func popLinkId() {
+    func popLinkId(id: Any) {
+        /// There is a change preveLinkId has been chnaged to id parameter before calling this method,
+        /// if so we have to prevent chnaging presentedNavigationLinkId to previous link.
+        if id as? String == prevLinkId as? String { return }
+        
         /// Restore previous linkId.
         presntedNavigationLinkId = prevLinkId
         

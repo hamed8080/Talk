@@ -41,7 +41,11 @@ public class SplitViewController: UISplitViewController {
         
         // Wrap tab bar in a navigation controller (but hide nav bar)
         let primaryNav = FastNavigationController(rootViewController: PrimaryTabBarViewController())
-
+        
+        /// NOTE: Never use navigationController?.setNavigationBarHidden(true, animated: false)
+        /// it will lead to not release memory and memory leak.
+        primaryNav.navigationBar.isHidden = true
+        
         // Set both controllers
         setViewController(primaryNav, for: .primary)
 //        setViewController(detailNav, for: .secondary)
