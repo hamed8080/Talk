@@ -40,7 +40,6 @@ struct MessageParticipantsSeen: View {
             }
         }
         .background(Color.App.bgPrimary)
-        .padding(.horizontal, viewModel.isEmpty ? 0 : 6)
         .overlay(alignment: .bottom) {
             ListLoadingView(isLoading: $viewModel.isLoading)
                 .id(UUID())
