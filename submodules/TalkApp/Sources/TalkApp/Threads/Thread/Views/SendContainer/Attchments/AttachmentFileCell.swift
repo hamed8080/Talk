@@ -163,16 +163,8 @@ public final class AttachmentFileCell: UITableViewCell {
     }
     
     @objc private func editImageTapped(_ sender: UIButton) {
-        guard let data = (attachment.request as? ImageItem)?.data else { return }
-        let fileExt = (attachment.request as? ImageItem)?.fileExt ?? "png"
-        let fileName = UUID().uuidString + ".\(fileExt)"
-        let tmpDir = FileManager.default.temporaryDirectory
-        let url = tmpDir.appending(path: fileName, directoryHint: .notDirectory)
-        do {
-            try data.write(to: url)
+        if let url = attachment.createATempImageURL() {
             openEditor(url)
-        } catch {
-            // handle error
         }
     }
     

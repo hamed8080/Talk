@@ -103,4 +103,20 @@ public struct AttachmentFile: Identifiable, Hashable {
             return "doc.fill"
         }
     }
+    
+    public func createATempImageURL() -> URL? {
+        guard let imageItem = request as? ImageItem else { return nil }
+        let data = imageItem.data
+        let fileExt = imageItem.fileExt ?? "png"
+        let fileName = UUID().uuidString + ".\(fileExt)"
+        let tmpDir = FileManager.default.temporaryDirectory
+        let url = tmpDir.appending(path: fileName, directoryHint: .notDirectory)
+        do {
+            try data.write(to: url)
+            return url
+        } catch {
+            print("Failed to create a temp url")
+            return nil
+        }
+    }
 }
