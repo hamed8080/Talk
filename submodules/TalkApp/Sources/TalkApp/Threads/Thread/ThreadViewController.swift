@@ -467,6 +467,7 @@ extension ThreadViewController {
         
         let hostVC = UIHostingController(rootView: view)
         hostVC.modalPresentationStyle = .formSheet
+        isViewControllerVisible = false
         present(hostVC, animated: true)
     }
 

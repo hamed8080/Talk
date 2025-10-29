@@ -181,6 +181,9 @@ private extension MessageContainerStackView {
         
         let messages = [model.message as? Message].compactMap { $0 }
         model.threadVM?.delegate?.openForwardPicker(messages: messages)
+        
+        /// Hide selection bar that automatically showed up after selection
+        model.threadVM?.delegate?.showSelectionBar(false)
     }
 
     func onEditAction(_ model: ActionModel) {

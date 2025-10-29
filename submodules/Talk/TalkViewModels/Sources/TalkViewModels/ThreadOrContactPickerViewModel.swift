@@ -80,9 +80,20 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 try? await Task.sleep(for: .seconds(0.3))
             }
             
-            getContacts()
-            let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
-            getThreads(req)
+            /// Prevent request if search text on appear if is not empty, so it might have some contacts.
+            if searchText.isEmpty {
+                getContacts()
+            } else {
+                animateObjectWillChange()
+            }
+            
+            /// Prevent request if search text on appear is not empty, so it might have some conversations.
+            if searchText.isEmpty {
+                let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
+                getThreads(req)
+            } else {
+                updateUI(animation: false, reloadSections: false)
+            }
         }
     }
 
@@ -170,7 +181,10 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             )
             await hideConversationsLoadingWithDelay()
             conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
-            let filtered = calThreads.filter({$0.closed == false }).filter({$0.type != .selfThread})
+            let filtered = calThreads
+                .filter({$0.closed == false })
+                .filter({$0.type != .selfThread})
+                .filter({ filtered in !self.conversations.contains(where: { filtered.id == $0.id }) })
             self.conversations.append(contentsOf: filtered)
             if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
                 let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
@@ -279,6 +293,12 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             }
             viewModel.fetch()
         }
+    }
+    
+    deinit {
+#if DEBUG
+        print("deinit called for ThreadOrContactPickerViewModel")
+#endif
     }
 }
 

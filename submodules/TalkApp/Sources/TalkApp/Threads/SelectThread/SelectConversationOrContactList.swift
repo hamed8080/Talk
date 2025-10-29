@@ -77,11 +77,9 @@ struct SearchInSelectConversationOrContact: View {
 struct SelectConversationTab: View {
     @EnvironmentObject var viewModel: ThreadOrContactPickerViewModel
     var onSelect: (Conversation?, Contact?) -> Void
-    @Environment(\.dismiss) var dismiss
-    private var conversations: [CalculatedConversation] { viewModel.conversations.sorted(by: {$0.type == .selfThread && $1.type != .selfThread }) }
 
     var body: some View {
-        ForwardConversationTableViewControllerWrapper(viewModel: .init(), onSelect: onSelect)
+        ForwardConversationTableViewControllerWrapper(viewModel: viewModel, onSelect: onSelect)
     }
 }
 
