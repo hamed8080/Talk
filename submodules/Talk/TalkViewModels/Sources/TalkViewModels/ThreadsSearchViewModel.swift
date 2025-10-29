@@ -296,7 +296,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onCancelTimer(key: String) {
         if lazyList.isLoading {
             lazyList.setLoading(false)
-            animateObjectWillChange()
+            updateUI(animation: false, reloadSections: false)
         }
     }
     
@@ -312,7 +312,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             
             calculatedConversation.subtitleAttributedString = ThreadCalculators.caculateSubtitle(conversation: conversation, myId: myId, isFileType: message?.isFileType == true)
             calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
-            calculatedConversation.animateObjectWillChange()
+            updateUI(animation: false, reloadSections: false)
         }
     }
     
@@ -371,7 +371,7 @@ private extension ThreadsSearchViewModel {
             conversation.imageLoader = viewModel
             viewModel.onImage = { [weak self] image in
                 Task { @MainActor [weak self] in
-                    conversation.animateObjectWillChange()
+                    self?.delegate?.reloadCellWith(conversation: conversation)
                 }
             }
             viewModel.fetch()
