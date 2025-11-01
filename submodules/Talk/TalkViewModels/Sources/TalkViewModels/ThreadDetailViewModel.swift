@@ -260,6 +260,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
 
     private func setupParticipantDetailViewModel(participant: Participant?) {
+        if threadVM?.thread.group == true { return }
         let partner = threadVM?.participantsViewModel.participants.first(where: {$0.auditor == false && $0.id != AppState.shared.user?.id})
         let threadP2PParticipant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread
         let participant = participant ?? threadP2PParticipant ?? partner
