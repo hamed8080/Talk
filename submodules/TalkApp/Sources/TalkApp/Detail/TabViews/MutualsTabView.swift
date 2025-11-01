@@ -77,6 +77,7 @@ struct MutualThreadRow: View {
                 .clipShape(RoundedRectangle(cornerRadius:(18)))
             Text(thread.computedTitle)
                 .font(.fSubheadline)
+                .lineLimit(1)
             Spacer()
         }
         .contentShape(Rectangle())
