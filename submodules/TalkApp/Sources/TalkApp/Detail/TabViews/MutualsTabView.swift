@@ -28,7 +28,9 @@ struct MutualsTabView: View {
                             }
                         }
                         .onTapGesture {
-                            AppState.shared.objectsContainer.navVM.createAndAppend(conversation: thread)
+                            Task {
+                                try await goToConversation(thread)
+                            }
                         }
                 }
             }
@@ -43,6 +45,17 @@ struct MutualsTabView: View {
                 EmptyResultViewInTabs()
             }
         }
+    }
+    
+    /// We have to refetch the conversation because it is not a complete instance of Conversation in mutual response.
+    /// So things like admin, public link, and ... don't have any values.
+    private func goToConversation(_ conversation: Conversation) async throws {
+      
+        guard
+            let id = conversation.id,
+            let serverConversation = try await GetThreadsReuqester().get(.init(threadIds: [id])).first
+        else { return }
+        AppState.shared.objectsContainer.navVM.createAndAppend(conversation: serverConversation)
     }
 }
 
