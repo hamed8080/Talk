@@ -16,6 +16,7 @@ struct ArchivesView: View {
     var body: some View {
         ArchivesTableViewControllerWrapper(viewModel: viewModel)
             .background(Color.App.bgPrimary)
+            .ignoresSafeArea()
             .normalToolbarView(title: "Tab.archives", type: String.self)
             .onAppear {
                 Task {

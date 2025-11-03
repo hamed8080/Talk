@@ -89,7 +89,13 @@ class ThreadsTableViewController: UIViewController {
         /// Update content inset once player is appeared or disappeared
         UIView.animate(withDuration: 0.15) { [weak self] in
             guard let self = self else { return }
-            tableView.contentInset.top = threadsToolbar.frame.height
+            if viewModel.isArchive == true {
+                /// 8 for top and 8 for bottom padding in arhchive normalToolbar
+                tableView.contentInset.top = ToolbarButtonItem.buttonWidth + 16
+                tableView.contentInset.bottom = 0
+            } else {
+                tableView.contentInset.top = threadsToolbar.frame.height
+            }
             tableView.scrollIndicatorInsets = tableView.contentInset
         }
     }
