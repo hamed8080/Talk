@@ -291,6 +291,7 @@ public final class ThreadsViewModel: ObservableObject {
         calThreads.animateObjectWillChange()
         updateUI(animation: true, reloadSections: false)
         animateObjectWillChange()
+        addImageLoader(conversation)
     }
 
     private func onThreads(_ conversations: [CalculatedConversation]) async {
@@ -986,10 +987,13 @@ extension ThreadsViewModel {
         if thread.isArchive == false || thread.isArchive == nil {
             archive(threadId)
             let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
-            AppState.shared.objectsContainer.appOverlayVM.toast(leadingView: imageView,
-                                                                message: "ArchivedTab.guide".bundleLocalized(),
-                                                                messageColor: UIColor(named: "text_primary") ?? UIColor.white,
-                                                                duration: .slow)
+            let overlayVM = AppState.shared.objectsContainer.appOverlayVM
+            overlayVM.dismissToastImmediately() /// Dismiss if there is any other toast in progress
+            
+            overlayVM.toast(leadingView: imageView,
+                            message: "ArchivedTab.guide".bundleLocalized(),
+                            messageColor: UIColor(named: "text_primary") ?? UIColor.white,
+                            duration: .slow)
         } else {
             unarchive(threadId)
         }
@@ -1008,26 +1012,26 @@ extension ThreadsViewModel {
     }
     
     func onUNArchive(_ response: ChatResponse<Int>) async {
-        if response.result != nil, response.error == nil, let index = threads.firstIndex(where: {$0.id == response.result}) {
-            var conversation = threads[index]
-            conversation.isArchive = false
-            conversation.mute = false
-            
-            // Only allow remove from index of ObjectsContainer.archivsVM to manipulate this threads array.
-            if isArchive == true {
-                threads.remove(at: index)
-            }
-            
+        guard let id = response.result else { return }
+        let isArchiveVC = isArchive == true
+        
+        if isArchiveVC, let index = threads.firstIndex(where: { $0.id == id }) {
+            threads.remove(at: index)
             updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
-           
-            await AppState.shared.objectsContainer.threadsVM.append(conversation)
+        } else if let conversation = try? await GetThreadsReuqester().getCalculated(req: .init(threadIds: [id]),
+                                                                        withCache: false,
+                                                                        myId: myId,
+                                                                        navSelectedId: navVM.selectedId).first {
+            await append(conversation)
         }
     }
     
     func onArchive(_ response: ChatResponse<Int>) async {
         let threadsVM = AppState.shared.objectsContainer.threadsVM
-        if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
+        guard let id = response.result else { return }
+        
+        if let index = threadsVM.threads.firstIndex(where: { $0.id == id }) {
             var conversation = threadsVM.threads[index]
             conversation.isArchive = true
             conversation.mute = true
@@ -1047,10 +1051,7 @@ extension ThreadsViewModel {
             updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
         } else if
-            let conversationId = response.result,
-            let conversation = try? await GetThreadsReuqester().get(.init(threadIds: [conversationId])).first {
-            /// New conversation has been archived by another device so we have to fetch the conversation
-            let myId = AppState.shared.user?.id ?? -1
+            let conversation = try? await GetThreadsReuqester().get(.init(threadIds: [id])).first {
             let calThreads = await ThreadCalculators.calculate(conversation, myId)
             threads.append(calThreads)
             updateUI(animation: false, reloadSections: false)
