@@ -16,14 +16,19 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     private let btnReset = CircularSymbolButton(ImageEditorView.resetIconName)
     private let btnDoneCropping = CircularSymbolButton("checkmark", imageIconSize: 36)
     private let buttonsHStack = UIStackView()
+    private let btnDraw = CircularSymbolButton("pencil.and.outline", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnAddText = CircularSymbolButton("t.square", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnFlip = CircularSymbolButton(ImageEditorView.flipIconName, width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnRotate = CircularSymbolButton("rotate.left", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnCrop = CircularSymbolButton("crop", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnDone = UIButton(type: .system)
+    private var drawingView: DrawingView?
+    private var btnDoneDrawing = UIButton(type: .system)
+    private var colorSlider = UIColorSlider()
     
     private let cropOverlay = CropOverlayView()
     private var isCropping = false
+    private var isDrawing = false
     
     private var isEdittingText = false {
         didSet{
@@ -75,15 +80,15 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         scrollView.addSubview(imageView)
         
         /// Setup btnClose
-        btnClose.onTap = {[weak self] in self?.onClose?() }
+        btnClose.onTap = { [weak self] in self?.onCloseTapped() }
         addSubview(btnClose)
         
         /// Setup btnReset
-        btnReset.onTap = {[weak self] in self?.resetTapped() }
+        btnReset.onTap = { [weak self] in self?.resetTapped() }
         addSubview(btnReset)
         
         /// Setup Done btnDoneCropping
-        btnDoneCropping.onTap = {[weak self] in self?.croppingDoneTapped() }
+        btnDoneCropping.onTap = { [weak self] in self?.croppingDoneTapped() }
         if let url = Bundle.module.url(forResource: "doneCropping", withExtension: "png"),
            let data = try? Data(contentsOf: url),
            let image = UIImage(data: data) {
@@ -94,22 +99,36 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         showBtnCroppingDone(show: false)
         
         /// Setup btnAddText
-        btnAddText.onTap = {[weak self] in self?.addTextTapped() }
+        btnAddText.onTap = { [weak self] in self?.addTextTapped() }
         
         /// Setup btnFlip
-        btnFlip.onTap = {[weak self] in self?.flipTapped() }
+        btnFlip.onTap = { [weak self] in self?.flipTapped() }
         
         /// Setup btnRotate
-        btnRotate.onTap = {[weak self] in self?.rotateTapped() }
+        btnRotate.onTap = { [weak self] in self?.rotateTapped() }
         
         /// Setup btnCrop
-        btnCrop.onTap = {[weak self] in self?.cropTapped() }
+        btnCrop.onTap = { [weak self] in self?.cropTapped() }
+        
+        /// Setup btnDraw
+        btnDraw.onTap = { [weak self] in self?.drawTapped() }
         
         /// Setup btnDone
         btnDone.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
         btnDone.setTitle(doneTitle, for: .normal)
         btnDone.setTitleColor(.white, for: .normal)
         btnDone.titleLabel?.font = font
+        
+        btnDoneDrawing.translatesAutoresizingMaskIntoConstraints = false
+        btnDoneDrawing.setTitleColor(.white, for: .normal)
+        btnDoneDrawing.backgroundColor = .orange
+        btnDoneDrawing.layer.cornerRadius = 19
+        btnDoneDrawing.layer.masksToBounds = true
+        btnDoneDrawing.addTarget(self, action: #selector(onDoneDrawing), for: .touchUpInside)
+        btnDoneDrawing.setTitle(doneTitle, for: .normal)
+        btnDoneDrawing.titleLabel?.font = font
+        btnDoneDrawing.isHidden = true
+        addSubview(btnDoneDrawing)
         
         let dividerContainer = UIView()
         dividerContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -139,6 +158,7 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         
         buttonsHStack.addArrangedSubview(btnDone)
         buttonsHStack.addArrangedSubview(dividerContainer)
+        buttonsHStack.addArrangedSubview(btnDraw)
         buttonsHStack.addArrangedSubview(btnAddText)
         buttonsHStack.addArrangedSubview(btnFlip)
         buttonsHStack.addArrangedSubview(btnRotate)
@@ -180,11 +200,30 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
             blurView.bottomAnchor.constraint(equalTo: buttonsHStack.bottomAnchor),
             blurView.leadingAnchor.constraint(equalTo: buttonsHStack.leadingAnchor),
             blurView.trailingAnchor.constraint(equalTo: buttonsHStack.trailingAnchor),
+            
+            btnDoneDrawing.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            btnDoneDrawing.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 8),
+            btnDoneDrawing.widthAnchor.constraint(greaterThanOrEqualToConstant: 64),
+            btnDoneDrawing.heightAnchor.constraint(equalToConstant: 38)
         ])
     }
     
     public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return imageView
+    }
+}
+
+extension ImageEditorView {
+    private func onCloseTapped() {
+        if isDrawing {
+            isDrawing = false
+            showColorSlider(show: false)
+            btnDoneDrawing.isHidden = true
+            removeDrawingView()
+            showActionButtons(show: true)
+        } else {
+            onClose?()
+        }
     }
 }
 
@@ -248,6 +287,56 @@ extension ImageEditorView {
             UIView.transition(with: imageView, duration: 0.2, options: .transitionFlipFromLeft) {
                 self.imageView.image = flippedImage
             }
+        }
+    }
+}
+
+extension ImageEditorView {
+    @objc func drawTapped() {
+        isDrawing = true
+        showColorSlider(show: true)
+        btnDoneDrawing.isHidden = false
+        showActionButtons(show: false)
+        let drawingView = DrawingView(frame: imageView.bounds)
+        drawingView.isUserInteractionEnabled = true
+        drawingView.backgroundColor = .clear
+        imageView.addSubview(drawingView)
+        self.drawingView = drawingView
+    }
+    
+    @objc private func onDoneDrawing() {
+        guard let drawingView = drawingView else { return }
+        isDrawing = false
+        showColorSlider(show: false)
+        btnDoneDrawing.isHidden = true
+        
+        showActionButtons(show: true)
+        removeDrawingView()
+        
+        /// Firstly, we remove it from the image view and make it nil, to remove reference of it, then we add it as a subview.
+        imageView.addSubview(drawingView)
+    }
+    
+    private func removeDrawingView() {
+        drawingView?.removeFromSuperview()
+        drawingView = nil
+    }
+    
+    private func showColorSlider(show: Bool) {
+        if show {
+            colorSlider.translatesAutoresizingMaskIntoConstraints = false
+            colorSlider.onColorChanged = { [weak self] color in
+                self?.drawingView?.setDrawingColor(color: color)
+            }
+            addSubview(colorSlider)
+            NSLayoutConstraint.activate([
+                colorSlider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
+                colorSlider.heightAnchor.constraint(equalToConstant: 128),
+                colorSlider.widthAnchor.constraint(equalToConstant: 16),
+                colorSlider.topAnchor.constraint(equalTo: btnClose.bottomAnchor, constant: 16),
+            ])
+        } else {
+            colorSlider.removeFromSuperview()
         }
     }
 }
@@ -361,6 +450,12 @@ extension ImageEditorView {
         if isCropping {
             showActionButtons(show: true)
             isCropping = false
+        }
+        
+        if isDrawing {
+            removeDrawingView()
+            /// Create a new instance and add it again to the imageView as a subview.
+            drawTapped()
         }
     }
 }
