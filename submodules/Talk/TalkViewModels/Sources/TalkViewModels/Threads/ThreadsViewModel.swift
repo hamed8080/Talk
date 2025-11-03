@@ -1008,14 +1008,16 @@ extension ThreadsViewModel {
     }
     
     func onUNArchive(_ response: ChatResponse<Int>) async {
-        /// Allow only ObjectsContainer.archivesVM to manipulate and prevent ObjectsContainer.threadsVM to make changes.
-        if isArchive == nil { return }
-        
         if response.result != nil, response.error == nil, let index = threads.firstIndex(where: {$0.id == response.result}) {
             var conversation = threads[index]
             conversation.isArchive = false
             conversation.mute = false
-            threads.remove(at: index)
+            
+            // Only allow remove from index of ObjectsContainer.archivsVM to manipulate this threads array.
+            if isArchive == true {
+                threads.remove(at: index)
+            }
+            
             updateUI(animation: true, reloadSections: false)
             animateObjectWillChange()
            
@@ -1024,9 +1026,6 @@ extension ThreadsViewModel {
     }
     
     func onArchive(_ response: ChatResponse<Int>) async {
-        /// Allow only ObjectsContainer.archivesVM to manipulate and prevent ObjectsContainer.threadsVM to make changes.
-        if isArchive == nil { return }
-        
         let threadsVM = AppState.shared.objectsContainer.threadsVM
         if response.result != nil, response.error == nil, let index = threadsVM.threads.firstIndex(where: {$0.id == response.result}) {
             var conversation = threadsVM.threads[index]
@@ -1034,10 +1033,12 @@ extension ThreadsViewModel {
             conversation.mute = true
             let myId = AppState.shared.user?.id ?? -1
             let calThreads = await ThreadCalculators.reCalculate(conversation, myId, navVM.selectedId)
-            threads.append(calThreads)
             
-            /// Sort archives after appending.
-            self.threads = await sort(threads: threads, serverSortedPins: serverSortedPins)
+            /// Only allow insert into ObjectsContainer.archivsVM to append to this threads array
+            if isArchive == true {
+                threads.append(calThreads)/// Sort archives after appending.
+                self.threads = await sort(threads: threads, serverSortedPins: serverSortedPins)
+            }
         
             threadsVM.removeThread(threadsVM.threads[index])
             /// threadsVM.threads.removeAll(where: {$0.id == response.result}) /// Do not remove this line and do not use remove(at:) it will cause 'Precondition failed Orderedset'
