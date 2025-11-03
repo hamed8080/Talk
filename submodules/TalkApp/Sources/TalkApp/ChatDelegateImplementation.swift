@@ -197,6 +197,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
         TokenManager.shared.clearToken()
         UserConfigManagerVM.instance.logout(delegate:  self)
         await AppState.shared.objectsContainer.reset()
+        NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }
     
     private func clearQueueRequestsOnUnAuthorizedError() {
