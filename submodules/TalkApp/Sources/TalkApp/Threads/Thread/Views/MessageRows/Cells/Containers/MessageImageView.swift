@@ -101,6 +101,12 @@ final class MessageImageView: UIImageView {
         self.viewModel = viewModel
         let canShow = viewModel.fileState.state != .completed
         if let fileURL = viewModel.calMessage.fileURL {
+            /// Once resuing a cell, it might contains old image,
+            /// so, it'd better to reset to prevent showing old image while we are fetching the new row image from the disk.
+            /// This prevent blinking an old image to new image.
+            image = nil
+            
+            /// Fetch the image from the disk and set it.
             Task { [weak self] in
                 guard let self = self else { return }
                 await setImage(fileURL: fileURL)
