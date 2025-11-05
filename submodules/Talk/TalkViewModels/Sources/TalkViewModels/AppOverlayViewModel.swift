@@ -156,6 +156,14 @@ public class AppOverlayViewModel: ObservableObject {
         galleryImageView = nil
     }
     
+    public func dismissToastImmediately() {
+        isPresented = false
+        isToast = false
+        cancelToastTimer()
+        clear()
+        animateObjectWillChange()
+    }
+    
     private func cancelToastTimer() {
         toastTimer?.invalidate()
         toastTimer = nil

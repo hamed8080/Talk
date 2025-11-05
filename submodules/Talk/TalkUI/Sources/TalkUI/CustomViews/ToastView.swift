@@ -25,6 +25,8 @@ public final class ToastUIView: UIStackView {
     private let showSandBox: Bool
     private let leadingView: UIView?
     private let disableWidthConstraint: Bool
+    private let onSwipeDown: (() -> Void)?
+    private var isSwipingDownAnimation = false
     
     public init(title: String? = nil,
                 titleColor: UIColor = Color.App.textPrimaryUIColor!,
@@ -34,7 +36,8 @@ public final class ToastUIView: UIStackView {
                 messageFont: UIFont = .fBody!,
                 showSandBox: Bool = false,
                 leadingView: UIView? = nil,
-                disableWidthConstraint: Bool = false
+                disableWidthConstraint: Bool = false,
+                onSwipeDown: (() -> Void )? = nil
     )
     {
         self.title = title
@@ -46,6 +49,7 @@ public final class ToastUIView: UIStackView {
         self.messageColor = messageColor
         self.showSandBox = showSandBox
         self.disableWidthConstraint = disableWidthConstraint
+        self.onSwipeDown = onSwipeDown
         super.init(frame: .zero)
         configureView()
     }
@@ -70,6 +74,11 @@ public final class ToastUIView: UIStackView {
         effetcView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(effetcView)
         
+        let swipeDownGesture = UISwipeGestureRecognizer(target: self, action: #selector(oneSwipeGesture))
+        swipeDownGesture.direction = .down
+        effetcView.isUserInteractionEnabled = true
+        effetcView.addGestureRecognizer(swipeDownGesture)
+        
         if let leadingView = leadingView {
             addArrangedSubview(leadingView)
         }
@@ -79,11 +88,13 @@ public final class ToastUIView: UIStackView {
         label.font = titleFont
         label.textColor = titleColor
         label.textAlignment = Language.isRTL ? .right : .left
+        label.isUserInteractionEnabled = false
         addArrangedSubview(label)
 
         hStack.spacing = 8
         hStack.axis = .horizontal
         hStack.alignment = .leading
+        hStack.isUserInteractionEnabled = false
 
         if let leadingView = leadingView {
             hStack.addArrangedSubview(leadingView)
@@ -94,6 +105,7 @@ public final class ToastUIView: UIStackView {
         messageLabel.text = message.bundleLocalized()
         messageLabel.numberOfLines = 5
         messageLabel.textAlignment = Language.isRTL ? .right : .left
+        messageLabel.isUserInteractionEnabled = false
         hStack.addArrangedSubview(messageLabel)
         addArrangedSubview(hStack)
         
@@ -101,6 +113,7 @@ public final class ToastUIView: UIStackView {
         sandboxLabel.font = UIFont.fBody
         sandboxLabel.text = "SANDBOX"
         sandboxLabel.textAlignment = Language.isRTL ? .right : .left
+        sandboxLabel.isUserInteractionEnabled = false
         addSubview(sandboxLabel)
 
         NSLayoutConstraint.activate([
@@ -119,6 +132,19 @@ public final class ToastUIView: UIStackView {
         
         sandboxLabel.isHidden = !showSandBox
     }
+    
+    @objc private func oneSwipeGesture(_ gesture: UISwipeGestureRecognizer) {
+        guard !isSwipingDownAnimation, gesture.direction == .down else { return }
+        isSwipingDownAnimation = true
+        
+        UIView.animate(withDuration: 0.12, delay: 0.0) { [weak self] in
+            guard let self = self else { return }
+            self.frame.origin.y += self.frame.height
+        } completion: { [weak self] completed in
+            self?.onSwipeDown?()
+            self?.isSwipingDownAnimation = false
+        }
+    }
 }
 
 public struct ToastViewWrapper: UIViewRepresentable {
@@ -132,6 +158,7 @@ public struct ToastViewWrapper: UIViewRepresentable {
     private let disableWidthConstraint: Bool
     private let leadingView: UIView?
     private let attachToVC: UIViewController?
+    private var onSwipeDown: (() -> Void)?
     
     public init(title: String? = nil,
                 titleColor: UIColor = Color.App.textPrimaryUIColor!,
@@ -142,7 +169,8 @@ public struct ToastViewWrapper: UIViewRepresentable {
                 showSandbox: Bool = false,
                 leadingView: UIView? = nil,
                 attachToVC: UIViewController? = nil,
-                disableWidthConstraint: Bool = false
+                disableWidthConstraint: Bool = false,
+                onSwipeDown: (() -> Void)? = nil
     )
     {
         self.title = title
@@ -155,6 +183,7 @@ public struct ToastViewWrapper: UIViewRepresentable {
         self.showSandbox = showSandbox
         self.disableWidthConstraint = disableWidthConstraint
         self.attachToVC = attachToVC
+        self.onSwipeDown = onSwipeDown
     }
     
     public func makeUIView(context: Context) -> some UIView {
@@ -167,7 +196,8 @@ public struct ToastViewWrapper: UIViewRepresentable {
                              titleFont: titleFont,
                              messageFont: messageFont,
                              showSandBox: showSandbox,
-                             leadingView: leadingView)
+                             leadingView: leadingView,
+                             onSwipeDown: onSwipeDown)
         toastView.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(toastView)
         

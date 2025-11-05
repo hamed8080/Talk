@@ -63,7 +63,6 @@ class ThreadRowContextMenuUIKit: UIView {
     private func configureMenu() -> CustomMenu {
         let menu = CustomMenu()
         let vm = AppState.shared.objectsContainer.threadsVM
-       
         
         let hasSpaceToAddMorePin = vm.serverSortedPins.count < 5
         let isInArchiveList = conversation.isArchive == true
@@ -71,9 +70,10 @@ class ThreadRowContextMenuUIKit: UIView {
             let pinKey = conversation.pin == true ? "Thread.unpin" : "Thread.pin"
             let pinImage = conversation.pin == true ? "pin.slash" : "pin"
             let model = ActionItemModel(title: pinKey.bundleLocalized(), image: pinImage)
+            let isPin = conversation.pin == true
             let pinAction = ActionMenuItem(model: model) { [weak self] in
                 guard let self = self else { return }
-                if !hasSpaceToAddMorePin {
+                if !hasSpaceToAddMorePin, !isPin {
                     /// Hide menu
                     menu.contexMenuContainer?.hide()
                     
@@ -89,7 +89,7 @@ class ThreadRowContextMenuUIKit: UIView {
             menu.addItem(pinAction)
         }
         
-        if conversation.type != .selfThread, conversation.isArchive ?? false == false {
+        if !isInArchiveList, conversation.type != .selfThread, conversation.isArchive ?? false == false {
             let muteKey = conversation.mute == true ? "Thread.unmute" : "Thread.mute"
             let muteImage = conversation.mute == true ? "speaker" : "speaker.slash"
             let model = ActionItemModel(title: muteKey.bundleLocalized(), image: muteImage)

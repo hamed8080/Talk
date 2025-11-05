@@ -464,6 +464,11 @@ extension ThreadViewController {
         }
             .injectAllObjects()
             .contextMenuContainer(viewModel: AppState.shared.objectsContainer.contextMenuModel)
+            .onDisappear { [weak self] in
+                if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == self?.viewModel?.thread.id {
+                    self?.isViewControllerVisible = true
+                }
+            }
         
         let hostVC = UIHostingController(rootView: view)
         hostVC.modalPresentationStyle = .formSheet
