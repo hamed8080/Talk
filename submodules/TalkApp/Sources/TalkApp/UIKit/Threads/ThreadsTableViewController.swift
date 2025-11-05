@@ -245,17 +245,24 @@ extension ThreadsTableViewController: UITableViewDelegate {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return nil }
         var arr: [UIContextualAction] = []
         
+        let isArchivedVC = viewModel.isArchive == true
+        let isSelfThread = conversation.type == .selfThread
+        let isClosed = conversation.closed == true
+        
         let muteAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
             self?.viewModel.toggleMute(conversation.toStruct())
             success(true)
         }
         muteAction.image = UIImage(systemName: conversation.mute == true ? "speaker" : "speaker.slash")
         muteAction.backgroundColor = UIColor.gray
-        arr.append(muteAction)
+        if !isSelfThread && !isArchivedVC && !isClosed {
+            arr.append(muteAction)
+        }
         
         let hasSpaceToAddMorePin = viewModel.serverSortedPins.count < 5
         let pinAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
-            if !hasSpaceToAddMorePin {
+            let isPinAlready = conversation.pin == true
+            if !hasSpaceToAddMorePin && !isPinAlready {
                 /// Show dialog
                 AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(WarningDialogView(message: "Errors.warningCantAddMorePinThread".bundleLocalized()))
                 return
@@ -265,7 +272,9 @@ extension ThreadsTableViewController: UITableViewDelegate {
         }
         pinAction.image = UIImage(systemName: conversation.pin == true ? "pin.slash.fill" : "pin")
         pinAction.backgroundColor = UIColor.darkGray
-        arr.append(pinAction)
+        if !isArchivedVC && !isClosed {
+            arr.append(pinAction)
+        }
         
         let archiveImage = conversation.isArchive == true ?  "tray.and.arrow.up" : "tray.and.arrow.down"
         let archiveAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
@@ -274,8 +283,10 @@ extension ThreadsTableViewController: UITableViewDelegate {
         }
         archiveAction.image = UIImage(systemName: archiveImage)
         archiveAction.backgroundColor = Color.App.color5UIColor
-        arr.append(archiveAction)
-    
+        if !isSelfThread {
+            arr.append(archiveAction)
+        }
+
         return UISwipeActionsConfiguration(actions: arr)
     }
     
