@@ -10,7 +10,7 @@ import CoreImage
 
 @MainActor
 public final class ImageEditorView: UIView, UIScrollViewDelegate {
-    private let scrollView = UIScrollView()
+    private let scrollView = DrawingScrollView()
     private let imageView = UIImageView()
     private let btnClose = CircularSymbolButton("xmark")
     private let btnReset = CircularSymbolButton(ImageEditorView.resetIconName)
@@ -70,6 +70,7 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         scrollView.delegate = self
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 4.0
+        
         addSubview(scrollView)
         
         /// Setup imageView
@@ -221,6 +222,7 @@ extension ImageEditorView {
             btnDoneDrawing.isHidden = true
             removeDrawingView()
             showActionButtons(show: true)
+            scrollView.setMinimumNumberOfTouchesPanGesture(1)
         } else {
             onClose?()
         }
@@ -297,6 +299,7 @@ extension ImageEditorView {
         showColorSlider(show: true)
         btnDoneDrawing.isHidden = false
         showActionButtons(show: false)
+        scrollView.setMinimumNumberOfTouchesPanGesture(2)
         let drawingView = DrawingView(frame: imageView.bounds)
         drawingView.isUserInteractionEnabled = true
         drawingView.backgroundColor = .clear
@@ -309,6 +312,7 @@ extension ImageEditorView {
         isDrawing = false
         showColorSlider(show: false)
         btnDoneDrawing.isHidden = true
+        scrollView.setMinimumNumberOfTouchesPanGesture(1)
         
         showActionButtons(show: true)
         removeDrawingView()
