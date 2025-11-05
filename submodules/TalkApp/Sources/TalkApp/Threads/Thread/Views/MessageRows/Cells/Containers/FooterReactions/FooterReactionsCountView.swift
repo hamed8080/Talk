@@ -44,6 +44,7 @@ final class FooterReactionsCountView: UIStackView {
         reactionStack.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         reactionStack.accessibilityIdentifier = "reactionStackcrollView"
 
+        /// Add four items into the reactionStack and just change the visibility with setHidden method.
         for _ in 0..<ConstantSizes.footerReactionsCountViewMaxReactionsToShow {
             reactionStack.addArrangedSubview(ReactionCountRowView(frame: .zero, isMe: isMe))
         }
@@ -73,7 +74,9 @@ final class FooterReactionsCountView: UIStackView {
         
         updateWidthConstrain(rows)
         
-        // Show item only if index is equal to index or it is type of more reaction button.
+        /// Show rows only if rows.count == inde
+        /// Max of rows.count could be 4.
+        /// Index is stable inside reactionStack and it is 0...4
         reactionStack.arrangedSubviews.enumerated().forEach { index, view in
             if index < rows.count, let rowView = view as? ReactionCountRowView {
                 rowView.setIsHidden(false)
@@ -84,6 +87,8 @@ final class FooterReactionsCountView: UIStackView {
                 view.setIsHidden(true)
             }
         }
+        
+        /// Hide or show More than 4 reactions button
         if viewModel.reactionsModel.rows.count > ConstantSizes.footerReactionsCountViewMaxReactionsToShow, let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
             moreButton.setIsHidden(false)
             moreButton.row = .moreReactionRow

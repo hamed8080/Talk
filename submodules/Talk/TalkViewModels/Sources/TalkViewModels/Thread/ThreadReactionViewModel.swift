@@ -19,11 +19,9 @@ public final class ThreadReactionViewModel {
     private var inQueueToGetReactions: [Int] = []
     public var allowedReactions: [Sticker]?
     private let objectId = UUID().uuidString
-    private let REACTION_COUNT_LIST_KEY: String
     private var lock = false
     
     public init() {
-        self.REACTION_COUNT_LIST_KEY = "REACTION-COUNT-LIST-KEY-\(objectId)"
     }
 
     public func setup(viewModel: ThreadViewModel) {
@@ -122,8 +120,6 @@ public final class ThreadReactionViewModel {
             onDeleteReaction(chatResponse)
         case .allowedReactions(let chatResponse):
             onAllowedReactions(chatResponse)
-        case .count(let chatResponse):
-            await onReactionCountList(chatResponse)
         default:
             break
         }
@@ -135,65 +131,6 @@ public final class ThreadReactionViewModel {
         }
     }
 
-    internal func fetchReactions(messages: [Message], withQueue: Bool) {
-        guard threadVM?.searchedMessagesViewModel.isInSearchMode == false else { return}
-        let messageIds = messages
-            .filter({$0.id ?? -1 > 0})
-            .filter({$0.reactionableType})
-            .compactMap({$0.id})
-        inQueueToGetReactions.append(contentsOf: messageIds)
-        Task { [weak self] in
-            guard let self = self else { return }
-            await getReactionSummary(messageIds, conversationId: threadId, withQueue: withQueue)
-        }
-    }
-    
-    @ChatGlobalActor
-    private func getReactionSummary(_ messageIds: [Int], conversationId: Int, withQueue: Bool) async {
-        let req = await ReactionCountRequest(messageIds: messageIds, conversationId: threadId)
-        RequestsManager.shared.append(prepend: REACTION_COUNT_LIST_KEY, value: req)
-        if withQueue {
-            await AppState.shared.objectsContainer.chatRequestQueue.enqueue(.reactionCount(req: req))
-        } else {
-            await ChatManager.activeInstance?.reaction.count(req)
-        }
-    }
-
-    internal func onReactionCountList(_ response: ChatResponse<[ReactionCountList]>) async {
-        // We have to check if the response count is greater than zero because there is a chance to get reactions of zero count.
-        // And we need to remove older reactions if any of them were removed.
-        guard
-            response.pop(prepend: REACTION_COUNT_LIST_KEY) != nil,
-            let reactions = response.result,
-            let historyVM = threadVM?.historyVM, reactions.count > 0
-        else { return }
-        
-        for copy in reactions {
-            inQueueToGetReactions.removeAll(where: {$0 == copy.messageId})
-            if let vm = historyVM.sections.messageViewModel(for: copy.messageId ?? -1) {
-                vm.setReaction(reactions: copy)
-            }
-        }
-
-        /// All things inisde the qeueu are old data and there will be a chance the reaction row has been removed.
-        for id in inQueueToGetReactions {
-            if let vm = historyVM.sections.messageViewModel(for: id) {
-                vm.clearReactions()
-            }
-        }
-        inQueueToGetReactions.removeAll()
-
-        // Update UI of each message
-        let indexPaths: [IndexPath] = reactions.compactMap({ historyVM.sections.viewModelAndIndexPath(for: $0.messageId)?.indexPath })
-        if !indexPaths.isEmpty {
-            let wasAtBottom = threadVM?.scrollVM.isAtBottomOfTheList == true
-            await threadVM?.delegate?.performBatchUpdateForReactions(indexPaths)
-            if wasAtBottom {
-                threadVM?.scrollVM.scrollToBottom()
-            }
-        }
-    }
-    
     private func onDeleteReaction(_ response: ChatResponse<ReactionMessageResponse>) {
         guard
             let reaction = response.result?.reaction,
