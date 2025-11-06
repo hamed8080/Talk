@@ -334,10 +334,10 @@ extension ImageEditorView {
             }
             addSubview(colorSlider)
             NSLayoutConstraint.activate([
-                colorSlider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
-                colorSlider.heightAnchor.constraint(equalToConstant: 128),
-                colorSlider.widthAnchor.constraint(equalToConstant: 16),
-                colorSlider.topAnchor.constraint(equalTo: btnClose.bottomAnchor, constant: 16),
+                colorSlider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+                colorSlider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+                colorSlider.heightAnchor.constraint(equalToConstant: 48 + 24),
+                colorSlider.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
             ])
         } else {
             colorSlider.removeFromSuperview()
