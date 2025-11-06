@@ -12,13 +12,15 @@ public class ImageEditorViewController: UIViewController {
     public let url: URL
     public let font: UIFont
     public let doneTitle: String
+    public let cancelTitle: String
     public var onDone: ((URL?, Error?) -> Void)?
     public var onClose: (() -> Void)?
     
-    public init(url: URL, font: UIFont, doneTitle: String) {
+    public init(url: URL, font: UIFont, doneTitle: String, cancelTitle: String) {
         self.url = url
         self.font = font
         self.doneTitle = doneTitle
+        self.cancelTitle = cancelTitle
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -32,7 +34,7 @@ public class ImageEditorViewController: UIViewController {
             fatalError("Please pass onDone closure")
             return
         }
-        let editorView = ImageEditorView(url: url, font: font, doneTitle: doneTitle, onDone: onDone)
+        let editorView = ImageEditorView(url: url, font: font, doneTitle: doneTitle, cancelTitle: cancelTitle, onDone: onDone)
         editorView.onClose = onClose
         editorView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(editorView)
@@ -48,18 +50,23 @@ public class ImageEditorViewController: UIViewController {
 public struct ImageEditorWrapper: UIViewRepresentable {
     public let url: URL
     public let doneTitle: String
+    public let cancelTitle: String
     public let onDone: (URL?, Error?) -> Void
     public let onClose: (() -> Void)?
     
-    public init(url: URL, doneTitle: String, onDone: @escaping (URL?, Error?) -> Void, onClose: (() -> Void)?) {
+    public init(url: URL,
+                doneTitle: String,
+                cancelTitle: String,
+                onDone: @escaping (URL?, Error?) -> Void, onClose: (() -> Void)?) {
         self.url = url
         self.doneTitle = doneTitle
+        self.cancelTitle = cancelTitle
         self.onDone = onDone
         self.onClose = onClose
     }
     
     public func makeUIView(context: Context) -> UIView {
-        let view = ImageEditorView(url: url, doneTitle: doneTitle, onDone: onDone)
+        let view = ImageEditorView(url: url, doneTitle: doneTitle, cancelTitle: cancelTitle, onDone: onDone)
         view.onClose = onClose
         return view
     }

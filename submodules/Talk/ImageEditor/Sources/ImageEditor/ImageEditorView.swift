@@ -22,8 +22,8 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     private let btnRotate = CircularSymbolButton("rotate.left", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnCrop = CircularSymbolButton("crop", width: 32, height: 32, radius: 0, addBGEffect: false)
     private let btnDone = UIButton(type: .system)
+    private var drawingButtonsStack: UIStackView?
     private var drawingView: DrawingView?
-    private var btnDoneDrawing = UIButton(type: .system)
     private var colorSlider = UIColorSlider()
     
     private let cropOverlay = CropOverlayView()
@@ -42,15 +42,17 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
     
     private let url: URL
     private let doneTitle: String
+    private let cancelTitle: String
     private let font: UIFont
     private let padding: CGFloat = 16
     
     public var onDone: (URL?, Error?) -> Void
     public var onClose: (() -> Void)?
     
-    public init(url: URL, font: UIFont = .systemFont(ofSize: 16), doneTitle: String, onDone: @escaping (URL?, Error?) -> Void) {
+    public init(url: URL, font: UIFont = .systemFont(ofSize: 16), doneTitle: String, cancelTitle: String, onDone: @escaping (URL?, Error?) -> Void) {
         self.url = url
         self.doneTitle = doneTitle
+        self.cancelTitle = cancelTitle
         self.font = font
         self.onDone = onDone
         super.init(frame: .zero)
@@ -119,17 +121,6 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
         btnDone.setTitle(doneTitle, for: .normal)
         btnDone.setTitleColor(.white, for: .normal)
         btnDone.titleLabel?.font = font
-        
-        btnDoneDrawing.translatesAutoresizingMaskIntoConstraints = false
-        btnDoneDrawing.setTitleColor(.white, for: .normal)
-        btnDoneDrawing.backgroundColor = .orange
-        btnDoneDrawing.layer.cornerRadius = 19
-        btnDoneDrawing.layer.masksToBounds = true
-        btnDoneDrawing.addTarget(self, action: #selector(onDoneDrawing), for: .touchUpInside)
-        btnDoneDrawing.setTitle(doneTitle, for: .normal)
-        btnDoneDrawing.titleLabel?.font = font
-        btnDoneDrawing.isHidden = true
-        addSubview(btnDoneDrawing)
         
         let dividerContainer = UIView()
         dividerContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -201,11 +192,6 @@ public final class ImageEditorView: UIView, UIScrollViewDelegate {
             blurView.bottomAnchor.constraint(equalTo: buttonsHStack.bottomAnchor),
             blurView.leadingAnchor.constraint(equalTo: buttonsHStack.leadingAnchor),
             blurView.trailingAnchor.constraint(equalTo: buttonsHStack.trailingAnchor),
-            
-            btnDoneDrawing.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            btnDoneDrawing.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 8),
-            btnDoneDrawing.widthAnchor.constraint(greaterThanOrEqualToConstant: 64),
-            btnDoneDrawing.heightAnchor.constraint(equalToConstant: 38)
         ])
     }
     
@@ -219,7 +205,7 @@ extension ImageEditorView {
         if isDrawing {
             isDrawing = false
             showColorSlider(show: false)
-            btnDoneDrawing.isHidden = true
+            showDrawingButtonsStack(show: false)
             removeDrawingView()
             showActionButtons(show: true)
             scrollView.setMinimumNumberOfTouchesPanGesture(1)
@@ -297,7 +283,7 @@ extension ImageEditorView {
     @objc func drawTapped() {
         isDrawing = true
         showColorSlider(show: true)
-        btnDoneDrawing.isHidden = false
+        showDrawingButtonsStack(show: true)
         showActionButtons(show: false)
         scrollView.setMinimumNumberOfTouchesPanGesture(2)
         let drawingView = DrawingView(frame: imageView.bounds)
@@ -311,7 +297,7 @@ extension ImageEditorView {
         guard let drawingView = drawingView else { return }
         isDrawing = false
         showColorSlider(show: false)
-        btnDoneDrawing.isHidden = true
+        showDrawingButtonsStack(show: false)
         scrollView.setMinimumNumberOfTouchesPanGesture(1)
         
         showActionButtons(show: true)
@@ -337,10 +323,36 @@ extension ImageEditorView {
                 colorSlider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
                 colorSlider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
                 colorSlider.heightAnchor.constraint(equalToConstant: 48 + 24),
-                colorSlider.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
             ])
         } else {
             colorSlider.removeFromSuperview()
+        }
+    }
+    
+    private func showDrawingButtonsStack(show: Bool) {
+        if show {
+            let stack = DoneOrCancelStack(font: font, doneTitle: doneTitle, cancelTitle: cancelTitle)
+            stack.onDone = { [weak self] in
+                self?.onDoneDrawing()
+            }
+            stack.onCancel = { [weak self] in
+                self?.onCloseTapped()
+            }
+            addSubview(stack)
+            drawingButtonsStack = stack
+            
+            bringSubviewToFront(stack)
+            
+            NSLayoutConstraint.activate([
+                stack.centerXAnchor.constraint(equalTo: centerXAnchor),
+                stack.heightAnchor.constraint(equalToConstant: 46),
+                stack.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -38),
+                
+                colorSlider.bottomAnchor.constraint(equalTo: stack.topAnchor, constant: -8),
+            ])
+        } else {
+            drawingButtonsStack?.removeFromSuperview()
+            drawingButtonsStack = nil
         }
     }
 }

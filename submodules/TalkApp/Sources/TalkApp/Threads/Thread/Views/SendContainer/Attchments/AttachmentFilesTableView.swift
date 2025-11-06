@@ -181,7 +181,7 @@ extension AttachmentFilesTableView {
     private func showImageEditorDirectly(url: URL, attachment: AttachmentFile) {
         guard let vc = window?.rootViewController else { return }
         let font = UIFont.fBody ?? .systemFont(ofSize: 14)
-        let editorVC = ImageEditorViewController(url: url, font: font, doneTitle: "General.submit".bundleLocalized())
+        let editorVC = ImageEditorViewController(url: url, font: font, doneTitle: "General.submit".bundleLocalized(), cancelTitle: "General.cancel".bundleLocalized())
         editorVC.onDone = { [weak self, weak editorVC] outputURL, error in
             guard let self = self,
                   let outputURL = outputURL,
