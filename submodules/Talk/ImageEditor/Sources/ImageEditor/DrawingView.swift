@@ -50,4 +50,16 @@ class DrawingView: UIView {
     public func setDrawingColor(color: UIColor) {
         currentColor = color
     }
+    
+    public func undo() {
+        if paths.isEmpty { return }
+        paths.removeLast()
+        setNeedsDisplay()
+    }
+    
+    public func reset() {
+        paths.removeAll()
+        path = UIBezierPath()
+        setNeedsDisplay()
+    }
 }
