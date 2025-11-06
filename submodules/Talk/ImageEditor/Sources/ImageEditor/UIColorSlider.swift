@@ -7,83 +7,118 @@
 
 import UIKit
 
-class UIColorSlider: UIView {
+class UIColorSlider: UIView, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     var onColorChanged: ((UIColor) -> Void)?
-    
-    private let slider = UISlider()
-    private let gradientLayer = CAGradientLayer()
-    
+
+    private var collectionView: UICollectionView?
+    private var pageControl: UIPageControl!
+    private let colors = Pallet.colors
+    private let itemsPerPage = 8
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupView()
+        setupCollectionView()
+        setupPageControl()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupView()
+        setupCollectionView()
+        setupPageControl()
     }
-    
-    private func setupView() {
-        layer.borderColor = UIColor.white.cgColor
-        layer.borderWidth = 1.0
-        
-        // Setup gradient showing full hue spectrum
-        gradientLayer.colors = stride(from: 0, through: 1, by: 0.1).map {
-            UIColor(hue: $0, saturation: 1, brightness: 1, alpha: 1).cgColor
-        }
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
-        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
-        gradientLayer.cornerRadius = 8
-        layer.insertSublayer(gradientLayer, at: 0)
-        
-        // Setup vertical slider
-        slider.translatesAutoresizingMaskIntoConstraints = false
-        slider.minimumValue = 0
-        slider.maximumValue = 1
-        slider.value = 0
-        slider.isContinuous = true
-        slider.minimumTrackTintColor = .clear
-        slider.maximumTrackTintColor = .clear
-        slider.thumbTintColor = .white
-        slider.addTarget(self, action: #selector(sliderChanged(_:)), for: .valueChanged)
-        // Rotate slider vertically (-90°)
-        slider.transform = CGAffineTransform(rotationAngle: -.pi / 2)
-        
-        // Smaller thumb image
-        let thumbSize: CGFloat = 14
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: thumbSize, height: thumbSize))
-        let thumbImage = renderer.image { ctx in
-            let rect = CGRect(x: 0, y: 0, width: thumbSize, height: thumbSize)
-            UIColor.white.setFill()
-            ctx.cgContext.fillEllipse(in: rect)
-            UIColor.lightGray.setStroke()
-            ctx.cgContext.setLineWidth(1)
-            ctx.cgContext.strokeEllipse(in: rect.insetBy(dx: 0.5, dy: 0.5))
-        }
-        slider.setThumbImage(thumbImage, for: .normal)
-        slider.setThumbImage(thumbImage, for: .highlighted)
-        
-        addSubview(slider)
-        
+
+    private func setupCollectionView() {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumInteritemSpacing = 8
+        layout.minimumLineSpacing = 8
+
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.register(ColorCell.self, forCellWithReuseIdentifier: "ColorCell")
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.isPagingEnabled = true
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.backgroundColor = .clear
+
+        addSubview(collectionView)
         NSLayoutConstraint.activate([
-            slider.centerXAnchor.constraint(equalTo: centerXAnchor),
-            slider.centerYAnchor.constraint(equalTo: centerYAnchor),
-            slider.widthAnchor.constraint(equalTo: heightAnchor),  // flipped because of rotation
-            slider.heightAnchor.constraint(equalTo: widthAnchor)
+            collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: topAnchor),
+            collectionView.heightAnchor.constraint(equalToConstant: 48)
         ])
-        
-        layer.cornerRadius = 8
-        clipsToBounds = true
+        self.collectionView = collectionView
     }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        gradientLayer.frame = bounds
+
+    private func setupPageControl() {
+        guard let collectionView = collectionView else { return }
+        pageControl = UIPageControl()
+        pageControl.translatesAutoresizingMaskIntoConstraints = false
+        pageControl.numberOfPages = Int(ceil(Double(colors.count) / Double(itemsPerPage)))
+        pageControl.currentPage = 0
+        addSubview(pageControl)
+
+        NSLayoutConstraint.activate([
+            pageControl.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 8),
+            pageControl.centerXAnchor.constraint(equalTo: centerXAnchor),
+            pageControl.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
     }
-    
-    @objc private func sliderChanged(_ sender: UISlider) {
-        let hue = CGFloat(sender.value)
-        let color = UIColor(hue: hue, saturation: 1, brightness: 1, alpha: 1)
-        onColorChanged?(color)
+
+    // MARK: - UICollectionView
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return colors.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ColorCell", for: indexPath) as! ColorCell
+        cell.configure(with: colors[indexPath.item])
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        onColorChanged?(colors[indexPath.item])
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 48, height: 48)
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let page = Int(ceil(scrollView.contentOffset.x / scrollView.frame.width))
+        pageControl.currentPage = page
+    }
+}
+
+class ColorCell: UICollectionViewCell {
+    private let circleView = UIView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        contentView.backgroundColor = .clear
+        contentView.addSubview(circleView)
+
+        circleView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            circleView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            circleView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            circleView.widthAnchor.constraint(equalToConstant: 24),
+            circleView.heightAnchor.constraint(equalToConstant: 24)
+        ])
+        circleView.layer.cornerRadius = 12
+        circleView.layer.borderWidth = 1
+        circleView.layer.borderColor = UIColor.white.cgColor
+        circleView.clipsToBounds = true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(with color: UIColor) {
+        circleView.backgroundColor = color
     }
 }
