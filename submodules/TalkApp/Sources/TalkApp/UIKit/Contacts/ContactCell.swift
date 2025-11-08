@@ -139,7 +139,7 @@ class ContactCell: UITableViewCell {
         inviteButton.isHidden = true
     }
     
-    public func setContact(contact: Contact, viewModel: ContactsViewModel) {
+    public func setContact(contact: Contact, viewModel: ContactsViewModel?) {
         titleLabel.text = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
 
         blockedLable.isHidden = contact.blocked == false || contact.blocked == nil
@@ -154,7 +154,7 @@ class ContactCell: UITableViewCell {
         
         avatar.backgroundColor = String.getMaterialColorByCharCode(str: name ?? "")
         avatarInitialLable.text = String.splitedCharacter(name ?? "")
-        if let vm = viewModel.imageLoader(for: contact.id ?? -1) {
+        if let vm = viewModel?.imageLoader(for: contact.id ?? -1) {
             avatar.image = vm.image
             avatarInitialLable.isHidden = vm.isImageReady
         } else {

@@ -23,9 +23,9 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public var conversationsLazyList = LazyListViewModel()
     private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
     public weak var delegate: UIThreadsViewControllerDelegate?
+    public weak var contactsDelegate: UIContactsViewControllerDelegate?
+    public private(set) var contactsImages: [Int: ImageLoaderViewModel] = [:]
     
-    private var previousOffset: CGPoint? = nil
-    private var previousContentSize: CGSize? = nil
     @AppBackgroundActor
     private var isCompleted = false
 
@@ -54,24 +54,6 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         }
     }
     
-    public func savePreviousContentOffset() {
-        guard let contentSize = delegate?.contentSize, let contentOffset = delegate?.contentOffset else { return }
-        self.previousContentSize = contentSize
-        self.previousOffset = contentOffset
-    }
-    
-    public func moveToContentOffset() async {
-        while await !isCompleted {}
-        if let previousOffset = previousOffset, let previousContentSize = previousContentSize {
-            self.previousContentSize = nil
-            self.previousOffset = nil
-            
-            let newContentSize = self.delegate?.contentSize ?? .zero
-            let yDiff = newContentSize.height - previousContentSize.height
-            self.delegate?.setContentOffset(offset: CGPoint(x: previousOffset.x, y: previousOffset.y + yDiff))
-        }
-    }
-    
     public func start() {
         Task { [weak self] in
             guard let self = self else { return }
@@ -83,8 +65,6 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             /// Prevent request if search text on appear if is not empty, so it might have some contacts.
             if searchText.isEmpty {
                 getContacts()
-            } else {
-                animateObjectWillChange()
             }
             
             /// Prevent request if search text on appear is not empty, so it might have some conversations.
@@ -98,14 +78,6 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     }
 
     func setupObservers() {
-        contactsLazyList.objectWillChange.sink { [weak self] _ in
-            self?.animateObjectWillChange()
-        }
-        .store(in: &cancellableSet)
-        conversationsLazyList.objectWillChange.sink { [weak self] _ in
-            self?.animateObjectWillChange()
-        }
-        .store(in: &cancellableSet)
         $searchText
             .debounce(for: 0.5, scheduler: RunLoop.main)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -153,8 +125,13 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             let contacts = try await GetContactsRequester().get(contactsReq, withCache: false)
             await hideContactsLoadingWithDelay()
             contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
-            self.contacts.append(contentsOf: contacts)
-            animateObjectWillChange()
+            let filtered = contacts.filter({ newContact in !self.contacts.contains(where: { oldContact in newContact.id == oldContact.id }) })
+            self.contacts.append(contentsOf: filtered)
+            self.contacts = ContiguousArray(Set(contacts))
+            contactsDelegate?.updateUI(animation: false, reloadSections: false)
+            for contact in contacts {
+                addImageLoader(contact)
+            }
         } catch {
             log("Failed to search get contacts with error: \(error.localizedDescription)")
         }
@@ -186,6 +163,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 .filter({$0.type != .selfThread})
                 .filter({ filtered in !self.conversations.contains(where: { filtered.id == $0.id }) })
             self.conversations.append(contentsOf: filtered)
+            self.conversations = ContiguousArray(Set(conversations))
             if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
                 let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
                 self.conversations.append(calculated)
@@ -209,7 +187,6 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 addImageLoader(cal)
             }
             conversationsLazyList.setThreasholdIds(ids: conversations.suffix(8).compactMap {$0.id} )
-            animateObjectWillChange()
         }
     }
 
@@ -228,8 +205,12 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 let contacts = try await GetContactsRequester().get(req, withCache: false)
                 await hideContactsLoadingWithDelay()
                 contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
-                self.contacts.append(contentsOf: contacts)
-                animateObjectWillChange()
+                let filtered = contacts.filter({ newContact in !self.contacts.contains(where: { oldContact in newContact.id == oldContact.id }) })
+                self.contacts.append(contentsOf: filtered)
+                contactsDelegate?.updateUI(animation: false, reloadSections: false)
+                for contact in contacts {
+                    addImageLoader(contact)
+                }
             } catch {
                 log("Failed to get contacts with error: \(error.localizedDescription)")
             }
@@ -277,7 +258,7 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         conversations.removeAll()
         contacts.removeAll()
         getContacts()
-        
+        contactsImages.removeAll()
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
         getThreads(req)
     }
@@ -292,6 +273,22 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
                 }
             }
             viewModel.fetch()
+        }
+    }
+    
+    public func addImageLoader(_ contact: Contact) {
+        guard let id = contact.id else { return }
+        if contactsImages[id] == nil {
+            let viewModel = ImageLoaderViewModel(contact: contact)
+            contactsImages[id] = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    self?.contactsDelegate?.updateImage(image: image, id: id)
+                }
+            }
+            viewModel.fetch()
+        } else if let vm = contactsImages[id], vm.isImageReady {
+            contactsDelegate?.updateImage(image: vm.image, id: id)
         }
     }
     

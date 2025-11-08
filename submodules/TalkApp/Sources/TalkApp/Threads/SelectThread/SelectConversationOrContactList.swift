@@ -13,7 +13,7 @@ import TalkViewModels
 import TalkModels
 
 struct SelectConversationOrContactList: View {
-    @StateObject var viewModel: ThreadOrContactPickerViewModel = .init()
+    let viewModel: ThreadOrContactPickerViewModel = .init()
     var onSelect: (Conversation?, Contact?) -> Void
     @Environment(\.dismiss) var dismiss
     @State var selectedTabId: Int = 0
@@ -27,13 +27,12 @@ struct SelectConversationOrContactList: View {
     var body: some View {
         CustomTabView(selectedTabIndex: $selectedTabId, tabs: tabs)
             .frame(minWidth: 300, maxWidth: .infinity)/// We have to use a fixed minimum width for a bug tabs goes to the end.
-            .environmentObject(viewModel)
             .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
             .background(Color.App.bgPrimary)
             .environment(\.colorScheme, isDarkModeEnable ? .dark : .light)
             .listStyle(.plain)
             .safeAreaInset(edge: .top, spacing: 0) {
-                SearchInSelectConversationOrContact()
+                SearchInSelectConversationOrContact(viewModel: viewModel)
                     .environment(\.colorScheme, isDarkModeEnable ? .dark : .light)
                     .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
                     .environmentObject(viewModel)
@@ -52,14 +51,14 @@ struct SelectConversationOrContactList: View {
 
     private func makeTabs() {
         tabs = [
-            .init(title: "Tab.chats", view: AnyView(SelectConversationTab(onSelect: onSelect))),
-            .init(title: "Tab.contacts", view: AnyView(SelectContactTab(onSelect: onSelect)))
+            .init(title: "Tab.chats", view: AnyView(SelectConversationTab(viewModel: viewModel, onSelect: onSelect))),
+            .init(title: "Tab.contacts", view: AnyView(SelectContactTab(viewModel: viewModel, onSelect: onSelect)))
         ]
     }
 }
 
 struct SearchInSelectConversationOrContact: View {
-    @EnvironmentObject var viewModel: ThreadOrContactPickerViewModel
+    @StateObject var viewModel: ThreadOrContactPickerViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -75,48 +74,22 @@ struct SearchInSelectConversationOrContact: View {
 }
 
 struct SelectConversationTab: View {
-    @EnvironmentObject var viewModel: ThreadOrContactPickerViewModel
+    let viewModel: ThreadOrContactPickerViewModel
     var onSelect: (Conversation?, Contact?) -> Void
 
     var body: some View {
         ForwardConversationTableViewControllerWrapper(viewModel: viewModel, onSelect: onSelect)
+            .ignoresSafeArea(.all)
     }
 }
 
 struct SelectContactTab: View {
-    @EnvironmentObject var viewModel: ThreadOrContactPickerViewModel
+    let viewModel: ThreadOrContactPickerViewModel
     var onSelect: (Conversation?, Contact?) -> Void
-    @Environment(\.dismiss) var dismiss
-    @StateObject private var contactsVM = ContactsViewModel()
 
     var body: some View {
-        List {
-            ForEach(viewModel.contacts) { contact in
-                ContactRow(contact: contact, isInSelectionMode: .constant(false), isInSearchMode: false)
-                    .environment(\.showInviteButton, true)
-                    .onTapGesture {
-                        onSelect(nil, contact)
-                        dismiss()
-                    }
-                    .listRowBackground(Color.App.bgPrimary)
-                    .onAppear {
-                        Task {
-                            if contact == viewModel.contacts.last {
-                                await viewModel.loadMoreContacts()
-                            }
-                        }
-                    }
-            }
-        }
-        .environmentObject(contactsVM)
-        .safeAreaInset(edge: .top) {
-            if viewModel.contactsLazyList.isLoading {
-                SwingLoadingIndicator()
-            }
-        }
-        .listStyle(.plain)
-        .animation(.easeInOut, value: viewModel.contacts.count)
-        .animation(.easeInOut, value: viewModel.contactsLazyList.isLoading)
+        ForwardContactTableViewControllerWrapper(viewModel: viewModel, onSelect: onSelect)
+            .ignoresSafeArea(.all)
     }
 }
 
