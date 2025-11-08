@@ -12,7 +12,7 @@ import SwiftUI
 import TalkViewModels
 
 class ForwardContactTableViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
+    var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>?
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONTACT-ROW"
@@ -32,6 +32,8 @@ class ForwardContactTableViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 96
         tableView.delegate = self
@@ -89,7 +91,7 @@ extension ForwardContactTableViewController: UIContactsViewControllerDelegate {
         snapshot.appendItems(Array(viewModel.contacts), toSection: .main)
         
         /// Apply
-        dataSource.apply(snapshot, animatingDifferences: animation)
+        dataSource?.apply(snapshot, animatingDifferences: animation)
     }
     
     func updateImage(image: UIImage?, id: Int) {
@@ -104,13 +106,13 @@ extension ForwardContactTableViewController: UIContactsViewControllerDelegate {
 
 extension ForwardContactTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
+        guard let contact = dataSource?.itemIdentifier(for: indexPath) else { return }
         onSelect(nil, contact)
         dismiss(animated: true)
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let contact = dataSource.itemIdentifier(for: indexPath) else { return }
+        guard let contact = dataSource?.itemIdentifier(for: indexPath) else { return }
         if contact.id == viewModel.contacts.last?.id {
             Task {
                 await viewModel.loadMoreContacts()

@@ -35,6 +35,8 @@ class ForwardConversationTableViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 96
         tableView.delegate = self

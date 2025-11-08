@@ -459,21 +459,14 @@ extension ThreadViewController: BottomToolbarDelegate {
 // MARK: Sheets Delegate
 extension ThreadViewController {
     func openForwardPicker(messages: [Message]) {
-        let view = SelectConversationOrContactList { [weak self] (conversation, contact) in
+        let vc = SelectConversationOrContactListViewController { [weak self] (conversation, contact) in
             self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
+        } onDisappear: { [weak self] in
+            self?.isViewControllerVisible = true
         }
-            .injectAllObjects()
-            .contextMenuContainer(viewModel: AppState.shared.objectsContainer.contextMenuModel)
-            .onDisappear { [weak self] in
-                if AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == self?.viewModel?.thread.id {
-                    self?.isViewControllerVisible = true
-                }
-            }
-        
-        let hostVC = UIHostingController(rootView: view)
-        hostVC.modalPresentationStyle = .formSheet
+        vc.modalPresentationStyle = .formSheet
         isViewControllerVisible = false
-        present(hostVC, animated: true)
+        present(vc, animated: true)
     }
 
     func openMoveToDatePicker() {
