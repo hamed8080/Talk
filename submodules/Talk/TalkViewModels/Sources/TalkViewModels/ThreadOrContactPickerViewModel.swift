@@ -157,7 +157,6 @@ public class ThreadOrContactPickerViewModel {
             .filter({$0.type != .selfThread})
             .filter({ filtered in !self.conversations.contains(where: { filtered.id == $0.id }) })
         conversations.append(contentsOf: filtered)
-        conversations = ContiguousArray(Set(conversations))
         if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
             let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
             self.conversations.append(calculated)
