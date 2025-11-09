@@ -88,15 +88,6 @@ extension ForwardConversationTableViewController: UIForwardThreadsViewController
         guard let index = viewModel.conversations.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ConversationCell
     }
-    
-    func reloadCellWith(conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?
-            .setConversation(conversation: conversation)
-    }
-    
-    func setImageFor(id: Int, image: UIImage?) {
-        cell(id: id)?.setImage(image)
-    }
 }
 
 extension ForwardConversationTableViewController: UITableViewDelegate {
@@ -112,16 +103,4 @@ extension ForwardConversationTableViewController: UITableViewDelegate {
             try await viewModel.loadMore(id: conversation.id)
         }
     }
-}
-
-struct ForwardConversationTableViewControllerWrapper: UIViewControllerRepresentable {
-    let viewModel: ThreadOrContactPickerViewModel
-    let onSelect: (Conversation?, Contact?) -> Void
-    
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = ForwardConversationTableViewController(viewModel: viewModel, onSelect: onSelect)
-        return vc
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 }

@@ -459,7 +459,7 @@ extension ThreadViewController: BottomToolbarDelegate {
 // MARK: Sheets Delegate
 extension ThreadViewController {
     func openForwardPicker(messages: [Message]) {
-        let vc = SelectConversationOrContactListViewController { [weak self] (conversation, contact) in
+        let vc = ForwardPickerViewController { [weak self] (conversation, contact) in
             self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
         } onDisappear: { [weak self] in
             self?.isViewControllerVisible = true

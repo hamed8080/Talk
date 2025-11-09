@@ -110,15 +110,3 @@ extension ForwardContactTableViewController: UITableViewDelegate {
         }
     }
 }
-
-struct ForwardContactTableViewControllerWrapper: UIViewControllerRepresentable {
-    let viewModel: ThreadOrContactPickerViewModel
-    let onSelect: (Conversation?, Contact?) -> Void
-    
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = ForwardContactTableViewController(viewModel: viewModel, onSelect: onSelect)
-        return vc
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
-}

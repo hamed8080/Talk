@@ -1,5 +1,5 @@
 //
-//  SelectConversationOrContactListViewController.swift
+//  ForwardPickerViewController.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 6/5/21.
@@ -13,7 +13,7 @@ import TalkViewModels
 import TalkModels
 import UIKit
 
-final class SelectConversationOrContactListViewController: UIViewController {
+final class ForwardPickerViewController: UIViewController {
 
     private let viewModel = ThreadOrContactPickerViewModel()
     private let onSelect: (Conversation?, Contact?) -> Void
@@ -182,14 +182,14 @@ final class SelectConversationOrContactListViewController: UIViewController {
 }
 
 // MARK: - UISearchBarDelegate
-extension SelectConversationOrContactListViewController: UISearchBarDelegate {
+extension ForwardPickerViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         viewModel.onTextChanged(searchText)
     }
 }
 
 // MARK: - UIPageViewController Delegate & DataSource
-extension SelectConversationOrContactListViewController: UIPageViewControllerDelegate, UIPageViewControllerDataSource {
+extension ForwardPickerViewController: UIPageViewControllerDelegate, UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController,
                             viewControllerBefore viewController: UIViewController) -> UIViewController? {
         guard let index = controllers.firstIndex(of: viewController), index > 0 else { return nil }
