@@ -13,6 +13,18 @@ import Logger
 import UIKit
 
 @MainActor
+public protocol UIForwardThreadsViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool)
+    func updateImage(image: UIImage?, id: Int)
+}
+
+@MainActor
+public protocol UIForwardContactsViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<ContactListSection, Contact>, animatingDifferences: Bool)
+    func updateImage(image: UIImage?, id: Int)
+}
+
+@MainActor
 public class ThreadOrContactPickerViewModel {
     private var searchText: String = ""
     public var conversations: ContiguousArray<CalculatedConversation> = .init()
@@ -21,8 +33,8 @@ public class ThreadOrContactPickerViewModel {
     public var contactsLazyList = LazyListViewModel()
     public var conversationsLazyList = LazyListViewModel()
     private var selfConversation: Conversation? = UserDefaults.standard.codableValue(forKey: "SELF_THREAD")
-    public weak var delegate: UIThreadsViewControllerDelegate?
-    public weak var contactsDelegate: UIContactsViewControllerDelegate?
+    public weak var delegate: UIForwardThreadsViewControllerDelegate?
+    public weak var contactsDelegate: UIForwardContactsViewControllerDelegate?
     public private(set) var contactsImages: [Int: ImageLoaderViewModel] = [:]
     private var searchTask: Task<Void, any Error>? = nil
     
@@ -31,7 +43,7 @@ public class ThreadOrContactPickerViewModel {
 
     public init() {}
     
-    func updateUI(animation: Bool, reloadSections: Bool) {
+    public func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>()
         
@@ -50,6 +62,18 @@ public class ThreadOrContactPickerViewModel {
             }
             self.isCompleted = true
         }
+    }
+    
+    public func updateContactUI(animation: Bool) {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
+        let sections: [ContactListSection] = [.main]
+        
+        /// Configure
+        snapshot.appendSections(sections)
+        snapshot.appendItems(Array(contacts), toSection: .main)
+        
+        contactsDelegate?.apply(snapshot: snapshot, animatingDifferences: animation)
     }
     
     public func start() {
@@ -181,7 +205,8 @@ public class ThreadOrContactPickerViewModel {
         self.contacts.append(contentsOf: filtered)
         self.contacts = ContiguousArray(Set(contacts))
         
-        contactsDelegate?.updateUI(animation: false, reloadSections: false)
+        updateContactUI(animation: false)
+        
         for contact in contacts {
             addImageLoader(contact)
         }

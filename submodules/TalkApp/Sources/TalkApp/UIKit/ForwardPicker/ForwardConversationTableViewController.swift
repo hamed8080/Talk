@@ -17,9 +17,6 @@ class ForwardConversationTableViewController: UIViewController {
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
-    var contextMenuContainer: ContextMenuContainerView? = nil
-    private var previousOffset: CGPoint? = nil
-    private var previousContentSize: CGSize? = nil
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel
@@ -77,15 +74,8 @@ extension ForwardConversationTableViewController {
     }
 }
 
-extension ForwardConversationTableViewController: UIThreadsViewControllerDelegate {
-    var contentSize: CGSize { tableView.contentSize }
-
-    var contentOffset: CGPoint { tableView.contentOffset }
-
-    func setContentOffset(offset: CGPoint) {
-        tableView.contentOffset = offset
-    }
-
+extension ForwardConversationTableViewController: UIForwardThreadsViewControllerDelegate {
+   
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
@@ -106,48 +96,6 @@ extension ForwardConversationTableViewController: UIThreadsViewControllerDelegat
     
     func setImageFor(id: Int, image: UIImage?) {
         cell(id: id)?.setImage(image)
-    }
-    
-    func selectionChanged(conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?.selectionChanged(conversation: conversation)
-    }
-    
-    func unreadCountChanged(conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?.unreadCountChanged(conversation: conversation)
-    }
-    
-    func setEvent(smt: SMT?, conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?.setEvent(smt, conversation)
-    }
-    
-    func indexPath<T: UITableViewCell>(for cell: T) -> IndexPath? {
-        tableView.indexPath(for: cell)
-    }
-    
-    func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation? {
-        dataSource?.itemIdentifier(for: indexPath)
-    }
-    
-    func scrollToFirstIndex() {
-        guard !viewModel.conversations.isEmpty && tableView.numberOfRows(inSection: 0) > 0 else { return }
-        let indexPath = IndexPath(row: 0, section: 0)
-        tableView.scrollToRow(at: indexPath, at: .top, animated: true)
-    }
-    
-    func createThreadViewController(conversation: Conversation) -> UIViewController {
-        let vc = ThreadViewController()
-        vc.viewModel = ThreadViewModel(thread: conversation)
-        return vc
-    }
-}
-
-extension ForwardConversationTableViewController: ContextMenuDelegate {
-    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
-  
-    }
-    
-    func dismissContextMenu(indexPath: IndexPath?) {
-        
     }
 }
 

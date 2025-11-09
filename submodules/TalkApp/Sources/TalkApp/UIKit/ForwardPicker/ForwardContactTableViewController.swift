@@ -52,7 +52,7 @@ class ForwardContactTableViewController: UIViewController {
         
         /// Update the UI for the first time,
         /// if we have fetched all the contacts before opening the contacts tab for the first time on open.
-        updateUI(animation: false, reloadSections: false)
+        viewModel.updateContactUI(animation: false)
         
         for contact in viewModel.contacts {
             viewModel.addImageLoader(contact)
@@ -79,19 +79,9 @@ extension ForwardContactTableViewController {
     }
 }
 
-extension ForwardContactTableViewController: UIContactsViewControllerDelegate {
-   
-    func updateUI(animation: Bool, reloadSections: Bool) {
-        /// Create
-        var snapshot = NSDiffableDataSourceSnapshot<ContactListSection, Contact>()
-        let sections: [ContactListSection] = [.main]
-        
-        /// Configure
-        snapshot.appendSections(sections)
-        snapshot.appendItems(Array(viewModel.contacts), toSection: .main)
-        
-        /// Apply
-        dataSource?.apply(snapshot, animatingDifferences: animation)
+extension ForwardContactTableViewController: UIForwardContactsViewControllerDelegate {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<TalkViewModels.ContactListSection, ChatModels.Contact>, animatingDifferences: Bool) {
+        dataSource?.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
     func updateImage(image: UIImage?, id: Int) {
