@@ -203,7 +203,6 @@ public class ThreadOrContactPickerViewModel {
         contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
         let filtered = contacts.filter({ newContact in !self.contacts.contains(where: { oldContact in newContact.id == oldContact.id }) })
         self.contacts.append(contentsOf: filtered)
-        self.contacts = ContiguousArray(Set(contacts))
         
         updateContactUI(animation: false)
         
