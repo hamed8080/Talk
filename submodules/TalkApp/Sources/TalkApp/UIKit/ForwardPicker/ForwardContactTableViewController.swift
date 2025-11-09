@@ -115,7 +115,7 @@ extension ForwardContactTableViewController: UITableViewDelegate {
         guard let contact = dataSource?.itemIdentifier(for: indexPath) else { return }
         if contact.id == viewModel.contacts.last?.id {
             Task {
-                await viewModel.loadMoreContacts()
+                try await viewModel.loadMoreContacts()
             }
         }
     }

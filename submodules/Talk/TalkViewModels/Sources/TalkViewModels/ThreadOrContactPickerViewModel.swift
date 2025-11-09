@@ -13,9 +13,8 @@ import Logger
 import UIKit
 
 @MainActor
-public class ThreadOrContactPickerViewModel: ObservableObject {
-    private var cancellableSet: Set<AnyCancellable> = .init()
-    @Published public var searchText: String = ""
+public class ThreadOrContactPickerViewModel {
+    private var searchText: String = ""
     public var conversations: ContiguousArray<CalculatedConversation> = .init()
     public var contacts:ContiguousArray<Contact> = .init()
     private var isIsSearchMode = false
@@ -25,13 +24,12 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
     public weak var delegate: UIThreadsViewControllerDelegate?
     public weak var contactsDelegate: UIContactsViewControllerDelegate?
     public private(set) var contactsImages: [Int: ImageLoaderViewModel] = [:]
+    private var searchTask: Task<Void, any Error>? = nil
     
     @AppBackgroundActor
     private var isCompleted = false
 
-    public init() {
-        setupObservers()
-    }
+    public init() {}
     
     func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
@@ -64,157 +62,130 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
             
             /// Prevent request if search text on appear if is not empty, so it might have some contacts.
             if searchText.isEmpty {
-                getContacts()
+                try await getContacts()
             }
             
             /// Prevent request if search text on appear is not empty, so it might have some conversations.
             if searchText.isEmpty {
                 let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
-                getThreads(req)
+                try await getThreads(req)
             } else {
                 updateUI(animation: false, reloadSections: false)
             }
         }
     }
-
-    func setupObservers() {
-        $searchText
-            .debounce(for: 0.5, scheduler: RunLoop.main)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { $0.count > 1 }
-            .removeDuplicates()
-            .sink { [weak self] newValue in
-                Task { [weak self] in
-                    self?.isIsSearchMode = true
-                    await self?.search(newValue)
-                }
+    
+    public func onTextChanged(_ text: String) {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchText = trimmedText
+        
+        // Cancel the previous pending task if user is still typing
+        searchTask?.cancel()
+        
+        searchTask = Task {
+            // Wait for a short delay (user typing pause)
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            
+            // If this task was cancelled (user typed again), exit
+            guard !Task.isCancelled else { return }
+            
+            if trimmedText.count == 0, isIsSearchMode == true {
+                isIsSearchMode = false
+                try await reset()
+            } else if trimmedText.count > 1 {
+                isIsSearchMode = true
+                try await search(trimmedText)
             }
-            .store(in: &cancellableSet)
-
-        $searchText
-            .filter { $0.count == 0 }
-            .sink { [weak self] _ in
-                Task { [weak self] in
-                    if self?.isIsSearchMode == true {
-                        self?.isIsSearchMode = false
-                        self?.reset()
-                    }
-                }
-            }
-            .store(in: &cancellableSet)
+        }
     }
 
-    func search(_ text: String) {
+    private func search(_ text: String) async throws {
         conversations.removeAll()
         contacts.removeAll()
         contactsLazyList.setLoading(true)
         conversationsLazyList.setLoading(true)
         
         let req = ThreadsRequest(searchText: text)
-        getThreads(req)
-        
-        Task { [weak self] in
-            guard let self = self else { return }
-            await searchContacts(text)
-        }
+        try await getThreads(req)
+        try await getContacts(text: text)
     }
     
-    private func searchContacts(_ text: String) async {
-        do {
-            let contactsReq = ContactsRequest(query: text)
-            let contacts = try await GetContactsRequester().get(contactsReq, withCache: false)
-            await hideContactsLoadingWithDelay()
-            contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
-            let filtered = contacts.filter({ newContact in !self.contacts.contains(where: { oldContact in newContact.id == oldContact.id }) })
-            self.contacts.append(contentsOf: filtered)
-            self.contacts = ContiguousArray(Set(contacts))
-            contactsDelegate?.updateUI(animation: false, reloadSections: false)
-            for contact in contacts {
-                addImageLoader(contact)
-            }
-        } catch {
-            log("Failed to search get contacts with error: \(error.localizedDescription)")
-        }
-    }
-    
-    public func loadMore(id: Int?) async {
+    public func loadMore(id: Int?) async throws {
         if !conversationsLazyList.canLoadMore(id: id) { return }
         conversationsLazyList.prepareForLoadMore()
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
-        getThreads(req)
+        try await getThreads(req)
     }
 
-    public func getThreads(_ req: ThreadsRequest) {
+    public func getThreads(_ req: ThreadsRequest) async throws {
         if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
-        Task { [weak self] in
-            guard let self = self else { return }
-            let myId = AppState.shared.user?.id ?? -1
-            let calThreads = try await GetThreadsReuqester().getCalculated(
-                req: req,
-                withCache: false,
-                myId: myId,
-                navSelectedId: nil
-            )
-            await hideConversationsLoadingWithDelay()
-            conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
-            let filtered = calThreads
-                .filter({$0.closed == false })
-                .filter({$0.type != .selfThread})
-                .filter({ filtered in !self.conversations.contains(where: { filtered.id == $0.id }) })
-            self.conversations.append(contentsOf: filtered)
-            self.conversations = ContiguousArray(Set(conversations))
-            if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
-                let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
-                self.conversations.append(calculated)
-            }
-            self.conversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
-            self.conversations.sort(by: { $0.pin == true && $1.pin == false })
-            self.conversations.sort(by: { $0.type == .selfThread && $1.type != .selfThread })
-            let serverSortedPins = AppState.shared.objectsContainer.threadsVM.serverSortedPins
-            
-            self.conversations.sort(by: { (firstItem, secondItem) in
-                guard let firstIndex = serverSortedPins.firstIndex(where: {$0 == firstItem.id}),
-                      let secondIndex = serverSortedPins.firstIndex(where: {$0 == secondItem.id}) else {
-                    return false // Handle the case when an element is not found in the server-sorted array
-                }
-                return firstIndex < secondIndex
-            })
-            
-            updateUI(animation: false, reloadSections: false)
-            
-            for cal in calThreads {
-                addImageLoader(cal)
-            }
-            conversationsLazyList.setThreasholdIds(ids: conversations.suffix(8).compactMap {$0.id} )
+        let myId = AppState.shared.user?.id ?? -1
+        let calThreads = try await GetThreadsReuqester().getCalculated(
+            req: req,
+            withCache: false,
+            myId: myId,
+            navSelectedId: nil
+        )
+        conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
+        let filtered = calThreads
+            .filter({$0.closed == false })
+            .filter({$0.type != .selfThread})
+            .filter({ filtered in !self.conversations.contains(where: { filtered.id == $0.id }) })
+        conversations.append(contentsOf: filtered)
+        conversations = ContiguousArray(Set(conversations))
+        if self.searchText.isEmpty, !self.conversations.contains(where: {$0.type == .selfThread}), let selfConversation = selfConversation {
+            let calculated = await ThreadCalculators.calculate(selfConversation, myId ?? -1)
+            self.conversations.append(calculated)
         }
+        conversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
+        conversations.sort(by: { $0.pin == true && $1.pin == false })
+        conversations.sort(by: { $0.type == .selfThread && $1.type != .selfThread })
+        let serverSortedPins = AppState.shared.objectsContainer.threadsVM.serverSortedPins
+        
+        conversations.sort(by: { (firstItem, secondItem) in
+            guard let firstIndex = serverSortedPins.firstIndex(where: {$0 == firstItem.id}),
+                  let secondIndex = serverSortedPins.firstIndex(where: {$0 == secondItem.id}) else {
+                return false // Handle the case when an element is not found in the server-sorted array
+            }
+            return firstIndex < secondIndex
+        })
+        
+        updateUI(animation: false, reloadSections: false)
+        
+        for cal in calThreads {
+            addImageLoader(cal)
+        }
+        conversationsLazyList.setThreasholdIds(ids: conversations.suffix(8).compactMap {$0.id} )
+        conversationsLazyList.setLoading(false)
     }
 
-    public func loadMoreContacts() {
+    public func loadMoreContacts() async throws {
         if !contactsLazyList.canLoadMore() { return }
         contactsLazyList.prepareForLoadMore()
-        getContacts()
+        try await getContacts()
     }
-
-    public func getContacts() {
+        
+    public func getContacts(text: String? = nil) async throws {
         contactsLazyList.setLoading(true)
-        let req = ContactsRequest(count: contactsLazyList.count, offset: contactsLazyList.offset)
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                let contacts = try await GetContactsRequester().get(req, withCache: false)
-                await hideContactsLoadingWithDelay()
-                contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
-                let filtered = contacts.filter({ newContact in !self.contacts.contains(where: { oldContact in newContact.id == oldContact.id }) })
-                self.contacts.append(contentsOf: filtered)
-                contactsDelegate?.updateUI(animation: false, reloadSections: false)
-                for contact in contacts {
-                    addImageLoader(contact)
-                }
-            } catch {
-                log("Failed to get contacts with error: \(error.localizedDescription)")
-            }
+        let req: ContactsRequest
+        if let text = text {
+            req = ContactsRequest(query: text)
+        } else {
+            req = ContactsRequest(count: contactsLazyList.count, offset: contactsLazyList.offset)
         }
+        
+        let contacts = try await GetContactsRequester().get(req, withCache: false)
+        contactsLazyList.setHasNext(contacts.count >= contactsLazyList.count)
+        let filtered = contacts.filter({ newContact in !self.contacts.contains(where: { oldContact in newContact.id == oldContact.id }) })
+        self.contacts.append(contentsOf: filtered)
+        self.contacts = ContiguousArray(Set(contacts))
+        
+        contactsDelegate?.updateUI(animation: false, reloadSections: false)
+        for contact in contacts {
+            addImageLoader(contact)
+        }
+        contactsLazyList.setLoading(false)
     }
     
     private func getSelfConversation() async {
@@ -236,31 +207,15 @@ public class ThreadOrContactPickerViewModel: ObservableObject {
         }
     }
 
-    public func cancelObservers() {
-        cancellableSet.forEach { cancelable in
-            cancelable.cancel()
-        }
-    }
-
-    private func hideConversationsLoadingWithDelay() async {
-        try? await Task.sleep(for: .seconds(0.3))
-        conversationsLazyList.setLoading(false)
-    }
-
-    private func hideContactsLoadingWithDelay() async {
-        try? await Task.sleep(for: .seconds(0.3))
-        contactsLazyList.setLoading(false)
-    }
-
-    public func reset() {
+    private func reset() async throws {
         conversationsLazyList.reset()
         contactsLazyList.reset()
         conversations.removeAll()
         contacts.removeAll()
-        getContacts()
+        try await getContacts()
         contactsImages.removeAll()
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
-        getThreads(req)
+        try await getThreads(req)
     }
     
     private func addImageLoader(_ conversation: CalculatedConversation) {

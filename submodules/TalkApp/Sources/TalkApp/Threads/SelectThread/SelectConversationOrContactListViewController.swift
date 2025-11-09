@@ -181,17 +181,10 @@ final class SelectConversationOrContactListViewController: UIViewController {
     }
 }
 
-// MARK: - UISearchResultsUpdating
-extension SelectConversationOrContactListViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        viewModel.searchText = searchController.searchBar.text ?? ""
-    }
-}
-
 // MARK: - UISearchBarDelegate
 extension SelectConversationOrContactListViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        viewModel.searchText = searchText
+        viewModel.onTextChanged(searchText)
     }
 }
 
