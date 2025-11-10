@@ -12,6 +12,7 @@ class DrawingView: UIView {
     private var paths: [(path: UIBezierPath, color: UIColor)] = []
     private var currentColor = UIColor.red
     private var lineWidth: CGFloat = 3.0
+    public var finished = false
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -24,7 +25,7 @@ class DrawingView: UIView {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        guard !finished, let touch = touches.first else { return }
         let point = touch.location(in: self)
         path = UIBezierPath()
         path.lineWidth = lineWidth
@@ -34,7 +35,7 @@ class DrawingView: UIView {
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        guard !finished, let touch = touches.first else { return }
         let point = touch.location(in: self)
         path.addLine(to: point)
         setNeedsDisplay()
