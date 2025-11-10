@@ -9,13 +9,33 @@ import Foundation
 import Chat
 import Combine
 import TalkModels
+import UIKit
+
+public enum MutualGroupItem: Hashable, Sendable {
+    case conversation(Conversation)
+    case noResult
+}
+
+public enum MutualGroupsListSection: Sendable {
+    case main
+    case noResult
+}
 
 @MainActor
-public final class MutualGroupViewModel: ObservableObject {
-    @Published public private(set) var mutualThreads: ContiguousArray<Conversation> = []
+public protocol UIMutualGroupsViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<MutualGroupsListSection, MutualGroupItem>, animatingDifferences: Bool)
+    func updateImage(image: UIImage?, id: Int)
+}
+
+@MainActor
+public final class MutualGroupViewModel {
+    public private(set) var mutualThreads: ContiguousArray<Conversation> = []
+    public private(set) var avatars: [Int: ImageLoaderViewModel] = [:]
     private var partner: Participant?
     private var cancelable: AnyCancellable?
+    public weak var delegate: UIMutualGroupsViewControllerDelegate?
     public private(set) var lazyList = LazyListViewModel()
+    private var isCompleted = false
 
     public init() {
         cancelable = NotificationCenter.thread.publisher(for: .thread)
@@ -24,23 +44,44 @@ public final class MutualGroupViewModel: ObservableObject {
                 self?.onThreadEvent(value)
             }
     }
+    
+    public func updateUI(animation: Bool, reloadSections: Bool) {
+        /// Create
+        var snapshot = NSDiffableDataSourceSnapshot<MutualGroupsListSection, MutualGroupItem>()
+        
+        /// Configure
+        snapshot.appendSections([.main])
+        snapshot.appendItems(Array(mutualThreads).compactMap({ MutualGroupItem.conversation($0) }), toSection: .main)
+        if reloadSections {
+            snapshot.reloadSections([.main])
+        }
+        
+        if mutualThreads.isEmpty && !lazyList.isLoading {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([MutualGroupItem.noResult], toSection: .noResult)
+        }
+        
+        /// Apply
+        Task { @AppBackgroundActor in
+            await MainActor.run {
+                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+            }
+        }
+    }
 
     public func setPartner(_ partner: Participant?) {
         self.partner = partner
-        if let userName = partner?.username {
-            fetchMutualThreads(username: userName)
-        }
     }
 
     public func loadMoreMutualGroups() async {
         if let username = partner?.username, await lazyList.canLoadMore() {
             lazyList.prepareForLoadMore()
-            fetchMutualThreads(username: username)
+            fetchMutualThreads()
         }
     }
 
-    public func fetchMutualThreads(username: String) {
-        guard AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue else { return }
+    public func fetchMutualThreads() {
+        guard let username = partner?.username, AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue else { return }
         lazyList.setLoading(true)
         let invitee = Invitee(id: "\(username)", idType: .username)
         let req = MutualGroupsRequest(toBeUser: invitee, count: lazyList.count, offset: lazyList.offset)
@@ -69,5 +110,6 @@ public final class MutualGroupViewModel: ObservableObject {
                 }
             }
         }
+        updateUI(animation: false, reloadSections: false)
     }
 }

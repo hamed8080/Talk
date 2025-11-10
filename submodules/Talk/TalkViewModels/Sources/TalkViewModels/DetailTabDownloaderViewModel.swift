@@ -12,6 +12,21 @@ import SwiftUI
 import TalkExtensions
 import TalkModels
 
+public enum LinkItem: Hashable, Sendable {
+    case item(TabRowModel)
+    case noResult
+}
+
+public enum LinksListSection: Sendable {
+    case main
+    case noResult
+}
+
+@MainActor
+public protocol UILinksViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>, animatingDifferences: Bool)
+}
+
 @MainActor
 public class DetailTabDownloaderViewModel: ObservableObject {
     public private(set) var messagesModels: ContiguousArray<TabRowModel> = []
@@ -26,6 +41,7 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     private let tabName: String
     private var objectId = UUID().uuidString
     private let DETAIL_HISTORY_KEY: String
+    public weak var linksDelegate: UILinksViewControllerDelegate?
 
     public init(conversation: Conversation, messageType: ChatModels.MessageType, tabName: String) {
         DETAIL_HISTORY_KEY = "DETAIL-HISTORY-\(tabName)-KEY-\(objectId)"
