@@ -287,7 +287,7 @@ extension ThreadsTableViewController: UITableViewDelegate {
         }
         archiveAction.image = UIImage(systemName: archiveImage)
         archiveAction.backgroundColor = Color.App.color5UIColor
-        if !isSelfThread {
+        if !isSelfThread, !isClosed {
             arr.append(archiveAction)
         }
 
