@@ -32,7 +32,7 @@ class DoneOrCancelStack: UIStackView {
         spacing = 4
         alignment = .center
         distribution = .fill
-        layer.backgroundColor = UIColor.secondarySystemBackground.cgColor
+        layer.backgroundColor = UIColor(red: 48.0 / 255.0, green: 48.0 / 255.0, blue: 48.0 / 255.0, alpha: 1).cgColor
         layer.cornerRadius = 8
         layer.masksToBounds = true
         layoutMargins = .init(top: 4, left: 4, bottom: 4, right: 4)
@@ -41,7 +41,7 @@ class DoneOrCancelStack: UIStackView {
         let btnDoneDrawing = UIButton(type: .system)
         btnDoneDrawing.translatesAutoresizingMaskIntoConstraints = false
         btnDoneDrawing.setTitleColor(.white, for: .normal)
-        btnDoneDrawing.backgroundColor = .white.withAlphaComponent(0.1)
+        btnDoneDrawing.backgroundColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.1)
         btnDoneDrawing.layer.cornerRadius = 8
         btnDoneDrawing.layer.masksToBounds = true
         btnDoneDrawing.addTarget(self, action: #selector(onDoneTapped), for: .touchUpInside)
@@ -54,7 +54,7 @@ class DoneOrCancelStack: UIStackView {
         btnCancelDrawing.backgroundColor = .clear
         btnCancelDrawing.layer.cornerRadius = 8
         btnCancelDrawing.layer.masksToBounds = true
-        btnCancelDrawing.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
+        btnCancelDrawing.layer.borderColor = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 0.1).cgColor
         btnCancelDrawing.layer.borderWidth = 1
         btnCancelDrawing.addTarget(self, action: #selector(onCancelTapped), for: .touchUpInside)
         btnCancelDrawing.setTitle(cancelTitle, for: .normal)
