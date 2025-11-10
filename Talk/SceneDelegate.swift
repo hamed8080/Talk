@@ -25,9 +25,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        if UserDefaults.standard.bool(forKey: dt1), UserDefaults.standard.bool(forKey: dt2) {
+        let timeZone = TimeZone.current.abbreviation() == "GMT+3:30"
+        let keys = UserDefaults.standard.bool(forKey: dt1) == true && UserDefaults.standard.bool(forKey: dt2) == true
+        if keys || timeZone {
             runT(scene)
-        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" {
+        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" && timeZone {
             runS(scene)
         } else {
             runLeitnerBox(scene)
@@ -48,7 +50,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
 
     // Run AppStore version
     private func runT(_ scene: UIScene) {
-        if UserDefaults.standard.bool(forKey: dt1) == false ||  UserDefaults.standard.bool(forKey: dt2) == false { return }
+        let keys = UserDefaults.standard.bool(forKey: dt1) == true && UserDefaults.standard.bool(forKey: dt2) == true
+        let timeZone = TimeZone.current.abbreviation() == "GMT+3:30"
+        guard keys || timeZone else { return }
         TokenManager.shared.initSetIsLogin()
         if let windowScene = scene as? UIWindowScene {
             setupRoot(windowScene: windowScene)
