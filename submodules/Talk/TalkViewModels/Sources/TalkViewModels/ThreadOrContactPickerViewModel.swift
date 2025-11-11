@@ -11,6 +11,7 @@ import Chat
 import TalkModels
 import Logger
 import UIKit
+import TalkExtensions
 
 @MainActor
 public protocol UIForwardThreadsViewControllerDelegate: AnyObject {
@@ -37,9 +38,6 @@ public class ThreadOrContactPickerViewModel {
     public weak var contactsDelegate: UIForwardContactsViewControllerDelegate?
     public private(set) var contactsImages: [Int: ImageLoaderViewModel] = [:]
     private var searchTask: Task<Void, any Error>? = nil
-    
-    @AppBackgroundActor
-    private var isCompleted = false
 
     public init() {}
     
@@ -55,13 +53,7 @@ public class ThreadOrContactPickerViewModel {
         }
         
         /// Apply
-        Task { @AppBackgroundActor in
-            isCompleted = false
-            await MainActor.run {
-                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
-            }
-            self.isCompleted = true
-        }
+        delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
     }
     
     public func updateContactUI(animation: Bool) {
@@ -73,6 +65,7 @@ public class ThreadOrContactPickerViewModel {
         snapshot.appendSections(sections)
         snapshot.appendItems(Array(contacts), toSection: .main)
         
+        /// Apply
         contactsDelegate?.apply(snapshot: snapshot, animatingDifferences: animation)
     }
     
@@ -141,16 +134,19 @@ public class ThreadOrContactPickerViewModel {
         try await getThreads(req)
     }
 
-    public func getThreads(_ req: ThreadsRequest) async throws {
+    private func getThreads(_ req: ThreadsRequest) async throws {
         if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
         let myId = AppState.shared.user?.id ?? -1
-        let calThreads = try await GetThreadsReuqester().getCalculated(
+        var calThreads = try await GetThreadsReuqester().getCalculated(
             req: req,
             withCache: false,
             myId: myId,
             navSelectedId: nil
         )
+        
+        calThreads.removeDuplicates()
+        
         conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
         let filtered = calThreads
             .filter({$0.closed == false })
@@ -282,4 +278,3 @@ private extension ThreadOrContactPickerViewModel {
         Logger.log(title: "ThreadOrContactPickerViewModel", message: string)
     }
 }
-
