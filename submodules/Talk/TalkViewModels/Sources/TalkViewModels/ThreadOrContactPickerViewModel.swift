@@ -138,14 +138,12 @@ public class ThreadOrContactPickerViewModel {
         if selfConversation == nil { return }
         conversationsLazyList.setLoading(true)
         let myId = AppState.shared.user?.id ?? -1
-        var calThreads = try await GetThreadsReuqester().getCalculated(
+        let calThreads = try await GetThreadsReuqester().getCalculated(
             req: req,
             withCache: false,
             myId: myId,
             navSelectedId: nil
         )
-        
-        calThreads.removeDuplicates()
         
         conversationsLazyList.setHasNext(calThreads.count >= conversationsLazyList.count)
         let filtered = calThreads
