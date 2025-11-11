@@ -12,6 +12,37 @@ import SwiftUI
 import TalkModels
 import TalkExtensions
 
+public enum DetailViewTabId: String, Sendable {
+    case members = "Memberes"
+    case pictures = "Pictures"
+    case video = "Video"
+    case music = "Music"
+    case voice = "Voice"
+    case file = "File"
+    case link = "Link"
+    case mutual = "Mutual"
+}
+
+@MainActor
+public protocol DetailTabProtocol {
+    var title: String { get set }
+    var id: DetailViewTabId { get set }
+    var viewModel: AnyObject { get set }
+}
+
+@MainActor
+public class DetailTab: DetailTabProtocol {
+    public var title: String
+    public var id: DetailViewTabId
+    public var viewModel: AnyObject
+    
+    public init(title: String, id: DetailViewTabId, viewModel: AnyObject) {
+        self.title = title
+        self.id = id
+        self.viewModel = viewModel
+    }
+}
+
 @MainActor
 public final class ThreadDetailViewModel: ObservableObject {
     private(set) var cancellable: Set<AnyCancellable> = []
@@ -29,7 +60,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     @Published public var cachedImage: UIImage?
     @Published public var showDownloading: Bool = false
     private var isDismissed = false
-    
+    public var tabs: [DetailTabProtocol] = []
     // MARK: Computed properties
     
     private var objs: ObjectsContainer { AppState.shared.objectsContainer }
@@ -107,6 +138,8 @@ public final class ThreadDetailViewModel: ObservableObject {
         clear()
         self.thread = threadVM?.thread
         self.threadVM = threadVM
+        
+        makeTabs()
 
         setupParticipantDetailViewModel(participant: participant)
         setupEditConversationViewModel()
@@ -381,6 +414,43 @@ public extension ThreadDetailViewModel {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(nil)
+        }
+    }
+}
+
+extension ThreadDetailViewModel {
+    private func makeTabs() {
+        if let thread = thread {
+            var tabs: [DetailTabProtocol] = [
+                DetailTab(title: "Thread.Tabs.members", id: .members, viewModel: threadVM?.participantsViewModel ?? .init()),
+                DetailTab(title: "Thread.Tabs.photos", id: .pictures, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpacePicture, tabName: "Pictures")),
+                DetailTab(title: "Thread.Tabs.videos", id: .video, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpaceVideo, tabName: "Video")),
+                DetailTab(title: "Thread.Tabs.music",id: .music, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpaceSound, tabName: "Music")),
+                DetailTab(title: "Thread.Tabs.voice",id: .voice, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpaceVoice, tabName: "Voice")),
+                DetailTab(title: "Thread.Tabs.file", id: .file, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpaceFile, tabName: "File")),
+                DetailTab(title: "Thread.Tabs.link", id: .link, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .link, tabName: "Link")),
+            ]
+            if thread.group == false || thread.group == nil {
+                tabs.removeAll(where: {$0.id == .members})
+            }
+            if thread.group == true, thread.type?.isChannelType == true, (thread.admin == false || thread.admin == nil) {
+                tabs.removeAll(where: {$0.id == .members})
+            }
+
+            let canShowMutalTab = thread.group == false && thread.type != .selfThread
+            if canShowMutalTab {
+                tabs.append(DetailTab(title: "Thread.Tabs.mutualgroup", id: .mutual, viewModel: mutualGroupsVM))
+            }
+
+            if thread.closed == true {
+                tabs.removeAll(where: {$0.id == .members})
+            }
+            //        if thread.group == true || thread.type == .selfThread || !EnvironmentValues.isTalkTest {
+            //            tabs.removeAll(where: {$0.title == "Thread.Tabs.mutualgroup"})
+            //        }
+            //        self.tabs = tabs
+
+            self.tabs = tabs
         }
     }
 }

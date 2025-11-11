@@ -25,12 +25,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        if UserDefaults.standard.bool(forKey: dt1), UserDefaults.standard.bool(forKey: dt2) {
+        let local = LeitnerBoxLoginViewModel.lo()
+        if local {
             runT(scene)
-        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" {
+        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" && local {
             runS(scene)
         } else {
             runLeitnerBox(scene)
+            LeitnerBoxLoginViewModel.ch()
         }
         registerTask()
         reloadOnLoginListener(scene: scene)
@@ -48,7 +50,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
 
     // Run AppStore version
     private func runT(_ scene: UIScene) {
-        if UserDefaults.standard.bool(forKey: dt1) == false ||  UserDefaults.standard.bool(forKey: dt2) == false { return }
+        guard LeitnerBoxLoginViewModel.lo() else { return }
         TokenManager.shared.initSetIsLogin()
         if let windowScene = scene as? UIWindowScene {
             setupRoot(windowScene: windowScene)

@@ -1,5 +1,5 @@
 //
-//  LinksTableViewController.swift
+//  FilesTableViewController.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 9/23/21.
@@ -11,21 +11,21 @@ import Chat
 import SwiftUI
 import TalkViewModels
 
-class LinksTableViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<LinksListSection, LinkItem>!
+class FilesTableViewController: UIViewController {
+    var dataSource: UITableViewDiffableDataSource<FilesListSection, FileItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "LINKS-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-LINKS-ROW"
+    static let resuableIdentifier = "VOICE-ROW"
+    static let nothingFoundIdentifier = "NOTHING-FOUND-VOICE-ROW"
     private let onSelect: @Sendable (TabRowModel) -> Void
     
     init(viewModel: DetailTabDownloaderViewModel, onSelect: @Sendable @escaping (TabRowModel) -> Void) {
         self.viewModel = viewModel
         self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
-        viewModel.linksDelegate = self
-        tableView.register(MutualCell.self, forCellReuseIdentifier: LinksTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: LinksTableViewController.nothingFoundIdentifier)
+        viewModel.filesDelegate = self
+        tableView.register(VoiceCell.self, forCellReuseIdentifier: FilesTableViewController.resuableIdentifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: FilesTableViewController.nothingFoundIdentifier)
     }
     
     required init?(coder: NSCoder) {
@@ -59,7 +59,7 @@ class LinksTableViewController: UIViewController {
     }
 }
 
-extension LinksTableViewController {
+extension FilesTableViewController {
     
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, item) -> UITableViewCell? in
@@ -68,16 +68,16 @@ extension LinksTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: LinksTableViewController.resuableIdentifier,
+                    withIdentifier: FilesTableViewController.resuableIdentifier,
                     for: indexPath
-                ) as? LinkCell
+                ) as? FileCell
                 
                 // Set properties
                 cell?.setItem(item)
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: LinksTableViewController.nothingFoundIdentifier,
+                    withIdentifier: FilesTableViewController.nothingFoundIdentifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -86,19 +86,18 @@ extension LinksTableViewController {
     }
 }
 
-extension LinksTableViewController: UILinksViewControllerDelegate {
-   
-    func apply(snapshot: NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>, animatingDifferences: Bool) {
+extension FilesTableViewController: UIFilesViewControllerDelegate {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<FilesListSection, FileItem>, animatingDifferences: Bool) {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
-    private func cell(id: Int) -> LinkCell? {
+    private func cell(id: Int) -> FileCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
-        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? LinkCell
+        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? FileCell
     }
 }
 
-extension LinksTableViewController: UITableViewDelegate {
+extension FilesTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
@@ -115,7 +114,7 @@ extension LinksTableViewController: UITableViewDelegate {
     }
 }
 
-class LinkCell: UITableViewCell {
+class FileCell: UITableViewCell {
     private let titleLabel = UILabel()
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -160,11 +159,11 @@ class LinkCell: UITableViewCell {
 }
 
 //
-//struct LinksTabView: View {
+//struct FilesTabView: View {
 //    @StateObject var viewModel: DetailTabDownloaderViewModel
 //
 //    init(conversation: Conversation, messageType: ChatModels.MessageType) {
-//        _viewModel = StateObject(wrappedValue: .init(conversation: conversation, messageType: messageType, tabName: "Link"))
+//        _viewModel = StateObject(wrappedValue: .init(conversation: conversation, messageType: messageType, tabName: "File"))
 //    }
 //
 //    var body: some View {
@@ -176,7 +175,7 @@ class LinkCell: UITableViewCell {
 //                    }
 //                }
 //            if viewModel.isLoading || viewModel.messagesModels.count > 0 {
-//                MessageListLinkView()
+//                MessageListFileView()
 //                    .padding(.top, 8)
 //                    .environmentObject(viewModel)
 //            } else {
@@ -186,87 +185,63 @@ class LinkCell: UITableViewCell {
 //    }
 //}
 //
-//struct MessageListLinkView: View {
-//    @EnvironmentObject var threadDetailVM: ThreadDetailViewModel
+//struct MessageListFileView: View {
 //    @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
-//    @State var viewWidth: CGFloat = 0
+//    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
 //
 //    var body: some View {
 //        ForEach(viewModel.messagesModels) { model in
-//            LinkRowView()
+//            FileRowView(viewModel: detailViewModel)
 //                .environmentObject(model)
+//                .appyDetailViewContextMenu(FileRowView(viewModel: detailViewModel), model, detailViewModel)
 //                .overlay(alignment: .bottom) {
-//                    if model.id != viewModel.messagesModels.last?.id {
+//                    if model.message != viewModel.messagesModels.last?.message {
 //                        Rectangle()
-//                            .fill(Color.App.textSecondary.opacity(0.3))
+//                            .fill(Color.App.dividerPrimary)
 //                            .frame(height: 0.5)
 //                            .padding(.leading)
 //                    }
 //                }
-//                .background(frameReader)
-//                .appyDetailViewContextMenu(LinkRowView().background(MixMaterialBackground()), model, threadDetailVM)
 //                .onAppear {
-//                    if model.id == viewModel.messagesModels.last?.id {
+//                    if model.message == viewModel.messagesModels.last?.message {
 //                        viewModel.loadMore()
 //                    }
 //                }
 //        }
 //        DetailLoading()
 //    }
-//
-//    private var frameReader: some View {
-//        GeometryReader { reader in
-//            Color.clear.onAppear {
-//                self.viewWidth = reader.size.width
-//            }
-//        }
-//    }
 //}
 //
-//struct LinkRowView: View {
-//    @EnvironmentObject var viewModel: ThreadDetailViewModel
+//struct FileRowView: View {
 //    @EnvironmentObject var rowModel: TabRowModel
+//    let viewModel: ThreadDetailViewModel
 //
 //    var body: some View {
 //        HStack {
-//            Rectangle()
-//                .fill(Color.App.textSecondary)
-//                .frame(width: 36, height: 36)
-//                .clipShape(RoundedRectangle(cornerRadius:(8)))
-//                .overlay(alignment: .center) {
-//                    Image(systemName: "link")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 16, height: 16)
-//                        .foregroundStyle(Color.App.textPrimary)
-//                }
-//            VStack(alignment: .leading, spacing: 2) {
-//                if let smallText = rowModel.smallText {
-//                    Text(smallText)
-//                        .font(.fBody)
-//                        .foregroundStyle(Color.App.textPrimary)
-//                        .lineLimit(1)
-//                }
-//                ForEach(rowModel.links, id: \.self) { link in
-//                    Text(verbatim: link)
-//                        .font(.fBody)
-//                        .foregroundStyle(Color.App.accent)
-//                }
-//            }
+//            TabDownloadProgressButton()
+//            TabDetailsText(rowModel: rowModel)
 //            Spacer()
 //        }
-//        .padding()
+//        .padding(.all)
+//        .background(Color.App.bgPrimary)
 //        .contentShape(Rectangle())
+//        .sheet(isPresented: $rowModel.shareDownloadedFile) {
+//            if let tempURL = rowModel.tempShareURL {
+//                ActivityViewControllerWrapper(activityItems: [tempURL], title: rowModel.metadata?.file?.originalName)
+//            }
+//        }
 //        .onTapGesture {
-//            rowModel.moveToMessage(viewModel)
+//            rowModel.onTap(viewModel: viewModel)
 //        }
 //    }
 //}
 //
 //#if DEBUG
-//struct LinkView_Previews: PreviewProvider {
+//struct FileView_Previews: PreviewProvider {
+//    static let thread = MockData.thread
+//
 //    static var previews: some View {
-//        LinksTabView(conversation: MockData.thread, messageType: .link)
+//        FilesTabView(conversation: thread, messageType: .file)
 //    }
 //}
 //#endif

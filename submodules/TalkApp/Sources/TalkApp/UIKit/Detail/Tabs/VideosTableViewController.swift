@@ -1,5 +1,5 @@
 //
-//  LinksTableViewController.swift
+//  VideosTableViewController.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 9/23/21.
@@ -11,21 +11,21 @@ import Chat
 import SwiftUI
 import TalkViewModels
 
-class LinksTableViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<LinksListSection, LinkItem>!
+class VideosTableViewController: UIViewController {
+    var dataSource: UITableViewDiffableDataSource<VideosListSection, VideoItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "LINKS-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-LINKS-ROW"
+    static let resuableIdentifier = "VIDEO-ROW"
+    static let nothingFoundIdentifier = "NOTHING-FOUND-VIDEO-ROW"
     private let onSelect: @Sendable (TabRowModel) -> Void
     
     init(viewModel: DetailTabDownloaderViewModel, onSelect: @Sendable @escaping (TabRowModel) -> Void) {
         self.viewModel = viewModel
         self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
-        viewModel.linksDelegate = self
-        tableView.register(MutualCell.self, forCellReuseIdentifier: LinksTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: LinksTableViewController.nothingFoundIdentifier)
+        viewModel.videosDelegate = self
+        tableView.register(VideoCell.self, forCellReuseIdentifier: VideosTableViewController.resuableIdentifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: VideosTableViewController.nothingFoundIdentifier)
     }
     
     required init?(coder: NSCoder) {
@@ -59,7 +59,7 @@ class LinksTableViewController: UIViewController {
     }
 }
 
-extension LinksTableViewController {
+extension VideosTableViewController {
     
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, item) -> UITableViewCell? in
@@ -68,16 +68,16 @@ extension LinksTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: LinksTableViewController.resuableIdentifier,
+                    withIdentifier: VideosTableViewController.resuableIdentifier,
                     for: indexPath
-                ) as? LinkCell
+                ) as? VideoCell
                 
                 // Set properties
                 cell?.setItem(item)
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: LinksTableViewController.nothingFoundIdentifier,
+                    withIdentifier: VideosTableViewController.nothingFoundIdentifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -86,19 +86,18 @@ extension LinksTableViewController {
     }
 }
 
-extension LinksTableViewController: UILinksViewControllerDelegate {
-   
-    func apply(snapshot: NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>, animatingDifferences: Bool) {
+extension VideosTableViewController: UIVideosViewControllerDelegate {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>, animatingDifferences: Bool) {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
-    private func cell(id: Int) -> LinkCell? {
+    private func cell(id: Int) -> VideoCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
-        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? LinkCell
+        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? VideoCell
     }
 }
 
-extension LinksTableViewController: UITableViewDelegate {
+extension VideosTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
@@ -115,7 +114,7 @@ extension LinksTableViewController: UITableViewDelegate {
     }
 }
 
-class LinkCell: UITableViewCell {
+class VideoCell: UITableViewCell {
     private let titleLabel = UILabel()
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -160,13 +159,14 @@ class LinkCell: UITableViewCell {
 }
 
 //
-//struct LinksTabView: View {
+//struct VideosTabView: View {
 //    @StateObject var viewModel: DetailTabDownloaderViewModel
-//
+//    
 //    init(conversation: Conversation, messageType: ChatModels.MessageType) {
-//        _viewModel = StateObject(wrappedValue: .init(conversation: conversation, messageType: messageType, tabName: "Link"))
+//        let vm = DetailTabDownloaderViewModel(conversation: conversation, messageType: messageType, tabName: "Video")
+//        _viewModel = StateObject(wrappedValue: vm)
 //    }
-//
+//    
 //    var body: some View {
 //        LazyVStack {
 //            ThreadTabDetailStickyHeaderSection(header: "", height:  4)
@@ -175,8 +175,9 @@ class LinkCell: UITableViewCell {
 //                        viewModel.loadMore()
 //                    }
 //                }
+//            
 //            if viewModel.isLoading || viewModel.messagesModels.count > 0 {
-//                MessageListLinkView()
+//                MessageListVideoView()
 //                    .padding(.top, 8)
 //                    .environmentObject(viewModel)
 //            } else {
@@ -186,87 +187,66 @@ class LinkCell: UITableViewCell {
 //    }
 //}
 //
-//struct MessageListLinkView: View {
-//    @EnvironmentObject var threadDetailVM: ThreadDetailViewModel
+//struct MessageListVideoView: View {
 //    @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
-//    @State var viewWidth: CGFloat = 0
+//    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
 //
 //    var body: some View {
 //        ForEach(viewModel.messagesModels) { model in
-//            LinkRowView()
+//            VideoRowView(viewModel: detailViewModel)
 //                .environmentObject(model)
+//                .appyDetailViewContextMenu(VideoRowView(viewModel: detailViewModel), model, detailViewModel)
 //                .overlay(alignment: .bottom) {
-//                    if model.id != viewModel.messagesModels.last?.id {
+//                    if model.message != viewModel.messagesModels.last?.message {
 //                        Rectangle()
-//                            .fill(Color.App.textSecondary.opacity(0.3))
+//                            .fill(Color.App.dividerPrimary)
 //                            .frame(height: 0.5)
 //                            .padding(.leading)
 //                    }
 //                }
-//                .background(frameReader)
-//                .appyDetailViewContextMenu(LinkRowView().background(MixMaterialBackground()), model, threadDetailVM)
 //                .onAppear {
-//                    if model.id == viewModel.messagesModels.last?.id {
+//                    if model.message == viewModel.messagesModels.last?.message {
 //                        viewModel.loadMore()
 //                    }
 //                }
 //        }
 //        DetailLoading()
 //    }
-//
-//    private var frameReader: some View {
-//        GeometryReader { reader in
-//            Color.clear.onAppear {
-//                self.viewWidth = reader.size.width
-//            }
-//        }
-//    }
 //}
 //
-//struct LinkRowView: View {
-//    @EnvironmentObject var viewModel: ThreadDetailViewModel
+//struct VideoRowView: View {
 //    @EnvironmentObject var rowModel: TabRowModel
-//
+//    let viewModel: ThreadDetailViewModel
+//   
 //    var body: some View {
 //        HStack {
-//            Rectangle()
-//                .fill(Color.App.textSecondary)
-//                .frame(width: 36, height: 36)
-//                .clipShape(RoundedRectangle(cornerRadius:(8)))
-//                .overlay(alignment: .center) {
-//                    Image(systemName: "link")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 16, height: 16)
-//                        .foregroundStyle(Color.App.textPrimary)
-//                }
-//            VStack(alignment: .leading, spacing: 2) {
-//                if let smallText = rowModel.smallText {
-//                    Text(smallText)
-//                        .font(.fBody)
-//                        .foregroundStyle(Color.App.textPrimary)
-//                        .lineLimit(1)
-//                }
-//                ForEach(rowModel.links, id: \.self) { link in
-//                    Text(verbatim: link)
-//                        .font(.fBody)
-//                        .foregroundStyle(Color.App.accent)
-//                }
-//            }
+//            TabDownloadProgressButton()
+//            TabDetailsText(rowModel: rowModel)
 //            Spacer()
 //        }
-//        .padding()
+//        .padding(.all)
 //        .contentShape(Rectangle())
+//        .background(Color.App.bgPrimary)
+//        .fullScreenCover(isPresented: $rowModel.showFullScreen) {
+//            /// On dismiss
+//            rowModel.playerVM?.player?.pause()
+//        } content: {
+//            if let player = rowModel.playerVM?.player {
+//                PlayerViewRepresentable(player: player, showFullScreen: $rowModel.showFullScreen)
+//            }
+//        }
 //        .onTapGesture {
-//            rowModel.moveToMessage(viewModel)
+//            rowModel.onTap(viewModel: viewModel)
 //        }
 //    }
 //}
 //
 //#if DEBUG
-//struct LinkView_Previews: PreviewProvider {
+//struct VideoView_Previews: PreviewProvider {
+//    static let thread = MockData.thread
+//
 //    static var previews: some View {
-//        LinksTabView(conversation: MockData.thread, messageType: .link)
+//        VideosTabView(conversation: thread, messageType: .file)
 //    }
 //}
 //#endif

@@ -15,4 +15,5 @@ class LeitnerBoxRoutes {
     static let suggestions = api + "/suggestions"
     static let deleteAccount = api + "/deleteaccount"
     static let forgot = api + "/forgot-password"
+    static let check = api + "/check"
 }

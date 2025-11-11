@@ -350,4 +350,11 @@ extension ImageLoaderViewModel {
         let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
         self.init(config: config)
     }
+    
+    convenience init(participant: Participant) {
+        let httpsImage = participant.image?.replacingOccurrences(of: "http://", with: "https://")
+        let userName = String.splitedCharacter(participant.name ?? participant.username ?? "")
+        let config = ImageLoaderConfig(url: httpsImage ?? "", userName: userName)
+        self.init(config: config)
+    }
 }

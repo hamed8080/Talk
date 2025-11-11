@@ -226,6 +226,7 @@ extension ImageEditorView {
         removeDrawingView()
         
         /// Firstly, we remove it from the image view and make it nil, to remove reference of it, then we add it as a subview.
+        drawingView.finished = true
         imageView.addSubview(drawingView)
     }
     

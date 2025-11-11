@@ -27,6 +27,81 @@ public protocol UILinksViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>, animatingDifferences: Bool)
 }
 
+public enum MusicItem: Hashable, Sendable {
+    case item(TabRowModel)
+    case noResult
+}
+
+public enum MusicsListSection: Sendable {
+    case main
+    case noResult
+}
+
+@MainActor
+public protocol UIMusicsViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem>, animatingDifferences: Bool)
+}
+
+public enum VoiceItem: Hashable, Sendable {
+    case item(TabRowModel)
+    case noResult
+}
+
+public enum VoicesListSection: Sendable {
+    case main
+    case noResult
+}
+
+@MainActor
+public protocol UIVoicesViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem>, animatingDifferences: Bool)
+}
+
+public enum VideoItem: Hashable, Sendable {
+    case item(TabRowModel)
+    case noResult
+}
+
+public enum VideosListSection: Sendable {
+    case main
+    case noResult
+}
+
+@MainActor
+public protocol UIVideosViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>, animatingDifferences: Bool)
+}
+
+public enum FileItem: Hashable, Sendable {
+    case item(TabRowModel)
+    case noResult
+}
+
+public enum FilesListSection: Sendable {
+    case main
+    case noResult
+}
+
+@MainActor
+public protocol UIFilesViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<FilesListSection, FileItem>, animatingDifferences: Bool)
+}
+
+public enum PictureItem: Hashable, Sendable {
+    case item(TabRowModel)
+    case noResult
+}
+
+public enum PicturesListSection: Sendable {
+    case main
+    case noResult
+}
+
+@MainActor
+public protocol UIPicturesViewControllerDelegate: AnyObject {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem>, animatingDifferences: Bool)
+}
+
 @MainActor
 public class DetailTabDownloaderViewModel: ObservableObject {
     public private(set) var messagesModels: ContiguousArray<TabRowModel> = []
@@ -42,6 +117,12 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     private var objectId = UUID().uuidString
     private let DETAIL_HISTORY_KEY: String
     public weak var linksDelegate: UILinksViewControllerDelegate?
+    public weak var musicsDelegate: UIMusicsViewControllerDelegate?
+    public weak var voicesDelegate: UIVoicesViewControllerDelegate?
+    public weak var videosDelegate: UIVideosViewControllerDelegate?
+    public weak var filesDelegate: UIFilesViewControllerDelegate?
+    public weak var picturesDelegate: UIPicturesViewControllerDelegate?
+    public weak var membersDelegate: UIMembersViewControllerDelegate?
 
     public init(conversation: Conversation, messageType: ChatModels.MessageType, tabName: String) {
         DETAIL_HISTORY_KEY = "DETAIL-HISTORY-\(tabName)-KEY-\(objectId)"

@@ -113,9 +113,13 @@ extension ThreadsTableViewController {
             
             // Set properties
             cell?.setConversation(conversation: conversation)
+            let id = conversation.id ?? -1
             cell?.onContextMenu = { [weak self] sender in
                 if sender.state == .began {
-                    self?.showContextMenu(indexPath, contentView: UIView())
+                    /// We have to fetch new indexPath the above index path is the old one if we pin/unpin a thread
+                    if let index = self?.viewModel.firstIndex(id) {
+                        self?.showContextMenu(IndexPath(row: index, section: indexPath.section), contentView: UIView())
+                    }
                 }
             }
             return cell
@@ -283,7 +287,7 @@ extension ThreadsTableViewController: UITableViewDelegate {
         }
         archiveAction.image = UIImage(systemName: archiveImage)
         archiveAction.backgroundColor = Color.App.color5UIColor
-        if !isSelfThread {
+        if !isSelfThread, !isClosed {
             arr.append(archiveAction)
         }
 

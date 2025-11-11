@@ -40,7 +40,7 @@ class MutualGroupsTableViewController: UIViewController {
         tableView.rowHeight = 96
         tableView.delegate = self
         tableView.allowsMultipleSelection = false
-        tableView.backgroundColor = Color.App.bgPrimaryUIColor
+        tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
         view.addSubview(tableView)
         
@@ -196,19 +196,6 @@ class MutualCell: UITableViewCell {
         avatar.image = image
         avatar.isHidden = image == nil
     }
-}
-
-struct MutualsTabView: UIViewControllerRepresentable {
-    let viewModel: MutualGroupViewModel
-    
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = MutualGroupsTableViewController(viewModel: viewModel) { conversation in
-            
-        }
-        return vc
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
 }
 
 //
