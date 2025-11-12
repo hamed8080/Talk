@@ -46,7 +46,7 @@ final class FooterView: UIStackView {
         spacing = ConstantSizes.messageFooterViewStackSpacing
         axis = .horizontal
         alignment = .bottom
-        semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         isOpaque = true
 
         reactionView.translatesAutoresizingMaskIntoConstraints = false

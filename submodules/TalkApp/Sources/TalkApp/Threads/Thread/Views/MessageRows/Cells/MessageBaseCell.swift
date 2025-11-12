@@ -60,7 +60,7 @@ public class MessageBaseCell: UITableViewCell {
 
     private func setupConstraints(isMe: Bool) {
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
-        messageContainer.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        messageContainer.semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         messageContainer.accessibilityIdentifier = "messageContainerMessageBaseCell"
         container.addSubview(messageContainer)
         messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: ConstantSizes.messageContainerStackViewTopMargin).isActive = true

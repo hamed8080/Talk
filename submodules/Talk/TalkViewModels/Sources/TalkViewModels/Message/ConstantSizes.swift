@@ -36,6 +36,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageTailViewWidth: CGFloat = 7.88
     nonisolated(unsafe) public static let messageTailViewHeight: CGFloat = 12.52
     nonisolated(unsafe) public static let messageTailViewLeading: CGFloat = 7.0
+    nonisolated(unsafe) public static let messageTailViewTrailing: CGFloat = 0.8
 
     /// MessageFileView sizes
     nonisolated(unsafe) public static let messageFileViewHeight: CGFloat = 48
@@ -81,7 +82,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageLocationHeight: CGFloat = min(320, max(128, (ThreadViewModel.maxAllowedWidth)))
 
     /// GroupParticipantNameView sizes
-    nonisolated(unsafe) public static let groupParticipantNameViewHeight: CGFloat = 16
+    nonisolated(unsafe) public static let groupParticipantNameViewHeight: CGFloat = 28
     
     /// MessageReplyInfoView sizes
     nonisolated(unsafe) public static let messageReplyInfoViewHeight: CGFloat = 54

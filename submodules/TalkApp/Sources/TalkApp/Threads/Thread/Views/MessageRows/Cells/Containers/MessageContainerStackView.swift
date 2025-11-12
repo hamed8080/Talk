@@ -66,6 +66,7 @@ public final class MessageContainerStackView: UIStackView {
     }
 
     public func configureView(isMe: Bool) {
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         axis = .vertical
         spacing = ConstantSizes.messageContainerStackViewStackSpacing
@@ -103,7 +104,11 @@ public final class MessageContainerStackView: UIStackView {
 
         tailImageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewWidth).isActive = true
         tailImageView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewHeight).isActive = true
-        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -ConstantSizes.messageTailViewLeading).isActive = true
+        if isMe {
+            tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -ConstantSizes.messageTailViewLeading).isActive = true
+        } else {
+            tailImageView.leadingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageTailViewTrailing).isActive = true
+        }
         tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         
         minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageContainerStackViewMinWidth)
@@ -354,7 +359,7 @@ extension MessageContainerStackView {
         messageFileView.isUserInteractionEnabled = false
         singleEmojiView.isUserInteractionEnabled = false
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
-        semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
     }
 }
 

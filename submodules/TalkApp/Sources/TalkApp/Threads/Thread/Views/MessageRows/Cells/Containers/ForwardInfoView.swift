@@ -33,18 +33,17 @@ final class ForwardInfoView: UIView {
 
     private func configureView(isMe: Bool) {
         translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = Color.App.bgPrimaryUIColor?.withAlphaComponent(0.5)
         layer.cornerRadius = ConstantSizes.messageForwardInfoViewStackCornerRadius
         layer.masksToBounds = true
         backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
-        semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
 
         forwardStaticLabel.translatesAutoresizingMaskIntoConstraints = false
         forwardStaticLabel.font = UIFont.fCaption3
         forwardStaticLabel.textColor = Color.App.accentUIColor
         forwardStaticLabel.text = ForwardInfoView.forwardFromStaticText
         forwardStaticLabel.accessibilityIdentifier = "forwardStaticLebelForwardInfoView"
-        forwardStaticLabel.textAlignment = isMe ? .right : .left
+        forwardStaticLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         addSubview(forwardStaticLabel)
 
         participantLabel.translatesAutoresizingMaskIntoConstraints = false

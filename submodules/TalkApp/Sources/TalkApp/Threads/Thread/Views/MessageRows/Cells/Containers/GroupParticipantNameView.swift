@@ -26,7 +26,7 @@ final class GroupParticipantNameView: UILabel {
         font = UIFont.fBoldBody
         numberOfLines = 1
         isOpaque = true
-        textAlignment = .left
+        textAlignment = Language.isRTL ? .right : .left
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: ConstantSizes.groupParticipantNameViewHeight)
         ])
