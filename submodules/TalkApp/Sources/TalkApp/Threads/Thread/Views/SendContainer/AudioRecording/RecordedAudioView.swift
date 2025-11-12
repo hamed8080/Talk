@@ -14,6 +14,7 @@ import SwiftUI
 import DSWaveformImage
 import TalkModels
 import AVFoundation
+import Lottie
 
 public final class RecordedAudioView: UIStackView {
     private let btnSend = UIImageButton(imagePadding: .init(all: 8))
@@ -22,7 +23,7 @@ public final class RecordedAudioView: UIStackView {
     private let btnTogglePlayer = UIButton(type: .system)
     private var cancellableSet = Set<AnyCancellable>()
     private weak var viewModel: ThreadViewModel?
-    private var waveProgressView: UILoadingView?
+    private var waveProgressView: LottieAnimationView?
     var onSendOrClose: (()-> Void)?
     public var fileURL: URL?
     private var item: AVAudioPlayerItem?
@@ -47,9 +48,9 @@ public final class RecordedAudioView: UIStackView {
         isLayoutMarginsRelativeArrangement = true
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
-        let image = UIImage(systemName: "arrow.up") ?? .init()
+        let image = UIImage(systemName: "chevron.right") ?? .init()
         btnSend.translatesAutoresizingMaskIntoConstraints = false
-        btnSend.imageView.tintColor = Color.App.textPrimaryUIColor!
+        btnSend.imageView.tintColor = Color.App.whiteUIColor
         btnSend.imageView.contentMode = .scaleAspectFit
         btnSend.imageView.image = image
         btnSend.backgroundColor = Color.App.accentUIColor!
@@ -151,18 +152,20 @@ public final class RecordedAudioView: UIStackView {
     }
     
     private func addProgressView() {
-        let waveProgressView = UILoadingView()
+        let waveProgressView = LottieAnimationView(talkName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
         waveProgressView.translatesAutoresizingMaskIntoConstraints = false
         self.waveProgressView = waveProgressView
         waveProgressView.tintColor = Color.App.accentUIColor ?? .white
         insertArrangedSubview(waveProgressView, at: 2)
         waveProgressView.widthAnchor.constraint(equalToConstant: 24).isActive = true
         waveProgressView.heightAnchor.constraint(equalToConstant: 24).isActive = true
-        waveProgressView.animate(true)
+        waveProgressView.isHidden = false
+        waveProgressView.play()
     }
     
     private func removeProgressView() {
-        waveProgressView?.animate(false)
+        waveProgressView?.isHidden = true
+        waveProgressView?.stop()
         waveProgressView?.removeFromSuperview()
         waveProgressView = nil
     }

@@ -11,6 +11,7 @@ import Chat
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Lottie
 
 class ThreadsTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ThreadsListSection, CalculatedConversation>!
@@ -20,6 +21,7 @@ class ThreadsTableViewController: UIViewController {
     public var contextMenuContainer: ContextMenuContainerView?
     private let threadsToolbar = ThreadsTopToolbarView()
     private var searchListVC: UIViewController? = nil
+    private let centerAnimation = LottieAnimationView(talkName: "talk_logo_animation.json")
     
     init(viewModel: ThreadsViewModel) {
         self.viewModel = viewModel
@@ -61,7 +63,17 @@ class ThreadsTableViewController: UIViewController {
         tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth, left: 0, bottom: ConstantSizes.bottomToolbarSize, right: 0)
         tableView.scrollIndicatorInsets = tableView.contentInset
         
+        centerAnimation.translatesAutoresizingMaskIntoConstraints = false
+        centerAnimation.isHidden = false
+        centerAnimation.play()
+        view.addSubview(centerAnimation)
+        
         NSLayoutConstraint.activate([
+            centerAnimation.widthAnchor.constraint(equalToConstant: 52),
+            centerAnimation.heightAnchor.constraint(equalToConstant: 52),
+            centerAnimation.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            centerAnimation.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+            
             /// Toolbar
             threadsToolbar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             threadsToolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -144,6 +156,12 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     }
 
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
+        if !centerAnimation.isHidden {
+            centerAnimation.isHidden = true
+            centerAnimation.isUserInteractionEnabled = false
+            centerAnimation.stop()
+        }
+        
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     

@@ -7,6 +7,7 @@
 
 import UIKit
 import TalkUI
+import Lottie
 
 @MainActor
 public class ThreadLoadingManager {
@@ -15,12 +16,12 @@ public class ThreadLoadingManager {
     public weak var tableView: UITableView?
     private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
-    private var topLoading = UILoadingView()
-    private var centerLoading = UILoadingView()
-    private var bottomLoading = UILoadingView()
+    private var topLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private var centerLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private var bottomLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
     
     /// Models
-    private static let loadingViewWidth: CGFloat = 26
+    private static let loadingViewWidth: CGFloat = 52
     
     public func configureLoadings(parent: UIView, tableView: UITableView) {
         self.parent = parent
@@ -28,8 +29,8 @@ public class ThreadLoadingManager {
         
         topLoading.translatesAutoresizingMaskIntoConstraints = false
         topLoading.accessibilityIdentifier = "topLoadingThreadViewController"
+        topLoading.isHidden = true
         topLoadingContainer.addSubview(topLoading)
-        topLoading.animate(false)
         tableView.tableHeaderView = topLoadingContainer
 
         centerLoading.translatesAutoresizingMaskIntoConstraints = false
@@ -37,8 +38,8 @@ public class ThreadLoadingManager {
 
         bottomLoading.translatesAutoresizingMaskIntoConstraints = false
         bottomLoading.accessibilityIdentifier = "bottomLoadingThreadViewController"
+        bottomLoading.isHidden = true
         bottomLoadingContainer.addSubview(self.bottomLoading)
-        bottomLoading.animate(false)
         tableView.tableFooterView = bottomLoadingContainer
 
         NSLayoutConstraint.activate([
@@ -56,7 +57,7 @@ public class ThreadLoadingManager {
 
     private func attachCenterLoading() {
         guard let parent = parent else { return }
-        let width: CGFloat = 28
+        let width: CGFloat = ThreadLoadingManager.loadingViewWidth
         centerLoading.alpha = 1.0
         parent.addSubview(centerLoading)
         centerLoading.centerYAnchor.constraint(equalTo: parent.centerYAnchor).isActive = true
@@ -70,20 +71,33 @@ public class ThreadLoadingManager {
         UIView.animate(withDuration: 0.25) {
             self.tableView?.tableHeaderView?.layoutIfNeeded()
         }
-        self.topLoading.animate(animate)
+        
+        topLoading.isHidden = !animate
+        if animate {
+            topLoading.play()
+        } else {
+            topLoading.stop()
+        }
     }
     
     func startCenterAnimation(_ animate: Bool) {
+        centerLoading.isHidden = !animate
         if animate {
-            self.attachCenterLoading()
-            self.centerLoading.animate(animate)
+            attachCenterLoading()
+            centerLoading.play()
         } else {
-            self.centerLoading.removeFromSuperViewWithAnimation()
+            centerLoading.stop()
+            centerLoading.removeFromSuperViewWithAnimation()
         }
     }
 
-    func startBottomAnimation(_ animate: Bool) {        
-        self.bottomLoading.animate(animate)
+    func startBottomAnimation(_ animate: Bool) {
+        bottomLoading.isHidden = !animate
+        if animate {
+            bottomLoading.play()
+        } else {
+            bottomLoading.stop()
+        }
     }
     
     public func getBottomLoadingContainer() -> UIView{

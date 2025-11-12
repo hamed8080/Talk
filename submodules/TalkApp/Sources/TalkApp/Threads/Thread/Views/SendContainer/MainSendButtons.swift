@@ -13,19 +13,21 @@ import TalkModels
 import Chat
 import UIKit
 import Combine
+import Lottie
 
-public final class MainSendButtons: UIStackView {
-    private let btnToggleAttachmentButtons = UIImageButton()
-    private let btnSend = UIImageButton(imagePadding: .init(all: 10))
-    private let btnMic = UIImageButton()
-    private let btnCamera = UIImageButton()
-//    private var btnEmoji = UIImageButton()
+public final class MainSendButtons: UIView {
+    private let btnTrailing = UIImageButton(imagePadding: .init(all: 10))
+    private let btnLeading = UIImageButton(imagePadding: .init(all: 8))
     private let multilineTextField = SendContainerTextView()
     private weak var threadVM: ThreadViewModel?
     private var viewModel: SendContainerViewModel { threadVM?.sendContainerViewModel ?? .init() }
     private var cancellableSet = Set<AnyCancellable>()
-    public static let initSize: CGFloat = 42
+    private static let initSize: CGFloat = 48
+    private static let buttonSize = initSize - 8
     private var cameraCapturer: CameraCapturer?
+    private let animationView = LottieAnimationView(talkName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
+    
+    private var heightConstraint: NSLayoutConstraint?
 
     public init(viewModel: ThreadViewModel?) {
         self.threadVM = viewModel
@@ -39,64 +41,42 @@ public final class MainSendButtons: UIStackView {
     }
 
     private func configureView() {
-        axis = .horizontal
-        spacing = 8
-        alignment = .bottom
-        layoutMargins = .init(horizontal: 8, vertical: 7)
-        isLayoutMarginsRelativeArrangement = true
         semanticContentAttribute = .forceLeftToRight
-
-        btnToggleAttachmentButtons.translatesAutoresizingMaskIntoConstraints = false
-        btnToggleAttachmentButtons.imageView.contentMode = .scaleAspectFit
-        btnToggleAttachmentButtons.tintColor = Color.App.accentUIColor
-        btnToggleAttachmentButtons.layer.masksToBounds = true
-        btnToggleAttachmentButtons.layer.cornerRadius = MainSendButtons.initSize / 2
-        btnToggleAttachmentButtons.backgroundColor = Color.App.bgSendInputUIColor
-        btnToggleAttachmentButtons.imageView.backgroundColor = Color.App.bgSendInputUIColor
-        btnToggleAttachmentButtons.imageView.isOpaque = true
-        btnToggleAttachmentButtons.accessibilityIdentifier = "btnToggleAttachmentButtonsMainSendButtons"
-        btnToggleAttachmentButtons.setContentHuggingPriority(.required, for: .horizontal)
-
-        btnMic.translatesAutoresizingMaskIntoConstraints = false
-        btnMic.imageView.contentMode = .scaleAspectFit
-        btnMic.tintColor = Color.App.textSecondaryUIColor
-        btnMic.accessibilityIdentifier = "btnMicMainSendButtons"
-        btnMic.isOpaque = true
-
-        btnCamera.translatesAutoresizingMaskIntoConstraints = false
-        btnCamera.imageView.contentMode = .scaleAspectFit
-        btnCamera.tintColor = Color.App.textSecondaryUIColor
-        btnCamera.accessibilityIdentifier = "btnCameraMainSendButtons"
-        btnCamera.setContentHuggingPriority(.required, for: .horizontal)
-        btnCamera.isOpaque = true
-        btnCamera.setIsHidden(true)
-
-        btnSend.translatesAutoresizingMaskIntoConstraints = false
-        btnSend.imageView.contentMode = .scaleAspectFit
-        btnSend.tintColor = Color.App.textPrimaryUIColor
-        btnSend.layer.masksToBounds = true
-        btnSend.layer.cornerRadius = (MainSendButtons.initSize - 4) / 2
-        btnSend.layer.backgroundColor = Color.App.accentUIColor?.cgColor
-        btnSend.backgroundColor = Color.App.accentUIColor
-        btnSend.isOpaque = true
-        btnSend.accessibilityIdentifier = "btnSendMainSendButtons"
-        btnSend.setContentHuggingPriority(.required, for: .horizontal)
-        btnSend.setIsHidden(true)
-        btnSend.action = { [weak self] in
-            self?.onBtnSendTapped()
-        }
+        
+        btnTrailing.imageView.image = UIImage(systemName: "plus")
+        btnTrailing.translatesAutoresizingMaskIntoConstraints = false
+        btnTrailing.imageView.contentMode = .scaleAspectFit
+        btnTrailing.tintColor = Color.App.whiteUIColor
+        btnTrailing.layer.masksToBounds = true
+        btnTrailing.layer.cornerRadius = MainSendButtons.buttonSize / 2
+        btnTrailing.backgroundColor = Color.App.accentUIColor
+        btnTrailing.imageView.backgroundColor = Color.App.accentUIColor
+        btnTrailing.imageView.isOpaque = true
+        btnTrailing.accessibilityIdentifier = "btnToggleAttachmentButtonsMainSendButtons"
+        btnTrailing.setContentHuggingPriority(.required, for: .horizontal)
+        addSubview(btnTrailing)
+        
+        btnLeading.translatesAutoresizingMaskIntoConstraints = false
+        btnLeading.imageView.contentMode = .scaleAspectFit
+        btnLeading.tintColor = Color.App.whiteUIColor
+        btnLeading.layer.masksToBounds = true
+        btnLeading.layer.cornerRadius = MainSendButtons.buttonSize / 2
+        btnLeading.imageView.isOpaque = true
+        btnLeading.accessibilityIdentifier = "btnToggleAttachmentButtonsMainSendButtons"
+        btnLeading.setContentHuggingPriority(.required, for: .horizontal)
+        addSubview(btnLeading)
 
         let hStack = UIStackView()
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.spacing = 8
         hStack.layer.masksToBounds = true
-        hStack.layer.cornerRadius = 48 / 2
+        hStack.layer.cornerRadius = MainSendButtons.initSize / 2
         hStack.backgroundColor = Color.App.bgSendInputUIColor
         hStack.isOpaque = true
         hStack.alignment = .bottom
         hStack.accessibilityIdentifier = "hStackMainSendButtons"
-        hStack.layoutMargins = .init(top: -4, left: 8, bottom: 0, right: 8)//-4 to move textfield higher to make the cursor center in the textfield.
+        hStack.layoutMargins = .init(top: -2, left: 8, bottom: 4, right: 8)//-4 to move textfield higher to make the cursor center in the textfield.
         hStack.isLayoutMarginsRelativeArrangement = true
         
         multilineTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -104,29 +84,46 @@ public final class MainSendButtons: UIStackView {
         multilineTextField.setContentHuggingPriority(.required, for: .horizontal)
         multilineTextField.setContentCompressionResistancePriority(.required, for: .horizontal)
         hStack.addArrangedSubview(multilineTextField)
+        addSubview(hStack)
+        
+        animationView.translatesAutoresizingMaskIntoConstraints = false
+        animationView.layer.masksToBounds = true
+        animationView.layer.cornerRadius = MainSendButtons.buttonSize / 2
+        animationView.backgroundColor = Color.App.accentUIColor
+        addSubview(animationView)
+        if AppState.shared.connectionStatus != .connected {
+            animationView.play()
+        }
 
-//        btnEmoji.translatesAutoresizingMaskIntoConstraints = false
-//        btnEmoji.imageView.tintColor = Color.App.redUIColor
-//        btnEmoji.accessibilityIdentifier = "btnEmojiMainSendButtons"
-//        btnEmoji.setIsHidden(true)
-//        btnEmoji.setContentHuggingPriority(.required, for: .horizontal)
-//        hStack.addArrangedSubview(btnEmoji)
-
-        addArrangedSubviews([btnToggleAttachmentButtons, hStack, btnMic, btnCamera, btnSend])
-
+        heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: 70)
+        heightConstraint?.isActive = true
         NSLayoutConstraint.activate([
-            btnToggleAttachmentButtons.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnToggleAttachmentButtons.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnSend.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize - 4),
-            btnSend.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize - 4),
-            btnMic.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnMic.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnCamera.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-            btnCamera.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-//            btnEmoji.widthAnchor.constraint(equalToConstant: MainSendButtons.initSize),
-//            btnEmoji.heightAnchor.constraint(equalToConstant: MainSendButtons.initSize),
+            hStack.leadingAnchor.constraint(equalTo: btnLeading.trailingAnchor, constant: 8),
+            hStack.trailingAnchor.constraint(equalTo: btnTrailing.leadingAnchor, constant: -8),
+            hStack.topAnchor.constraint(equalTo: bottomAnchor, constant: 8),
+            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            
+            btnLeading.widthAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
+            btnLeading.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            btnLeading.heightAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
+            btnLeading.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            
+            btnTrailing.widthAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
+            btnTrailing.heightAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
+            btnTrailing.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            btnTrailing.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            
+            animationView.widthAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
+            animationView.heightAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
+            animationView.trailingAnchor.constraint(equalTo: btnTrailing.trailingAnchor),
+            animationView.leadingAnchor.constraint(equalTo: btnTrailing.leadingAnchor),
+            animationView.topAnchor.constraint(equalTo: btnTrailing.topAnchor),
+            animationView.bottomAnchor.constraint(equalTo: btnTrailing.bottomAnchor),
         ])
 
+        registerHeightChange()
+        registerInternetConnection()
+        
         /// Prepare draft mode.
         prepareDraft()
         
@@ -134,47 +131,24 @@ public final class MainSendButtons: UIStackView {
         registerModeChange()
         registerAttachmentsChange()
         
-        prepareUI()
-    }
-
-    private func prepareUI() {
-        Task.detached {
-            let sendImage: UIImage?
-            if #available(iOS 13.0, *) {
-                let config = UIImage.SymbolConfiguration(pointSize: 8, weight: .medium, scale: .small)
-                sendImage = UIImage(systemName: "arrow.up", withConfiguration: config)
-            } else {
-                sendImage = UIImage(systemName: "arrow.up")
-            }
-//            let emojiImage = UIImage(named: "emoji")
-            let cameraImage = UIImage(systemName: "camera")
-            let micImage = UIImage(systemName: "mic")
-            let toogleImage = UIImage(systemName: "paperclip")
-            await MainActor.run { [weak self] in
-                guard let self = self else { return }
-                btnSend.imageView.image = sendImage
-//                btnEmoji.imageView.image = emojiImage
-                btnCamera.imageView.image = cameraImage
-                btnMic.imageView.image = micImage
-                btnToggleAttachmentButtons.imageView.image = toogleImage
-            }
-        }
-
         // It's essential when we open up the thread for the first time in situation like we are forwarding/reply privately
-        animateMainButtons()
+        setButtonsIcons(mode: viewModel.getMode())
+    }
+    
+    private func registerInternetConnection() {
+        AppState.shared.$connectionStatus
+            .sink { [weak self] newState in
+                self?.showConnectionAnimation(show: newState != .connected)
+            }
+            .store(in: &cancellableSet)
     }
     
     private func registerModeChange() {
         viewModel.modePublisher.sink { [weak self] newMode in
             guard let self = self, AppState.shared.lifeCycleState == .active else { return }
-            showMicButton(viewModel.showAudio(mode: newMode))
-            showCameraButton(viewModel.showCamera(mode: newMode))
-            showSendButton(viewModel.showSendButton(mode: newMode))
-            
+            setButtonsIcons(mode: newMode)
             let isShowPickerButton = newMode.type == .showButtonsPicker
             threadVM?.delegate?.showPickerButtons(isShowPickerButton)
-            toggleAttchmentButton(show: isShowPickerButton)
-            disableButtonPicker(disable: viewModel.disableButtonPicker(mode: newMode))
         }
         .store(in: &cancellableSet)
         
@@ -193,23 +167,31 @@ public final class MainSendButtons: UIStackView {
             /// Just update the UI to call registerModeChange inside that method it will detect the mode.
             viewModel.setMode(type: .voice)
             if attachments.count > 0 {
-                showSendButton(true)
+                setButtonsIcons(mode: viewModel.getMode(), hasAttachment: attachments.count > 0)
             }
         }
         .store(in: &cancellableSet)
+    }
+    
+    private func registerHeightChange() {
+        multilineTextField.onHeightChange = { [weak self] height in
+            guard let self = self else { return }
+            heightConstraint?.constant = height + 16
+        }
     }
 
     private func registerTextChange() {
         multilineTextField.onTextChanged = { [weak self] text in
             guard let self = self else { return }
             viewModel.setText(newValue: text ?? "")
-            showSendButton(viewModel.showSendButton(mode: viewModel.getMode()))
+            setButtonsIcons(mode: viewModel.getMode())
         }
 
         viewModel.onTextChanged = { [weak self] newValue in
             guard let self = self else { return }
             multilineTextField.setTextAndDirection(newValue ?? "")
             multilineTextField.updateHeightIfNeeded()
+            setButtonsIcons(mode: viewModel.getMode())
         }
     }
     
@@ -225,35 +207,36 @@ public final class MainSendButtons: UIStackView {
     }
 
     private func registerGestures() {
-        let micTapGesture = UITapGestureRecognizer(target: self, action: #selector(toggleMode))
-        let cameraTapGesture = UITapGestureRecognizer(target: self, action: #selector(toggleMode))
-        btnMic.addGestureRecognizer(micTapGesture)
-        btnCamera.addGestureRecognizer(cameraTapGesture)
-
-        let micLongGesture = UILongPressGestureRecognizer(target: self, action: #selector(startRecording))
-        micLongGesture.minimumPressDuration = 0.3
-        let cameraLongGesture = UILongPressGestureRecognizer(target: self, action: #selector(showPopup))
-        cameraLongGesture.minimumPressDuration = 0.3
-        btnMic.addGestureRecognizer(micLongGesture)
-        btnCamera.addGestureRecognizer(cameraLongGesture)
-
-        btnToggleAttachmentButtons.action = { [weak self] in
-            self?.onBtnToggleAttachmentButtonsTapped()
+        btnLeading.action = { [weak self] in
+            guard let self = self else { return }
+            
+            let mode = viewModel.getMode()
+            if viewModel.showAudio(mode: mode) == true {
+                startRecording()
+            } else {
+                // open the picker with leading attachment button once use has entered something in the text field.
+                onBtnToggleAttachmentButtonsTapped()
+            }
+        }
+        
+        btnTrailing.action = { [weak self] in
+            guard let self = self else { return }
+            let mode = viewModel.getMode()
+            let isPickerOpen = mode.type == .showButtonsPicker
+            let isEmptyText = viewModel.isTextEmpty()
+            let hasAttachment = viewModel.hasAttachment()
+            
+            if isPickerOpen || (!isPickerOpen && !hasAttachment && isEmptyText) {
+                // Close / Open picker
+                onBtnToggleAttachmentButtonsTapped()
+            } else if !isEmptyText || hasAttachment {
+                // Send
+                onBtnSendTapped()
+            }
         }
     }
 
-    @objc private func toggleMode(_ sender: UIGestureRecognizer) {
-        let currentValueIsVideo = viewModel.getMode().type == .video
-        let isNewValueVideo = !currentValueIsVideo
-        viewModel.setMode(type: isNewValueVideo ? .video : .voice)
-        btnCamera.showWithAniamtion(isNewValueVideo)
-        btnMic.showWithAniamtion(!isNewValueVideo)
-    }
-
-    @objc private func startRecording(_ sender: UIGestureRecognizer) {
-        // Update ThreadViewContorler delegate to show recordingUI
-        // Check if it is began then show the UI unless we don't call it twice.
-        if sender.state != .began { return }
+    private func startRecording() {
         threadVM?.delegate?.showRecording(true)
         viewModel.setMode(type: .voice)
     }
@@ -282,7 +265,7 @@ public final class MainSendButtons: UIStackView {
         alert.addAction(cancel)
 
         // On iPad, action sheets must be presented from a popover.
-        alert.popoverPresentationController?.sourceView = btnCamera
+        alert.popoverPresentationController?.sourceView = btnLeading
 
         (threadVM?.delegate as? UIViewController)?.present(alert, animated: true) {
             // The alert was presented
@@ -304,7 +287,7 @@ public final class MainSendButtons: UIStackView {
     @objc private func onBtnToggleAttachmentButtonsTapped() {
         let isShowingButtonsPicker = threadVM?.sendContainerViewModel.getMode().type == .showButtonsPicker
         viewModel.setMode(type: isShowingButtonsPicker ? .voice : .showButtonsPicker)
-        toggleAttchmentButton(show: !isShowingButtonsPicker)
+        setButtonsIcons(mode: viewModel.getMode())
         onViewModelChanged()
     }
 
@@ -312,30 +295,45 @@ public final class MainSendButtons: UIStackView {
         if viewModel.getText() != multilineTextField.string {
             multilineTextField.setTextAndDirection(viewModel.getText())  // When sending a message and we want to clear out the txetfield
         }
-        animateMainButtons()
+        setButtonsIcons(mode: viewModel.getMode())
     }
 
-    private func animateMainButtons() {
+    private func setButtonsIcons(mode: SendcContainerMode, hasAttachment: Bool? = nil) {
         UIView.animate(withDuration: 0.2) { [weak self] in
             guard let self = self else { return }
-            let mode = viewModel.getMode()
-            btnMic.setIsHidden(!viewModel.showAudio(mode: mode))
-            btnCamera.showWithAniamtion(viewModel.showCamera(mode: mode))
-            showSendButton(viewModel.showSendButton(mode: mode))
+            let showMic = viewModel.showAudio(mode: mode)
+            let isTextEmpty = multilineTextField.isEmptyText()
+            let showCamera = viewModel.showCamera(mode: mode)
+            let showSendButton = viewModel.showSendButton(mode: mode)
+            let pickerIsOpen = viewModel.getMode().type == .showButtonsPicker
+            let hasAttachment = hasAttachment ?? viewModel.hasAttachment()
+            
+            /// Leading Icon
+            if showMic && isTextEmpty && !pickerIsOpen {
+                btnLeading.imageView.tintColor = Color.App.textSecondaryUIColor
+                btnLeading.imageView.image = UIImage(systemName: "mic")
+            } else if showCamera && isTextEmpty && !pickerIsOpen {
+                btnLeading.imageView.image = UIImage(systemName: "camera")
+                btnLeading.imageView.tintColor = Color.App.accentUIColor
+            } else if isTextEmpty && pickerIsOpen {
+                btnLeading.imageView.image = nil
+            } else {
+                btnLeading.imageView.image = UIImage(named: "ic_attachment")?.withRenderingMode(.alwaysTemplate)
+                btnLeading.imageView.tintColor = Color.App.accentUIColor
+            }
+            
+            /// Trailing icon
+            let trailingIcon: String
+            if hasAttachment || !isTextEmpty {
+                trailingIcon = "chevron.right"
+            } else if pickerIsOpen {
+                trailingIcon = "chevron.down"
+            } else {
+                trailingIcon = "plus"
+            }
+            
+            btnTrailing.imageView.image = UIImage(systemName: trailingIcon)
         }
-    }
-
-    public func toggleAttchmentButton(show: Bool) {
-        UIView.animate(withDuration: 0.3) { [weak self] in
-            guard let self = self else { return }
-            let attImage = UIImage(systemName: show ? "chevron.down" : "paperclip")
-            btnToggleAttachmentButtons.imageView.image = attImage
-        }
-    }
-    
-    private func disableButtonPicker(disable: Bool) {
-        btnToggleAttachmentButtons.isUserInteractionEnabled = !disable
-        btnToggleAttachmentButtons.alpha = disable ? 0.3 : 1.0
     }
 
     private func openTakeVideoPicker() {
@@ -374,24 +372,22 @@ public final class MainSendButtons: UIStackView {
             multilineTextField.unfocus()
         }
     }
-
-    private func showSendButton(_ show: Bool) {
-        btnSend.showWithAniamtion(show)
-    }
     
     private func disableSendButton(_ disable: Bool) {
         UIView.animate(withDuration: 0.25) { [weak self] in
             guard let self = self else { return }
-            btnSend.isUserInteractionEnabled = !disable
-            btnSend.alpha = disable ? 0.5 : 1
+            btnTrailing.isUserInteractionEnabled = !disable
+            btnTrailing.alpha = disable ? 0.5 : 1
         }
     }
-
-    private func showMicButton(_ show: Bool) {
-        btnMic.showWithAniamtion(show)
-    }
     
-    private func showCameraButton(_ show: Bool) {
-        btnCamera.showWithAniamtion(show)
+    private func showConnectionAnimation(show: Bool) {
+        animationView.isHidden = !show
+        if show {
+            animationView.play()
+        } else {
+            animationView.stop()
+        }
+        btnTrailing.isUserInteractionEnabled = !show
     }
 }

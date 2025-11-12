@@ -44,7 +44,7 @@ public final class InRecordingAudioView: UIStackView {
         btnMic.translatesAutoresizingMaskIntoConstraints = false
         let micImage = UIImage(systemName: "mic.fill")!
         btnMic.imageView.image = micImage
-        btnMic.imageView.tintColor = Color.App.textPrimaryUIColor!
+        btnMic.imageView.tintColor = Color.App.whiteUIColor
         btnMic.imageView.contentMode = .scaleAspectFit
         btnMic.backgroundColor = Color.App.accentUIColor!
         btnMic.accessibilityIdentifier = "btnMicRecordingAudioView"

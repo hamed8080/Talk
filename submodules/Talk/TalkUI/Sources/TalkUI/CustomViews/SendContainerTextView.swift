@@ -12,9 +12,10 @@ import TalkModels
 public final class SendContainerTextView: UIView, UITextViewDelegate {
     private var textView: UITextView = UITextView()
     public var onTextChanged: ((String?) -> Void)?
+    public var onHeightChange: ((CGFloat) -> Void)?
     private let placeholderLabel = UILabel()
     private var heightConstraint: NSLayoutConstraint!
-    private let initSize: CGFloat = 48
+    private let initSize: CGFloat = 52
     private let RTLMarker = "\u{200f}"
     
     public init() {
@@ -36,7 +37,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.textContainerInset = .init(top: 14, left: 10, bottom: 14, right: 10)
+        textView.textContainerInset = .init(top: 16, left: 10, bottom: 14, right: 10)
         textView.delegate = self
         textView.isEditable = true
         textView.isSelectable = true
@@ -157,7 +158,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     func recalculateHeight(newHeight: CGFloat) {
         if frame.size.height != newHeight {
             UIView.animate(withDuration: 0.3) {
-                self.heightConstraint.constant = newHeight // !! must be called asynchronously
+                self.heightConstraint.constant = newHeight // !! must be called asynchronouslyUIStackView
+                self.onHeightChange?(newHeight)
             }
         }
     }

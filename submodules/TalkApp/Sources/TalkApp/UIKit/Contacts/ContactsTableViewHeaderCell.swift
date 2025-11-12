@@ -10,12 +10,13 @@ import UIKit
 import SwiftUI
 import Combine
 import TalkUI
+import Lottie
 
 class ContactsTableViewHeaderCell: UITableViewCell {
     weak var viewController: UIViewController?
     private let stack = UIStackView()
     private var cancellable: AnyCancellable?
-    private let loadingView = UILoadingView()
+    private let loadingView = LottieAnimationView(talkName: "talk_logo_animation.json")
     private let loadingContainer = UIView()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -58,10 +59,10 @@ class ContactsTableViewHeaderCell: UITableViewCell {
             heightAnchor.constraint(equalToConstant: 140),
             
             loadingContainer.widthAnchor.constraint(equalTo: widthAnchor),
-            loadingContainer.heightAnchor.constraint(equalToConstant: 36),
+            loadingContainer.heightAnchor.constraint(equalToConstant: 52),
             
-            loadingView.widthAnchor.constraint(equalToConstant: 36),
-            loadingView.heightAnchor.constraint(equalToConstant: 36),
+            loadingView.widthAnchor.constraint(equalToConstant: 52),
+            loadingView.heightAnchor.constraint(equalToConstant: 52),
             loadingView.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
             
             stack.topAnchor.constraint(equalTo: topAnchor, constant: 12),
@@ -184,11 +185,13 @@ class ContactsTableViewHeaderCell: UITableViewCell {
     }
     
     public func removeLoading() {
-        loadingView.animate(false)
+        loadingView.stop()
+        loadingView.isHidden = true
         loadingContainer.removeFromSuperview()
     }
     
     public func startLoading() {
-        loadingView.animate(true)
+        loadingView.isHidden = false
+        loadingView.play()
     }
 }

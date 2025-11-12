@@ -31,6 +31,9 @@
 		AC90FBB02E1C2ED500890CDA /* Talk.docc in Sources */ = {isa = PBXBuildFile; fileRef = 0506DE1E2AD42AF00009701E /* Talk.docc */; };
 		AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
+		ACCDE1942EC4BFC200499BDC /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
+		ACCDE1952EC4BFC200499BDC /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
+		ACCDE1962EC4BFC200499BDC /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
 		ACF538602DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 		ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 /* End PBXBuildFile section */
@@ -72,6 +75,7 @@
 		AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ACA238F22D76CB8E00D8E43A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LeitnerBox.entitlements; sourceTree = "<group>"; };
+		ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = talk_logo_animation.json; sourceTree = "<group>"; };
 		ACE1EFAC2D7861E9003DEEDB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFAF2D7861EE003DEEDB /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB02D7861F3003DEEDB /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -153,6 +157,7 @@
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
 				0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */,
 				ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */,
+				ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */,
 				0570CC962AAEE9B2001832E9 /* Info-Test.plist */,
 				ACE77E852E1C253800450E13 /* Info-AppStore.plist */,
 				0570CC952AAEE9B2001832E9 /* Info-Sibche.plist */,
@@ -303,6 +308,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACCDE1952EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 			);
@@ -312,6 +318,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACCDE1962EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 			);
@@ -321,6 +328,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACCDE1942EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */,
 				AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */,
 			);
