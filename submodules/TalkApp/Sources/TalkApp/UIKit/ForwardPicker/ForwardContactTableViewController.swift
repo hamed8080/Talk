@@ -10,6 +10,7 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkViewModels
+import Lottie
 
 class ForwardContactTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>?
@@ -17,6 +18,7 @@ class ForwardContactTableViewController: UIViewController {
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONTACT-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
+    private let centerLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel
@@ -42,11 +44,21 @@ class ForwardContactTableViewController: UIViewController {
         tableView.separatorStyle = .none
         view.addSubview(tableView)
         
+        centerLoading.translatesAutoresizingMaskIntoConstraints = false
+        centerLoading.isHidden = false
+        centerLoading.play()
+        view.addSubview(centerLoading)
+        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            centerLoading.widthAnchor.constraint(equalToConstant: 52),
+            centerLoading.heightAnchor.constraint(equalToConstant: 52),
+            centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            centerLoading.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
         ])
         configureDataSource()
         
@@ -81,6 +93,8 @@ extension ForwardContactTableViewController {
 
 extension ForwardContactTableViewController: UIForwardContactsViewControllerDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<TalkViewModels.ContactListSection, ChatModels.Contact>, animatingDifferences: Bool) {
+        centerLoading.isHidden = true
+        centerLoading.stop()
         dataSource?.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     

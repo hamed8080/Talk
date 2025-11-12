@@ -9,6 +9,7 @@ import SwiftUI
 import TalkUI
 import TalkViewModels
 import Chat
+import Lottie
 
 struct ThreadSearchMessages: View {
     let threadVM: ThreadViewModel
@@ -44,8 +45,8 @@ struct ThreadSearchMessages: View {
             } else {
                 ZStack {
                     if viewModel.isLoading {
-                        ListLoadingView(isLoading: .constant(viewModel.isLoading))
-                            .id(UUID())
+                        LottieView(animation: .named("talk_logo_animation.json"))
+                            .frame(height: 52)
                     } else if !viewModel.searchText.isEmpty && !viewModel.isLoading {
                         Text("General.nothingFound")
                             .font(.fTitle)

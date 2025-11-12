@@ -10,6 +10,7 @@ import TalkViewModels
 import TalkUI
 import TalkModels
 import Chat
+import Lottie
 
 struct MessageParticipantsSeen: View {
     @StateObject var viewModel: MessageParticipantsSeenViewModel
@@ -41,8 +42,10 @@ struct MessageParticipantsSeen: View {
         }
         .background(Color.App.bgPrimary)
         .overlay(alignment: .bottom) {
-            ListLoadingView(isLoading: $viewModel.isLoading)
-                .id(UUID())
+            if viewModel.isLoading {
+                LottieView(animation: .named("talk_logo_animation.json"))
+                    .frame(height: 52)
+            }
         }
         .normalToolbarView(title: "SeenParticipants.title", type: String.self)
         .onAppear {

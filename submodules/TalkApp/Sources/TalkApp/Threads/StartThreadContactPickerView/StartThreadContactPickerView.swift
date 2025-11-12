@@ -12,6 +12,7 @@ import SwiftUI
 import TalkUI
 import TalkViewModels
 import TalkModels
+import Lottie
 
 struct StartThreadContactPickerView: View {
     @Environment(\.dismiss) var dismiss
@@ -66,7 +67,8 @@ struct StartThreadContactPickerView: View {
                     }
                 } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                     if viewModel.isTypinginSearchString {
-                        ListLoadingView(isLoading: .constant(true))
+                        LottieView(animation: .named("talk_logo_animation.json"))
+                            .frame(height: 52)
                     } else if !viewModel.lazyList.isLoading {
                         Text("General.noResult")
                             .font(Font.fBody)
@@ -103,8 +105,10 @@ struct StartThreadContactPickerView: View {
                 .background(.ultraThinMaterial)
             }
             .overlay(alignment: .bottom) {
-                ListLoadingView(isLoading: $viewModel.lazyList.isLoading)
-                    .id(UUID())
+                if viewModel.lazyList.isLoading {
+                    LottieView(animation: .named("talk_logo_animation.json"))
+                        .frame(height: 52)
+                }
             }
         }
         .environmentObject(viewModel)

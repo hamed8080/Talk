@@ -10,6 +10,7 @@ import TalkModels
 import TalkExtensions
 import TalkViewModels
 import TalkUI
+import Lottie
 
 struct ManageSessionsView: View {
     @StateObject private var viewModel = ManageSessionsViewModel()
@@ -86,13 +87,21 @@ struct ManageSessionsView: View {
             }
         }
     }
-    
+   
+    @ViewBuilder
     private var loadingView: some View {
-        ListLoadingView(isLoading: .constant(viewModel.isLoading))
-            .id(UUID())
+        if viewModel.isLoading {
+            HStack {
+                Spacer()
+                LottieView(animation: .named("talk_logo_animation.json"))
+                    .id(UUID())
+                Spacer()
+            }
+            .frame(height: 52)
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(.zero)
+        }
     }
 }
 

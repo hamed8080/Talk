@@ -10,6 +10,7 @@ import TalkViewModels
 import TalkUI
 import TalkModels
 import Chat
+import Lottie
 
 struct ConversationBuilder: View {
     @EnvironmentObject var viewModel: ConversationBuilderViewModel
@@ -35,7 +36,8 @@ struct ConversationBuilder: View {
                             .listRowInsets(.zero)
                         } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                             if viewModel.isTypinginSearchString {
-                                ListLoadingView(isLoading: .constant(true))
+                                LottieView(animation: .named("talk_logo_animation.json"))
+                                    .frame(height: 52)
                             } else if !viewModel.lazyList.isLoading {
                                 Text("General.noResult")
                                     .fontWeight(.medium)
@@ -98,8 +100,11 @@ struct ConversationBuilder: View {
         .animation(.easeInOut, value: viewModel.searchedContacts)
         .animation(.easeInOut, value: viewModel.isCreateLoading)
         .overlay(alignment: .bottom) {
-            ListLoadingView(isLoading: $viewModel.isCreateLoading)
-                .id(UUID())
+            if viewModel.isCreateLoading {
+                LottieView(animation: .named("talk_logo_animation.json"))
+                    .id(UUID())
+                    .frame(height: 52)
+            }
         }
         .onAppear {
             /// We use BuilderContactRowContainer view because it is essential to force the ineer contactRow View to show radio buttons.
@@ -279,8 +284,11 @@ struct EditCreatedConversationDetail: View {
             }
         }
         .overlay(alignment: .bottom) {
-            ListLoadingView(isLoading: $viewModel.lazyList.isLoading)
-                .id(UUID())
+            if viewModel.lazyList.isLoading {
+                LottieView(animation: .named("talk_logo_animation.json"))
+                    .id(UUID())
+                    .frame(height: 52)
+            }
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
