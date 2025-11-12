@@ -32,6 +32,8 @@ class ContactsNavigationBar: UIView {
     
     private func setupView() {
 
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        
         let blurEffect = UIBlurEffect(style: .systemThickMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
         effectView.accessibilityIdentifier = "effectContactsNavigationBar"
@@ -40,7 +42,7 @@ class ContactsNavigationBar: UIView {
         
         overBlurEffectColorView.translatesAutoresizingMaskIntoConstraints = false
         overBlurEffectColorView.accessibilityIdentifier = "overBlurEffectColorViewContactsNavigationBar"
-        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        overBlurEffectColorView.backgroundColor = isDark ? UIColor.clear : Color.App.accentUIColor
         addSubview(overBlurEffectColorView)
         
         titleLabel.text = "Contacts"
@@ -83,6 +85,7 @@ class ContactsNavigationBar: UIView {
         menuButton.showsMenuAsPrimaryAction = true
         menuButton.titleLabel?.font = UIFont.fBoldCaption3
         menuButton.titleLabel?.textAlignment = Language.isRTL ? .right : .left
+        menuButton.setTitleColor(isDark ? Color.App.accentUIColor : Color.App.whiteUIColor, for: .normal)
         menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
                 
         let actions = SearchParticipantType.allCases.filter({ $0 != .admin }).compactMap({ type in
@@ -183,7 +186,9 @@ class ContactsNavigationBar: UIView {
     }
     
     public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        overBlurEffectColorView.backgroundColor = isDark ? UIColor.clear : Color.App.accentUIColor
+        menuButton.setTitleColor(isDark ? Color.App.accentUIColor : Color.App.whiteUIColor, for: .normal)
     }
 }
 
