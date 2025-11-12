@@ -98,6 +98,7 @@ public final class MainSendButtons: UIView {
         heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: 70)
         heightConstraint?.isActive = true
         NSLayoutConstraint.activate([
+            hStack.heightAnchor.constraint(greaterThanOrEqualToConstant: 52),
             hStack.leadingAnchor.constraint(equalTo: btnLeading.trailingAnchor, constant: 8),
             hStack.trailingAnchor.constraint(equalTo: btnTrailing.leadingAnchor, constant: -8),
             hStack.topAnchor.constraint(equalTo: bottomAnchor, constant: 8),
@@ -307,6 +308,10 @@ public final class MainSendButtons: UIView {
             let showSendButton = viewModel.showSendButton(mode: mode)
             let pickerIsOpen = viewModel.getMode().type == .showButtonsPicker
             let hasAttachment = hasAttachment ?? viewModel.hasAttachment()
+            
+            let hideLeading = hasAttachment || pickerIsOpen
+            
+            btnLeading.constraints.first(where: {$0.firstAttribute == .width})?.constant = hideLeading ? 0 : MainSendButtons.buttonSize
             
             /// Leading Icon
             if showMic && isTextEmpty && !pickerIsOpen {
