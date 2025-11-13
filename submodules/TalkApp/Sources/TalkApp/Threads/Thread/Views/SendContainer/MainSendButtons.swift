@@ -274,7 +274,7 @@ public final class MainSendButtons: UIView {
             let isTextEmpty = multilineTextField.isEmptyText()
             let showCamera = viewModel.showCamera(mode: mode)
             let showSendButton = viewModel.showSendButton(mode: mode)
-            let pickerIsOpen = viewModel.getMode().type == .showButtonsPicker
+            let pickerIsOpen = mode.type == .showButtonsPicker
             let hasAttachment = hasAttachment ?? viewModel.hasAttachment()
             
             let hideLeading = hasAttachment || pickerIsOpen
