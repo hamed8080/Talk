@@ -24,7 +24,6 @@ public final class MainSendButtons: UIView {
     private var cancellableSet = Set<AnyCancellable>()
     private static let initSize: CGFloat = 48
     private static let buttonSize = initSize - 8
-    private var cameraCapturer: CameraCapturer?
     private let animationView = LottieAnimationView(talkName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
     
     private var heightConstraint: NSLayoutConstraint?
@@ -213,7 +212,7 @@ public final class MainSendButtons: UIView {
             
             let mode = viewModel.getMode()
             if viewModel.showAudio(mode: mode) == true {
-                startRecording()
+                startVoiceRecording()
             } else {
                 // open the picker with leading attachment button once use has entered something in the text field.
                 onBtnToggleAttachmentButtonsTapped()
@@ -237,40 +236,9 @@ public final class MainSendButtons: UIView {
         }
     }
 
-    private func startRecording() {
+    private func startVoiceRecording() {
         threadVM?.delegate?.showRecording(true)
         viewModel.setMode(type: .voice)
-    }
-
-    @objc private func showPopup(_ sender: UIGestureRecognizer) {
-        // Check if it is began then show the popover unless we don't call it twice.
-        if sender.state != .began { return }
-        let takeVideo  = UIAlertAction(title: "MessageType.video".bundleLocalized(), style: .default) { (action) in
-            // Respond to user selection of the action
-            self.openTakeVideoPicker()
-        }
-        takeVideo.setValue(UIImage(systemName: "video"), forKey: "image")
-
-        let takePhoto = UIAlertAction(title: "MessageType.picture".bundleLocalized(), style: .default) { (action) in
-            // Respond to user selection of the action
-            self.openTakePicturePicker()
-        }
-        takePhoto.setValue(UIImage(systemName: "photo"), forKey: "image")
-
-        let cancel = UIAlertAction(title: "General.cancel".bundleLocalized(), style: .cancel) { (action) in
-            // Respond to user selection of the action
-        }
-        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(takeVideo)
-        alert.addAction(takePhoto)
-        alert.addAction(cancel)
-
-        // On iPad, action sheets must be presented from a popover.
-        alert.popoverPresentationController?.sourceView = btnLeading
-
-        (threadVM?.delegate as? UIViewController)?.present(alert, animated: true) {
-            // The alert was presented
-        }
     }
 
     @objc private func onBtnSendTapped() {
@@ -339,35 +307,6 @@ public final class MainSendButtons: UIView {
             
             btnTrailing.imageView.image = UIImage(systemName: trailingIcon)
         }
-    }
-
-    private func openTakeVideoPicker() {
-        let captureObject = CameraCapturer(isVideo: true) { [weak self] image, url, resources in
-            guard let self = self, let videoURL = url, let data = try? Data(contentsOf: videoURL) else { return }
-            let fileName = "video-\(Date().fileDateString).mov"
-            let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
-            threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
-            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.setMode(type: .voice)
-        }
-        self.cameraCapturer = captureObject
-        (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
-    }
-
-    private func openTakePicturePicker() {
-        let captureObject = CameraCapturer(isVideo: false) { [weak self] image, url, resources in
-            guard let self = self, let image = image else { return }
-            let item = ImageItem(data: image.jpegData(compressionQuality: 0.8) ?? Data(),
-                                 width: Int(image.size.width),
-                                 height: Int(image.size.height),
-                                 originalFilename: "image-\(Date().fileDateString).jpg")
-            threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
-            self.cameraCapturer = nil
-            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel.setMode(type: .voice)
-        }
-        self.cameraCapturer = captureObject
-        (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
     }
 
     public func focusOnTextView(focus: Bool) {
