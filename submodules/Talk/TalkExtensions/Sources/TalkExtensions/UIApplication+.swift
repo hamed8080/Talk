@@ -26,7 +26,8 @@ public enum WindowMode {
 public extension UIApplication {
     var screenRect: CGRect { UIScreen.main.bounds }
     var activeWindowScene: UIWindowScene? { UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundActive}).first as? UIWindowScene }
-    var activeSceneRect: CGRect { activeWindowScene?.windows.first?.bounds ?? .zero }
+    var inactiveWindowScene: UIWindowScene? { UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundInactive}).first as? UIWindowScene }
+    var activeSceneRect: CGRect { (activeWindowScene ?? inactiveWindowScene)?.windows.first?.bounds ?? .zero }
 
     func windowMode() -> WindowMode {
         let isInHalfThreshold = isInThereshold(a: activeSceneRect.width, b: abs(screenRect.width - (screenRect.width / 2)))

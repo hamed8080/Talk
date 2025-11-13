@@ -44,6 +44,9 @@ public final class AppState: ObservableObject, Sendable {
             Task { @MainActor in
                 AppState.isInSlimMode =
                 UIApplication.shared.windowMode().isInSlimMode
+                
+                let newState = UIApplication.shared.windowMode()
+                NotificationCenter.windowMode.post(name: .windowMode, object: newState)
             }
         }
         
