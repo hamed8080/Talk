@@ -144,6 +144,16 @@ extension ThreadsTableViewController {
             tableView.refreshControl?.endRefreshing()
         }
     }
+    
+    private func centerAnimation(show: Bool) {
+        centerAnimation.isHidden = !show
+        centerAnimation.isUserInteractionEnabled = show
+        if show {
+            centerAnimation.play()
+        } else {
+            centerAnimation.stop()
+        }
+    }
 }
 
 extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
@@ -156,13 +166,9 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     }
 
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
-        if !centerAnimation.isHidden {
-            centerAnimation.isHidden = true
-            centerAnimation.isUserInteractionEnabled = false
-            centerAnimation.stop()
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences) { [weak self] in
+            self?.centerAnimation(show: false)
         }
-        
-        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
     func updateImage(image: UIImage?, id: Int) {

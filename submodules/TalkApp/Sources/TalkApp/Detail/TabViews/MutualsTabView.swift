@@ -36,9 +36,7 @@ struct MutualsTabView: View {
             }
 
             if viewModel.lazyList.isLoading {
-                LoadingView()
-                    .id(UUID())
-                    .frame(width: 22, height: 22)
+                DetailLoading()
             }
 
             if viewModel.mutualThreads.isEmpty && !viewModel.lazyList.isLoading {
