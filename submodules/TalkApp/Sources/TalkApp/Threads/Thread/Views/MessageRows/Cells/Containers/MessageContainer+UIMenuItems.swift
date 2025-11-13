@@ -158,6 +158,8 @@ private extension MessageContainerStackView {
     func onReplyAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
         model.threadVM?.sendContainerViewModel.clear() /// Close edit message if set select mode to forward
+        AppState.shared.objectsContainer.navVM.setReplyPrivately(nil)
+        model.threadVM?.delegate?.showReplyPrivatelyPlaceholder(show: false)
         model.threadVM?.replyMessage = message
         model.threadVM?.sendContainerViewModel.setReplyMessageDraft(message)
         model.threadVM?.delegate?.openReplyMode(message)
