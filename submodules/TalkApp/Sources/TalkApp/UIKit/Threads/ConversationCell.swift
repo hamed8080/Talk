@@ -102,6 +102,7 @@ class ConversationCell: UITableViewCell {
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
         avatarInitialLable.font = UIFont.fBoldSubheadline
+        avatarInitialLable.textColor = Color.App.whiteUIColor
         contentView.addSubview(avatarInitialLable)
         
         /// Status of a message either sent/seen or none.

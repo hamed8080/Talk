@@ -97,6 +97,7 @@ class ContactCell: UITableViewCell {
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
         avatarInitialLable.font = UIFont.fBoldBody
+        avatarInitialLable.textColor = Color.App.whiteUIColor
         
         contentView.addSubview(avatarInitialLable)
         
