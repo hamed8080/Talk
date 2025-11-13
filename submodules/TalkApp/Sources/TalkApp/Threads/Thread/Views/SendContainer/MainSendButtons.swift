@@ -101,7 +101,7 @@ public final class MainSendButtons: UIView {
             hStack.heightAnchor.constraint(greaterThanOrEqualToConstant: 52),
             hStack.leadingAnchor.constraint(equalTo: btnLeading.trailingAnchor, constant: 8),
             hStack.trailingAnchor.constraint(equalTo: btnTrailing.leadingAnchor, constant: -8),
-            hStack.topAnchor.constraint(equalTo: bottomAnchor, constant: 8),
+            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
             
             btnLeading.widthAnchor.constraint(equalToConstant: MainSendButtons.buttonSize),
