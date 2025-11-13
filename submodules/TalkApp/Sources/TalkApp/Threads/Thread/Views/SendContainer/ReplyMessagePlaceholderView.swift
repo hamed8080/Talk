@@ -139,6 +139,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         viewModel?.replyMessage = nil
         viewModel?.selectedMessagesViewModel.clearSelection()
         viewModel?.delegate?.openReplyMode(nil) // close the UI
+        viewModel?.sendContainerViewModel.setReplyMessageDraft(nil)
     }
     
     private func imageLink(_ replyMessage: Message?) -> Bool {
