@@ -51,7 +51,7 @@ final class ForwardInfoView: UIView {
         participantLabel.textColor = Color.App.accentUIColor
         participantLabel.numberOfLines = 1
         participantLabel.accessibilityIdentifier = "participantLabelForwardInfoView"
-        participantLabel.textAlignment = isMe ? .right : .left
+        participantLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         participantLabel.setContentHuggingPriority(.defaultLow, for: .vertical)
         participantLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         participantLabel.layer.cornerRadius = 6
