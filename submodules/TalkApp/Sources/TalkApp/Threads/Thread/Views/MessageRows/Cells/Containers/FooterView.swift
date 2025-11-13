@@ -28,9 +28,6 @@ final class FooterView: UIStackView {
     private var rotateAnimation = CABasicAnimation(keyPath: "transform.rotation.z")
     private var viewModel: MessageRowViewModel?
 
-    // Constraints
-    private var heightConstraint: NSLayoutConstraint!
-
     init(frame: CGRect, isMe: Bool) {
         self.reactionView = .init(frame: frame, isMe: isMe)
         super.init(frame: frame)
@@ -45,11 +42,14 @@ final class FooterView: UIStackView {
         translatesAutoresizingMaskIntoConstraints = false
         spacing = ConstantSizes.messageFooterViewStackSpacing
         axis = .horizontal
-        alignment = .bottom
+        alignment = .center
+        distribution = .fill
         semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         isOpaque = true
 
         reactionView.translatesAutoresizingMaskIntoConstraints = false
+        reactionView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        reactionView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         pinImage.translatesAutoresizingMaskIntoConstraints = false
         pinImage.tintColor = Color.App.accentUIColor
@@ -76,6 +76,7 @@ final class FooterView: UIStackView {
         timelabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.5)
         timelabel.accessibilityIdentifier = "timelabelFooterView"
         timelabel.isOpaque = true
+        timelabel.textAlignment = .right
         timelabel.setContentCompressionResistancePriority(.required + 1, for: .horizontal)
         timelabel.setContentHuggingPriority(.required, for: .horizontal)
         addArrangedSubview(timelabel)
@@ -85,14 +86,15 @@ final class FooterView: UIStackView {
         editedLabel.textColor = Color.App.textSecondaryUIColor
         editedLabel.text = FooterView.staticEditString
         editedLabel.accessibilityIdentifier = "editedLabelFooterView"
+        editedLabel.isOpaque = true
+        editedLabel.textAlignment = .right
         editedLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         editedLabel.setContentHuggingPriority(.required, for: .horizontal)
-        editedLabel.isOpaque = true
 
-        heightConstraint = heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewHeightWithReaction)
         NSLayoutConstraint.activate([
-            heightConstraint,
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewHeightWithReaction),
             timelabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusHeight),
+            timelabel.widthAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.messageFooterViewTimeLabelWidth)
         ])
     }
     
@@ -137,6 +139,7 @@ final class FooterView: UIStackView {
         if isEdited, pinImage.superview == nil {
             addArrangedSubview(editedLabel)
             editedLabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusHeight).isActive = true
+            editedLabel.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewEditLabelWidth).isActive = true
         } else if !isEdited {
             editedLabel.removeFromSuperview()
         }
@@ -211,7 +214,6 @@ final class FooterView: UIStackView {
             fadeAnimateReactions(animation)
             reactionView.set(viewModel)
         }
-        heightConstraint.constant = isEmpty ? ConstantSizes.messageFooterViewHeightWithoutReaction : ConstantSizes.messageFooterViewHeightWithReaction
     }
 
     // Prevent animation in reuse call method, yet has animation when updateReaction called
@@ -229,7 +231,6 @@ final class FooterView: UIStackView {
     
     public func reactionDeleted(_ reaction: Reaction) {
         reactionView.reactionDeleted(reaction)
-        heightConstraint.constant = viewModel?.reactionsModel.rows.isEmpty == true ? ConstantSizes.messageFooterViewHeightWithoutReaction : ConstantSizes.messageFooterViewHeightWithReaction
     }
     
     public func reactionAdded(_ reaction: Reaction) {
@@ -242,11 +243,9 @@ final class FooterView: UIStackView {
         } else {
             reactionView.reactionAdded(reaction)
         }
-        heightConstraint.constant = viewModel?.reactionsModel.rows.isEmpty == true ? ConstantSizes.messageFooterViewHeightWithoutReaction : ConstantSizes.messageFooterViewHeightWithReaction
     }
     
     public func reactionReplaced(_ reaction: Reaction) {
         reactionView.reactionReplaced(reaction)
-        heightConstraint.constant = viewModel?.reactionsModel.rows.isEmpty == true ? ConstantSizes.messageFooterViewHeightWithoutReaction : ConstantSizes.messageFooterViewHeightWithReaction
     }
 }
