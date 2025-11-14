@@ -26,9 +26,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         let local = LeitnerBoxLoginViewModel.lo()
-        if local {
+        let buildName = Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String
+        if buildName == "LeitnerBox" {
+            runLeitnerBox(scene)
+        } else if local {
             runT(scene)
-        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" && local {
+        } else if buildName == "Sibche" && local {
             runS(scene)
         } else {
             runLeitnerBox(scene)
