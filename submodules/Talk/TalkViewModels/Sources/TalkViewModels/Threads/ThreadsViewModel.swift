@@ -73,6 +73,7 @@ public final class ThreadsViewModel: ObservableObject {
     // MARK: Computed properties
     var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var myId: Int { AppState.shared.user?.id ?? -1 }
+    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
 
     public init(isArchive: Bool? = nil, isForwardList: Bool? = nil) {
         self.isArchive = isArchive
@@ -163,6 +164,10 @@ public final class ThreadsViewModel: ObservableObject {
             await moveToContentOffset()
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
+            if userNeverOpennedArchivedList(id: conversation.id) {
+                updateActiveArchivConversation(newConversation: conversation, messages: messages)
+                return
+            }
             
             let isReferenceArchived = conversation.isArchive == true
             /// Prevent calling wrong object instance
@@ -175,6 +180,18 @@ public final class ThreadsViewModel: ObservableObject {
             updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
             await moveToContentOffset()
         }
+    }
+    
+    private func userNeverOpennedArchivedList(id: Int?) -> Bool {
+        let isArchiveListEmpty = archivesVM.threads.isEmpty
+        let samePresentedId = navVM.presentedThreadViewModel?.viewModel?.id == id
+        return isArchiveListEmpty && samePresentedId
+    }
+    
+    private func updateActiveArchivConversation(newConversation: Conversation, messages: [Message]) {
+        // Just update the active archived converstion.
+        let oldConversation = navVM.presentedThreadViewModel?.viewModel?.thread
+        updateActiveConversationOnNewMessage(messages, newConversation, oldConversation)
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
