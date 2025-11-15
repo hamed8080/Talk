@@ -62,7 +62,7 @@ struct LogoutDialogView: View {
             ChatManager.activeInstance?.user.logOut()
         }
         TokenManager.shared.clearToken()
-        UserConfigManagerVM.instance.logout(delegate: ChatDelegateImplementation.sharedInstance)
+        await UserConfigManagerVM.instance.logout(delegate: ChatDelegateImplementation.sharedInstance)
         await container.reset()
         NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }

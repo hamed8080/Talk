@@ -106,7 +106,9 @@ struct VerifyContentView: View {
                            isLoading: $viewModel.isLoading,
                            maxInnerWidth: 420
         ) {
-            viewModel.verifyCode()
+            Task {
+                await viewModel.verifyCode()
+            }
         }
         .disabled(viewModel.isLoading)
     }

@@ -44,19 +44,17 @@ public final class LoginViewModel: ObservableObject {
         return !text.isEmpty
     }
 
-    public func login() {
+    public func login() async {
         isLoading = true
         if selectedServerType == .integration {
             let ssoToken = SSOTokenResponse(accessToken: text,
-                                                  expiresIn: Int(Calendar.current.date(byAdding: .year, value: 1, to: .now)?.millisecondsSince1970 ?? 0),
-                                                  idToken: nil,
-                                                  refreshToken: nil,
-                                                  scope: nil,
-                                                  tokenType: nil)
-            Task { [weak self] in
-                guard let self = self else { return }
-                await saveTokenAndCreateChatObject(ssoToken)
-            }
+                                            expiresIn: Int(Calendar.current.date(byAdding: .year, value: 1, to: .now)?.millisecondsSince1970 ?? 0),
+                                            idToken: nil,
+                                            refreshToken: nil,
+                                            scope: nil,
+                                            tokenType: nil)
+            
+            await saveTokenAndCreateChatObject(ssoToken)
             isLoading = false
             return
         }
@@ -72,30 +70,23 @@ public final class LoginViewModel: ObservableObject {
         var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.httpBody = req.parameterData
         urlReq.method = .post
-        Task { @AppBackgroundActor [weak self] in
-            guard let self = self else { return }
-            do {
-                let resp = try await session.data(for: urlReq)
-                let decodecd = try JSONDecoder().decode(HandshakeResponse.self, from: resp.0)
-                
-                await MainActor.run {
-                    if let keyId = decodecd.keyId {
-                        isLoading = false
-                        requestOTP(identity: identity, keyId: keyId)
-                    }
-                    expireIn = decodecd.client?.accessTokenExpiryTime ?? 60
-                    startTimer()
-                }
-            } catch {
-                await MainActor.run {
-                    isLoading = false
-                    showError(.failed)
-                }
+        do {
+            let resp = try await session.data(for: urlReq)
+            let decodecd: HandshakeResponse = try await decodeOnBackground(data: resp.0)
+            
+            if let keyId = decodecd.keyId {
+                isLoading = false
+                await requestOTP(identity: identity, keyId: keyId)
             }
+            expireIn = decodecd.client?.accessTokenExpiryTime ?? 60
+            startTimer()
+        } catch {
+            isLoading = false
+            showError(.failed)
         }
     }
 
-    public func requestOTP(identity: String, keyId: String, resend: Bool = false) {
+    public func requestOTP(identity: String, keyId: String, resend: Bool = false) async {
         if isLoading { return }
         let spec = AppState.shared.spec
         let address = "\(spec.server.talkback)\(spec.paths.talkBack.authorize)"
@@ -103,42 +94,33 @@ public final class LoginViewModel: ObservableObject {
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
-        Task { @AppBackgroundActor [weak self] in
-            guard let self = self else { return }
-            do {
-                let resp = try await session.data(for: urlReq)
-                let result = try JSONDecoder().decode(AuthorizeResponse.self, from: resp.0)
-                await MainActor.run {
-                    isLoading = false
-                    if result.errorMessage != nil {
-                        showError(.failed)
-                    } else {
-                        
-                        if !resend {
-                            state = .verify
-                        }
-                        self.keyId = keyId
-                    }
+        do {
+            let resp = try await session.data(for: urlReq)
+            let result: AuthorizeResponse = try await decodeOnBackground(data: resp.0)
+            isLoading = false
+            if result.errorMessage != nil {
+                showError(.failed)
+            } else {
+                
+                if !resend {
+                    state = .verify
                 }
-            } catch {
-                await MainActor.run {
-                    isLoading = false
-                    showError(.failed)
-                }
+                self.keyId = keyId
             }
+        } catch {
+            isLoading = false
+            showError(.failed)
         }
     }
-
+    
     public func saveTokenAndCreateChatObject(_ ssoToken: SSOTokenResponse) async {
-        await MainActor.run {
-            TokenManager.shared.saveSSOToken(ssoToken: ssoToken)
-            let config = Spec.config(spec: AppState.shared.spec, token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
-            UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
-            state = .successLoggedIn
-        }
+        await TokenManager.shared.saveSSOToken(ssoToken: ssoToken)
+        let config = Spec.config(spec: AppState.shared.spec, token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
+        UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
+        state = .successLoggedIn
     }
 
-    public func verifyCode() {
+    public func verifyCode() async {
         if isLoading { return }
         let codes = verifyCodes.joined(separator:"").replacingOccurrences(of: "\u{200B}", with: "").replaceRTLNumbers()
         guard let keyId = keyId, codes.count == verifyCodes.count else { return }
@@ -149,36 +131,29 @@ public final class LoginViewModel: ObservableObject {
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity), .init(name: "otp", value: codes)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
         urlReq.method = .post
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                let resp = try await session.data(for: urlReq)
-                var ssoToken = try await decodeSSOToken(data: resp.0)
-                ssoToken.keyId = keyId
-                showSuccessAnimation = true
-                try? await Task.sleep(for: .seconds(0.5))
-                isLoading = false
-                hideKeyboard()
-                doHaptic()
-                await saveTokenAndCreateChatObject(ssoToken)
-                try? await Task.sleep(for: .seconds(0.5))
-                await MainActor.run {
-                    resetState()
-                }
-            }
-            catch {
-                await MainActor.run {
-                    isLoading = false
-                    doHaptic(failed: true)
-                    showError(.verificationCodeIncorrect)
-                }
-            }
+        do {
+            let resp = try await session.data(for: urlReq)
+            var ssoToken: SSOTokenResponse = try await decodeOnBackground(data: resp.0)
+            ssoToken.keyId = keyId
+            showSuccessAnimation = true
+            try? await Task.sleep(for: .seconds(0.5))
+            isLoading = false
+            hideKeyboard()
+            doHaptic()
+            await saveTokenAndCreateChatObject(ssoToken)
+            try? await Task.sleep(for: .seconds(0.5))
+            resetState()
+        }
+        catch {
+            isLoading = false
+            doHaptic(failed: true)
+            showError(.verificationCodeIncorrect)
         }
     }
     
     @AppBackgroundActor
-    private func decodeSSOToken(data: Data) throws -> SSOTokenResponse {
-        try JSONDecoder().decode(SSOTokenResponse.self, from: data)
+    private func decodeOnBackground<T: Decodable>(data: Data) throws -> T {
+        try JSONDecoder().decode(T.self, from: data)
     }
 
     public func resetState() {
@@ -204,7 +179,7 @@ public final class LoginViewModel: ObservableObject {
         if let keyId = keyId {
             Task { [weak self] in
                 guard let self = self else { return }
-                requestOTP(identity: text, keyId: keyId, resend: true)
+                await requestOTP(identity: text, keyId: keyId, resend: true)
                 startTimer()
             }
         }

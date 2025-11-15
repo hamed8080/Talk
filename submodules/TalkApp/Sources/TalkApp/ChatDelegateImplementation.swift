@@ -195,7 +195,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
             ChatManager.activeInstance?.user.logOut()
         }
         TokenManager.shared.clearToken()
-        UserConfigManagerVM.instance.logout(delegate:  self)
+        await UserConfigManagerVM.instance.logout(delegate:  self)
         await AppState.shared.objectsContainer.reset()
         NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }

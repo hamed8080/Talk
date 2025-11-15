@@ -17,7 +17,7 @@ public final class TokenManager: ObservableObject {
     @Published public var secondToExpire: Double = 0
     @Published public private(set) var isLoggedIn = false // to update login logout ui
     public nonisolated static let ssoTokenKey = "ssoTokenKey"
-    public static let ssoTokenCreateDate = "ssoTokenCreateDate"
+    public nonisolated static let ssoTokenCreateDate = "ssoTokenCreateDate"
     public let session: URLSession
     public var isInFetchingRefreshToken = false
     
@@ -112,7 +112,7 @@ public final class TokenManager: ObservableObject {
     }
    
     private func onNewRefreshToken(_ ssoToken: SSOTokenResponse) async {
-        saveSSOToken(ssoToken: ssoToken)
+        await saveSSOToken(ssoToken: ssoToken)
         await setToken(ssoToken)
         if AppState.shared.connectionStatus != .connected {
             AppState.shared.connectionStatus = .connected
@@ -157,30 +157,26 @@ public final class TokenManager: ObservableObject {
         isLoggedIn = getSSOTokenFromUserDefaults() != nil
     }
     
-    public func saveSSOToken(ssoToken: SSOTokenResponse) {
+    public func saveSSOToken(ssoToken: SSOTokenResponse) async {
         let data = (try? JSONEncoder().encode(ssoToken)) ?? Data()
         let str = String(data: data, encoding: .utf8)
         log("save token:\n\(str ?? "")")
         UserConfigManagerVM.instance.updateToken(ssoToken)
-        refreshCreateTokenDate()
-        if let encodedData = try? JSONEncoder().encode(ssoToken) {
-            Task { [weak self] in
-                guard let self = self else { return }
-                await MainActor.run {
-                    UserDefaults.standard.set(encodedData, forKey: TokenManager.ssoTokenKey)
-                    UserDefaults.standard.synchronize()
-                }
-            }
-        }
+        await refreshCreateTokenDate()
+        await saveSSOTokenInUserDefaults(ssoToken: ssoToken)
         setIsLoggedIn(isLoggedIn: true)
     }
     
+    @AppBackgroundActor
+    private func saveSSOTokenInUserDefaults(ssoToken: SSOTokenResponse) async {
+        let encodedData = try? JSONEncoder().encode(ssoToken)
+        UserDefaults.standard.set(encodedData, forKey: TokenManager.ssoTokenKey)
+        UserDefaults.standard.synchronize()
+    }
+    
+    @AppBackgroundActor
     public func refreshCreateTokenDate() {
-        Task.detached(priority: .background) {
-            await MainActor.run {
-                UserDefaults.standard.set(Date(), forKey: TokenManager.ssoTokenCreateDate)
-            }
-        }
+        UserDefaults.standard.set(Date(), forKey: TokenManager.ssoTokenCreateDate)
     }
     
     public func getCreateTokenDate() -> Date? {

@@ -78,7 +78,9 @@ struct OTPNumbers: View {
         focusField = .sixth
         // We wait 500 millisecond to fill out all text fields if the user clicked on sms
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            viewModel.verifyCode()
+            Task {
+                await viewModel.verifyCode()
+            }
         }
     }
 

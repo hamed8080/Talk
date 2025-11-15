@@ -88,7 +88,9 @@ struct LoginContentView: View {
                                maxInnerWidth: 420
             ) {
                 if viewModel.isPhoneNumberValid() {
-                    viewModel.login()
+                    Task {
+                        await viewModel.login()
+                    }
                 }
             }
             .disabled(viewModel.isLoading)
