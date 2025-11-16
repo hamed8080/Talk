@@ -65,7 +65,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(barView)
         
         /// Title of the conversation.
-        titleLabel.font = UIFont.fBoldSubheadline
+        titleLabel.font = UIFont.normal(.subheadline)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -74,7 +74,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         
         /// Last message of the thread or drafted message or event of the thread label.
-        subtitleLabel.font = UIFont.fBody
+        subtitleLabel.font = UIFont.normal(.body)
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
         subtitleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -101,7 +101,7 @@ class ConversationCell: UITableViewCell {
         avatarInitialLable.layer.cornerRadius = 22
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
-        avatarInitialLable.font = UIFont.fBoldSubheadline
+        avatarInitialLable.font = UIFont.normal(.subheadline)
         avatarInitialLable.textColor = Color.App.whiteUIColor
         contentView.addSubview(avatarInitialLable)
         
@@ -115,7 +115,7 @@ class ConversationCell: UITableViewCell {
         /// Time of the last message of the conversation.
         timeLabel.accessibilityIdentifier = "ConversationCell.timeLabel"
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeLabel.font = UIFont.fBoldCaption2
+        timeLabel.font = UIFont.bold(.caption2)
         timeLabel.numberOfLines = 1
         timeLabelWidthConstraint = timeLabel.widthAnchor.constraint(equalToConstant: 64)
         contentView.addSubview(timeLabel)
@@ -128,7 +128,7 @@ class ConversationCell: UITableViewCell {
         /// Unread count label.
         unreadCountLabel.accessibilityIdentifier = "ConversationCell.unreadCountLabel"
         unreadCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        unreadCountLabel.label.font = UIFont.fBoldBody
+        unreadCountLabel.label.font = UIFont.bold(.body)
         unreadCountLabel.label.numberOfLines = 1
         unreadCountLabelWidthConstraint = unreadCountLabel.widthAnchor.constraint(equalToConstant: 0)
         unreadCountLabel.layer.masksToBounds = true

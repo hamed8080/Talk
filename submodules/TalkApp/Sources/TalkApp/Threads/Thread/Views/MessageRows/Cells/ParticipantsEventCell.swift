@@ -27,7 +27,7 @@ final class ParticipantsEventCell: UITableViewCell {
 
     private func configureView() {
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.label.font = UIFont.fBody
+        label.label.font = UIFont.normal(.body)
         label.label.numberOfLines = 0
         label.label.textColor = Color.App.textPrimaryUIColor
         label.layer.cornerRadius = ConstantSizes.messageParticipantsEventCellCornerRadius

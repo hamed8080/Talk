@@ -28,7 +28,7 @@ final class CustomizeReactionSectionHeader: UICollectionReusableView {
         addSubview(label)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = Color.App.textPrimaryUIColor
-        label.font = UIFont.fSubheadline
+        label.font = UIFont.normal(.subheadline)
         label.textAlignment = Language.isRTL ? .right : .left
 
         NSLayoutConstraint.activate([

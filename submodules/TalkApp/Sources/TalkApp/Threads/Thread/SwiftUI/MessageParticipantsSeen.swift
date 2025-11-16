@@ -24,7 +24,7 @@ struct MessageParticipantsSeen: View {
             VStack {
                 if viewModel.isEmpty {
                     Text("SeenParticipants.noOneSeenTheMssage")
-                        .font(.fBoldSubheadline)
+                        .font(Font.bold(.subheadline))
                         .foregroundColor(Color.App.textPrimary)
                         .frame(minWidth: 0, maxWidth: .infinity)
                 } else {
@@ -69,7 +69,7 @@ struct MessageSeenParticipantRow: View {
         HStack {
             ImageLoaderView(participant: participant)
                 .id("\(participant.image ?? "")\(participant.id ?? 0)")
-                .font(.fBoldBody)
+                .font(Font.bold(.body))
                 .foregroundColor(.white)
                 .frame(width: 48, height: 48)
                 .background(Color(uiColor: String.getMaterialColorByCharCode(str: participant.name ?? participant.username ?? "")))
@@ -78,17 +78,17 @@ struct MessageSeenParticipantRow: View {
             HStack(alignment: .center, spacing: 8) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(participant.contactName ?? participant.name ?? "\(participant.firstName ?? "") \(participant.lastName ?? "")")
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                     if let cellphoneNumber = participant.cellphoneNumber, !cellphoneNumber.isEmpty {
                         Text(cellphoneNumber)
-                            .font(.fCaption3)
+                            .font(Font.normal(.caption3))
                             .foregroundColor(.primary.opacity(0.5))
                     }
                     if  let notSeenDuration = participant.notSeenDuration?.localFormattedTime {
                         let lastVisitedLabel = "Contacts.lastVisited".bundleLocalized()
                         let time = String(format: lastVisitedLabel, notSeenDuration)
                         Text(time)
-                            .font(.fBody)
+                            .font(Font.normal(.body))
                             .foregroundColor(Color.App.textSecondary)
                     }
                 }

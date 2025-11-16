@@ -37,7 +37,7 @@ struct PreferenceView: View {
                         Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $isSyncOn)
                         Text("Contacts.Sync.subtitle")
                             .foregroundColor(.gray)
-                            .font(.fCaption3)
+                            .font(Font.normal(.caption3))
                     }
                     .sandboxLabel()
                 }
@@ -49,6 +49,7 @@ struct PreferenceView: View {
         .environment(\.defaultMinListRowHeight, 8)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
+        .font(Font.normal(.body))
         .onChange(of: isSyncOn) { newValue in
             var model = AppSettingsModel.restore()
             model.isSyncOn = newValue

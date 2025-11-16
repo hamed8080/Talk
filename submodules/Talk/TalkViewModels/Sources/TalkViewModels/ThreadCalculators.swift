@@ -464,14 +464,14 @@ public class ThreadCalculators {
         let color = UIColor(named: "text_primary")?.withAlphaComponent(0.7)
         mutable.append(NSAttributedString(string: missString ?? key, attributes: [
             .foregroundColor: color,
-            .font: UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 12)
+            .font: UIFont.normal(.caption)
         ]))
         mutable.append(NSAttributedString(string: " "))
         
         let dateString = Date(milliseconds: Int64(time)).localFormattedTime ?? ""
         mutable.append(NSAttributedString(string: dateString, attributes: [
             .foregroundColor: color,
-            .font: UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12)
+            .font: UIFont.bold(.caption)
         ]))
         mutable.append(NSAttributedString(string: " "))
         

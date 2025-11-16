@@ -53,7 +53,7 @@ struct SelectedContact: View {
 
    @ViewBuilder var userImage: some View {
         if !isSelectedToDelete {
-            ImageLoaderView(contact: contact, font: .fBoldCaption2)
+            ImageLoaderView(contact: contact, font: Font.bold(.caption2))
                 .id("\(contact.image ?? "")\(contact.id ?? 0)")
                 .foregroundColor(Color.App.textPrimary)
                 .frame(width: 22, height: 22)
@@ -65,7 +65,7 @@ struct SelectedContact: View {
     var userName: some View {
         Text(verbatim: "\(contact.firstName ?? "") \(contact.lastName ?? "")")
             .lineLimit(1)
-            .font(.fSubheadline)
+            .font(Font.normal(.subheadline))
             .foregroundColor(isSelectedToDelete ? Color.App.white : Color.App.textPrimary)
     }
 }

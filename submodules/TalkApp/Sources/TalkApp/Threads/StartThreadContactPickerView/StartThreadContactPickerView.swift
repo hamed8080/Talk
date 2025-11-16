@@ -37,7 +37,7 @@ struct StartThreadContactPickerView: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparatorTint(Color.App.dividerPrimary)
-                    .font(Font.fBody)
+                    .font(Font.normal(.body))
 
                     NavigationLink {
                         ConversationBuilder()
@@ -53,7 +53,7 @@ struct StartThreadContactPickerView: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparator(.hidden)
-                    .font(Font.fBody)
+                    .font(Font.normal(.body))
                 }
 
                 if viewModel.searchedContacts.count > 0 {
@@ -71,7 +71,7 @@ struct StartThreadContactPickerView: View {
                             .frame(height: 52)
                     } else if !viewModel.lazyList.isLoading {
                         Text("General.noResult")
-                            .font(Font.fBody)
+                            .font(Font.normal(.body))
                             .fontWeight(.medium)
                             .foregroundStyle(Color.App.textSecondary)
                             .frame(minWidth: 0, maxWidth: .infinity, alignment: .center)
@@ -99,7 +99,7 @@ struct StartThreadContactPickerView: View {
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                         .submitLabel(.done)
-                        .font(Font.fBody)
+                        .font(Font.normal(.body))
                 }
                 .frame(height: 48)
                 .background(.ultraThinMaterial)

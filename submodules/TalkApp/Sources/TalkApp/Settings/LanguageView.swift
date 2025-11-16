@@ -27,7 +27,7 @@ struct LanguageView: View {
                             changeLanguage(language: language)
                         }
                         Text(language.text)
-                            .font(.fBoldBody)
+                            .font(Font.bold(.body))
                             .padding()
                         Spacer()
                     }

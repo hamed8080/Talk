@@ -12,6 +12,7 @@ import TalkModels
 import TalkViewModels
 import ChatDTO
 import Combine
+import TalkFont
 
 public struct ImageLoaderView: View {
     @StateObject var imageLoader: ImageLoaderViewModel
@@ -20,7 +21,7 @@ public struct ImageLoaderView: View {
 
     public init(imageLoader: ImageLoaderViewModel,
                 contentMode: ContentMode = .fill,
-                textFont: Font = .fBody
+                textFont: Font = Font.normal(.body)
     ) {
         self.textFont = textFont
         self.contentMode = contentMode
@@ -34,7 +35,7 @@ public struct ImageLoaderView: View {
         self.init(imageLoader: .init(config: config))
     }
     
-    public init(contact: Contact?, font: Font = .fBody) {
+    public init(contact: Contact?, font: Font = Font.normal(.body)) {
         let image = contact?.image ?? contact?.user?.image ?? ""
         let httpsImage = image.replacingOccurrences(of: "http://", with: "https://")
         let contactName = "\(contact?.firstName ?? "") \(contact?.lastName ?? "")"

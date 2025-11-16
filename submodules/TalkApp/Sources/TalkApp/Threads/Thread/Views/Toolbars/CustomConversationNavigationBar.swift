@@ -63,7 +63,7 @@ public class CustomConversationNavigationBar: UIView {
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.attributedText = titleAttributedStirng
-        titleLabel.font = UIFont.fBoldBody
+        titleLabel.font = UIFont.bold(.body)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.textAlignment = Language.isRTL ? .right : .left
         titleLabel.accessibilityIdentifier = "titleLabelCustomConversationNavigationBar"
@@ -71,7 +71,7 @@ public class CustomConversationNavigationBar: UIView {
         
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
-        subtitleLabel.font = UIFont.fFootnote
+        subtitleLabel.font = UIFont.normal(.footnote)
         subtitleLabel.textAlignment = Language.isRTL ? .right : .left
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
         detailViewButton.addSubview(subtitleLabel)
@@ -93,7 +93,7 @@ public class CustomConversationNavigationBar: UIView {
         detailViewButton.addSubview(threadImageButton)
 
         threadTitleSupplementary.translatesAutoresizingMaskIntoConstraints = false
-        threadTitleSupplementary.font = UIFont.fBoldSubheadline
+        threadTitleSupplementary.font = UIFont.bold(.subheadline)
         threadTitleSupplementary.textColor = .white
         threadTitleSupplementary.accessibilityIdentifier = "threadTitleSupplementaryCustomConversationNavigationBar"
         detailViewButton.addSubview(threadTitleSupplementary)
@@ -205,7 +205,7 @@ public class CustomConversationNavigationBar: UIView {
 #if DEBUG
         revokeButton.translatesAutoresizingMaskIntoConstraints = false
         revokeButton.setTitle("revoke", for: .normal)
-        revokeButton.titleLabel?.font = UIFont.fBoldBody
+        revokeButton.titleLabel?.font = UIFont.bold(.body)
         revokeButton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
         revokeButton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
         revokeButton.addTarget(self, action: #selector(revokeButtonTapped), for: .touchUpInside)

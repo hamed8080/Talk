@@ -46,7 +46,7 @@ class ContactsNavigationBar: UIView {
         addSubview(overBlurEffectColorView)
         
         titleLabel.text = "Contacts"
-        titleLabel.font = UIFont.fBoldSubheadline
+        titleLabel.font = UIFont.bold(.subheadline)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = Color.App.toolbarButtonUIColor
         addSubview(titleLabel)
@@ -70,7 +70,7 @@ class ContactsNavigationBar: UIView {
         searchField.layer.backgroundColor = Color.App.bgSendInputUIColor?.withAlphaComponent(0.8).cgColor
         searchField.layer.cornerRadius = 16
         searchField.layer.masksToBounds = true
-        searchField.font = UIFont.fBody
+        searchField.font = UIFont.normal(.body)
         searchField.textAlignment = Language.isRTL ? .right : .left
         searchField.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         searchField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
@@ -83,7 +83,7 @@ class ContactsNavigationBar: UIView {
         menuButton.alpha = 0
         menuButton.translatesAutoresizingMaskIntoConstraints = false
         menuButton.showsMenuAsPrimaryAction = true
-        menuButton.titleLabel?.font = UIFont.fBoldCaption3
+        menuButton.titleLabel?.font = UIFont.bold(.caption)
         menuButton.titleLabel?.textAlignment = Language.isRTL ? .right : .left
         menuButton.setTitleColor(isDark ? Color.App.accentUIColor : Color.App.whiteUIColor, for: .normal)
         menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight

@@ -7,17 +7,18 @@
 
 import Foundation
 import SwiftUI
+import TalkFont
 
 @MainActor
 public struct CircleProgressConfig {
 
-    public static let normal: CircleProgressConfig = .init(progressFont: .fSubheadline,
+    public static let normal: CircleProgressConfig = .init(progressFont: Font.normal(.subheadline),
                                                            fontWeight: .heavy,
                                                            forgroundColor: .indigo,
                                                            circleLineWidth: 4,
                                                            dimPathColor: Color.App.white.opacity(0.5))
 
-    public static let small: CircleProgressConfig = .init(progressFont: .fCaption3,
+    public static let small: CircleProgressConfig = .init(progressFont: Font.normal(.caption3),
                                                           fontWeight: .heavy,
                                                           forgroundColor: .indigo,
                                                           circleLineWidth: 1.0,

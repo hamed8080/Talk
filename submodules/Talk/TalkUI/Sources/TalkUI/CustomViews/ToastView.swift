@@ -9,6 +9,7 @@ import SwiftUI
 import TalkViewModels
 import TalkUI
 import TalkModels
+import TalkFont
 
 public final class ToastUIView: UIStackView {
     private let label = UILabel()
@@ -32,8 +33,8 @@ public final class ToastUIView: UIStackView {
                 titleColor: UIColor = Color.App.textPrimaryUIColor!,
                 message: String,
                 messageColor: UIColor = Color.App.textPrimaryUIColor!,
-                titleFont: UIFont = .fBoldSubheadline!,
-                messageFont: UIFont = .fBody!,
+                titleFont: UIFont = UIFont.bold(.subheadline),
+                messageFont: UIFont = UIFont.normal(.body),
                 showSandBox: Bool = false,
                 leadingView: UIView? = nil,
                 disableWidthConstraint: Bool = false,
@@ -110,7 +111,7 @@ public final class ToastUIView: UIStackView {
         addArrangedSubview(hStack)
         
         sandboxLabel.textColor = Color.App.accentUIColor
-        sandboxLabel.font = UIFont.fBody
+        sandboxLabel.font = UIFont.normal(.body)
         sandboxLabel.text = "SANDBOX"
         sandboxLabel.textAlignment = Language.isRTL ? .right : .left
         sandboxLabel.isUserInteractionEnabled = false
@@ -164,8 +165,8 @@ public struct ToastViewWrapper: UIViewRepresentable {
                 titleColor: UIColor = Color.App.textPrimaryUIColor!,
                 message: String,
                 messageColor: UIColor = Color.App.textPrimaryUIColor!,
-                titleFont: UIFont = .fBoldSubheadline!,
-                messageFont: UIFont = .fBody!,
+                titleFont: UIFont = UIFont.bold(.subheadline),
+                messageFont: UIFont = UIFont.normal(.body),
                 showSandbox: Bool = false,
                 leadingView: UIView? = nil,
                 attachToVC: UIViewController? = nil,

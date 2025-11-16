@@ -72,7 +72,7 @@ final class FooterView: UIStackView {
         }
 
         timelabel.translatesAutoresizingMaskIntoConstraints = false
-        timelabel.font = UIFont.fBoldCaption2
+        timelabel.font = UIFont.bold(.caption2)
         timelabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.5)
         timelabel.accessibilityIdentifier = "timelabelFooterView"
         timelabel.isOpaque = true
@@ -82,7 +82,7 @@ final class FooterView: UIStackView {
         addArrangedSubview(timelabel)
 
         editedLabel.translatesAutoresizingMaskIntoConstraints = false
-        editedLabel.font = UIFont.fCaption2
+        editedLabel.font = UIFont.normal(.caption2)
         editedLabel.textColor = Color.App.textSecondaryUIColor
         editedLabel.text = FooterView.staticEditString
         editedLabel.accessibilityIdentifier = "editedLabelFooterView"

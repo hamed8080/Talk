@@ -39,7 +39,7 @@ final class ForwardInfoView: UIView {
         semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
 
         forwardStaticLabel.translatesAutoresizingMaskIntoConstraints = false
-        forwardStaticLabel.font = UIFont.fCaption3
+        forwardStaticLabel.font = UIFont.normal(.caption3)
         forwardStaticLabel.textColor = Color.App.accentUIColor
         forwardStaticLabel.text = ForwardInfoView.forwardFromStaticText
         forwardStaticLabel.accessibilityIdentifier = "forwardStaticLebelForwardInfoView"
@@ -47,7 +47,7 @@ final class ForwardInfoView: UIView {
         addSubview(forwardStaticLabel)
 
         participantLabel.translatesAutoresizingMaskIntoConstraints = false
-        participantLabel.font = UIFont.fBoldCaption2
+        participantLabel.font = UIFont.bold(.caption2)
         participantLabel.textColor = Color.App.accentUIColor
         participantLabel.numberOfLines = 1
         participantLabel.accessibilityIdentifier = "participantLabelForwardInfoView"

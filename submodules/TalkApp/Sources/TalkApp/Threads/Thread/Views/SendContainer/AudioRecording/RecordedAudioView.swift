@@ -73,7 +73,7 @@ public final class RecordedAudioView: UIStackView {
         btnDelete.tintColor = Color.App.textPrimaryUIColor
 
         lblTimer.textColor = Color.App.textPrimaryUIColor
-        lblTimer.font = .fCaption2
+        lblTimer.font = UIFont.normal(.caption2)
         lblTimer.accessibilityIdentifier = "lblTimerRecordedAudioView"
         lblTimer.setContentHuggingPriority(.required, for: .horizontal)
         lblTimer.setContentCompressionResistancePriority(.required, for: .horizontal)

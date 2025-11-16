@@ -43,7 +43,7 @@ class ThreadNavigationPlayer: UIView {
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont.fCaption
+        titleLabel.font = UIFont.normal(.caption)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "titleLabelThreadNavigationPlayer"
         titleLabel.textAlignment = Language.isRTL ? .right : .left
@@ -51,7 +51,7 @@ class ThreadNavigationPlayer: UIView {
 
         timerLabel.translatesAutoresizingMaskIntoConstraints = false
         timerLabel.textColor = .gray
-        timerLabel.font = .fCaption2
+        timerLabel.font = UIFont.normal(.caption2)
         timerLabel.accessibilityIdentifier = "timerLabelThreadNavigationPlayer"
         timerLabel.setContentHuggingPriority(.required, for: .horizontal)
         timerLabel.setContentCompressionResistancePriority(.required, for: .horizontal)

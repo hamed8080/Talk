@@ -23,7 +23,7 @@ final class GroupParticipantNameView: UILabel {
 
     private func configureView() {
         translatesAutoresizingMaskIntoConstraints = false
-        font = UIFont.fBoldBody
+        font = UIFont.bold(.body)
         numberOfLines = 1
         isOpaque = true
         textAlignment = Language.isRTL ? .right : .left

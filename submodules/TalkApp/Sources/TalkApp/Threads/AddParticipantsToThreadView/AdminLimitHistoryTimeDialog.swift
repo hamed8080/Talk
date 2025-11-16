@@ -21,13 +21,13 @@ struct AdminLimitHistoryTimeDialog: View {
         VStack(alignment: .trailing, spacing: 8) {
             Text("AdminLimitHistoryTimeDialog.header")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubheadline)
+                .font(Font.bold(.subheadline))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             Text("AdminLimitHistoryTimeDialog.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fCaption3)
+                .font(Font.normal(.caption3))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             toggleLimitHistory
@@ -47,7 +47,7 @@ struct AdminLimitHistoryTimeDialog: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .foregroundStyle(Color.App.textSecondary)
 
                     Text("AdminLimitHistoryTimeDialog.chooseDate".bundleLocalized())
@@ -66,7 +66,7 @@ struct AdminLimitHistoryTimeDialog: View {
         .listSectionSeparator(.hidden)
         .listRowBackground(Color.App.bgSecondary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
-        .font(.fBody)
+        .font(Font.normal(.body))
     }
 
     @ViewBuilder

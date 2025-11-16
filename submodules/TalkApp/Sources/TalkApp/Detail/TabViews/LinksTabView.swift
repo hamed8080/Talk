@@ -94,13 +94,13 @@ struct LinkRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let smallText = rowModel.smallText {
                     Text(smallText)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .foregroundStyle(Color.App.textPrimary)
                         .lineLimit(1)
                 }
                 ForEach(rowModel.links, id: \.self) { link in
                     Text(verbatim: link)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .foregroundStyle(Color.App.accent)
                 }
             }

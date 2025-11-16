@@ -94,7 +94,7 @@ struct NotificationSettings: View {
             }
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .onChange(of: model) { _ in

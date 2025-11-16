@@ -12,6 +12,7 @@ import Chat
 import UIKit
 import AVFoundation
 import TalkExtensions
+import TalkFont
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -230,7 +231,7 @@ class MessageRowCalculators {
     }
     
     class func messageContainerTextWidth(text: String, replyWidth: CGFloat, sizes: ConstantSizes) -> CGFloat {
-        let font = UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 14) ?? .systemFont(ofSize: 14)
+        let font = UIFont.normal(.body)
         let textWidth = text.widthOfString(usingFont: font) + replyWidth
         let minimumWidth: CGFloat = 128
         let maxOriginal = max(minimumWidth, textWidth + sizes.paddings.paddingEdgeInset.left + sizes.paddings.paddingEdgeInset.right)
@@ -239,14 +240,14 @@ class MessageRowCalculators {
     
     class func replySenderWidthCalculation(replyInfo: ReplyInfo) -> CGFloat {
         let senderNameText = replyInfo.participant?.contactName ?? replyInfo.participant?.name ?? ""
-        let senderFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12) ?? .systemFont(ofSize: 12)
+        let senderFont = UIFont.bold(.caption)
         let senderNameWidth = senderNameText.widthOfString(usingFont: senderFont)
         return senderNameWidth
     }
     
     class func replyStaticTextWidth() -> CGFloat {
         let staticText = "Message.replyTo".bundleLocalized()
-        let font = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12) ?? .systemFont(ofSize: 12)
+        let font = UIFont.bold(.caption)
         let width = staticText.widthOfString(usingFont: font) + 12
         return width
     }
@@ -299,7 +300,7 @@ class MessageRowCalculators {
         attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: allRange)
         attr.addAttributes([
             NSAttributedString.Key.foregroundColor: UIColor(named: "accent") ?? .orange,
-            NSAttributedString.Key.font: UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 14) ?? .systemFont(ofSize: 14)
+            NSAttributedString.Key.font: UIFont.normal(.body)
         ], range: doerRange)
         return attr
     }
@@ -443,8 +444,7 @@ class MessageRowCalculators {
     }
     
     class func calculateReactionWidth(reactionText: String) -> CGFloat {
-        let font = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 14) ?? .systemFont(ofSize: 14)
-        let width = reactionText.widthOfString(usingFont: font) + 16 + 4
+        let width = reactionText.widthOfString(usingFont: UIFont.bold(.body)) + 16 + 4
         return width
     }
     

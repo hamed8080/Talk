@@ -81,7 +81,7 @@ class ContactsTableViewHeaderCell: UITableViewCell {
         let label = UILabel()
         label.text = title.bundleLocalized()
         label.textColor = Color.App.accentUIColor
-        label.font = UIFont.fBoldBody
+        label.font = UIFont.bold(.body)
         label.translatesAutoresizingMaskIntoConstraints = false
     
         let stack = UIStackView(arrangedSubviews: [imageView, label])

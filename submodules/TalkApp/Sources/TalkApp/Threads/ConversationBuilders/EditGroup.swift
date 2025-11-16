@@ -38,7 +38,7 @@ struct EditGroup: View {
         .padding(0)
         .listStyle(.plain)
         .background(Color.App.bgSecondary)
-        .font(Font.fBody)
+        .font(Font.normal(.body))
         .safeAreaInset(edge: .bottom, spacing: 0) {
             SubmitBottomButton(text: "General.done", enableButton: Binding(get: {!viewModel.isLoading}, set: {_ in}), isLoading: $viewModel.isLoading) {
                 viewModel.submitEditGroup()
@@ -157,7 +157,7 @@ struct EditGroup: View {
                     } else {
                         ImageLoaderView(conversation: viewModel.thread)
                             .id(viewModel.thread.id)
-                            .font(.fBoldCaption2)
+                            .font(Font.bold(.caption2))
                             .foregroundColor(.white)
                             .frame(width: 72, height: 72)
                             .background(Color(uiColor: String.getMaterialColorByCharCode(str: viewModel.thread.computedTitle)))
@@ -269,7 +269,7 @@ struct EditGroup: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .foregroundStyle(iconColor)
                 } else {
                     Image(systemName: image)
@@ -277,7 +277,7 @@ struct EditGroup: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .foregroundStyle(iconColor)
                 }
                 Text(title)
@@ -285,7 +285,7 @@ struct EditGroup: View {
                 Spacer()
                 Text(rightLabelText)
                     .foregroundStyle(Color.App.accent)
-                    .font(.fBoldBody)
+                    .font(Font.bold(.body))
             }
         }
         .buttonStyle(.borderless)
@@ -308,7 +308,7 @@ struct EditGroup: View {
                         .scaledToFit()
                         .frame(width: 16, height: 16)
                         .clipped()
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .foregroundStyle(Color.App.textSecondary)
 
                     Text("EditGroup.enableReactions".bundleLocalized())
@@ -349,7 +349,7 @@ struct CustomizeReactionsNavigationLink: View {
                     .scaledToFit()
                     .frame(width: 16, height: 16)
                     .clipped()
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundStyle(Color.App.textSecondary)
 
                 Text("EditGroup.customizedReactions".bundleLocalized())

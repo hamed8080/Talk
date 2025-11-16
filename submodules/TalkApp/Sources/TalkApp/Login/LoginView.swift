@@ -20,10 +20,10 @@ struct LoginContentView: View {
             Spacer()
             Group {
                 Text("Login.loginOrSignup")
-                    .font(.fBoldLargeTitle)
+                    .font(Font.normal(.largeTitle))
                     .foregroundColor(Color.App.textPrimary)
                 Text("Login.subtitle")
-                    .font(.fSubheadline)
+                    .font(Font.normal(.subheadline))
                     .foregroundColor(Color.App.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 48)
@@ -37,7 +37,7 @@ struct LoginContentView: View {
                 TextField(placeholder, text: $viewModel.text)
                     .focused($isFocused)
                     .keyboardType(.phonePad)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .padding([.top, .bottom], 8)
                     .frame(maxWidth: 420)
                     .multilineTextAlignment(.leading)
@@ -64,7 +64,7 @@ struct LoginContentView: View {
 
 //                Text("Login.footer")
 //                    .multilineTextAlignment(.center)
-//                    .font(.fFootnote)
+//                    .font(Font.normal(.footnote))
 //                    .fixedSize(horizontal: false, vertical: true)
 //                    .foregroundColor(.gray.opacity(1))
                 if EnvironmentValues.isTalkTest {
@@ -132,7 +132,7 @@ struct LoginContentView: View {
         if viewModel.selectedServerType != .integration {
             HStack {
                 Text(verbatim: "+98")
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundStyle(Color.App.accent)
                 
                 Rectangle()

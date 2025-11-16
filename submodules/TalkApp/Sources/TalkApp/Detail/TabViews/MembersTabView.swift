@@ -149,7 +149,7 @@ struct ParticipantRowContainer: View {
                 .foregroundStyle(Color.App.red)
             }
         }
-        .font(Font.fBody)
+        .font(Font.normal(.body))
         .foregroundColor(.primary)
         .frame(width: 246)
         .background(MixMaterialBackground())
@@ -173,7 +173,7 @@ struct AddParticipantButton: View {
                         .frame(width: 24, height: 16)
                         .foregroundStyle(Color.App.accent)
                     Text("Thread.invite")
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                     Spacer()
                 }
                 .foregroundStyle(Color.App.accent)
@@ -233,7 +233,7 @@ struct ParticipantSearchView: View {
                 TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
                     .frame(minWidth: 0, minHeight: 48)
                     .submitLabel(.done)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .focused($focusState)
                     .onChange(of: focusState) { focused in
                         if focused {
@@ -250,7 +250,7 @@ struct ParticipantSearchView: View {
             } label: {
                 HStack {
                     Text(viewModel.searchType.rawValue)
-                        .font(.fBoldCaption3)
+                        .font(Font.bold(.caption))
                         .foregroundColor(Color.App.textSecondary)
                     Image(systemName: "chevron.down")
                         .resizable()
@@ -284,7 +284,7 @@ struct ParticipantSearchView: View {
                     }
                 } label: {
                     Text(item.rawValue)
-                        .font(.fBoldCaption3)
+                        .font(Font.bold(.caption))
                         .foregroundColor(Color.App.textSecondary)
                 }
                 .padding(8)

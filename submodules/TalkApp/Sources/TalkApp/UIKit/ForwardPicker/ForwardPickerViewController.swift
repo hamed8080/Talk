@@ -68,7 +68,7 @@ final class ForwardPickerViewController: UIViewController {
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.placeholder = NSLocalizedString("General.searchHere".bundleLocalized(), comment: "")
         searchBar.delegate = self
-        searchBar.searchTextField.font = UIFont.fBody
+        searchBar.searchTextField.font = UIFont.normal(.body)
         searchBar.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         view.addSubview(searchBar)
         
@@ -95,7 +95,7 @@ final class ForwardPickerViewController: UIViewController {
             let button = UIButton(type: .system)
             button.setTitle(title, for: .normal)
             button.tag = index
-            button.titleLabel?.font = UIFont.fBody
+            button.titleLabel?.font = UIFont.normal(.body)
             button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
             buttons.append(button)
             segmentedStack.addArrangedSubview(button)

@@ -22,14 +22,14 @@ public struct CustomListSection<Content>: View where Content: View {
         VStack(spacing: 0) {
             if let header {
                 Text(header)
-                    .font(.fCaption2)
+                    .font(Font.normal(.caption2))
             }
 
             content()
 
             if let footer {
                 Text(footer)
-                    .font(.fCaption2)
+                    .font(Font.normal(.caption2))
             }
         }
         .background(.ultraThickMaterial)

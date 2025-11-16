@@ -68,13 +68,13 @@ struct MutualThreadRow: View {
         HStack {
             ImageLoaderView(conversation: thread)
                 .id("\(thread.computedImageURL ?? "")\(thread.id ?? 0)")
-                .font(.fSubtitle)
+                .font(Font.normal(.subtitle))
                 .foregroundColor(.white)
                 .frame(width: 36, height: 36)
                 .background(Color(uiColor: String.getMaterialColorByCharCode(str: thread.title ?? "")))
                 .clipShape(RoundedRectangle(cornerRadius:(18)))
             Text(thread.computedTitle)
-                .font(.fSubheadline)
+                .font(Font.normal(.subheadline))
                 .lineLimit(1)
             Spacer()
         }

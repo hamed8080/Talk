@@ -53,7 +53,7 @@ public final class ThreadPinMessageView: UIStackView {
         pinImageView.accessibilityIdentifier = "pinImageViewThreadPinMessageView"
 
         textButton.translatesAutoresizingMaskIntoConstraints = false
-        textButton.titleLabel?.font = UIFont.fBody
+        textButton.titleLabel?.font = UIFont.normal(.body)
         textButton.titleLabel?.numberOfLines = 1
         textButton.contentHorizontalAlignment = Language.isRTL ? .right : .left
         textButton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)

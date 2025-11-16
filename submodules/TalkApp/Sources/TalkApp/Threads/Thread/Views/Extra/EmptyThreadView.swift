@@ -47,7 +47,7 @@ public final class EmptyThreadView: UIView {
         label.textColor = Color.App.textPrimaryUIColor
         label.numberOfLines = 2
         label.textAlignment = .center
-        label.font = UIFont.fSubtitle
+        label.font = UIFont.normal(.subtitle)
         label.accessibilityIdentifier = "labelEmptyThreadView"
 
         let image = UIImageView(image: nil)

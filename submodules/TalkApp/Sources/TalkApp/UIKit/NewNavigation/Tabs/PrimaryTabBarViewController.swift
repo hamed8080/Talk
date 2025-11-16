@@ -132,7 +132,7 @@ class PrimaryTabBarViewController: UIViewController {
     
     private func makeTabItem(image: String, title: String) -> UITabBarItem {
         let fontAttr = [
-            NSAttributedString.Key.font: UIFont.fBody
+            NSAttributedString.Key.font: UIFont.normal(.body)
         ]
         
         let tabItem = UITabBarItem(title: title.bundleLocalized(), image: UIImage(systemName: image), selectedImage: nil)

@@ -59,7 +59,7 @@ final class ReplyInfoView: UIView {
         addSubview(imageIconView)
 
         replyLabel.translatesAutoresizingMaskIntoConstraints = false
-        replyLabel.font = UIFont.fCaption3
+        replyLabel.font = UIFont.normal(.caption3)
         replyLabel.numberOfLines = 1
         replyLabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.7)
         replyLabel.lineBreakMode = .byTruncatingTail
@@ -73,7 +73,7 @@ final class ReplyInfoView: UIView {
 
         deletedLabel.translatesAutoresizingMaskIntoConstraints = false
         deletedLabel.text = ReplyInfoView.deletedStaticText
-        deletedLabel.font = UIFont.fBoldCaption2
+        deletedLabel.font = UIFont.bold(.caption2)
         deletedLabel.textColor = Color.App.textSecondaryUIColor
         deletedLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         deletedLabel.setIsHidden(true)
@@ -84,7 +84,7 @@ final class ReplyInfoView: UIView {
         addSubview(deletedLabel)
 
         participantLabel.translatesAutoresizingMaskIntoConstraints = false
-        participantLabel.font = UIFont.fBoldCaption2
+        participantLabel.font = UIFont.bold(.caption2)
         participantLabel.textColor = Color.App.accentUIColor
         participantLabel.accessibilityIdentifier = "participantLabelReplyInfoView"
         participantLabel.textAlignment = Language.isRTL || isMe ? .right : .left

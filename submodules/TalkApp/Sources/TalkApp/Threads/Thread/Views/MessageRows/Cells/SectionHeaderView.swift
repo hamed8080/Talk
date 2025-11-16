@@ -31,7 +31,7 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         backgroundView?.backgroundColor = .clear
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.label.font = UIFont.fBoldCaption
+        label.label.font = UIFont.normal(.caption)
         label.label.textColor = .white
         label.layer.cornerRadius = ConstantSizes.sectionHeaderViewLabelCornerRadius
         label.layer.masksToBounds = true

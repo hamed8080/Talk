@@ -46,7 +46,7 @@ struct LogRow: View {
             }
             .padding()
         }
-        .font( UIDevice.current.userInterfaceIdiom == .pad ? .fBody : .fCaption)
+        .font( UIDevice.current.userInterfaceIdiom == .pad ? Font.normal(.body) : Font.normal(.caption))
         .environment(\.layoutDirection, .leftToRight)
         .overlay(alignment: .bottom) {
             Color.App.textSecondary.opacity(0.5)

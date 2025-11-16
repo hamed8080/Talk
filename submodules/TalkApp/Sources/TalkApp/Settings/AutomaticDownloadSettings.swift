@@ -78,7 +78,7 @@ struct AutomaticDownloadSettings: View {
             .listRowSeparatorTint(Color.clear)
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .normalToolbarView(title: "Settings.download", type: String.self)

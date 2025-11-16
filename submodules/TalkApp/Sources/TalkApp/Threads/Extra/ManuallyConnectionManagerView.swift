@@ -23,7 +23,7 @@ struct ManuallyConnectionManagerView: View {
                 .focused($isFocused)
                 .keyboardType(.phonePad)
                 .submitLabel(.done)
-                .font(.fBody)
+                .font(Font.normal(.body))
                 .padding()
                 .applyAppTextfieldStyle(topPlaceholder: "token", isFocused: isFocused) {
                     isFocused.toggle()

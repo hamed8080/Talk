@@ -68,7 +68,7 @@ struct VerifyContentView: View {
     private var descriptionContainer: some View {
         VStack(spacing: 0) {
             Text("Login.Verify.verifyPhoneNumber")
-                .font(.fBoldLargeTitle)
+                .font(Font.bold(.largeTitle))
                 .foregroundColor(Color.App.textPrimary)
                 .padding(.bottom, 2)
 
@@ -77,11 +77,11 @@ struct VerifyContentView: View {
                 let formatted = String(format: localized, viewModel.text)
                 Text(formatted)
                     .foregroundStyle(Color.App.textSecondary)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .padding(EdgeInsets(top: 4, leading: 64, bottom: 4, trailing: 64))
                     .multilineTextAlignment(.center)
             }
-            .font(.fSubheadline)
+            .font(Font.normal(.subheadline))
             .foregroundColor(Color.App.textPrimary)
         }
         .padding(.bottom, 40)
@@ -91,7 +91,7 @@ struct VerifyContentView: View {
         HStack {
             Text("Login.verifyCode")
                 .foregroundColor(Color.App.textPrimary)
-                .font(.fBoldCaption)
+                .font(Font.bold(.caption))
                 .padding(.top, 8)
                 .padding(.leading, 2)
             Spacer()

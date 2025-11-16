@@ -49,7 +49,7 @@ struct ThreadSearchMessages: View {
                             .frame(height: 52)
                     } else if !viewModel.searchText.isEmpty && !viewModel.isLoading {
                         Text("General.nothingFound")
-                            .font(.fTitle)
+                            .font(Font.normal(.title))
                     }
                 }
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
@@ -101,7 +101,7 @@ struct ThreadSearchMessages: View {
     
     private var searchTextField: some View {
         TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
-            .font(.fBody)
+            .font(Font.normal(.body))
             .textFieldStyle(.clear)
             .focused($searchFocus, equals: .search)
             .frame(maxHeight: 38)
@@ -123,7 +123,7 @@ struct ThreadSearchMessages: View {
                 .resizable()
                 .padding(12)
                 .scaledToFit()
-                .font(.fBody)
+                .font(Font.normal(.body))
                 .foregroundStyle(Color.App.toolbarButton)
         }
         .buttonStyle(.borderless)

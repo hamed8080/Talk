@@ -79,7 +79,7 @@ struct SettingsView: View {
         .padding(.bottom, ConstantSizes.bottomToolbarSize)
         .background(Color.App.bgPrimary.ignoresSafeArea())
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .safeAreaInset(edge: .top, spacing: 0) {
             ToolbarView(
                 title: "Tab.settings",
@@ -134,7 +134,7 @@ struct SettingSettingSection: View {
 
     var body: some View {
         ListSectionButton(imageName: "gearshape.fill", title: "Settings.title", color: .gray, showDivider: false) {
-            navModel.wrapAndPush(view: PreferenceView().font(Font.fBody))
+            navModel.wrapAndPush(view: PreferenceView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
@@ -157,16 +157,16 @@ struct UserInformationSection: View {
             HStack {
                 Image(systemName: "person")
                     .fontWeight(.semibold)
-                    .font(.fTitle)
+                    .font(Font.normal(.title))
                     .foregroundStyle(Color.App.textSecondary)
                     .frame(width: 28, height: 28)
                 VStack(alignment: .leading) {
                     Text("Settings.userName")
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption)
+                        .font(Font.normal(.caption))
                     TextField("", text: $userName)
                         .foregroundColor(Color.App.textPrimary)
-                        .font(.fSubheadline)
+                        .font(Font.normal(.subheadline))
                         .disabled(true)
                 }
             }
@@ -187,16 +187,16 @@ struct UserInformationSection: View {
             HStack {
                 Image(systemName: "phone")
                     .fontWeight(.semibold)
-                    .font(.fTitle)
+                    .font(Font.normal(.title))
                     .foregroundStyle(Color.App.textSecondary)
                     .frame(width: 28, height: 28)
                 VStack(alignment: .leading) {
                     Text("Settings.phoneNumber")
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption)
+                        .font(Font.normal(.caption))
                     TextField("", text: $phone)
                         .foregroundColor(Color.App.textPrimary)
-                        .font(.fSubheadline)
+                        .font(Font.normal(.subheadline))
                         .disabled(true)
                 }
             }
@@ -208,16 +208,16 @@ struct UserInformationSection: View {
             HStack {
                 Image(systemName: "note.text")
                     .fontWeight(.semibold)
-                    .font(.fTitle)
+                    .font(Font.normal(.title))
                     .foregroundStyle(Color.App.textSecondary)
                     .frame(width: 28, height: 28)
                 VStack(alignment: .leading) {
                     Text("Settings.bio")
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption)
+                        .font(Font.normal(.caption))
                     Text(bio)
                         .foregroundColor(Color.App.textPrimary)
-                        .font(.fSubheadline)
+                        .font(Font.normal(.subheadline))
                         .disabled(true)
                         .lineLimit(20)
                         .fixedSize(horizontal: false, vertical: true)
@@ -330,7 +330,7 @@ struct SettingLanguageSection: View {
         let selectedLanguage = Language.languages.first(where: {$0.language == Locale.preferredLanguages[0]})?.text ?? ""
         let view = Text(selectedLanguage)
             .foregroundStyle(Color.App.accent)
-            .font(.fBoldBody)
+            .font(Font.bold(.body))
         return AnyView(view)
     }
 }
@@ -472,7 +472,7 @@ struct UserProfileView: View {
 
             Text(verbatim: user?.name ?? "")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fSubheadline)
+                .font(Font.normal(.subheadline))
             Spacer()
 
             Button {
@@ -524,7 +524,7 @@ struct VersionNumberView: View {
             Spacer()
         }
         .foregroundStyle(Color.App.textSecondary)
-        .font(.fCaption2)
+        .font(Font.normal(.caption2))
         .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
         .listRowBackground(Color.App.bgSecondary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
