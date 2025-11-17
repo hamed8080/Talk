@@ -10,7 +10,6 @@ import UIKit
 import TalkFont
 
 public extension NSMutableAttributedString {
-    private static let heavyFont = UIFont.heavy(.subheadline)
     private static let userMentionFont = UIFont.bold(.body)
     private static let boldFont = UIFont.bold(.body)
     private static let bodyFont = UIFont.normal(.body)
@@ -84,7 +83,7 @@ public extension NSMutableAttributedString {
         let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
         for match in matches.reversed() {
             let range = match.range
-            addAttributes([.font: NSMutableAttributedString.heavyFont], range: range)
+            addAttributes([.font: NSMutableAttributedString.boldFont], range: range)
             
             // Remove the surrounding `**` by replacing them with an empty string
             let fullRange = match.range
