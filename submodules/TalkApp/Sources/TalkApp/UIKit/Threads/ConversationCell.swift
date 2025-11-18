@@ -29,6 +29,7 @@ class ConversationCell: UITableViewCell {
     private let mentionLable = UILabel(frame: .zero)
     private var radioIsHidden = true
     private let barView = UIView()
+    private let separator = TableViewControllerDevider()
     
     // MARK: Constraints
     private var statusWidthConstraint = NSLayoutConstraint()
@@ -65,7 +66,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(barView)
         
         /// Title of the conversation.
-        titleLabel.font = UIFont.normal(.subheadline)
+        titleLabel.font = UIFont.bold(.subheadline)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -74,7 +75,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         
         /// Last message of the thread or drafted message or event of the thread label.
-        subtitleLabel.font = UIFont.normal(.body)
+        subtitleLabel.font = UIFont.normal(.caption)
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
         subtitleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -101,7 +102,7 @@ class ConversationCell: UITableViewCell {
         avatarInitialLable.layer.cornerRadius = 22
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
-        avatarInitialLable.font = UIFont.normal(.subheadline)
+        avatarInitialLable.font = UIFont.bold(.subheadline)
         avatarInitialLable.textColor = Color.App.whiteUIColor
         contentView.addSubview(avatarInitialLable)
         
@@ -175,6 +176,8 @@ class ConversationCell: UITableViewCell {
         secondRowTrailingStack.alignment = .center
         contentView.addSubview(secondRowTrailingStack)
         
+        contentView.addSubview(separator)
+        
         NSLayoutConstraint.activate([
             barView.widthAnchor.constraint(equalToConstant: 4),
             barView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -189,7 +192,8 @@ class ConversationCell: UITableViewCell {
             avatar.widthAnchor.constraint(equalToConstant: 58),
             avatar.heightAnchor.constraint(equalToConstant: 58),
             
-            avatarInitialLable.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
+            /// Constant 2 will fix text was not in the middle of the avatar
+            avatarInitialLable.centerYAnchor.constraint(equalTo: avatar.centerYAnchor, constant: 2),
             avatarInitialLable.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
             avatarInitialLable.widthAnchor.constraint(equalToConstant: 52),
             avatarInitialLable.heightAnchor.constraint(equalToConstant: 52),
@@ -228,7 +232,10 @@ class ConversationCell: UITableViewCell {
             mentionLable.heightAnchor.constraint(equalToConstant: 24),
             
             secondRowTrailingStack.centerYAnchor.constraint(equalTo: subtitleLabel.centerYAnchor),
-            secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8)
+            secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            
+            separator.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -64),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0.5),
         ])
         
         radio.isHidden = radioIsHidden

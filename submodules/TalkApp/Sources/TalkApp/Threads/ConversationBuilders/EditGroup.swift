@@ -316,7 +316,6 @@ struct EditGroup: View {
                 Spacer()
                 Toggle("", isOn: $viewModel.isReactionsEnabled)
                     .tint(Color.App.accent)
-                    .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
                     .offset(x: 8)
                     .labelsHidden()
             }

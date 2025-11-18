@@ -243,10 +243,10 @@ struct EditCreatedConversationDetail: View {
                     .foregroundColor(Color.App.textPrimary)
                     .lineLimit(1)
                     .layoutPriority(1)
+                    .font(Font.normal(.subheadline))
                 Spacer()
                 Toggle("", isOn: $viewModel.isPublic)
                     .tint(Color.App.accent)
-                    .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
                     .offset(x: 8)
             }
             .padding(.leading)

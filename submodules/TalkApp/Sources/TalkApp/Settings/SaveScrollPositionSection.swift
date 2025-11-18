@@ -33,7 +33,6 @@ struct SaveScrollPositionSection: View {
             Spacer()
             Toggle("", isOn: $isSaveScrollPosition)
                 .tint(Color.App.accent)
-                .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
                 .frame(maxWidth: 64)
         }
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36, alignment: .leading)
