@@ -59,13 +59,13 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
     @objc private func onPress(_ gesture: UILongPressGestureRecognizer) {
         switch gesture.state {
         case .began:
-            label.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.6)
+            label.backgroundColor = UIColor.gray.withAlphaComponent(0.4)
         case .ended:
-            label.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+            label.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             delegate?.openMoveToDatePicker()
         case .cancelled, .failed:
-            label.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.6)
+            label.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
         default:
             break
         }

@@ -18,7 +18,7 @@ public extension NSMutableAttributedString {
         let allRange = NSRange(string.startIndex..., in: string)
         let style = NSMutableParagraphStyle()
         style.alignment = .right
-        style.lineSpacing = 15
+        style.lineSpacing = 12
         style.paragraphSpacing = 1
         style.lineBreakMode = .byWordWrapping
         let attributes = defalutTextAttributes(style: style, color: color)
