@@ -29,6 +29,9 @@ public class ThreadsTopToolbarView: UIStackView {
     private let topRowStack = UIStackView()
     private let searchRowStack = UIStackView()
     
+    /// Constraints
+    private var heightConstraint: NSLayoutConstraint?
+    
     /// Models
     private var cancellableSet = Set<AnyCancellable>()
     private var isInSearchMode: Bool = false
@@ -173,9 +176,10 @@ public class ThreadsTopToolbarView: UIStackView {
         addArrangedSubview(searchRowStack)
         addArrangedSubview(player)
 
+        heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.topToolbarHeight)
+        heightConstraint?.isActive = true
+        
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.topToolbarHeight),
-            
             overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
             overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
             overBlurEffectColorView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
@@ -318,6 +322,11 @@ public class ThreadsTopToolbarView: UIStackView {
         }
         player.isHidden = !shouldShow
         player.isUserInteractionEnabled = shouldShow
+        setHeightConstraint(showPlayer: shouldShow)
+    }
+    
+    private func setHeightConstraint(showPlayer: Bool) {
+        heightConstraint?.constant = showPlayer ? ConstantSizes.topToolbarHeight + ToolbarButtonItem.buttonWidth : ConstantSizes.topToolbarHeight
     }
     
     public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
