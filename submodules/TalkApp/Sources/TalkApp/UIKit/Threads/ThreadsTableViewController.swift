@@ -21,7 +21,9 @@ class ThreadsTableViewController: UIViewController {
     public var contextMenuContainer: ContextMenuContainerView?
     private let threadsToolbar = ThreadsTopToolbarView()
     private var searchListVC: UIViewController? = nil
-    private let centerAnimation = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
+    private let centerAnimation = LottieAnimationView(fileName: "talk_logo_animation.json")
+    private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
     
     init(viewModel: ThreadsViewModel) {
         self.viewModel = viewModel
@@ -46,6 +48,14 @@ class ThreadsTableViewController: UIViewController {
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
         tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        
+        bottomAnimation.translatesAutoresizingMaskIntoConstraints = false
+        bottomAnimation.accessibilityIdentifier = "bottomLoadingThreadsTableViewController"
+        bottomAnimation.isHidden = true
+        bottomAnimation.contentMode = .scaleAspectFit
+        bottomLoadingContainer.addSubview(self.bottomAnimation)
+        
+        tableView.tableFooterView = bottomLoadingContainer
         view.addSubview(tableView)
         
         let refresh = UIRefreshControl()
@@ -73,6 +83,11 @@ class ThreadsTableViewController: UIViewController {
             centerAnimation.heightAnchor.constraint(equalToConstant: 52),
             centerAnimation.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             centerAnimation.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+            
+            bottomAnimation.widthAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.heightAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
+            bottomAnimation.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
             
             /// Toolbar
             threadsToolbar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -144,16 +159,6 @@ extension ThreadsTableViewController {
             tableView.refreshControl?.endRefreshing()
         }
     }
-    
-    private func centerAnimation(show: Bool) {
-        centerAnimation.isHidden = !show
-        centerAnimation.isUserInteractionEnabled = show
-        if show {
-            centerAnimation.play()
-        } else {
-            centerAnimation.stop()
-        }
-    }
 }
 
 extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
@@ -167,7 +172,8 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
 
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences) { [weak self] in
-            self?.centerAnimation(show: false)
+            self?.showCenterAnimation(show: false)
+            self?.showBottomAnimation(show: false)
         }
     }
     
@@ -219,6 +225,28 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
         let vc = ThreadViewController()
         vc.viewModel = ThreadViewModel(thread: conversation)
         return vc
+    }
+    
+    func showCenterAnimation(show: Bool) {
+        centerAnimation.isHidden = !show
+        centerAnimation.isUserInteractionEnabled = show
+        if show {
+            centerAnimation.play()
+        } else {
+            centerAnimation.stop()
+        }
+    }
+    
+    func showBottomAnimation(show: Bool) {
+        bottomAnimation.isHidden = !show
+        bottomAnimation.isUserInteractionEnabled = show
+        if show {
+            tableView.tableFooterView = bottomLoadingContainer
+            bottomAnimation.play()
+        } else {
+            tableView.tableFooterView = UIView()
+            bottomAnimation.stop()
+        }
     }
 }
 

@@ -152,7 +152,7 @@ public final class RecordedAudioView: UIStackView {
     }
     
     private func addProgressView() {
-        let waveProgressView = LottieAnimationView(talkName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
+        let waveProgressView = LottieAnimationView(fileName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
         waveProgressView.translatesAutoresizingMaskIntoConstraints = false
         self.waveProgressView = waveProgressView
         waveProgressView.tintColor = Color.App.accentUIColor ?? .white

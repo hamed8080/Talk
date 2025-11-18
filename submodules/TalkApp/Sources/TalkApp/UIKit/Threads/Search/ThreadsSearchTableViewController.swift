@@ -21,7 +21,7 @@ class ThreadsSearchTableViewController: UIViewController {
     static let conversationResuableIdentifier = "THREADS-SERARCH-CONCERSATION-ROW"
     static let contactResuableIdentifier = "CONTACTS-SERARCH-CONCERSATION-ROW"
     static let nothingFoundResuableIdentifier = "NOTHING-FOUND-SERARCH-CONCERSATION-ROW"
-    private let centerAnimation = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private let centerAnimation = LottieAnimationView(fileName: "talk_logo_animation.json")
     
     init(viewModel: ThreadsSearchViewModel) {
         self.viewModel = viewModel

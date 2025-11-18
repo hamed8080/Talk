@@ -20,8 +20,7 @@ struct DarkModeSection: View {
                     .scaledToFit()
                     .frame(width: 16, height: 16)
                     .frame(width: 28, height: 28)
-                    .foregroundColor(.white)
-                    .background(Color.App.color1)
+                    .foregroundColor(.gray)
                     .clipShape(RoundedRectangle(cornerRadius:(8)))
 
                 Text("Settings.darkModeEnabled".bundleLocalized())

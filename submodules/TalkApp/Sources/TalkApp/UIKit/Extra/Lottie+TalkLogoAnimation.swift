@@ -10,8 +10,8 @@ import Lottie
 import SwiftUI
 
 extension LottieAnimationView {
-    convenience init(talkName: String = "talk_logo_animation.json", color: UIColor = Color.App.accentUIColor ?? .orange) {
-        self.init(name: talkName)
+    convenience init(fileName: String = "talk_logo_animation.json", color: UIColor = Color.App.accentUIColor ?? .orange) {
+        self.init(name: fileName)
         loopMode = .loop        
         let keypath = AnimationKeypath(keypath: "**.Fill 1.Color")
         let colorProvider = ColorValueProvider(color.lottieColorValue)

@@ -73,6 +73,7 @@ struct ManageSessionsView: View {
                 )
             }
             .buttonStyle(DeviceSessionButtonViewModifier(bgColor: Color.App.accent, width: width))
+            .foregroundStyle(Color.App.white)
         }
         .frame(minWidth: 0, maxWidth: .infinity)
         .listRowSeparator(.hidden)

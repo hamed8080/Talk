@@ -14,6 +14,9 @@ struct PreferenceView: View {
 
     var body: some View {
         List {
+            SettingNotificationSection()
+                .listRowInsets(.zero)
+                .listRowSeparator(.hidden)
             DarkModeSection()
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)

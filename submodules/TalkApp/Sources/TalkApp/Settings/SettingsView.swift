@@ -34,8 +34,6 @@ struct SettingsView: View {
                     .listRowSeparator(.hidden)
                 SavedMessageSection()
                 SettingArchivesSection()
-                SettingNotificationSection()
-                    .listRowSeparator(.hidden)
                 SettingSettingSection()
                 SettingLanguageSection()
             }
@@ -125,7 +123,7 @@ struct SettingSettingSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "gearshape.fill", title: "Settings.title", showDivider: false) {
+        ListSectionButton(imageName: "gearshape", title: "Settings.title", showDivider: false) {
             navModel.wrapAndPush(view: PreferenceView())
         }
         .listRowInsets(.zero)
@@ -284,7 +282,7 @@ struct SettingLogSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", showDivider: false) {
+        ListSectionButton(imageName: "doc.text", title: "Settings.logs", showDivider: false) {
             navModel.wrapAndPush(view: LogView())
         }
         .listRowInsets(.zero)
@@ -297,7 +295,7 @@ struct SettingArchivesSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "archivebox.fill", title: "Tab.archives", showDivider: false) {
+        ListSectionButton(imageName: "archivebox", title: "Tab.archives", showDivider: false) {
             navModel.wrapAndPush(view: ArchivesView(viewModel: AppState.shared.objectsContainer.archivesVM))
         }
         .listRowInsets(.zero)
@@ -330,7 +328,7 @@ struct SettingLanguageSection: View {
 struct SavedMessageSection: View {
 
     var body: some View {
-        ListSectionButton(imageName: "bookmark.fill", title: "Settings.savedMessage", showDivider: false) {
+        ListSectionButton(imageName: "bookmark", title: "Settings.savedMessage", showDivider: false) {
             Task {
                 do {
                     let conversation = try await create()
@@ -384,14 +382,14 @@ struct SupportSection: View {
     @EnvironmentObject var container: ObjectsContainer
 
     var body: some View {
-        ListSectionButton(imageName: "exclamationmark.bubble.fill", title: "Settings.about", showDivider: false) {
+        ListSectionButton(assetImageName: "ic_two_layer", title: "Settings.about", showDivider: false) {
             navModel.wrapAndPush(view: SupportView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
 
-        ListSectionButton(imageName: "arrow.backward.circle", title: "Settings.logout", showDivider: false) {
+        ListSectionButton(assetImageName: "ic_exit", title: "Settings.logout", showDivider: false) {
             container.appOverlayVM.dialogView = AnyView(LogoutDialogView())
         }
         .listRowInsets(.zero)
@@ -405,7 +403,7 @@ struct TokenExpireTimeSection: View {
     
     var body: some View {
         let secondToExpire = tokenManagerVM.secondToExpire.formatted(.number.precision(.fractionLength(0)))
-        ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", showDivider: false, shownavigationButton: false)
+        ListSectionButton(imageName: "key", title: "The token will expire in \(secondToExpire) seconds", showDivider: false, shownavigationButton: false)
             .listRowInsets(.zero)
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.clear)
@@ -421,7 +419,7 @@ struct SettingAssistantSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "person.fill", title: "Settings.assistants", showDivider: false) {
+        ListSectionButton(imageName: "person", title: "Settings.assistants", showDivider: false) {
             navModel.wrapAndPush(view: AssistantView())
         }
         .listRowInsets(.zero)
@@ -464,7 +462,7 @@ struct UserProfileView: View {
 
             Text(verbatim: user?.name ?? "")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(Font.normal(.subheadline))
+                .font(.bold(.body))
             Spacer()
 
             Button {
@@ -476,10 +474,10 @@ struct UserProfileView: View {
                     .background(.ultraThickMaterial)
                     .clipShape(RoundedRectangle(cornerRadius:(24)))
                     .overlay(alignment: .center) {
-                        Image("ic_edit")
+                        Image("ic_edit_empty")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 24, height: 24)
+                            .frame(width: 20, height: 20)
                             .foregroundStyle(Color.App.textSecondary)
                     }
             }

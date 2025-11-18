@@ -18,7 +18,7 @@ class ForwardConversationTableViewController: UIViewController {
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
-    private let centerLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private let centerLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel

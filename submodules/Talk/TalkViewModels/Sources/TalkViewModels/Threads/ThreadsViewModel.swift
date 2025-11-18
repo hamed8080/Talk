@@ -34,6 +34,8 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     var contextMenuContainer: ContextMenuContainerView? { get set }
     func createThreadViewController(conversation: Conversation) -> UIViewController
     func setImageFor(id: Int, image: UIImage?)
+    func showCenterAnimation(show: Bool)
+    func showBottomAnimation(show: Bool)
 }
 
 @MainActor
@@ -106,6 +108,9 @@ public final class ThreadsViewModel: ObservableObject {
         Task { @AppBackgroundActor in
             isCompleted = false
             await MainActor.run {
+                if delegate == nil {
+                    print("Delegate should not be nil")
+                }
                 delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
             }
             self.isCompleted = true
@@ -298,7 +303,9 @@ public final class ThreadsViewModel: ObservableObject {
     public func loadMore(id: Int?) async {
         if !lazyList.canLoadMore(id: id) { return }
         lazyList.prepareForLoadMore()
+        delegate?.showBottomAnimation(show: true)
         await getThreads()
+        delegate?.showBottomAnimation(show: false)
     }
     
     public func append(_ conversation: CalculatedConversation) async {

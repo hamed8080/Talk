@@ -16,9 +16,9 @@ public class ThreadLoadingManager {
     public weak var tableView: UITableView?
     private let topLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: loadingViewWidth, height: loadingViewWidth + 2))
-    private var topLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
-    private var centerLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
-    private var bottomLoading = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private var topLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
+    private var centerLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
+    private var bottomLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
     
     /// Models
     private static let loadingViewWidth: CGFloat = 52

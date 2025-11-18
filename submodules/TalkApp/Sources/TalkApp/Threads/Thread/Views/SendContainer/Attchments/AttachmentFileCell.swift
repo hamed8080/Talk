@@ -68,7 +68,7 @@ public final class AttachmentFileCell: UITableViewCell {
         btnRemove.semanticContentAttribute = semantic
 
         btnEditImage.translatesAutoresizingMaskIntoConstraints = false
-        let editImage = UIImage(systemName: "pencil.line")
+        let editImage = UIImage(named: "ic_edit_empty")
         btnEditImage.setImage(editImage, for: .normal)
         btnEditImage.tintColor = Color.App.textSecondaryUIColor
         btnEditImage.accessibilityIdentifier = "btnEidtImageAttachmentFileCell"

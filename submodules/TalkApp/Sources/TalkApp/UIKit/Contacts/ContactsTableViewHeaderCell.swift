@@ -16,7 +16,7 @@ class ContactsTableViewHeaderCell: UITableViewCell {
     weak var viewController: UIViewController?
     private let stack = UIStackView()
     private var cancellable: AnyCancellable?
-    private let loadingView = LottieAnimationView(talkName: "talk_logo_animation.json")
+    private let loadingView = LottieAnimationView(fileName: "talk_logo_animation.json")
     private let loadingContainer = UIView()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

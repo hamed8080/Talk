@@ -9,6 +9,7 @@ import SwiftUI
 
 public struct ListSectionButton: View {
     let imageName: String?
+    let assetImageName: String?
     let title: String
     let bgColor: Color
     let iconColor: Color
@@ -17,7 +18,8 @@ public struct ListSectionButton: View {
     let trailingView: AnyView?
     let action: (() -> ())?
 
-    public init(imageName: String?,
+    public init(imageName: String? = nil,
+                assetImageName: String? = nil,
                 title: String,
                 bgColor: Color = Color.clear,
                 iconColor: Color = .gray,
@@ -26,6 +28,7 @@ public struct ListSectionButton: View {
                 trailingView: AnyView? = nil,
                 action: (() -> Void)? = nil) {
         self.imageName = imageName
+        self.assetImageName = assetImageName
         self.title = title
         self.bgColor = bgColor
         self.iconColor = iconColor
@@ -46,7 +49,20 @@ public struct ListSectionButton: View {
                             Image(systemName: imageName)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 16, height: 16)
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(iconColor)
+                        }
+                        .frame(width: 28, height: 28)
+                        .background(bgColor)
+                        .clipShape(RoundedRectangle(cornerRadius:(8)))
+                    }
+                    
+                    if let assetImageName = assetImageName {
+                        HStack {
+                            Image(assetImageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
                                 .foregroundColor(iconColor)
                         }
                         .frame(width: 28, height: 28)

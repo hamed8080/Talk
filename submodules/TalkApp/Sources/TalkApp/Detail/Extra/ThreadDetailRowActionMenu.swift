@@ -75,7 +75,7 @@ struct ThreadDetailRowActionMenu: View {
         }
 
         if isDetailView, thread.group == true {
-            ContextMenuButton(title: leaveTitle, image: "rectangle.portrait.and.arrow.right", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+            ContextMenuButton(title: leaveTitle, image: "", assetImageName: "ic_exit", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 onLeaveConversationTapped()
             }
             .foregroundStyle(Color.App.red)

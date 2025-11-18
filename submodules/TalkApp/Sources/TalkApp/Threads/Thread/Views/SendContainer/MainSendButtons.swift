@@ -24,7 +24,7 @@ public final class MainSendButtons: UIView {
     private var cancellableSet = Set<AnyCancellable>()
     private static let initSize: CGFloat = 48
     private static let buttonSize = initSize - 8
-    private let animationView = LottieAnimationView(talkName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
+    private let animationView = LottieAnimationView(fileName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
     
     private var heightConstraint: NSLayoutConstraint?
 

@@ -29,6 +29,10 @@
 		AC27F3C52EC6ED25008305C5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
 		AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
+		AC64B77A2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
+		AC64B77B2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
+		AC64B77C2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
+		AC64B77D2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
 		AC7408932D777A81009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408922D777A81009217C8 /* TalkApp */; };
 		AC7408952D777A86009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408942D777A86009217C8 /* TalkApp */; };
 		AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */; };
@@ -94,6 +98,7 @@
 		05B4C17A2ACEF2AF00FBC4DC /* TabButtonsContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabButtonsContainer.swift; sourceTree = "<group>"; };
 		AC27F3CA2EC6ED25008305C5 /* LeitnerBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LeitnerBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC27F3CC2EC6ED5C008305C5 /* LeitnerBox.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = LeitnerBox.plist; sourceTree = "<group>"; };
+		AC64B7792ECC950B009524EC /* dots_loading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = dots_loading.json; sourceTree = "<group>"; };
 		AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ACA238F22D76CB8E00D8E43A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LeitnerBox.entitlements; sourceTree = "<group>"; };
@@ -190,6 +195,7 @@
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
 				0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */,
 				ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */,
+				AC64B7792ECC950B009524EC /* dots_loading.json */,
 				ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */,
 				0570CC962AAEE9B2001832E9 /* Info-Test.plist */,
 				ACE77E852E1C253800450E13 /* Info-AppStore.plist */,
@@ -365,6 +371,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77D2ECC950B009524EC /* dots_loading.json in Resources */,
 				ACCDE1952EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
@@ -375,6 +382,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77C2ECC950B009524EC /* dots_loading.json in Resources */,
 				ACCDE1962EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
@@ -385,6 +393,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77A2ECC950B009524EC /* dots_loading.json in Resources */,
 				AC27F3C32EC6ED25008305C5 /* talk_logo_animation.json in Resources */,
 				AC27F3C42EC6ED25008305C5 /* Assets.xcassets in Resources */,
 				AC27F3C52EC6ED25008305C5 /* Preview Assets.xcassets in Resources */,
@@ -395,6 +404,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77B2ECC950B009524EC /* dots_loading.json in Resources */,
 				ACCDE1942EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */,
 				AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */,
