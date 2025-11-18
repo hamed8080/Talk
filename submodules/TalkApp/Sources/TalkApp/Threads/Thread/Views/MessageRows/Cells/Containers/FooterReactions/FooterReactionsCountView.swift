@@ -53,8 +53,8 @@ final class FooterReactionsCountView: UIStackView {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.addSubview(reactionStack)
         
-        addArrangedSubview(scrollView)
         addArrangedSubview(MoreReactionButtonRow(frame: .zero, isMe: isMe))
+        addArrangedSubview(scrollView)
         
         scrollViewMinWidthConstraint = scrollView.widthAnchor.constraint(greaterThanOrEqualToConstant: 0)
         scrollViewMinWidthConstraint?.isActive = true
@@ -89,11 +89,11 @@ final class FooterReactionsCountView: UIStackView {
         }
         
         /// Hide or show More than 4 reactions button
-        if viewModel.reactionsModel.rows.count > ConstantSizes.footerReactionsCountViewMaxReactionsToShow, let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
+        if viewModel.reactionsModel.rows.count > ConstantSizes.footerReactionsCountViewMaxReactionsToShow, let moreButton = arrangedSubviews[0] as? MoreReactionButtonRow {
             moreButton.setIsHidden(false)
             moreButton.row = .moreReactionRow
             moreButton.viewModel = viewModel
-        } else if let moreButton = arrangedSubviews[1] as? MoreReactionButtonRow {
+        } else if let moreButton = arrangedSubviews[0] as? MoreReactionButtonRow {
             moreButton.setIsHidden(true)
         }
     }

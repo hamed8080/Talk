@@ -42,7 +42,7 @@ class MoreReactionButtonRow: UIView, UIContextMenuInteractionDelegate {
         imgCenter.image = UIImage(systemName: "chevron.down")
         imgCenter.translatesAutoresizingMaskIntoConstraints = false
         imgCenter.contentMode = .scaleAspectFit
-        imgCenter.tintColor = Color.App.textSecondaryUIColor
+        imgCenter.tintColor = Color.App.textPrimaryUIColor
         imgCenter.accessibilityIdentifier = "imgCenterMoveToBottomButton"
         addSubview(imgCenter)
 
