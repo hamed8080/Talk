@@ -144,7 +144,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
                 AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(publicGroupName: publicName))
             } else {
                 /// Open up the browser
-                AppState.shared.openURL(url: decodedOpenURL)
+                AppState.shared.objectsContainer.navVM.openURL(url: decodedOpenURL)
             }
         }
     }

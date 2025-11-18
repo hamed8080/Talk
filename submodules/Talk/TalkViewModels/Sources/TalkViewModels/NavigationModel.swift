@@ -1,6 +1,7 @@
 import Chat
 import SwiftUI
 import TalkModels
+import SafariServices
 
 @MainActor
 public final class NavigationModel: ObservableObject {
@@ -500,5 +501,13 @@ extension NavigationModel {
 public extension NavigationModel {
     var allThreads: ContiguousArray<CalculatedConversation> {
         return objc.threadsVM.threads ?? [] + objc.archivesVM.threads
+    }
+}
+
+public extension NavigationModel {
+    func openURL(url: URL) {
+        let vc = SFSafariViewController(url: url)
+        vc.preferredControlTintColor = UIColor(named: "accent")
+        splitVC?.present(vc, animated: true)
     }
 }

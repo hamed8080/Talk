@@ -68,13 +68,6 @@ extension AppState {
 }
 
 extension AppState {
-    public func openURL(url: URL) {
-        NotificationCenter.default.post(name: NSNotification.Name("openURL"), object: url)
-        animateObjectWillChange()
-    }
-}
-
-extension AppState {
     public func clear() {
         AppState.shared.objectsContainer.navVM.resetNavigationProperties()
         callLogs = nil
