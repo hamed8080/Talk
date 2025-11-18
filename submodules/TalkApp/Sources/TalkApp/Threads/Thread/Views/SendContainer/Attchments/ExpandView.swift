@@ -32,7 +32,7 @@ public class ExpandView: UIView {
         
         let btnClear = UIButton(type: .system)
         btnClear.translatesAutoresizingMaskIntoConstraints = false
-        btnClear.setTitle("General.cancel2".bundleLocalized(), for: .normal)
+        btnClear.setTitle("General.cancelAll".bundleLocalized(), for: .normal)
         btnClear.titleLabel?.font = UIFont.normal(.caption)
         btnClear.setTitleColor(Color.App.accentUIColor, for: .normal)
         btnClear.accessibilityIdentifier = "btnClearExpandView"
