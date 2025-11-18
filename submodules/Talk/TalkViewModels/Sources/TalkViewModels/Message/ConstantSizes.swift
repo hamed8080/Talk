@@ -158,14 +158,14 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageParticipantsEventCellCornerRadius: CGFloat = 14
     nonisolated(unsafe) public static let messageParticipantsEventCellMargin: CGFloat = 4
     nonisolated(unsafe) public static let messageParticipantsEventCellWidthRedaction: CGFloat = 24
-    nonisolated(unsafe) public static let messageParticipantsEventCellLableHorizontalPadding: CGFloat = 16
+    nonisolated(unsafe) public static let messageParticipantsEventCellLableHorizontalPadding: CGFloat = 32
     nonisolated(unsafe) public static let messageParticipantsEventCellLableVerticalPadding: CGFloat = 8
     
     /// CallEventCell sizes
     nonisolated(unsafe) public static let messageCallEventCellStackSapcing: CGFloat = 12
-    nonisolated(unsafe) public static let messageCallEventCellStackCornerRadius: CGFloat = 14
+    nonisolated(unsafe) public static let messageCallEventCellStackCornerRadius: CGFloat = 19
     nonisolated(unsafe) public static let messageCallEventCellStackLayoutMargin: CGFloat = 16
-    nonisolated(unsafe) public static let messageCallEventCellHeight: CGFloat = 32
+    nonisolated(unsafe) public static let messageCallEventCellHeight: CGFloat = 46
     nonisolated(unsafe) public static let messageCallEventCellStackMargin: CGFloat = 4
     
     /// Buttons vertical stack for mention/jump to bottom

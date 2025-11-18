@@ -33,7 +33,7 @@ final class ParticipantsEventCell: UITableViewCell {
         label.layer.cornerRadius = ConstantSizes.messageParticipantsEventCellCornerRadius
         label.layer.masksToBounds = true
         label.label.textAlignment = .center
-        label.backgroundColor = .black.withAlphaComponent(0.4)
+        label.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
         label.accessibilityIdentifier = "labelParticipantsEventCell"
 
         contentView.addSubview(label)
