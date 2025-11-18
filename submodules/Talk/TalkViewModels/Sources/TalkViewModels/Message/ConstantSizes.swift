@@ -173,7 +173,14 @@ public struct ConstantSizes: Sendable {
     
     /// Bottom toolbar size
     nonisolated(unsafe) public static let bottomToolbarSize: CGFloat = 52
-
+    
+    /// Toolbar top
+    nonisolated(unsafe) public static let topToolbarHeight: CGFloat = 64
+    
+    /// TableView Separator
+    nonisolated(unsafe) public static let tableViewSeparatorLeading: CGFloat = 64
+    nonisolated(unsafe) public static let tableViewSeparatorHeight = 0.3
+    
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0
     public var replyContainerWidth: CGFloat?

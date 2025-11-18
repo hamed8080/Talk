@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import TalkViewModels
 
 class TableViewControllerDevider: UIView {
     override init(frame: CGRect) {
@@ -21,7 +22,7 @@ class TableViewControllerDevider: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = UIColor.black.withAlphaComponent( traitCollection.userInterfaceStyle == .dark ? 0.3 : 0.1)
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 0.3),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.tableViewSeparatorHeight),
         ])
     }
 }

@@ -107,7 +107,7 @@ class ContactsNavigationBar: UIView {
         addSubview(dropDownImageView)
         
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 48),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.topToolbarHeight),
             
             overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
             overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),

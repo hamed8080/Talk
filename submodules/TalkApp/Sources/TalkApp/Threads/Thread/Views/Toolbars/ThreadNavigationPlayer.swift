@@ -39,6 +39,7 @@ class ThreadNavigationPlayer: UIView {
     }
 
     private func configureViews() {
+        backgroundColor = Color.App.bgSecondaryUIColor
         translatesAutoresizingMaskIntoConstraints = false
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
@@ -243,14 +244,18 @@ class ThreadNavigationPlayer: UIView {
         }
     }
     
-    public func setTintColors(color: UIColor) {
+    public func setPlayButtonTintColor(color: UIColor) {
         playButton.tintColor = color
         playButton.imageView.tintColor = color
-        
+    }
+    
+    public func setProgressTintColor(color: UIColor) {
+        progress.tintColor = color
+    }
+    
+    public func setCloseButtonTint(color: UIColor) {
         closeButton.tintColor = color
         closeButton.imageView.tintColor = color
-        
-        progress.tintColor = color
     }
 }
 

@@ -168,13 +168,14 @@ public class ThreadsTopToolbarView: UIStackView {
         searchRowStack.addArrangedSubview(searchTextField)
         
         player.translatesAutoresizingMaskIntoConstraints = false
-        player.setTintColors(color: Color.App.toolbarButtonUIColor ?? .white)
        
         addArrangedSubview(topRowStack)
         addArrangedSubview(searchRowStack)
         addArrangedSubview(player)
 
         NSLayoutConstraint.activate([
+            heightAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.topToolbarHeight),
+            
             overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
             overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
             overBlurEffectColorView.topAnchor.constraint(equalTo: topAnchor, constant: -100),

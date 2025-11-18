@@ -234,8 +234,9 @@ class ConversationCell: UITableViewCell {
             secondRowTrailingStack.centerYAnchor.constraint(equalTo: subtitleLabel.centerYAnchor),
             secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
             
-            separator.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -64),
-            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0.5),
+            separator.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -ConstantSizes.tableViewSeparatorLeading),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: ConstantSizes.tableViewSeparatorHeight),
         ])
         
         radio.isHidden = radioIsHidden
