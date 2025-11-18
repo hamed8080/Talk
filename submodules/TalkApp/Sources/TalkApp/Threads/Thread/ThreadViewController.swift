@@ -813,3 +813,10 @@ extension Notification: @unchecked @retroactive Sendable {
         return nil
     }
 }
+
+extension ThreadViewController {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        loadingManager.traitCollectionDidChange(previousTraitCollection)
+    }
+}
