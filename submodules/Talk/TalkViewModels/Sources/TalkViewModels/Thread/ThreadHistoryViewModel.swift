@@ -237,6 +237,9 @@ extension ThreadHistoryViewModel {
             
             /// Insert and scroll to the last thread message.
             if let indexPath = lastMessageIndexPath {
+                if thread.lastSeenMessageId ?? 0 > thread.lastMessageVO?.id ?? 0 {
+                    fixLastMessageIfNeeded()
+                }
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             } else if !tuple.rows.isEmpty {
                 fixLastMessageIfNeeded()
