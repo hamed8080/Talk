@@ -10,9 +10,11 @@ import SwiftUI
 public struct StickyHeaderSection: View {
     let header: String
     let height: CGFloat?
+    let horizontalPadding: CGFloat
 
-    public init(header: String, height: CGFloat? = nil) {
+    public init(header: String, height: CGFloat? = nil, horizontalPadding: CGFloat = 16) {
         self.header = header
+        self.horizontalPadding = horizontalPadding
         self.height = height
     }
 
@@ -25,7 +27,7 @@ public struct StickyHeaderSection: View {
         }
         .frame(height: height)
         .frame(minWidth: 0, maxWidth: .infinity)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, horizontalPadding)
         .background(Color.App.dividerPrimary)
         .listRowBackground(Color.App.dividerPrimary)
     }

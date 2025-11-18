@@ -13,7 +13,7 @@ struct ManageSessionsSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "ipad.landscape", title: "Settings.ManageSessions.title", color: .blue, showDivider: false) {
+        ListSectionButton(imageName: "ipad.landscape", title: "Settings.ManageSessions.title", showDivider: false) {
             navModel.wrapAndPush(view: ManageSessionsView())
         }
         .listRowInsets(.zero)

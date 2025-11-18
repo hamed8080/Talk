@@ -14,7 +14,7 @@ struct SettingNotificationSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "bell.fill", title: "Settings.notifictionSettings", color: .red, showDivider: false) {
+        ListSectionButton(imageName: "bell.fill", title: "Settings.notifictionSettings", showDivider: false) {
             navModel.wrapAndPush(view: NotificationSettings())
         }
         .listRowInsets(.zero)

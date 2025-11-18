@@ -10,7 +10,8 @@ import SwiftUI
 public struct ListSectionButton: View {
     let imageName: String?
     let title: String
-    let color: Color
+    let bgColor: Color
+    let iconColor: Color
     let showDivider: Bool
     let shownavigationButton: Bool
     let trailingView: AnyView?
@@ -18,14 +19,16 @@ public struct ListSectionButton: View {
 
     public init(imageName: String?,
                 title: String,
-                color: Color,
+                bgColor: Color = Color.clear,
+                iconColor: Color = .gray,
                 showDivider: Bool = true,
                 shownavigationButton: Bool = true,
                 trailingView: AnyView? = nil,
                 action: (() -> Void)? = nil) {
         self.imageName = imageName
         self.title = title
-        self.color = color
+        self.bgColor = bgColor
+        self.iconColor = iconColor
         self.showDivider = showDivider
         self.action = action
         self.trailingView = trailingView
@@ -44,10 +47,10 @@ public struct ListSectionButton: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 16, height: 16)
-                                .foregroundColor(.white)
+                                .foregroundColor(iconColor)
                         }
                         .frame(width: 28, height: 28)
-                        .background(color)
+                        .background(bgColor)
                         .clipShape(RoundedRectangle(cornerRadius:(8)))
                     }
 
@@ -91,6 +94,6 @@ struct ListSectionButtonStyle: ButtonStyle {
 
 struct ListSectionButton_Previews: PreviewProvider {
     static var previews: some View {
-        ListSectionButton(imageName: "TEST", title: "TIITLE", color: .red)
+        ListSectionButton(imageName: "TEST", title: "TIITLE", bgColor: .red, iconColor: .gray)
     }
 }

@@ -29,19 +29,29 @@ struct SettingsView: View {
                 .listRowSeparator(.hidden)
 
             Group {
-                StickyHeaderSection(header: "", height: 10)
+                StickyHeaderSection(header: "", height: 0.5)
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
                 SavedMessageSection()
+                SettingArchivesSection()
                 SettingNotificationSection()
                     .listRowSeparator(.hidden)
-                StickyHeaderSection(header: "", height: 10)
-                    .listRowInsets(.zero)
-                    .listRowSeparator(.hidden)
-                SettingLanguageSection()
                 SettingSettingSection()
-                SettingArchivesSection()
+                SettingLanguageSection()
+            }
+
+            Group {
+                SupportSection()
+
+                VersionNumberView()
                 if EnvironmentValues.isTalkTest {
+                    TokenExpireTimeSection()
+                        .sandboxLabel()
+                    LoadTestsSection()
+                        .sandboxLabel()
+                    ManualConnectionManagementSection()
+                        .sandboxLabel()
+                    
                     SettingLogSection()
                         .sandboxLabel()
                     BlockedMessageSection()
@@ -55,30 +65,12 @@ struct SettingsView: View {
                         .sandboxLabel()
                 }
             }
-
-            Group {
-                StickyHeaderSection(header: "", height: 10)
-                    .listRowInsets(.zero)
-                    .listRowSeparator(.hidden)
-
-                SupportSection()
-
-                VersionNumberView()
-                if EnvironmentValues.isTalkTest {
-                    TokenExpireTimeSection()
-                        .sandboxLabel()
-                    LoadTestsSection()
-                        .sandboxLabel()
-                    ManualConnectionManagementSection()
-                        .sandboxLabel()
-                }
-            }
             .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
         .padding(.bottom, ConstantSizes.bottomToolbarSize)
         .background(Color.App.bgPrimary.ignoresSafeArea())
-        .environment(\.defaultMinListRowHeight, 8)
+        .environment(\.defaultMinListRowHeight, 0.5)
         .font(Font.normal(.subheadline))
         .safeAreaInset(edge: .top, spacing: 0) {
             ToolbarView(
@@ -133,7 +125,7 @@ struct SettingSettingSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "gearshape.fill", title: "Settings.title", color: .gray, showDivider: false) {
+        ListSectionButton(imageName: "gearshape.fill", title: "Settings.title", showDivider: false) {
             navModel.wrapAndPush(view: PreferenceView())
         }
         .listRowInsets(.zero)
@@ -149,7 +141,7 @@ struct UserInformationSection: View {
 
     var body: some View {
         if !userName.isEmpty || !phone.isEmpty || !bio.isEmpty {
-            StickyHeaderSection(header: "", height: 10)
+            StickyHeaderSection(header: "", height: 0.5)
                 .listRowInsets(.zero)
         }
 
@@ -292,7 +284,7 @@ struct SettingLogSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", color: .brown, showDivider: false) {
+        ListSectionButton(imageName: "doc.text.fill", title: "Settings.logs", showDivider: false) {
             navModel.wrapAndPush(view: LogView())
         }
         .listRowInsets(.zero)
@@ -305,7 +297,7 @@ struct SettingArchivesSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "archivebox.fill", title: "Tab.archives", color: Color.App.color5, showDivider: false) {
+        ListSectionButton(imageName: "archivebox.fill", title: "Tab.archives", showDivider: false) {
             navModel.wrapAndPush(view: ArchivesView(viewModel: AppState.shared.objectsContainer.archivesVM))
         }
         .listRowInsets(.zero)
@@ -318,7 +310,7 @@ struct SettingLanguageSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "globe", title: "Settings.language", color: Color.App.red, showDivider: false, trailingView: selectedLanguage) {
+        ListSectionButton(imageName: "globe", title: "Settings.language", showDivider: false, trailingView: selectedLanguage) {
             navModel.wrapAndPush(view: LanguageView(container: AppState.shared.objectsContainer))
         }
         .listRowInsets(.zero)
@@ -338,7 +330,7 @@ struct SettingLanguageSection: View {
 struct SavedMessageSection: View {
 
     var body: some View {
-        ListSectionButton(imageName: "bookmark.fill", title: "Settings.savedMessage", color: Color.App.color5, showDivider: false) {
+        ListSectionButton(imageName: "bookmark.fill", title: "Settings.savedMessage", showDivider: false) {
             Task {
                 do {
                     let conversation = try await create()
@@ -376,7 +368,7 @@ struct BlockedMessageSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "hand.raised.slash", title: "General.blocked", color: Color.App.red, showDivider: false) {
+        ListSectionButton(imageName: "hand.raised.slash", title: "General.blocked", showDivider: false) {
             withAnimation {
                 navModel.wrapAndPush(view: BlockedContacts())
             }
@@ -392,14 +384,14 @@ struct SupportSection: View {
     @EnvironmentObject var container: ObjectsContainer
 
     var body: some View {
-        ListSectionButton(imageName: "exclamationmark.bubble.fill", title: "Settings.about", color: Color.App.color2, showDivider: false) {
+        ListSectionButton(imageName: "exclamationmark.bubble.fill", title: "Settings.about", showDivider: false) {
             navModel.wrapAndPush(view: SupportView())
         }
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
 
-        ListSectionButton(imageName: "arrow.backward.circle", title: "Settings.logout", color: Color.App.red, showDivider: false) {
+        ListSectionButton(imageName: "arrow.backward.circle", title: "Settings.logout", showDivider: false) {
             container.appOverlayVM.dialogView = AnyView(LogoutDialogView())
         }
         .listRowInsets(.zero)
@@ -413,7 +405,7 @@ struct TokenExpireTimeSection: View {
     
     var body: some View {
         let secondToExpire = tokenManagerVM.secondToExpire.formatted(.number.precision(.fractionLength(0)))
-        ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", color: Color.App.color3, showDivider: false, shownavigationButton: false)
+        ListSectionButton(imageName: "key.fill", title: "The token will expire in \(secondToExpire) seconds", showDivider: false, shownavigationButton: false)
             .listRowInsets(.zero)
             .listRowBackground(Color.App.bgPrimary)
             .listRowSeparatorTint(Color.clear)
@@ -429,7 +421,7 @@ struct SettingAssistantSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "person.fill", title: "Settings.assistants", color: Color.App.color1, showDivider: false) {
+        ListSectionButton(imageName: "person.fill", title: "Settings.assistants", showDivider: false) {
             navModel.wrapAndPush(view: AssistantView())
         }
         .listRowInsets(.zero)
@@ -442,7 +434,7 @@ struct ManualConnectionManagementSection: View {
     @EnvironmentObject var navModel: NavigationModel
     
     var body: some View {
-        ListSectionButton(imageName: "rectangle.connected.to.line.below", title: "Settings.manageConnection", color: Color.App.color3, showDivider: false) {
+        ListSectionButton(imageName: "rectangle.connected.to.line.below", title: "Settings.manageConnection", showDivider: false) {
             navModel.wrapAndPush(view: ManuallyConnectionManagerView())
         }
         .listRowInsets(.zero)
@@ -503,7 +495,7 @@ struct LoadTestsSection: View {
 
     var body: some View {
         if EnvironmentValues.isTalkTest {
-            ListSectionButton(imageName: "testtube.2", title: "Load Tests", color: Color.App.color4, showDivider: false) {
+            ListSectionButton(imageName: "testtube.2", title: "Load Tests", showDivider: false) {
                 navModel.wrapAndPush(view: LoadTestsView())
             }
             .listRowInsets(.zero)
