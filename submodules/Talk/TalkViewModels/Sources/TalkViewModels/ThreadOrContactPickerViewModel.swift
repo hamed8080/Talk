@@ -39,7 +39,11 @@ public class ThreadOrContactPickerViewModel {
     public private(set) var contactsImages: [Int: ImageLoaderViewModel] = [:]
     private var searchTask: Task<Void, any Error>? = nil
 
-    public init() {}
+    public init() {
+        /// Clear out self thread and force it to fetch the new self thread.
+        UserDefaults.standard.removeObject(forKey: "SELF_THREAD")
+        UserDefaults.standard.synchronize()
+    }
     
     public func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
