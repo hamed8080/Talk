@@ -149,8 +149,8 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageUnreadBubbleCellLableHeight: CGFloat = 30
     
     /// SectionHeaderView sizes
-    nonisolated(unsafe) public static let sectionHeaderViewHeight: CGFloat = 32
-    nonisolated(unsafe) public static let sectionHeaderViewLabelCornerRadius: CGFloat = 16
+    nonisolated(unsafe) public static let sectionHeaderViewHeight: CGFloat = 36
+    nonisolated(unsafe) public static let sectionHeaderViewLabelCornerRadius: CGFloat = 14
     nonisolated(unsafe) public static let sectionHeaderViewLableHorizontalPadding: CGFloat = 32
     nonisolated(unsafe) public static let sectionHeaderViewLableVerticalPadding: CGFloat = 8
     

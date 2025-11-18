@@ -46,9 +46,9 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         addSubview(label)
 
         NSLayoutConstraint.activate([
-            label.heightAnchor.constraint(equalToConstant: ConstantSizes.sectionHeaderViewHeight),
             label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.topAnchor.constraint(equalTo: topAnchor),
+            label.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
         ])
     }
 
