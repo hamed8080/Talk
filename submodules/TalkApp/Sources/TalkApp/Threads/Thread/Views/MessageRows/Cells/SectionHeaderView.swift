@@ -31,7 +31,7 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         backgroundView?.backgroundColor = .clear
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.label.font = UIFont.normal(.caption)
+        label.label.font = UIFont.bold(.caption)
         label.label.textColor = .white
         label.layer.cornerRadius = ConstantSizes.sectionHeaderViewLabelCornerRadius
         label.layer.masksToBounds = true
@@ -46,8 +46,9 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         addSubview(label)
 
         NSLayoutConstraint.activate([
+            label.heightAnchor.constraint(equalToConstant: ConstantSizes.sectionHeaderViewHeight),
             label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: centerYAnchor),
+            label.topAnchor.constraint(equalTo: topAnchor),
         ])
     }
 
