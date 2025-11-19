@@ -27,6 +27,9 @@ public final class MainSendButtons: UIView {
     private let animationView = LottieAnimationView(fileName: "talk_logo_animation.json", color: Color.App.whiteUIColor ?? .white)
     
     private var heightConstraint: NSLayoutConstraint?
+    private var appState: AppState { AppState.shared }
+    private var objc: ObjectsContainer { appState.objectsContainer }
+    private var prop: NavigationProperties { objc.navVM.navigationProperties }
 
     public init(viewModel: ThreadViewModel?) {
         self.threadVM = viewModel
@@ -90,7 +93,7 @@ public final class MainSendButtons: UIView {
         animationView.layer.cornerRadius = MainSendButtons.buttonSize / 2
         animationView.backgroundColor = Color.App.accentUIColor
         addSubview(animationView)
-        if AppState.shared.connectionStatus != .connected {
+        if appState.connectionStatus != .connected {
             animationView.play()
         }
 
@@ -136,7 +139,7 @@ public final class MainSendButtons: UIView {
     }
     
     private func registerInternetConnection() {
-        AppState.shared.$connectionStatus
+        appState.$connectionStatus
             .sink { [weak self] newState in
                 self?.showConnectionAnimation(show: newState != .connected)
             }
@@ -145,7 +148,7 @@ public final class MainSendButtons: UIView {
     
     private func registerModeChange() {
         viewModel.modePublisher.sink { [weak self] newMode in
-            guard let self = self, AppState.shared.lifeCycleState == .active else { return }
+            guard let self = self, appState.lifeCycleState == .active else { return }
             setButtonsIcons(mode: newMode)
             let isShowPickerButton = newMode.type == .showButtonsPicker
             threadVM?.delegate?.showPickerButtons(isShowPickerButton)
@@ -210,6 +213,10 @@ public final class MainSendButtons: UIView {
         btnLeading.action = { [weak self] in
             guard let self = self else { return }
             
+            let hasForward = prop.forwardMessages?.isEmpty == false
+            let sameForward = viewModel.threadId == prop.forwardMessageRequest?.threadId
+            let hasForwardSameInThread = hasForward && sameForward
+            
             let mode = viewModel.getMode()
             if viewModel.showAudio(mode: mode) == true {
                 startVoiceRecording()
@@ -225,11 +232,15 @@ public final class MainSendButtons: UIView {
             let isPickerOpen = mode.type == .showButtonsPicker
             let isEmptyText = viewModel.isTextEmpty()
             let hasAttachment = viewModel.hasAttachment()
+            let hasForward = prop.forwardMessages?.isEmpty == false
+            let sameForward = viewModel.threadId == prop.forwardMessageRequest?.threadId
+            let hasForwardSameInThread = hasForward && sameForward
+            let hasReplyPrivately = prop.replyPrivately != nil
             
-            if isPickerOpen || (!isPickerOpen && !hasAttachment && isEmptyText) {
+            if isPickerOpen || (!isPickerOpen && !hasAttachment && isEmptyText) && !hasForwardSameInThread && !hasReplyPrivately {
                 // Close / Open picker
                 onBtnToggleAttachmentButtonsTapped()
-            } else if !isEmptyText || hasAttachment {
+            } else if !isEmptyText || hasAttachment || hasForwardSameInThread || hasReplyPrivately {
                 // Send
                 onBtnSendTapped()
             }
@@ -276,8 +287,12 @@ public final class MainSendButtons: UIView {
             let showSendButton = viewModel.showSendButton(mode: mode)
             let pickerIsOpen = mode.type == .showButtonsPicker
             let hasAttachment = hasAttachment ?? viewModel.hasAttachment()
+            let hasForward = prop.forwardMessages?.isEmpty == false
+            let sameForward = viewModel.threadId == prop.forwardMessageRequest?.threadId
+            let hasForwardSameInThread = hasForward && sameForward
+            let hasReplyPrivately = prop.replyPrivately != nil
             
-            let hideLeading = hasAttachment || pickerIsOpen
+            let hideLeading = hasAttachment || pickerIsOpen || hasForwardSameInThread
             
             btnLeading.constraints.first(where: {$0.firstAttribute == .width})?.constant = hideLeading ? 0 : MainSendButtons.buttonSize
             
@@ -288,7 +303,7 @@ public final class MainSendButtons: UIView {
             } else if showCamera && isTextEmpty && !pickerIsOpen {
                 btnLeading.imageView.image = UIImage(systemName: "camera")
                 btnLeading.imageView.tintColor = Color.App.accentUIColor
-            } else if isTextEmpty && pickerIsOpen {
+            } else if (isTextEmpty && pickerIsOpen) || hasForwardSameInThread {
                 btnLeading.imageView.image = nil
             } else {
                 btnLeading.imageView.image = UIImage(named: "ic_attachment")?.withRenderingMode(.alwaysTemplate)
@@ -297,7 +312,7 @@ public final class MainSendButtons: UIView {
             
             /// Trailing icon
             let trailingIcon: String
-            if hasAttachment || !isTextEmpty {
+            if hasAttachment || !isTextEmpty || hasForwardSameInThread || hasReplyPrivately {
                 trailingIcon = "chevron.right"
             } else if pickerIsOpen {
                 trailingIcon = "chevron.down"
