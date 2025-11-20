@@ -107,6 +107,10 @@ public extension Font {
     static func demiBold(_ size: FontSize) -> Font {
         return Font.custom(FontFamily.demiBold.name, size: size.rawValue) ?? Font.system(size: size.rawValue)
     }
+    
+    static func name(name: String, _ size: FontSize) -> Font {
+        return Font.custom(name, size: size.rawValue) ?? Font.system(size: size.rawValue)
+    }
 }
 
 /// UIKit
@@ -157,6 +161,10 @@ public extension UIFont {
     
     static func demiBold(_ size: FontSize) -> UIFont {
         return UIFont(name: FontFamily.demiBold.name, size: size.rawValue) ?? UIFont.systemFont(ofSize: size.rawValue)
+    }
+    
+    static func name(name: String, _ size: FontSize) -> UIFont {
+        return UIFont(name: name, size: size.rawValue) ?? UIFont.systemFont(ofSize: size.rawValue)
     }
 }
 

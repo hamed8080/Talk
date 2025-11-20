@@ -656,7 +656,7 @@ class MessageRowCalculators {
         /// because there is a chance the text contains both bold and triple grave accent in this case it will crash because bold will remove four **** sign therefore the index with ``text`` is bigger than mutableAttr.string.
         tripleGraveAccentResults(mutableAttr.string, pattern: "```").forEach { result in
             mutableAttr.addAttribute(.foregroundColor, value: UIColor.clear, range: result.range)
-            mutableAttr.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: result.range)
+            mutableAttr.addAttribute(.font, value: UIFont.name(name: "Menlo", .body), range: result.range)
         }
         
         return NSAttributedString(attributedString: mutableAttr)
