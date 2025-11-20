@@ -453,7 +453,10 @@ class MessageRowCalculators {
         let summaries = reactions.reactionCounts?.sorted(by: {$0.count ?? 0 > $1.count ?? 0}) ?? []
         let myReaction = reactions.userReaction
         summaries.forEach { summary in
-            let countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
+            var countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
+            if summary.count ?? 0 > 99 {
+                countText = "99+";
+            }
             let emoji = summary.sticker?.emoji ?? ""
             let isMyReaction = myReaction?.reaction?.rawValue == summary.sticker?.rawValue
             let selectedEmojiTabId = "\(summary.sticker?.emoji ?? "all") \(countText)"
