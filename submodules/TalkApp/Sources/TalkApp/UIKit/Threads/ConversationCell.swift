@@ -158,13 +158,14 @@ class ConversationCell: UITableViewCell {
         mentionLable.layer.masksToBounds = true
         mentionLable.textColor = .white
         mentionLable.backgroundColor = Color.App.accentUIColor
+        mentionLable.font = UIFont.systemFont(ofSize: 14)
         
         let secondRowTrailingStack = UIStackView(
             arrangedSubviews: [
+                closedImageView,
                 pinImageView,
                 unreadCountLabel,
                 muteImageView,
-                closedImageView,
                 mentionLable,
             ]
         )
@@ -225,8 +226,8 @@ class ConversationCell: UITableViewCell {
             muteImageView.widthAnchor.constraint(equalToConstant: 16),
             muteImageView.heightAnchor.constraint(equalToConstant: 16),
             
-            closedImageView.widthAnchor.constraint(equalToConstant: 16),
-            closedImageView.heightAnchor.constraint(equalToConstant: 16),
+            closedImageView.widthAnchor.constraint(equalToConstant: 20),
+            closedImageView.heightAnchor.constraint(equalToConstant: 20),
             
             mentionLable.widthAnchor.constraint(equalToConstant: 24),
             mentionLable.heightAnchor.constraint(equalToConstant: 24),
@@ -273,7 +274,7 @@ class ConversationCell: UITableViewCell {
         timeLabel.textColor = conversation.isSelected ? Color.App.textPrimaryUIColor : Color.App.iconSecondaryUIColor
         timeLabelWidthConstraint.constant = timeLabel.sizeThatFits(.init(width: 64, height: 24)).width
         
-        pinImageView.isHidden = !(conversation.pin == true && conversation.hasSpaceToShowPin)
+        pinImageView.isHidden = conversation.pin ?? false == false
         muteImageView.isHidden = conversation.mute == false || conversation.mute == nil
         
         unreadCountLabel.label.text = conversation.unreadCountString
