@@ -16,6 +16,11 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messagebaseCellWidth: CGFloat = messageAvatarBeforeLeading + messageAvatarViewSize + messageAvatarAfterTrailing
     nonisolated(unsafe) public static let messagebaseCellTrailingSpaceForShowingMoveToBottom: CGFloat = 28
     
+    /// Swipe action
+    nonisolated(unsafe) public static let imageViewSwipeWidth: CGFloat = 28
+    nonisolated(unsafe) public static let minimumSwipeToConfirm: CGFloat = 64
+    nonisolated(unsafe) public static let maximumEdgeDistanceToConfirm: CGFloat = 48
+    
     /// MessageContainerStackView sizes
     nonisolated(unsafe) public static let messageContainerStackViewMargin: CGFloat = 4
     nonisolated(unsafe) public static let messageContainerStackViewMinWidth: CGFloat = 58

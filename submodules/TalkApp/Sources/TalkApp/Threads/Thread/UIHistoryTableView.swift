@@ -90,7 +90,9 @@ extension UIHistoryTableView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        ConversationHistoryCellFactory.reuse(tableView, indexPath, viewModel)
+        ConversationHistoryCellFactory.reuse(tableView, indexPath, viewModel) { [weak self] id in
+            self?.onSwipedOnItem(id: id)
+        }
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -128,11 +130,6 @@ extension UIHistoryTableView: UITableViewDelegate {
         return cell != nil
     }
 
-    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        if viewModel?.selectedMessagesViewModel.isInSelectMode == true { return nil }
-        return makeReplyButton(indexPath: indexPath)
-    }
-
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         let row = sections[indexPath.section].vms[indexPath.row]
         log("[HEIGHT][ESTIMATE] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
@@ -157,23 +154,21 @@ extension UIHistoryTableView: UITableViewDataSourcePrefetching {
 
 // Reply leading/trailing button
 extension UIHistoryTableView {
-    func makeReplyButton(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let viewModel = viewModel else { return nil }
-        let sections = sections
-        guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
+    
+    private func onSwipedOnItem(id: Int) {
+        guard let viewModel = viewModel,
+              viewModel.thread.closed != true,
+              viewModel.selectedMessagesViewModel.isInSelectMode == false,
+              let indexPath = viewModel.historyVM.sections.viewModelAndIndexPath(for: id)?.indexPath
+        else { return }
+        
         let vm = sections[indexPath.section].vms[indexPath.row]
-        if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
-        if vm.message.id == LocalId.unreadMessageBanner.rawValue { return nil }
-        if !vm.message.reactionableType { return nil }
-        let replyAction = UIContextualAction(style: .normal, title: "") { action, view, success in
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 1)
-            viewModel.delegate?.openReplyMode(vm.message)
-            success(true)
-        }
-        replyAction.image = UIImage(systemName: "arrowshape.turn.up.left.circle")
-        replyAction.backgroundColor = UIColor.clear.withAlphaComponent(0.001)
-        let config = UISwipeActionsConfiguration(actions: [replyAction])
-        return config
+        if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return }
+        if vm.message.id == LocalId.unreadMessageBanner.rawValue { return }
+        if !vm.message.reactionableType { return }
+        
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 1)
+        viewModel.delegate?.openReplyMode(vm.message)
     }
 }
 
