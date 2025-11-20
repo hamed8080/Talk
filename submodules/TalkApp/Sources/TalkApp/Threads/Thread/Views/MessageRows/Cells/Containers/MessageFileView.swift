@@ -18,7 +18,7 @@ final class MessageFileView: UIStackView {
     private let fileTypeLabel = UILabel()
     private let fileSizeLabel = UILabel()
     private let progressButton = CircleProgressButton(progressColor: Color.App.whiteUIColor,
-                                                      iconTint: Color.App.textPrimaryUIColor,
+                                                      iconTint: Color.App.whiteUIColor,
                                                       bgColor: Color.App.accentUIColor,
                                                       margin: 2
     )
