@@ -23,6 +23,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in}
         ChatDelegateImplementation.sharedInstance.initialize()
+        ChatDelegateImplementation.sharedInstance.registerOnConnect()
         return true
     }
 
