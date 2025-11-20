@@ -67,7 +67,11 @@ class ThreadRowContextMenuUIKit: UIView {
         
         let hasSpaceToAddMorePin = vm.serverSortedPins.count < 5
         let isInArchiveList = conversation.isArchive == true
-        if !isInArchiveList, !isClosed {
+        
+        /// We can unpin a closed pin thread
+        let isClosedPin = isClosed && conversation.pin == true
+        
+        if !isInArchiveList, !isClosed || isClosedPin {
             let pinKey = conversation.pin == true ? "Thread.unpin" : "Thread.pin"
             let pinImage = conversation.pin == true ? "pin.slash" : "pin"
             let model = ActionItemModel(title: pinKey.bundleLocalized(), image: pinImage)

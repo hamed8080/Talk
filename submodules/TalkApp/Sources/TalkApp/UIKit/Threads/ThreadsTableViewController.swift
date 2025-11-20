@@ -328,7 +328,11 @@ extension ThreadsTableViewController: UITableViewDelegate {
         }
         pinAction.image = UIImage(systemName: conversation.pin == true ? "pin.slash.fill" : "pin")
         pinAction.backgroundColor = UIColor.darkGray
-        if !isArchivedVC && !isClosed {
+        
+        /// We can unpin a closed pin thread
+        let isClosedPin = isClosed && conversation.pin == true
+        
+        if (!isArchivedVC && !isClosed) || (isClosedPin) {
             arr.append(pinAction)
         }
         
