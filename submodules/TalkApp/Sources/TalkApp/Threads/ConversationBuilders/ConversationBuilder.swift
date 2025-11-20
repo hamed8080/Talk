@@ -36,7 +36,8 @@ struct ConversationBuilder: View {
                             .listRowInsets(.zero)
                         } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                             if viewModel.isTypinginSearchString {
-                                LottieView(animation: .named("talk_logo_animation.json"))
+                                LottieView(animation: .named("dots_loading.json"))
+                                    .playing()
                                     .frame(height: 52)
                             } else if !viewModel.lazyList.isLoading {
                                 Text("General.noResult")
@@ -101,7 +102,8 @@ struct ConversationBuilder: View {
         .animation(.easeInOut, value: viewModel.isCreateLoading)
         .overlay(alignment: .bottom) {
             if viewModel.isCreateLoading {
-                LottieView(animation: .named("talk_logo_animation.json"))
+                LottieView(animation: .named("dots_loading.json"))
+                    .playing()
                     .id(UUID())
                     .frame(height: 52)
             }
@@ -285,7 +287,8 @@ struct EditCreatedConversationDetail: View {
         }
         .overlay(alignment: .bottom) {
             if viewModel.lazyList.isLoading {
-                LottieView(animation: .named("talk_logo_animation.json"))
+                LottieView(animation: .named("dots_loading.json"))
+                    .playing()
                     .id(UUID())
                     .frame(height: 52)
             }

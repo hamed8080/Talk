@@ -45,7 +45,8 @@ struct ThreadSearchMessages: View {
             } else {
                 ZStack {
                     if viewModel.isLoading {
-                        LottieView(animation: .named("talk_logo_animation.json"))
+                        LottieView(animation: .named(viewModel.searchedMessages.isEmpty ? "talk_logo_animation.json" : "dots_loading.json"))
+                            .playing()
                             .frame(height: 52)
                     } else if !viewModel.searchText.isEmpty && !viewModel.isLoading {
                         Text("General.nothingFound")

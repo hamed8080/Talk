@@ -77,7 +77,8 @@ struct LogView: View {
     @ViewBuilder
     private var loadingView: some View {
         if viewModel.isFiltering {
-            LottieView(animation: .named("talk_logo_animation.json"))
+            LottieView(animation: .named("dots_loading.json"))
+                .playing()
                 .frame(height: 52)
         }
     }

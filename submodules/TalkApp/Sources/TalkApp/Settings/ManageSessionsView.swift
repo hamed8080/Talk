@@ -94,7 +94,8 @@ struct ManageSessionsView: View {
         if viewModel.isLoading {
             HStack {
                 Spacer()
-                LottieView(animation: .named("talk_logo_animation.json"))
+                LottieView(animation: .named("dots_loading.json"))
+                    .playing()
                     .id(UUID())
                 Spacer()
             }

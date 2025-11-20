@@ -19,6 +19,8 @@ class ForwardConversationTableViewController: UIViewController {
     static let resuableIdentifier = "CONCERSATION-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
     private let centerLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
+    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
+    private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel
@@ -42,6 +44,14 @@ class ForwardConversationTableViewController: UIViewController {
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
+        
+        bottomAnimation.translatesAutoresizingMaskIntoConstraints = false
+        bottomAnimation.accessibilityIdentifier = "bottomLoadingForwardConversationTableViewController"
+        bottomAnimation.isHidden = true
+        bottomAnimation.contentMode = .scaleAspectFit
+        bottomLoadingContainer.addSubview(self.bottomAnimation)
+        
+        tableView.tableFooterView = bottomLoadingContainer
         view.addSubview(tableView)
         
         centerLoading.translatesAutoresizingMaskIntoConstraints = false
@@ -59,6 +69,11 @@ class ForwardConversationTableViewController: UIViewController {
             centerLoading.heightAnchor.constraint(equalToConstant: 52),
             centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             centerLoading.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+            
+            bottomAnimation.widthAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.heightAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
+            bottomAnimation.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
         ])
         configureDataSource()
     }
@@ -91,6 +106,7 @@ extension ForwardConversationTableViewController: UIForwardThreadsViewController
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
         centerLoading.isHidden = true
         centerLoading.stop()
+        showBottomAnimation(show: false)
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
@@ -101,6 +117,18 @@ extension ForwardConversationTableViewController: UIForwardThreadsViewController
     private func cell(id: Int) -> ConversationCell? {
         guard let index = viewModel.conversations.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ConversationCell
+    }
+    
+    func showBottomAnimation(show: Bool) {
+        bottomAnimation.isHidden = !show
+        bottomAnimation.isUserInteractionEnabled = show
+        if show {
+            tableView.tableFooterView = bottomLoadingContainer
+            bottomAnimation.play()
+        } else {
+            tableView.tableFooterView = UIView()
+            bottomAnimation.stop()
+        }
     }
 }
 

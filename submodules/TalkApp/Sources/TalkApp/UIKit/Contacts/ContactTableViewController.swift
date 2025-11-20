@@ -10,6 +10,7 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkUI
+import Lottie
 
 class ContactTableViewController: UIViewController {
     private var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
@@ -20,6 +21,8 @@ class ContactTableViewController: UIViewController {
     private static let resuableIdentifier = "CONTACTROW"
     private static let headerResuableIdentifier = "CONTACTS_TABLE_VIEW_HEADER"
     private var viewHasEverAppeared = false
+    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
+    private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
 
     init(viewModel: ContactsViewModel) {
         self.viewModel = viewModel
@@ -50,6 +53,13 @@ class ContactTableViewController: UIViewController {
         tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.sectionHeaderTopPadding = 0
     
+        bottomAnimation.translatesAutoresizingMaskIntoConstraints = false
+        bottomAnimation.accessibilityIdentifier = "bottomLoadingContactTableViewController"
+        bottomAnimation.isHidden = true
+        bottomAnimation.contentMode = .scaleAspectFit
+        bottomLoadingContainer.addSubview(self.bottomAnimation)
+        
+        tableView.tableFooterView = bottomLoadingContainer
         view.addSubview(tableView)
         
         /// Toolbar
@@ -63,6 +73,11 @@ class ContactTableViewController: UIViewController {
             navBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            bottomAnimation.widthAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.heightAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
+            bottomAnimation.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
             
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -171,6 +186,8 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
         /// Apply
         dataSource.apply(snapshot, animatingDifferences: animation)
         
+        showBottomAnimation(show: false)
+        
         attachNoResultIfNeeded()
     }
     
@@ -190,6 +207,18 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
     private var list: [Contact] {
         let list = isInSearch ? viewModel.searchedContacts : viewModel.contacts
         return Array(list)
+    }
+    
+    func showBottomAnimation(show: Bool) {
+        bottomAnimation.isHidden = !show
+        bottomAnimation.isUserInteractionEnabled = show
+        if show {
+            tableView.tableFooterView = bottomLoadingContainer
+            bottomAnimation.play()
+        } else {
+            tableView.tableFooterView = UIView()
+            bottomAnimation.stop()
+        }
     }
 }
 

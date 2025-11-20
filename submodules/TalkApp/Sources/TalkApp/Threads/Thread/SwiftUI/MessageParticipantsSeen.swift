@@ -43,7 +43,8 @@ struct MessageParticipantsSeen: View {
         .background(Color.App.bgPrimary)
         .overlay(alignment: .bottom) {
             if viewModel.isLoading {
-                LottieView(animation: .named("talk_logo_animation.json"))
+                LottieView(animation: .named(viewModel.participants.isEmpty ? "talk_logo_animation.json" : "dots_loading.json"))
+                    .playing()
                     .frame(height: 52)
             }
         }
