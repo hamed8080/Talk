@@ -42,8 +42,7 @@ public final class AppState: ObservableObject, Sendable {
         windowMode = UIApplication.shared.windowMode()
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
             Task { @MainActor in
-                AppState.isInSlimMode =
-                UIApplication.shared.windowMode().isInSlimMode
+                AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
                 
                 let newState = UIApplication.shared.windowMode()
                 NotificationCenter.windowMode.post(name: .windowMode, object: newState)

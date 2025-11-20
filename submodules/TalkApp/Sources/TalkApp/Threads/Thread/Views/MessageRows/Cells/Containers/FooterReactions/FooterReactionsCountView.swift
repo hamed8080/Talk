@@ -32,7 +32,7 @@ final class FooterReactionsCountView: UIStackView {
         axis = .horizontal
         spacing = ConstantSizes.footerReactionsCountViewStackSpacing
         alignment = .fill
-        distribution = .fillProportionally
+        distribution = .fill
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         accessibilityIdentifier = "stackReactionCountScrollView"
 
@@ -51,14 +51,16 @@ final class FooterReactionsCountView: UIStackView {
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsHorizontalScrollIndicator = false
+        scrollView.accessibilityIdentifier = "FooterReactionsCountViewScrollView"
         scrollView.addSubview(reactionStack)
         
         addArrangedSubview(MoreReactionButtonRow(frame: .zero, isMe: isMe))
         addArrangedSubview(scrollView)
         
         scrollViewMinWidthConstraint = scrollView.widthAnchor.constraint(greaterThanOrEqualToConstant: 0)
+        scrollViewMinWidthConstraint?.identifier = "FooterReactionsCountViewWidthConstriant"
         scrollViewMinWidthConstraint?.isActive = true
-        // IMPORTANT: Add constraints to pin the reactionStack to the scrollView's content
+        
         NSLayoutConstraint.activate([
             reactionStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
             reactionStack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
@@ -72,7 +74,7 @@ final class FooterReactionsCountView: UIStackView {
         self.viewModel = viewModel
         let rows = rows(viewModel: viewModel)
         
-        updateWidthConstrain(rows)
+        updateWidthConstraint(rows)
         
         /// Show rows only if rows.count == inde
         /// Max of rows.count could be 4.
@@ -113,21 +115,23 @@ final class FooterReactionsCountView: UIStackView {
     private func updateReactionsWithAnimation(viewModel: MessageRowViewModel?) {
         if let viewModel = viewModel {
             let rows = rows(viewModel: viewModel)
-            updateWidthConstrain(rows)
+            updateWidthConstraint(rows)
             UIView.animate(withDuration: 0.20) {
                 self.set(viewModel)
             }
         }
     }
     
-    private func updateWidthConstrain(_ rows: [ReactionRowsCalculated.Row]) {
+    private func updateWidthConstraint(_ rows: [ReactionRowsCalculated.Row]) {
         /// It will prevent the time label be truncated by reactions view.
-        let isSlimMode = AppState.shared.windowMode.isInSlimMode
+        /// We use cached version of isInSlimMode instead of the AppState.shared.windowMode.isInSlimMode which is a computed property
+        let isSlimMode = AppState.isInSlimMode
         if rows.count > 3 && isSlimMode {
             scrollViewMinWidthConstraint?.constant = min(ConstantSizes.footerReactionsCountViewScrollViewMaxWidth, rows.compactMap{$0.width}.reduce(0, {$0 + $1}))
         } else {
             scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
         }
+        scrollViewMinWidthConstraint?.isActive = !rows.isEmpty
     }
     
     private func rows(viewModel: MessageRowViewModel) -> [ReactionRowsCalculated.Row] {

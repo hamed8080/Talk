@@ -134,7 +134,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let footerReactionsCountViewMaxReactionsToShow: Int = 4
     nonisolated(unsafe) public static let footerReactionsCountViewStackSpacing: CGFloat = 4
     nonisolated(unsafe) public static let footerReactionsCountViewScrollViewHeight: CGFloat = 28
-    nonisolated(unsafe) public static let footerReactionsCountViewScrollViewMaxWidth: CGFloat = 200
+    nonisolated(unsafe) public static let footerReactionsCountViewScrollViewMaxWidth: CGFloat = 280
     
     /// MessageReactionRowView sizes
     nonisolated(unsafe) public static let messageReactionRowViewTotalWidth: CGFloat = 42

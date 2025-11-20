@@ -19,7 +19,6 @@ final class FooterView: UIStackView {
     private let timelabel = UILabel()
     private let editedLabel = UILabel()
     private let statusImage = UIImageView()
-    private let reactionView: FooterReactionsCountView
 
     // Models
     private static let staticEditString = "Messages.Footer.edited".bundleLocalized()
@@ -29,7 +28,6 @@ final class FooterView: UIStackView {
     private var viewModel: MessageRowViewModel?
 
     init(frame: CGRect, isMe: Bool) {
-        self.reactionView = .init(frame: frame, isMe: isMe)
         super.init(frame: frame)
         configureView(isMe: isMe)
     }
@@ -44,12 +42,10 @@ final class FooterView: UIStackView {
         axis = .horizontal
         alignment = .center
         distribution = .fill
+        layoutMargins = .init(horizontal: 8, vertical: 0)
+        isLayoutMarginsRelativeArrangement = true
         semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         isOpaque = true
-
-        reactionView.translatesAutoresizingMaskIntoConstraints = false
-        reactionView.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        reactionView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         pinImage.translatesAutoresizingMaskIntoConstraints = false
         pinImage.tintColor = Color.App.accentUIColor
@@ -106,7 +102,6 @@ final class FooterView: UIStackView {
         attachOrdetachEditLabel(isEdited: viewModel.message.edited == true)
         let isPin = message.id != nil && message.id == viewModel.threadVM?.thread.pinMessage?.id
         attachOrdetachPinImage(isPin: isPin)
-        attachOrDetachReactions(viewModel: viewModel, animation: false)
     }
 
     private func setStatusImageOrUploadingAnimation(viewModel: MessageRowViewModel) {
@@ -198,54 +193,5 @@ final class FooterView: UIStackView {
 
     private func stopSendingAnimation() {
         statusImage.layer.removeAllAnimations()
-    }
-
-    private func attachOrDetachReactions(viewModel: MessageRowViewModel, animation: Bool) {
-        let isEmpty = viewModel.reactionsModel.rows.isEmpty
-        let edited = viewModel.message.edited == true
-        let attached = reactionView.superview == nil
-        if isEmpty || (edited && attached) {
-            reactionView.removeFromSuperview()// reset
-        }
-        
-        if !isEmpty {
-            /// We don't attach the footer to prevent height conflict with not reaction time
-            addArrangedSubview(reactionView)
-            fadeAnimateReactions(animation)
-            reactionView.set(viewModel)
-        }
-    }
-
-    // Prevent animation in reuse call method, yet has animation when updateReaction called
-    private func fadeAnimateReactions(_ animation: Bool) {
-        if !animation { return }
-        reactionView.alpha = 0.0
-        UIView.animate(withDuration: 0.2, delay: 0.2) {
-            self.reactionView.alpha = 1.0
-        }
-    }
-
-    public func reactionsUpdated(viewModel: MessageRowViewModel){
-        attachOrDetachReactions(viewModel: viewModel, animation: true)
-    }
-    
-    public func reactionDeleted(_ reaction: Reaction) {
-        reactionView.reactionDeleted(reaction)
-    }
-    
-    public func reactionAdded(_ reaction: Reaction) {
-        if reactionView.superview == nil {
-            addArrangedSubview(reactionView)
-            reactionView.alpha = 1.0
-            if let viewModel = viewModel {
-                reactionView.set(viewModel)
-            }
-        } else {
-            reactionView.reactionAdded(reaction)
-        }
-    }
-    
-    public func reactionReplaced(_ reaction: Reaction) {
-        reactionView.reactionReplaced(reaction)
     }
 }

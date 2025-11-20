@@ -35,7 +35,7 @@ public class CustomConversationNavigationBar: UIView {
     /// Constraints
     private var fullScreenButtonWidthConstraint: NSLayoutConstraint?
     private var centerYTitleConstraint: NSLayoutConstraint!
-    private var threadImageLeadingConstraint: NSLayoutConstraint?
+    private var detailViewButtonLeadingConstraint: NSLayoutConstraint?
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -130,7 +130,7 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButton.imageView.image = UIImage(systemName: "sidebar.leading")
         fullScreenButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         fullScreenButton.imageView.contentMode = .scaleAspectFit
-        fullScreenButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
+        fullScreenButton.accessibilityIdentifier = "fullScreenButtonCustomConversationNavigationBar"
         fullScreenButton.action = {
             let currentState = AppState.isInSlimMode == false
             let vc = AppState.shared.objectsContainer.threadsVM.delegate as? UIViewController
@@ -196,12 +196,16 @@ public class CustomConversationNavigationBar: UIView {
         ])
         
         fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth)
-        fullScreenButtonWidthConstraint?.isActive = true
-        fullScreenButtonWidthConstraint?.constant = showFullScreenButton ? 42 : 0
+        fullScreenButtonWidthConstraint?.isActive = showFullScreenButton
+        fullScreenButtonWidthConstraint?.constant = 42
         
-        threadImageLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)
-        threadImageLeadingConstraint?.isActive = true
-        threadImageLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
+        detailViewButtonLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: showFullScreenButton ? fullScreenButton.trailingAnchor : backButton.trailingAnchor, constant: 2)
+        detailViewButtonLeadingConstraint?.isActive = true
+        detailViewButtonLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
+        
+        if !showFullScreenButton {
+            fullScreenButton.removeFromSuperview()
+        }
         
 #if DEBUG
         revokeButton.translatesAutoresizingMaskIntoConstraints = false
@@ -385,7 +389,7 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButton.setIsHidden(!showFullScreenButton)
         fullScreenButtonWidthConstraint?.constant = showFullScreenButton ? 42 : 0
         fullScreenButton.isUserInteractionEnabled = showFullScreenButton
-        threadImageLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
+        detailViewButtonLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
     }
 
     private func hideImageUserNameSplitedLable(isHidden: Bool) {
