@@ -20,7 +20,7 @@ struct PreferenceView: View {
             DarkModeSection()
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)
-            StickyHeaderSection(header: "", height: 10)
+            StickyHeaderSection(header: "", height: 0.5)
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)
             ManageSessionsSection()
@@ -31,7 +31,7 @@ struct PreferenceView: View {
                 .listRowSeparator(.hidden)
             SaveScrollPositionSection()
             if EnvironmentValues.isTalkTest {
-                StickyHeaderSection(header: "", height: 10)
+                StickyHeaderSection(header: "", height: 0.5)
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
                     .sandboxLabel()
@@ -49,7 +49,7 @@ struct PreferenceView: View {
                 .sandboxLabel()
             }
         }
-        .environment(\.defaultMinListRowHeight, 8)
+        .environment(\.defaultMinListRowHeight, 0.5)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .font(Font.normal(.body))

@@ -41,7 +41,7 @@ final class FooterReactionsCountView: UIStackView {
         reactionStack.spacing = ConstantSizes.footerReactionsCountViewStackSpacing
         reactionStack.alignment = .fill
         reactionStack.distribution = .fillProportionally
-        reactionStack.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        reactionStack.semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         reactionStack.accessibilityIdentifier = "reactionStackcrollView"
 
         /// Add four items into the reactionStack and just change the visibility with setHidden method.
@@ -127,7 +127,9 @@ final class FooterReactionsCountView: UIStackView {
         /// We use cached version of isInSlimMode instead of the AppState.shared.windowMode.isInSlimMode which is a computed property
         let isSlimMode = AppState.isInSlimMode
         if rows.count > 3 && isSlimMode {
-            scrollViewMinWidthConstraint?.constant = min(ConstantSizes.footerReactionsCountViewScrollViewMaxWidth, rows.compactMap{$0.width}.reduce(0, {$0 + $1}))
+            /// + ConstantSizes.messageReactionRowViewTotalWidth for size of the more button
+            let totalSize = rows.compactMap{$0.width}.reduce(0, {$0 + $1}) + (ConstantSizes.messageReactionRowViewTotalWidth / 2)
+            scrollViewMinWidthConstraint?.constant = min(ConstantSizes.footerReactionsCountViewScrollViewMaxWidth, totalSize)
         } else {
             scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
         }
