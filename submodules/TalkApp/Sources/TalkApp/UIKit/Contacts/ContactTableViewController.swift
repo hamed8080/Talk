@@ -21,6 +21,7 @@ class ContactTableViewController: UIViewController {
     private static let resuableIdentifier = "CONTACTROW"
     private static let headerResuableIdentifier = "CONTACTS_TABLE_VIEW_HEADER"
     private var viewHasEverAppeared = false
+    private var hasEverFixedScrollViewPosition = false
     private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
     private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
 
@@ -32,9 +33,6 @@ class ContactTableViewController: UIViewController {
         tableView.register(ContactsTableViewHeaderCell.self, forCellReuseIdentifier: ContactTableViewController.headerResuableIdentifier)
         configureViews()
         configureDataSource()
-        
-        /// Force to show loading at start
-        updateUI(animation: true, reloadSections: true)
     }
     
     required init?(coder: NSCoder) {
@@ -106,8 +104,8 @@ class ContactTableViewController: UIViewController {
     }
     
     private func fixScrollPositionForFirstTime() {
-        guard !viewHasEverAppeared else { return }
-        viewHasEverAppeared = true
+        guard !hasEverFixedScrollViewPosition else { return }
+        hasEverFixedScrollViewPosition = true
 
         // Wait until layout is done and data is visible
         DispatchQueue.main.async { [weak self] in
@@ -123,6 +121,15 @@ class ContactTableViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         fixScrollPositionForFirstTime()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        /// Force to show loading at start if user clicked on the Contacts tab really fast at startup.
+        if !viewHasEverAppeared {
+            updateUI(animation: true, reloadSections: true)
+            viewHasEverAppeared = true
+        }
     }
 }
 
