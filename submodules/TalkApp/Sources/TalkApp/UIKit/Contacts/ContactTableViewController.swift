@@ -82,7 +82,7 @@ class ContactTableViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-        tableView.contentInset = .init(top: 52 + view.safeAreaInsets.top,
+        tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth + view.safeAreaInsets.top,
                                        left: 0,
                                        bottom: ConstantSizes.bottomToolbarSize + view.safeAreaInsets.bottom,
                                        right: 0)
@@ -121,6 +121,8 @@ class ContactTableViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         fixScrollPositionForFirstTime()
+        tableView.contentInset.top = navBar.frame.height
+        tableView.scrollIndicatorInsets = tableView.contentInset
     }
     
     override func viewDidAppear(_ animated: Bool) {
