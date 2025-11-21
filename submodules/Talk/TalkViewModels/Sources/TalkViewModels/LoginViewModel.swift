@@ -47,29 +47,10 @@ public final class LoginViewModel: ObservableObject {
     public func login() async {
         isLoading = true
         if selectedServerType == .integration {
-            let ssoToken = SSOTokenResponse(accessToken: text,
-                                            expiresIn: Int(Calendar.current.date(byAdding: .year, value: 1, to: .now)?.millisecondsSince1970 ?? 0),
-                                            idToken: nil,
-                                            refreshToken: nil,
-                                            scope: nil,
-                                            tokenType: nil)
-            
-            await saveTokenAndCreateChatObject(ssoToken)
-            isLoading = false
+            await integerationSSOLoing()
             return
         }
-        
-        let isiPad = UIDevice.current.userInterfaceIdiom == .pad
-        let req = HandshakeRequest(deviceName: UIDevice.current.name,
-                                         deviceOs: UIDevice.current.systemName,
-                                         deviceOsVersion: UIDevice.current.systemVersion,
-                                         deviceType: isiPad ? "TABLET" : "MOBILE_PHONE",
-                                         deviceUID: UIDevice.current.identifierForVendor?.uuidString ?? "")
-        let spec = AppState.shared.spec
-        let address = "\(spec.server.talkback)\(spec.paths.talkBack.handshake)"
-        var urlReq = URLRequest(url: URL(string: address)!)
-        urlReq.httpBody = req.parameterData
-        urlReq.method = .post
+        let urlReq = makeHandshakeRequest()
         do {
             let resp = try await session.data(for: urlReq)
             let decodecd: HandshakeResponse = try await decodeOnBackground(data: resp.0)
@@ -85,15 +66,25 @@ public final class LoginViewModel: ObservableObject {
             showError(.failed)
         }
     }
+    
+    private func makeHandshakeRequest() -> URLRequest {
+        let isiPad = UIDevice.current.userInterfaceIdiom == .pad
+        let req = HandshakeRequest(deviceName: UIDevice.current.name,
+                                         deviceOs: UIDevice.current.systemName,
+                                         deviceOsVersion: UIDevice.current.systemVersion,
+                                         deviceType: isiPad ? "TABLET" : "MOBILE_PHONE",
+                                         deviceUID: UIDevice.current.identifierForVendor?.uuidString ?? "")
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.handshake)"
+        var urlReq = URLRequest(url: URL(string: address)!)
+        urlReq.httpBody = req.parameterData
+        urlReq.method = .post
+        return urlReq
+    }
 
     public func requestOTP(identity: String, keyId: String, resend: Bool = false) async {
         if isLoading { return }
-        let spec = AppState.shared.spec
-        let address = "\(spec.server.talkback)\(spec.paths.talkBack.authorize)"
-        var urlReq = URLRequest(url: URL(string: address)!)
-        urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
-        urlReq.allHTTPHeaderFields = ["keyId": keyId]
-        urlReq.method = .post
+        let urlReq = makeAuthorizeRequest(keyId: keyId)
         do {
             let resp = try await session.data(for: urlReq)
             let result: AuthorizeResponse = try await decodeOnBackground(data: resp.0)
@@ -101,7 +92,6 @@ public final class LoginViewModel: ObservableObject {
             if result.errorMessage != nil {
                 showError(.failed)
             } else {
-                
                 if !resend {
                     state = .verify
                 }
@@ -113,11 +103,25 @@ public final class LoginViewModel: ObservableObject {
         }
     }
     
-    public func saveTokenAndCreateChatObject(_ ssoToken: SSOTokenResponse) async {
+    private func makeAuthorizeRequest(keyId: String) -> URLRequest {
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.authorize)"
+        var urlReq = URLRequest(url: URL(string: address)!)
+        urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
+        urlReq.allHTTPHeaderFields = ["keyId": keyId]
+        urlReq.method = .post
+        return urlReq
+    }
+    
+    private func onSuccessToken(_ ssoToken: SSOTokenResponse) async {
         await TokenManager.shared.saveSSOToken(ssoToken: ssoToken)
-        let config = Spec.config(spec: AppState.shared.spec, token: ssoToken.accessToken ?? "", selectedServerType: selectedServerType)
-        UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
+        createChatObject(token: ssoToken.accessToken ?? "")
         state = .successLoggedIn
+    }
+    
+    private func createChatObject(token: String) {
+        let config = Spec.config(spec: AppState.shared.spec, token: token, selectedServerType: selectedServerType)
+        UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
     }
 
     public func verifyCode() async {
@@ -125,12 +129,7 @@ public final class LoginViewModel: ObservableObject {
         let codes = verifyCodes.joined(separator:"").replacingOccurrences(of: "\u{200B}", with: "").replaceRTLNumbers()
         guard let keyId = keyId, codes.count == verifyCodes.count else { return }
         isLoading = true
-        let spec = AppState.shared.spec
-        let address = "\(spec.server.talkback)\(spec.paths.talkBack.verify)"
-        var urlReq = URLRequest(url: URL(string: address)!)
-        urlReq.url?.append(queryItems: [.init(name: "identity", value: identity), .init(name: "otp", value: codes)])
-        urlReq.allHTTPHeaderFields = ["keyId": keyId]
-        urlReq.method = .post
+        let urlReq = makeVerifyRequest(codes: codes, keyId: keyId)
         do {
             let resp = try await session.data(for: urlReq)
             var ssoToken: SSOTokenResponse = try await decodeOnBackground(data: resp.0)
@@ -140,7 +139,7 @@ public final class LoginViewModel: ObservableObject {
             isLoading = false
             hideKeyboard()
             doHaptic()
-            await saveTokenAndCreateChatObject(ssoToken)
+            await onSuccessToken(ssoToken)
             try? await Task.sleep(for: .seconds(0.5))
             resetState()
         }
@@ -149,6 +148,16 @@ public final class LoginViewModel: ObservableObject {
             doHaptic(failed: true)
             showError(.verificationCodeIncorrect)
         }
+    }
+    
+    private func makeVerifyRequest(codes: String, keyId: String) -> URLRequest {
+        let spec = AppState.shared.spec
+        let address = "\(spec.server.talkback)\(spec.paths.talkBack.verify)"
+        var urlReq = URLRequest(url: URL(string: address)!)
+        urlReq.url?.append(queryItems: [.init(name: "identity", value: identity), .init(name: "otp", value: codes)])
+        urlReq.allHTTPHeaderFields = ["keyId": keyId]
+        urlReq.method = .post
+        return urlReq
     }
     
     @AppBackgroundActor
@@ -214,7 +223,46 @@ public final class LoginViewModel: ObservableObject {
         timer = nil
     }
 
+    private func doHaptic(failed: Bool = false) {
+        UIImpactFeedbackGenerator(style: failed ? .rigid : .soft).impactOccurred()
+    }
+
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+    
+    private var identity: String {
+        return "\(0)\(text)".replaceRTLNumbers()
+    }
+}
+
+/// Integeration login sso token.
+extension LoginViewModel {
+    private func integerationSSOLoing() async {
+        let ssoToken = SSOTokenResponse(accessToken: text,
+                                        expiresIn: Int(Calendar.current.date(byAdding: .year, value: 1, to: .now)?.millisecondsSince1970 ?? 0),
+                                        idToken: nil,
+                                        refreshToken: nil,
+                                        scope: nil,
+                                        tokenType: nil)
+        await onSuccessToken(ssoToken)
+        isLoading = false
+    }
+}
+
+/// PKCE login.
+extension LoginViewModel {
     public func startNewPKCESession() {
+        let parameters = makePKCEParameters()
+        let authenticator = OAuth2PKCEAuthenticator()
+        authenticator.authenticate(parameters: parameters) { [weak self] result in
+            Task { @MainActor [weak self] in
+                await self?.onAuthentication(result)
+            }
+        }
+    }
+    
+    private func makePKCEParameters() -> OAuth2PKCEParameters{
         let bundleIdentifier = Bundle.main.bundleIdentifier!
         let auth0domain = AppState.shared.spec.server.sso
         let authorizeURL = "\(auth0domain)\(AppState.shared.spec.paths.sso.authorize)"
@@ -226,19 +274,14 @@ public final class LoginViewModel: ObservableObject {
                                               clientId: clientId,
                                               redirectUri: redirectUri,
                                               callbackURLScheme: bundleIdentifier)
-        let authenticator = OAuth2PKCEAuthenticator()
-        authenticator.authenticate(parameters: parameters) { [weak self] result in
-            Task { @MainActor [weak self] in
-                await self?.onAuthentication(result)
-            }
-        }
+        return parameters
     }
     
     private func onAuthentication(_ result: Result<SSOTokenResponse, OAuth2PKCEAuthenticatorError>) async {
         switch result {
         case .success(let accessTokenResponse):
             let ssoToken = accessTokenResponse
-            await saveTokenAndCreateChatObject(ssoToken)
+            await onSuccessToken(ssoToken)
         case .failure(let error):
             let message = error.localizedDescription
         #if DEBUG
@@ -246,17 +289,5 @@ public final class LoginViewModel: ObservableObject {
         #endif
             startNewPKCESession()
         }
-    }
-
-    private func doHaptic(failed: Bool = false) {
-        UIImpactFeedbackGenerator(style: failed ? .rigid : .soft).impactOccurred()
-    }
-
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-    
-    private var identity: String {
-        return "\(0)\(text)".replaceRTLNumbers()
     }
 }
