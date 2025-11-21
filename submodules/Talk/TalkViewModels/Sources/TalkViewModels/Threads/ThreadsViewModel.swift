@@ -48,7 +48,6 @@ public final class ThreadsViewModel: ObservableObject {
     public var selectedThraed: Conversation?
     public var calculatedSearchedThreads: [CalculatedConversation] = []
     public var serverSortedPins: [Int] = []
-    public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     private var cache: Bool = true
     public private(set) var lazyList = LazyListViewModel()
     private let participantsCountManager = ParticipantsCountManager()
@@ -267,9 +266,6 @@ public final class ThreadsViewModel: ObservableObject {
     public func getThreads(withQueue: Bool = false, keepOrder: Bool = false) async {
         /// Check if user didn't logged out
         if !TokenManager.shared.isLoggedIn { return }
-        if !firstSuccessResponse {
-            shimmerViewModel.show()
-        }
         lazyList.setLoading(true)
         do {
             
@@ -341,9 +337,6 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.setThreasholdIds(ids: threshold)
         if hasAnyResults {
             firstSuccessResponse = true
-        }
-        if firstSuccessResponse {
-            shimmerViewModel.hide()
         }
         objectWillChange.send()
         
