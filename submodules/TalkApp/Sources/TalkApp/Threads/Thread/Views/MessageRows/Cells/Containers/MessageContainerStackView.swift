@@ -81,8 +81,6 @@ public final class MessageContainerStackView: UIStackView {
         layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         registerGestures()
         
-        reactionView.translatesAutoresizingMaskIntoConstraints = false
-        
         textMessageView.backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
 
         groupParticipantNameView.translatesAutoresizingMaskIntoConstraints = false
@@ -95,6 +93,7 @@ public final class MessageContainerStackView: UIStackView {
         locationRowView.translatesAutoresizingMaskIntoConstraints = false
         singleEmojiView.translatesAutoresizingMaskIntoConstraints = false
         textMessageView.translatesAutoresizingMaskIntoConstraints = false
+        reactionView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
 //        unsentMessageView.translatesAutoresizingMaskIntoConstraints = false
 

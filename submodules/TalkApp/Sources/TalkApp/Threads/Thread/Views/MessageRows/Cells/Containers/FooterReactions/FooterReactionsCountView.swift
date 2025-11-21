@@ -35,6 +35,7 @@ final class FooterReactionsCountView: UIStackView {
         distribution = .fill
         semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
         accessibilityIdentifier = "stackReactionCountScrollView"
+//        backgroundColor = .yellow
 
         reactionStack.translatesAutoresizingMaskIntoConstraints = false
         reactionStack.axis = .horizontal
@@ -42,16 +43,22 @@ final class FooterReactionsCountView: UIStackView {
         reactionStack.alignment = .fill
         reactionStack.distribution = .fillProportionally
         reactionStack.semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
+//        reactionStack.backgroundColor = .red
+        reactionStack.layoutMargins = .init(top: 0, left: Language.isRTL ? 0 : 8, bottom: 0, right: Language.isRTL ? 8 : 0)
+        reactionStack.isLayoutMarginsRelativeArrangement = true
         reactionStack.accessibilityIdentifier = "reactionStackcrollView"
 
         /// Add four items into the reactionStack and just change the visibility with setHidden method.
         for _ in 0..<ConstantSizes.footerReactionsCountViewMaxReactionsToShow {
-            reactionStack.addArrangedSubview(ReactionCountRowView(frame: .zero, isMe: isMe))
+            let row = ReactionCountRowView(frame: .zero, isMe: isMe)
+//            row.backgroundColor = UIColor.random()
+            reactionStack.addArrangedSubview(row)
         }
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.accessibilityIdentifier = "FooterReactionsCountViewScrollView"
+//        scrollView.backgroundColor = .green
         scrollView.addSubview(reactionStack)
         
         addArrangedSubview(MoreReactionButtonRow(frame: .zero, isMe: isMe))
@@ -74,8 +81,6 @@ final class FooterReactionsCountView: UIStackView {
         self.viewModel = viewModel
         let rows = rows(viewModel: viewModel)
         
-        updateWidthConstraint(rows)
-        
         /// Show rows only if rows.count == inde
         /// Max of rows.count could be 4.
         /// Index is stable inside reactionStack and it is 0...4
@@ -97,6 +102,12 @@ final class FooterReactionsCountView: UIStackView {
             moreButton.viewModel = viewModel
         } else if let moreButton = arrangedSubviews[0] as? MoreReactionButtonRow {
             moreButton.setIsHidden(true)
+        }
+        
+        if let cachedWidth = viewModel.calMessage.scrollViewReactionWidth {
+            scrollViewMinWidthConstraint?.constant = cachedWidth
+        } else {
+            updateWidthConstraint(rows)
         }
     }
     
@@ -126,13 +137,23 @@ final class FooterReactionsCountView: UIStackView {
         /// It will prevent the time label be truncated by reactions view.
         /// We use cached version of isInSlimMode instead of the AppState.shared.windowMode.isInSlimMode which is a computed property
         let isSlimMode = AppState.isInSlimMode
+        var width: CGFloat = 0
         if rows.count > 3 && isSlimMode {
-            /// + ConstantSizes.messageReactionRowViewTotalWidth for size of the more button
-            let totalSize = rows.compactMap{$0.width}.reduce(0, {$0 + $1}) + (ConstantSizes.messageReactionRowViewTotalWidth / 2)
-            scrollViewMinWidthConstraint?.constant = min(ConstantSizes.footerReactionsCountViewScrollViewMaxWidth, totalSize)
+            var totalSize = rows.compactMap{$0.width}.reduce(0, {$0 + $1})
+            /// -2 for spacing between more button and the reactionsStack, and 1 less than total reaction counts
+            let showMoreButton = viewModel?.reactionsModel.rows.count ?? 0 > 4
+            let reduceCount: Int = showMoreButton ? 2 : 1
+            totalSize += CGFloat(rows.count - reduceCount) * ConstantSizes.footerReactionsCountViewStackSpacing
+            width = min(ConstantSizes.footerReactionsCountViewScrollViewMaxWidth, totalSize)
         } else {
-            scrollViewMinWidthConstraint?.constant = rows.compactMap{$0.width}.reduce(0, {$0 + 4 + $1})
+            var totalSize = rows.compactMap{$0.width}.reduce(0, {$0 + $1})
+            totalSize += CGFloat(rows.count - 1) * ConstantSizes.footerReactionsCountViewStackSpacing
+            totalSize += 2
+            width = min(ConstantSizes.footerReactionsCountViewScrollViewMaxWidth, totalSize)
         }
+        
+        scrollViewMinWidthConstraint?.constant = width
+        viewModel?.calMessage.scrollViewReactionWidth = width
         scrollViewMinWidthConstraint?.isActive = !rows.isEmpty
     }
     

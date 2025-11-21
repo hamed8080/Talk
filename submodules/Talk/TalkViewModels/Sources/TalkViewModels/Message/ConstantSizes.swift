@@ -186,6 +186,9 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let tableViewSeparatorLeading: CGFloat = 64
     nonisolated(unsafe) public static let tableViewSeparatorHeight = 0.3
     
+    /// Reactions
+    nonisolated(unsafe) public static let moreReactionButtonWidth: CGFloat = 42
+    
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0
     public var replyContainerWidth: CGFloat?
