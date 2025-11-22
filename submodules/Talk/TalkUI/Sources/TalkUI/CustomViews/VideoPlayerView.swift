@@ -37,7 +37,7 @@ import TalkViewModels
 //                .background(.ultraThinMaterial)
 //                .clipShape(RoundedRectangle(cornerRadius:(8)))
 //                .offset(x: 8, y: 8)
-//                .font(.fCaption)
+//                .font(Font.normal(.caption))
 //        }
 //        .overlay(alignment: .center) {
 //            Circle()

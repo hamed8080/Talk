@@ -66,6 +66,8 @@ public final class ObjectsContainer: ObservableObject {
         appOverlayVM.clear()
         conversationBuilderVM.clear()
         userProfileImageVM.clear()
+        UserDefaults.standard.removeObject(forKey: "SELF_THREAD")
+        UserDefaults.standard.synchronize()
     }
 
     private func onMessageEvent(_ event: MessageEventTypes) async {

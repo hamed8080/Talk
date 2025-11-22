@@ -41,7 +41,7 @@ class ContactCell: UITableViewCell {
         backgroundColor = .clear
         
         /// Full name lable
-        titleLabel.font = UIFont.fBoldSubheadline
+        titleLabel.font = UIFont.bold(.subheadline)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.textAlignment = .center
         titleLabel.accessibilityIdentifier = "ContactCell.titleLable"
@@ -51,7 +51,7 @@ class ContactCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         
         /// Not found label
-        notFoundLabel.font = UIFont.fBoldCaption2
+        notFoundLabel.font = UIFont.bold(.caption2)
         notFoundLabel.textColor = Color.App.accentUIColor
         notFoundLabel.textAlignment = .center
         notFoundLabel.text = "Contctas.list.notFound".bundleLocalized()
@@ -60,7 +60,7 @@ class ContactCell: UITableViewCell {
         contentView.addSubview(notFoundLabel)
         
         /// Invite button
-        inviteButton.titleLabel?.font = UIFont.fBoldCaption2
+        inviteButton.titleLabel?.font = UIFont.bold(.caption2)
         inviteButton.setTitleColor(Color.App.whiteUIColor, for: .normal)
         inviteButton.setTitle("Contacts.invite".bundleLocalized(), for: .normal)
         inviteButton.accessibilityIdentifier = "ContactCell.inviteButton"
@@ -70,7 +70,7 @@ class ContactCell: UITableViewCell {
         contentView.addSubview(inviteButton)
         
         /// Block label
-        blockedLable.font = UIFont.fCaption2
+        blockedLable.font = UIFont.normal(.caption2)
         blockedLable.textColor = Color.App.redUIColor
         blockedLable.textAlignment = .center
         blockedLable.text = "General.blocked".bundleLocalized()
@@ -88,6 +88,7 @@ class ContactCell: UITableViewCell {
         avatar.translatesAutoresizingMaskIntoConstraints = false
         avatar.layer.cornerRadius = 22
         avatar.layer.masksToBounds = true
+        avatar.contentMode = .scaleAspectFill
         contentView.addSubview(avatar)
         
         avatarInitialLable.accessibilityIdentifier = "ContactCell.avatarInitialLable"
@@ -95,7 +96,8 @@ class ContactCell: UITableViewCell {
         avatarInitialLable.layer.cornerRadius = 22
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
-        avatarInitialLable.font = UIFont.fBoldBody
+        avatarInitialLable.font = UIFont.bold(.body)
+        avatarInitialLable.textColor = Color.App.whiteUIColor
         
         contentView.addSubview(avatarInitialLable)
         
@@ -138,7 +140,7 @@ class ContactCell: UITableViewCell {
         inviteButton.isHidden = true
     }
     
-    public func setContact(contact: Contact, viewModel: ContactsViewModel) {
+    public func setContact(contact: Contact, viewModel: ContactsViewModel?) {
         titleLabel.text = "\(contact.firstName ?? "") \(contact.lastName ?? "")"
 
         blockedLable.isHidden = contact.blocked == false || contact.blocked == nil
@@ -153,7 +155,7 @@ class ContactCell: UITableViewCell {
         
         avatar.backgroundColor = String.getMaterialColorByCharCode(str: name ?? "")
         avatarInitialLable.text = String.splitedCharacter(name ?? "")
-        if let vm = viewModel.imageLoader(for: contact.id ?? -1) {
+        if let vm = viewModel?.imageLoader(for: contact.id ?? -1) {
             avatar.image = vm.image
             avatarInitialLable.isHidden = vm.isImageReady
         } else {

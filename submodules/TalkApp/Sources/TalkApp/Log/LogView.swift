@@ -10,6 +10,7 @@ import Logger
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Lottie
 
 struct LogView: View {
     @EnvironmentObject var viewModel: LogViewModel
@@ -76,14 +77,9 @@ struct LogView: View {
     @ViewBuilder
     private var loadingView: some View {
         if viewModel.isFiltering {
-            ListLoadingView(isLoading: .constant(viewModel.isFiltering))
-                .id(-1)
-                .listRowSeparator(.hidden)
-                .listRowInsets(.zero)
-                .listRowBackground(Color.clear)
-                .padding([.top, .bottom])
-                .padding([.top, .bottom], viewModel.isFiltering ? 8 : 0)
-                .animation(.easeInOut, value: viewModel.isFiltering)
+            LottieView(animation: .named("dots_loading.json"))
+                .playing()
+                .frame(height: 52)
         }
     }
 

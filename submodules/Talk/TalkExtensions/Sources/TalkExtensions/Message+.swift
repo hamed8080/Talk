@@ -201,6 +201,26 @@ public extension HistoryMessageProtocol {
         guard let coordinate = mapCoordinate(basePath: basePath) else { return nil }
         return URL(string: "maps://?q=\(message ?? "")&ll=\(coordinate.lat),\(coordinate.lng)")
     }
+    
+    func splitedNeshan(basePath: String) -> URL? {
+        guard let mapLink = fileMetaData?.mapLink,
+              let coordinate = splitedCoordinateNeshan(mapLink: mapLink)
+        else { return nil }
+        return URL(string: "\(basePath)/@\(coordinate.lat),\(coordinate.lng),18.1z,0p")
+    }
+    
+    private func splitedCoordinateNeshan(mapLink: String) -> Coordinate? {
+        let comp = URLComponents(string: mapLink)
+        let splited = comp?.path.replacingOccurrences(of: "/@", with: "").split(separator: ",")
+        
+        guard let splited = splited,
+              splited.count >= 2,
+              let lat = Double(splited[0]),
+              let lng = Double(splited[1])
+        else { return nil }
+        
+        return Coordinate(lat: lat, lng: lng)
+    }
 
     func addOrRemoveParticipantString(meId: Int?) -> String? {
         guard let requestType = addRemoveParticipant?.requestTypeEnum else { return nil }

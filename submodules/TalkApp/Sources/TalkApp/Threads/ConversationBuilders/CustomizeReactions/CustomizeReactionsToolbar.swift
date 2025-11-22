@@ -40,7 +40,7 @@ public final class CustomizeReactionsToolbar: UIView {
         backButton.imageView.tintColor = Color.App.accentUIColor
         backButton.imageView.contentMode = .scaleAspectFit
         backButton.imageView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        backButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
+        backButton.accessibilityIdentifier = "backButtonCustomizeReactionsToolbar"
         backButton.action = { [weak self] in
             (self?.viewModel?.delegate as? UIViewController)?.navigationController?.popViewController(animated: true)
         }
@@ -50,7 +50,7 @@ public final class CustomizeReactionsToolbar: UIView {
 
         title.text = "EditGroup.customizedReactions".bundleLocalized()
         title.textColor = Color.App.accentUIColor
-        title.font = UIFont.fSubheadline
+        title.font = UIFont.normal(.subheadline)
         title.translatesAutoresizingMaskIntoConstraints = false
         addSubview(title)
 

@@ -21,7 +21,7 @@ final class MessageAudioView: UIView {
     private let waveView = AudioWaveFormView()
     private let fileNameLabel = UILabel()
     private let progressButton = CircleProgressButton(progressColor: Color.App.whiteUIColor,
-                                                      iconTint: Color.App.textPrimaryUIColor,
+                                                      iconTint: Color.App.whiteUIColor,
                                                       bgColor: Color.App.accentUIColor,
                                                       margin: 2
     )
@@ -61,7 +61,7 @@ final class MessageAudioView: UIView {
         addSubview(waveView)
         
         fileNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileNameLabel.font = UIFont.fBoldSubheadline
+        fileNameLabel.font = UIFont.bold(.subheadline)
         fileNameLabel.textAlignment = .left
         fileNameLabel.textColor = Color.App.textPrimaryUIColor
         fileNameLabel.numberOfLines = 1
@@ -70,7 +70,7 @@ final class MessageAudioView: UIView {
         addSubview(fileNameLabel)
         
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.fBoldCaption
+        fileSizeLabel.font = UIFont.bold(.caption)
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = Color.App.textSecondaryUIColor?.withAlphaComponent(0.7)
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageAudioView"
@@ -80,7 +80,7 @@ final class MessageAudioView: UIView {
         
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = Color.App.textPrimaryUIColor
-        timeLabel.font = UIFont.fBoldCaption
+        timeLabel.font = UIFont.bold(.caption)
         timeLabel.numberOfLines = 1
         timeLabel.textAlignment = .left
         timeLabel.accessibilityIdentifier = "timeLabelMessageAudioView"
@@ -95,7 +95,7 @@ final class MessageAudioView: UIView {
         playbackSpeedButton.accessibilityIdentifier = "playbackSpeedButtonMessageAudioView"
         playbackSpeedButton.tintColor = Color.App.textPrimaryUIColor
         playbackSpeedButton.layer.cornerRadius = ConstantSizes.messageAudioViewPlayButtonCornerRadius
-        playbackSpeedButton.titleLabel?.font = UIFont.fBoldSubheadline
+        playbackSpeedButton.titleLabel?.font = UIFont.bold(.subheadline)
         playbackSpeedButton.setTitle("", for: .normal)
         playbackSpeedButton.addTarget(self, action: #selector(onPlaybackSpeedTapped), for: .touchUpInside)
         playbackSpeedButton.layer.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.8).cgColor

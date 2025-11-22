@@ -29,8 +29,9 @@ final class CallEventCell: UITableViewCell {
     private func configureView() {
 
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.font = UIFont.fBody
+        dateLabel.font = UIFont.normal(.body)
         dateLabel.accessibilityIdentifier = "dateLabelCallEventCell"
+        dateLabel.textColor = Color.App.whiteUIColor
 
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
@@ -40,7 +41,7 @@ final class CallEventCell: UITableViewCell {
         stack.accessibilityIdentifier = "stackCallEventCell"
 
         stack.addArrangedSubview(dateLabel)
-        stack.backgroundColor = UIColor.black.withAlphaComponent(0.2)
+        stack.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
         stack.layer.cornerRadius = ConstantSizes.messageCallEventCellStackCornerRadius
         stack.layer.masksToBounds = true
         stack.layoutMargins = .init(top: 0, left: ConstantSizes.messageCallEventCellStackLayoutMargin, bottom: 0, right: ConstantSizes.messageCallEventCellStackLayoutMargin)

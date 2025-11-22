@@ -29,6 +29,9 @@ public class ThreadsTopToolbarView: UIStackView {
     private let topRowStack = UIStackView()
     private let searchRowStack = UIStackView()
     
+    /// Constraints
+    private var heightConstraint: NSLayoutConstraint?
+    
     /// Models
     private var cancellableSet = Set<AnyCancellable>()
     private var isInSearchMode: Bool = false
@@ -86,7 +89,7 @@ public class ThreadsTopToolbarView: UIStackView {
         
         connectionStatusLabel.translatesAutoresizingMaskIntoConstraints = false
         connectionStatusLabel.text = ""
-        connectionStatusLabel.font = UIFont.fFootnote
+        connectionStatusLabel.font = UIFont.normal(.footnote)
         connectionStatusLabel.textColor = Color.App.toolbarSecondaryTextUIColor
         connectionStatusLabel.textAlignment = Language.isRTL ? .right : .left
         connectionStatusLabel.accessibilityIdentifier = "connectionStatusLabelThreadsTopToolbarView"
@@ -150,7 +153,7 @@ public class ThreadsTopToolbarView: UIStackView {
         searchTextField.layer.backgroundColor = Color.App.bgSendInputUIColor?.withAlphaComponent(0.8).cgColor
         searchTextField.layer.cornerRadius = 16
         searchTextField.layer.masksToBounds = true
-        searchTextField.font = UIFont.fBody
+        searchTextField.font = UIFont.normal(.body)
         searchTextField.textAlignment = Language.isRTL ? .right : .left
         searchTextField.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         searchTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
@@ -168,12 +171,14 @@ public class ThreadsTopToolbarView: UIStackView {
         searchRowStack.addArrangedSubview(searchTextField)
         
         player.translatesAutoresizingMaskIntoConstraints = false
-        player.setTintColors(color: Color.App.toolbarButtonUIColor ?? .white)
        
         addArrangedSubview(topRowStack)
         addArrangedSubview(searchRowStack)
         addArrangedSubview(player)
 
+        heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.topToolbarHeight)
+        heightConstraint?.isActive = true
+        
         NSLayoutConstraint.activate([
             overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
             overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -317,6 +322,11 @@ public class ThreadsTopToolbarView: UIStackView {
         }
         player.isHidden = !shouldShow
         player.isUserInteractionEnabled = shouldShow
+        setHeightConstraint(showPlayer: shouldShow)
+    }
+    
+    private func setHeightConstraint(showPlayer: Bool) {
+        heightConstraint?.constant = showPlayer ? ConstantSizes.topToolbarHeight + ToolbarButtonItem.buttonWidth : ConstantSizes.topToolbarHeight
     }
     
     public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {

@@ -9,7 +9,7 @@ import SwiftUI
 
 private struct UITextViewWrapper: UIViewRepresentable {
     typealias UIViewType = UITextView
-    private let font = UIFont.fSubheadline
+    private let font = UIFont.normal(.subheadline)
 
     @Binding var text: String
     var textColor: UIColor
@@ -93,7 +93,7 @@ private struct UITextViewWrapper: UIViewRepresentable {
 
     nonisolated private func attributes(string: String) -> NSAttributedString {
         let mutableAttr = NSMutableAttributedString(string: string)
-        let attributes = [NSAttributedString.Key.font: font!]
+        let attributes = [NSAttributedString.Key.font: font]
         let allRange = NSRange(mutableAttr.string.startIndex..., in: mutableAttr.string)
         mutableAttr.addAttributes(attributes, range: allRange)
         return mutableAttr
@@ -194,7 +194,7 @@ public struct MultilineTextField: View {
         Group {
             if showingPlaceholder {
                 Text(placeholder)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundColor(placeholderColor)
                     .padding(EdgeInsets(top: 8, leading: 12, bottom: 0, trailing: 0))
                     .transition(.asymmetric(insertion: .push(from: .leading), removal: .move(edge: .leading)))

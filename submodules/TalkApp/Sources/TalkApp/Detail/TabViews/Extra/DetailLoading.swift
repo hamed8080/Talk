@@ -8,6 +8,7 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Lottie
 
 struct DetailLoading: View {
     @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
@@ -16,9 +17,9 @@ struct DetailLoading: View {
         if viewModel.isLoading {
             HStack {
                 Spacer()
-                LoadingView()
+                LottieView(animation: .named("talk_logo_animation.json"))
                     .id(UUID())
-                    .frame(width: 22, height: 22)
+                    .frame(width: 52, height: 52)
                 Spacer()
             }
             .padding()

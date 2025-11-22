@@ -36,7 +36,7 @@ public final class MentionParticipantImageView: UIView {
         participantLabel.translatesAutoresizingMaskIntoConstraints = false
         participantLabel.textAlignment = .center
         participantLabel.accessibilityIdentifier = "participantLabelMentionParticipantImageView"
-        participantLabel.font = UIFont.fCaption3
+        participantLabel.font = UIFont.normal(.caption3)
         backgroundColor = Color.App.bgIconUIColor
 
         addSubview(imageIconView)

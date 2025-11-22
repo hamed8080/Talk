@@ -42,8 +42,10 @@ public final class AppState: ObservableObject, Sendable {
         windowMode = UIApplication.shared.windowMode()
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
             Task { @MainActor in
-                AppState.isInSlimMode =
-                UIApplication.shared.windowMode().isInSlimMode
+                AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
+                
+                let newState = UIApplication.shared.windowMode()
+                NotificationCenter.windowMode.post(name: .windowMode, object: newState)
             }
         }
         
@@ -61,13 +63,6 @@ extension AppState {
             self?.updateWindowMode()
         }
         .store(in: &cancelable)
-    }
-}
-
-extension AppState {
-    public func openURL(url: URL) {
-        NotificationCenter.default.post(name: NSNotification.Name("openURL"), object: url)
-        animateObjectWillChange()
     }
 }
 

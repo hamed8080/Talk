@@ -12,6 +12,7 @@ import Chat
 import UIKit
 import AVFoundation
 import TalkExtensions
+import TalkFont
 
 public struct MainRequirements: Sendable {
     let appUserId: Int?
@@ -230,7 +231,7 @@ class MessageRowCalculators {
     }
     
     class func messageContainerTextWidth(text: String, replyWidth: CGFloat, sizes: ConstantSizes) -> CGFloat {
-        let font = UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 14) ?? .systemFont(ofSize: 14)
+        let font = UIFont.normal(.body)
         let textWidth = text.widthOfString(usingFont: font) + replyWidth
         let minimumWidth: CGFloat = 128
         let maxOriginal = max(minimumWidth, textWidth + sizes.paddings.paddingEdgeInset.left + sizes.paddings.paddingEdgeInset.right)
@@ -239,14 +240,14 @@ class MessageRowCalculators {
     
     class func replySenderWidthCalculation(replyInfo: ReplyInfo) -> CGFloat {
         let senderNameText = replyInfo.participant?.contactName ?? replyInfo.participant?.name ?? ""
-        let senderFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12) ?? .systemFont(ofSize: 12)
+        let senderFont = UIFont.bold(.caption)
         let senderNameWidth = senderNameText.widthOfString(usingFont: senderFont)
         return senderNameWidth
     }
     
     class func replyStaticTextWidth() -> CGFloat {
         let staticText = "Message.replyTo".bundleLocalized()
-        let font = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12) ?? .systemFont(ofSize: 12)
+        let font = UIFont.bold(.caption)
         let width = staticText.widthOfString(usingFont: font) + 12
         return width
     }
@@ -299,7 +300,7 @@ class MessageRowCalculators {
         attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: allRange)
         attr.addAttributes([
             NSAttributedString.Key.foregroundColor: UIColor(named: "accent") ?? .orange,
-            NSAttributedString.Key.font: UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 14) ?? .systemFont(ofSize: 14)
+            NSAttributedString.Key.font: UIFont.normal(.body)
         ], range: doerRange)
         return attr
     }
@@ -443,8 +444,7 @@ class MessageRowCalculators {
     }
     
     class func calculateReactionWidth(reactionText: String) -> CGFloat {
-        let font = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 14) ?? .systemFont(ofSize: 14)
-        let width = reactionText.widthOfString(usingFont: font) + 16 + 4
+        let width = reactionText.widthOfString(usingFont: UIFont.bold(.body)) + 16 + 4
         return width
     }
     
@@ -453,7 +453,10 @@ class MessageRowCalculators {
         let summaries = reactions.reactionCounts?.sorted(by: {$0.count ?? 0 > $1.count ?? 0}) ?? []
         let myReaction = reactions.userReaction
         summaries.forEach { summary in
-            let countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
+            var countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
+            if summary.count ?? 0 > 99 {
+                countText = "99+";
+            }
             let emoji = summary.sticker?.emoji ?? ""
             let isMyReaction = myReaction?.reaction?.rawValue == summary.sticker?.rawValue
             let selectedEmojiTabId = "\(summary.sticker?.emoji ?? "all") \(countText)"
@@ -653,7 +656,7 @@ class MessageRowCalculators {
         /// because there is a chance the text contains both bold and triple grave accent in this case it will crash because bold will remove four **** sign therefore the index with ``text`` is bigger than mutableAttr.string.
         tripleGraveAccentResults(mutableAttr.string, pattern: "```").forEach { result in
             mutableAttr.addAttribute(.foregroundColor, value: UIColor.clear, range: result.range)
-            mutableAttr.addAttribute(.font, value: UIFont.systemFont(ofSize: 8), range: result.range)
+            mutableAttr.addAttribute(.font, value: UIFont.name(name: "Menlo", .body), range: result.range)
         }
         
         return NSAttributedString(attributedString: mutableAttr)
@@ -879,7 +882,7 @@ class MessageRowCalculators {
         /// Footer height
         /// Reactions are not part of the estimation.
         if isReactionable {
-            estimatedHeight += ConstantSizes.messageFooterViewHeightWithoutReaction
+            estimatedHeight += ConstantSizes.messageFooterViewHeightWithReaction
             estimatedHeight += margin
             estimatedHeight += containerMargin
             estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing

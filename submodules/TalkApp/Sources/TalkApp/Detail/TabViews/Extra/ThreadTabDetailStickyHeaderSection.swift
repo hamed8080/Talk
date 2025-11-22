@@ -24,7 +24,7 @@ public struct ThreadTabDetailStickyHeaderSection: View {
         HStack {
             Text(header)
                 .foregroundColor(Color.App.textSecondary)
-                .font(.fCaption)
+                .font(Font.normal(.caption))
             Spacer()
         }
         .frame(height: height)

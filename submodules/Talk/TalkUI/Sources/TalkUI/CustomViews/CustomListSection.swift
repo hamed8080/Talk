@@ -22,14 +22,14 @@ public struct CustomListSection<Content>: View where Content: View {
         VStack(spacing: 0) {
             if let header {
                 Text(header)
-                    .font(.fCaption2)
+                    .font(Font.normal(.caption2))
             }
 
             content()
 
             if let footer {
                 Text(footer)
-                    .font(.fCaption2)
+                    .font(Font.normal(.caption2))
             }
         }
         .background(.ultraThickMaterial)
@@ -40,8 +40,8 @@ public struct CustomListSection<Content>: View where Content: View {
 struct CustomListSection_Previews: PreviewProvider {
     static var previews: some View {
         CustomListSection {
-            ListSectionButton(imageName: "trash", title: "Delete", color: .red)
-            ListSectionButton(imageName: "plus", title: "Add Contact", color: .blue)
+            ListSectionButton(imageName: "trash", title: "Delete", bgColor: .red)
+            ListSectionButton(imageName: "plus", title: "Add Contact", bgColor: .blue)
         }
     }
 }

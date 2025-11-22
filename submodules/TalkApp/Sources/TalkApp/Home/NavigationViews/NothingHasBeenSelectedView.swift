@@ -22,7 +22,7 @@ struct NothingHasBeenSelectedView: View {
                     .frame(width: 320, height: 222)
                 VStack(spacing: 16) {
                     Text("General.nothingSelectedConversation")
-                        .font(.fSubheadline)
+                        .font(Font.normal(.subheadline))
                         .foregroundColor(Color.App.textSecondary)
                         .multilineTextAlignment(.center)
                         .frame(minWidth: 220)
@@ -38,7 +38,7 @@ struct NothingHasBeenSelectedView: View {
                         }
                     }
                     .fixedSize()
-                    .font(.fBoldBody)
+                    .font(Font.bold(.body))
                     .padding(EdgeInsets(top: 12, leading: 24, bottom: 12, trailing: 24))
                     .background(Color.App.bgSecondary)
                     .clipShape(RoundedRectangle(cornerRadius:(12)))

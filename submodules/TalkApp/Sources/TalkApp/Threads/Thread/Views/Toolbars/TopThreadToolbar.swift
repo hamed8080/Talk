@@ -14,6 +14,7 @@ import Combine
 import ChatModels
 
 public final class TopThreadToolbar: UIStackView {
+    private let overBlurEffectColorView = UIView()
     private let navBarView: CustomConversationNavigationBar
     private var pinMessageView: ThreadPinMessageView?
     private var navigationPlayerView: ThreadNavigationPlayer?
@@ -53,7 +54,18 @@ public final class TopThreadToolbar: UIStackView {
         effectView.accessibilityIdentifier = "effectViewTopThreadToolbar"
         effectView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(effectView)
+        
+        overBlurEffectColorView.translatesAutoresizingMaskIntoConstraints = false
+        overBlurEffectColorView.accessibilityIdentifier = "overBlurEffectColorViewTopThreadToolbarView"
+        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        addSubview(overBlurEffectColorView)
+        
         NSLayoutConstraint.activate([
+            overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            overBlurEffectColorView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
+            overBlurEffectColorView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
             effectView.trailingAnchor.constraint(equalTo: trailingAnchor),
             effectView.leadingAnchor.constraint(equalTo: leadingAnchor),
             effectView.topAnchor.constraint(equalTo: topAnchor, constant: -100),
@@ -121,5 +133,9 @@ public final class TopThreadToolbar: UIStackView {
         for view in sortedSubviews {
             addArrangedSubview(view)
         }
+    }
+    
+    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
     }
 }

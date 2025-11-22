@@ -20,7 +20,7 @@ struct BlockedContacts: View {
                 
                 ImageLoaderView(blocked: blocked)
                     .id(userId)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundColor(.white)
                     .frame(width: 52, height: 52)
                     .background(Color.App.color1.opacity(0.4))
@@ -31,7 +31,7 @@ struct BlockedContacts: View {
                 VStack(alignment: .leading) {
                     Text(name ?? "")
                         .foregroundStyle(Color.App.textPrimary)
-                        .font(.fBoldBody)
+                        .font(Font.bold(.body))
 
                     Text(userId)
                         .font(.caption2)

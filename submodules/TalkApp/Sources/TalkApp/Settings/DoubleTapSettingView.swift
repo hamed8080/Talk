@@ -15,7 +15,7 @@ struct DoubleTapSettingView: View {
 
     var body: some View {
         List {
-            ListSectionButton(imageName: nil, title: "Settings.DoubleTap.noAction", color: .blue, showDivider: true, shownavigationButton: false) {
+            ListSectionButton(imageName: nil, title: "Settings.DoubleTap.noAction", showDivider: true, shownavigationButton: false) {
                 var model = AppSettingsModel.restore()
                 model.doubleTapAction = nil
                 model.save()
@@ -30,7 +30,7 @@ struct DoubleTapSettingView: View {
                 }
             }
             
-            ListSectionButton(imageName: nil, title: "Settings.DoubleTap.selectEmoji", color: .blue, showDivider: true, shownavigationButton: false) {
+            ListSectionButton(imageName: nil, title: "Settings.DoubleTap.selectEmoji", showDivider: true, shownavigationButton: false) {
                 navModel.wrapAndPush(view: DoubleTapEmojiPickerView())
             }
             .listRowInsets(.zero)
@@ -46,7 +46,7 @@ struct DoubleTapSettingView: View {
                 }
             }
             
-            ListSectionButton(imageName: nil, title: "Settings.DoubleTap.reply", color: .blue, showDivider: false, shownavigationButton: false) {
+            ListSectionButton(imageName: nil, title: "Settings.DoubleTap.reply", showDivider: false, shownavigationButton: false) {
                 var model = AppSettingsModel.restore()
                 model.doubleTapAction = .reply
                 model.save()
@@ -61,7 +61,7 @@ struct DoubleTapSettingView: View {
                 }
             }
         }
-        .font(Font.fBody)
+        .font(Font.normal(.body))
         .environment(\.defaultMinListRowHeight, 8)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)

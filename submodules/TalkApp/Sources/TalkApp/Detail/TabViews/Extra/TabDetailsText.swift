@@ -14,18 +14,18 @@ struct TabDetailsText: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(rowModel.fileName)
-                .font(.fBody)
+                .font(Font.normal(.body))
                 .foregroundStyle(Color.App.textPrimary)
                 .lineLimit(1)
                 .truncationMode(.middle)
             HStack {
                 Text(rowModel.time)
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption2)
+                    .font(Font.normal(.caption2))
                 Spacer()
                 Text(rowModel.fileSizeString)
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption3)
+                    .font(Font.normal(.caption3))
             }
         }
     }

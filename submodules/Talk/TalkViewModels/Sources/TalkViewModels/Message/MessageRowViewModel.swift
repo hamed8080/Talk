@@ -190,11 +190,6 @@ public extension MessageRowViewModel {
         isInvalid = false
         reactionsModel = .init(messageId: message.id ?? -1)
     }
-
-    func setReaction(reactions: ReactionCountList) {
-        isInvalid = false
-        self.reactionsModel = MessageRowCalculators.calulateReactions(reactions, message.id ?? -1)
-    }
     
     func setReactionRowsModel(model: ReactionRowsCalculated) {
         isInvalid = false

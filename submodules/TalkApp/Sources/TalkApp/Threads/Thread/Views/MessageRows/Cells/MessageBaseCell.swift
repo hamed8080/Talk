@@ -21,8 +21,10 @@ public class MessageBaseCell: UITableViewCell {
 
     // Models
     weak var viewModel: MessageRowViewModel?
+    var swipeAction: AutoDismissSwipeAction?
 
     // Constraints
+    private var edgeConstraint: NSLayoutConstraint?
     private var containerWidthConstraint: NSLayoutConstraint!
     private var messageContainerBottomConstraint: NSLayoutConstraint!
     private var messageStackLeadingToRadioTrailingConstraint: NSLayoutConstraint!
@@ -33,6 +35,7 @@ public class MessageBaseCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         let isMe = self is MyselfMessageCell
         self.messageContainer = .init(frame: contentView.bounds, isMe: isMe)
+        swipeAction = AutoDismissSwipeAction(cell: self)
         configureView(isMe: isMe)
     }
 
@@ -55,12 +58,25 @@ public class MessageBaseCell: UITableViewCell {
         if self is PartnerMessageCell {
             avatar = AvatarView(frame: .zero)
         }
+        setupEdgeConstraint()
         setupConstraints(isMe: isMe)
+    }
+    
+    private func setupEdgeConstraint() {
+        let isMe = self is MyselfMessageCell
+        let isRTL = Language.isRTL
+        if (isRTL && isMe) || (!isRTL && !isMe) {
+            edgeConstraint = container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: ConstantSizes.beforeContainerLeading)
+            edgeConstraint?.isActive = true
+        } else {
+            edgeConstraint = container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ConstantSizes.beforeContainerLeading)
+            edgeConstraint?.isActive = true
+        }
     }
 
     private func setupConstraints(isMe: Bool) {
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
-        messageContainer.semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        messageContainer.semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         messageContainer.accessibilityIdentifier = "messageContainerMessageBaseCell"
         container.addSubview(messageContainer)
         messageContainer.topAnchor.constraint(equalTo: container.topAnchor, constant: ConstantSizes.messageContainerStackViewTopMargin).isActive = true
@@ -74,14 +90,7 @@ public class MessageBaseCell: UITableViewCell {
         containerWidthConstraint.isActive = true
         container.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0).isActive = true
-        let isMe = self is MyselfMessageCell
-        let isRTL = Language.isRTL
-        if (isRTL && isMe) || (!isRTL && !isMe) {
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: ConstantSizes.beforeContainerLeading).isActive = true
-        } else {
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ConstantSizes.beforeContainerLeading).isActive = true
-        }
-
+        
         if let avatar = avatar {
             messageStackLeadingAvatarTrailingConstarint = messageContainer.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: ConstantSizes.messageAvatarAfterTrailing)
         }
@@ -158,6 +167,11 @@ public class MessageBaseCell: UITableViewCell {
         setMessageContainer(viewModel: viewModel)
         setMessageContainerConstraints(viewModel: viewModel)
         setSelectedBackground()
+        
+        let isInSelection = viewModel.threadVM?.selectedMessagesViewModel.isInSelectMode == true
+        if !isInSelection, viewModel.threadVM?.thread.closed != true {
+            swipeAction?.setupCell(cell: self, id: viewModel.id, edgeConstraint: edgeConstraint)
+        }
     }
 
     func deselect() {
@@ -183,6 +197,7 @@ public class MessageBaseCell: UITableViewCell {
     }
 
     func setInSelectionMode(_ isInSelectionMode: Bool) {
+        swipeAction?.setEnabled(isEnabled: !isInSelectionMode)
         UIView.animate(withDuration: 0.3) { [weak self] in
             guard let self = self else { return }
             if let viewModel = viewModel {
@@ -269,5 +284,9 @@ public class MessageBaseCell: UITableViewCell {
     
     public func reactionReplaced(_ reaction: Reaction) {
         messageContainer.reactionReplaced(reaction)
+    }
+    
+    public override func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 }

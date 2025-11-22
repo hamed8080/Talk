@@ -43,6 +43,7 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var groupMessageParticipantName: String?
     public var avPlayerItem: AVAudioPlayerItem?
     public var canEdit: Bool = false
+    public var scrollViewReactionWidth: CGFloat? = nil
     // Disk file path
     public var fileURL: URL?
 //    public var textLayer: CATextLayer?

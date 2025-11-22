@@ -19,7 +19,7 @@ public struct LongTextView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 Text(expanded ? self.text : String(self.text.prefix(max)))
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .lineLimit(expanded ? nil : 1)
                     .multilineTextAlignment(text.naturalTextAlignment)
                     .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 420 : 320)
@@ -42,7 +42,7 @@ public struct LongTextView: View {
             }
         } label: {
             Text(self.expanded ? "General.showLess" : "General.showMore")
-                .font(.fCaption)
+                .font(Font.normal(.caption))
         }
         .buttonStyle(.borderless)
         .frame(minHeight: 32)

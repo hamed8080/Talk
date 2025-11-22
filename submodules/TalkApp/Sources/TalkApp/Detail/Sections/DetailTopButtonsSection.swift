@@ -74,7 +74,7 @@ struct DetailTopButtonsSection: View {
                 }
                 .environment(\.locale, Locale.current)
                 .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-                .font(Font.fBody)
+                .font(Font.normal(.body))
                 .foregroundColor(.primary)
                 .frame(width: 246)
                 .background(MixMaterialBackground())

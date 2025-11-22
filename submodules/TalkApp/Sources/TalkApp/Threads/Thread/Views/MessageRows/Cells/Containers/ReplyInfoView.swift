@@ -45,7 +45,7 @@ final class ReplyInfoView: UIView {
         layer.masksToBounds = true
         backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
         isOpaque = true
-        semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         isUserInteractionEnabled = true
         let tap = UITapGestureRecognizer(target: self, action: #selector(onReplyTapped))
         addGestureRecognizer(tap)
@@ -59,11 +59,11 @@ final class ReplyInfoView: UIView {
         addSubview(imageIconView)
 
         replyLabel.translatesAutoresizingMaskIntoConstraints = false
-        replyLabel.font = UIFont.fCaption3
+        replyLabel.font = UIFont.normal(.caption3)
         replyLabel.numberOfLines = 1
         replyLabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.7)
         replyLabel.lineBreakMode = .byTruncatingTail
-        replyLabel.textAlignment = isMe ? .right : .left
+        replyLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         replyLabel.accessibilityIdentifier = "replyLabelReplyInfoView"
         replyLabel.setContentHuggingPriority(.required, for: .vertical)
         replyLabel.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -73,9 +73,9 @@ final class ReplyInfoView: UIView {
 
         deletedLabel.translatesAutoresizingMaskIntoConstraints = false
         deletedLabel.text = ReplyInfoView.deletedStaticText
-        deletedLabel.font = UIFont.fBoldCaption2
+        deletedLabel.font = UIFont.bold(.caption2)
         deletedLabel.textColor = Color.App.textSecondaryUIColor
-        deletedLabel.textAlignment = isMe ? .right : .left
+        deletedLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         deletedLabel.setIsHidden(true)
         deletedLabel.accessibilityIdentifier = "deletedLabelReplyInfoView"
         deletedLabel.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -84,10 +84,10 @@ final class ReplyInfoView: UIView {
         addSubview(deletedLabel)
 
         participantLabel.translatesAutoresizingMaskIntoConstraints = false
-        participantLabel.font = UIFont.fBoldCaption2
+        participantLabel.font = UIFont.bold(.caption2)
         participantLabel.textColor = Color.App.accentUIColor
         participantLabel.accessibilityIdentifier = "participantLabelReplyInfoView"
-        participantLabel.textAlignment = isMe ? .right : .left
+        participantLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         participantLabel.backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
         participantLabel.isOpaque = true
         addSubview(participantLabel)

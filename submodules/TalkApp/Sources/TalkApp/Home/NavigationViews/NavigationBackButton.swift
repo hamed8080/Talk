@@ -72,7 +72,7 @@ public struct NormalNavigationBackButton: View {
                         .fontWeight(.medium)
                         .frame(maxWidth: 16, maxHeight: 16)
                     Text("General.back")
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                 }
             }
             Spacer()

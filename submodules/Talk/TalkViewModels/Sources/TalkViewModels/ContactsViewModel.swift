@@ -24,6 +24,7 @@ public enum ContactListSection: Int, Sendable {
 public protocol UIContactsViewControllerDelegate: AnyObject {
     func updateUI(animation: Bool, reloadSections: Bool)
     func updateImage(image: UIImage?, id: Int)
+    func showBottomAnimation(show: Bool)
 }
 
 @MainActor
@@ -167,7 +168,9 @@ public class ContactsViewModel: ObservableObject {
                 lazyList.setHasNext(contacts.count >= lazyList.count)
                 lazyList.setLoading(false)
                 lazyList.setThreasholdIds(ids: self.contacts.suffix(5).compactMap{$0.id})
+                delegate?.showBottomAnimation(show: false)
             } catch {
+                delegate?.showBottomAnimation(show: false)
                 log("Failed to get contacts with error: \(error.localizedDescription)")
             }
         }
@@ -216,6 +219,7 @@ public class ContactsViewModel: ObservableObject {
     public func loadMore() {
         if !lazyList.canLoadMore() { return }
         lazyList.prepareForLoadMore()
+        delegate?.showBottomAnimation(show: true)
         getContacts()
     }
 

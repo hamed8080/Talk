@@ -29,6 +29,7 @@ public final class MessageContainerStackView: UIStackView {
     private let textMessageView: TextMessageView
     private static let tailImage = UIImage(named: "tail")
     private var tailImageView = UIImageView()
+    private let reactionView: FooterReactionsCountView
     private let footerView: FooterView
     private let textKitStack: TextKitStack
 //    private let unsentMessageView = UnsentMessageView()
@@ -38,11 +39,13 @@ public final class MessageContainerStackView: UIStackView {
     public weak var cell: MessageBaseCell?
     
     private var minWidthConstraint: NSLayoutConstraint?
+    private var fileViewTrailingConstraint: NSLayoutConstraint?
 
     init(frame: CGRect, isMe: Bool) {
         self.groupParticipantNameView = .init(frame: frame)
         self.replyInfoMessageRow = .init(frame: frame, isMe: isMe)
         self.forwardMessageRow = .init(frame: frame, isMe: isMe)
+        self.reactionView = .init(frame: frame, isMe: isMe)
         self.footerView = .init(frame: frame, isMe: isMe)
         self.messageFileView = .init(frame: frame, isMe: isMe)
         self.messageAudioView = .init(frame: frame, isMe: isMe)
@@ -66,6 +69,7 @@ public final class MessageContainerStackView: UIStackView {
     }
 
     public func configureView(isMe: Bool) {
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
         axis = .vertical
         spacing = ConstantSizes.messageContainerStackViewStackSpacing
@@ -89,9 +93,12 @@ public final class MessageContainerStackView: UIStackView {
         locationRowView.translatesAutoresizingMaskIntoConstraints = false
         singleEmojiView.translatesAutoresizingMaskIntoConstraints = false
         textMessageView.translatesAutoresizingMaskIntoConstraints = false
+        reactionView.translatesAutoresizingMaskIntoConstraints = false
         footerView.translatesAutoresizingMaskIntoConstraints = false
 //        unsentMessageView.translatesAutoresizingMaskIntoConstraints = false
 
+        fileViewTrailingConstraint = messageFileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0)
+        
         tailImageView = UIImageView(image: MessageContainerStackView.tailImage)
         if isMe {
             tailImageView.transform = CGAffineTransform(scaleX: -1, y: 1)
@@ -103,7 +110,11 @@ public final class MessageContainerStackView: UIStackView {
 
         tailImageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewWidth).isActive = true
         tailImageView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageTailViewHeight).isActive = true
-        tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -ConstantSizes.messageTailViewLeading).isActive = true
+        if isMe {
+            tailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -ConstantSizes.messageTailViewLeading).isActive = true
+        } else {
+            tailImageView.leadingAnchor.constraint(equalTo: trailingAnchor, constant: -ConstantSizes.messageTailViewTrailing).isActive = true
+        }
         tailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0).isActive = true
         
         minWidthConstraint = textMessageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageContainerStackViewMinWidth)
@@ -168,6 +179,7 @@ public final class MessageContainerStackView: UIStackView {
         if viewModel.calMessage.rowType.isFile {
             messageFileView.set(viewModel)
             addArrangedSubview(messageFileView)
+            fileViewTrailingConstraint?.isActive = Language.isRTL
         } else {
             messageFileView.removeFromSuperview()
         }
@@ -213,7 +225,11 @@ public final class MessageContainerStackView: UIStackView {
         //            unsentMessageView.removeFromSuperview()
         //        }
         //
+        
 
+        addArrangedSubview(reactionView)
+        attachOrDetachReactions(viewModel: viewModel, animation: false)
+        
         footerView.set(viewModel)
         addArrangedSubview(footerView)
     }
@@ -317,23 +333,7 @@ extension MessageContainerStackView {
         messageVideoView.uploadCompleted(viewModel: viewModel)
         footerView.set(viewModel)
     }
-
-    public func reactionsUpdated(viewModel: MessageRowViewModel) {
-        footerView.reactionsUpdated(viewModel: viewModel)        
-    }
     
-    public func reactionDeleted(_ reaction: Reaction) {
-        footerView.reactionDeleted(reaction)
-    }
-    
-    public func reactionAdded(_ reaction: Reaction) {
-        footerView.reactionAdded(reaction)
-    }
-    
-    public func reactionReplaced(_ reaction: Reaction) {
-        footerView.reactionReplaced(reaction)
-    }
-
     public func prepareForContextMenu(userInterfaceStyle: UIUserInterfaceStyle) {
         overrideUserInterfaceStyle = userInterfaceStyle
         let isMe = viewModel?.calMessage.isMe == true
@@ -354,7 +354,7 @@ extension MessageContainerStackView {
         messageFileView.isUserInteractionEnabled = false
         singleEmojiView.isUserInteractionEnabled = false
         backgroundColor = isMe ? Color.App.bgChatMeUIColor! : Color.App.bgChatUserUIColor!
-        semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
     }
 }
 
@@ -388,5 +388,51 @@ extension MessageContainerStackView {
                 break
             }
         }
+    }
+}
+
+/// Reactions
+extension MessageContainerStackView {
+    private func attachOrDetachReactions(viewModel: MessageRowViewModel, animation: Bool) {
+        let isEmpty = viewModel.reactionsModel.rows.isEmpty
+        reactionView.setIsHidden(isEmpty)
+        
+        if !isEmpty {
+            fadeAnimateReactions(animation)
+            reactionView.set(viewModel)
+        }
+    }
+
+    // Prevent animation in reuse call method, yet has animation when updateReaction called
+    private func fadeAnimateReactions(_ animation: Bool) {
+        if !animation { return }
+        reactionView.alpha = 0.0
+        UIView.animate(withDuration: 0.2, delay: 0.2) {
+            self.reactionView.alpha = 1.0
+        }
+    }
+
+    public func reactionsUpdated(viewModel: MessageRowViewModel){
+        attachOrDetachReactions(viewModel: viewModel, animation: true)
+    }
+    
+    public func reactionDeleted(_ reaction: Reaction) {
+        reactionView.reactionDeleted(reaction)
+    }
+    
+    public func reactionAdded(_ reaction: Reaction) {
+        if reactionView.superview == nil {
+            addArrangedSubview(reactionView)
+            reactionView.alpha = 1.0
+            if let viewModel = viewModel {
+                reactionView.set(viewModel)
+            }
+        } else {
+            reactionView.reactionAdded(reaction)
+        }
+    }
+    
+    public func reactionReplaced(_ reaction: Reaction) {
+        reactionView.reactionReplaced(reaction)
     }
 }

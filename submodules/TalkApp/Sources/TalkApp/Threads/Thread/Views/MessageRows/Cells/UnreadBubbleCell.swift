@@ -25,7 +25,7 @@ final class UnreadBubbleCell: UITableViewCell {
         translatesAutoresizingMaskIntoConstraints = true
         label.translatesAutoresizingMaskIntoConstraints = false
 
-        label.font = UIFont.fCaption
+        label.font = UIFont.normal(.caption)
         label.textColor = Color.App.accentUIColor
         label.textAlignment = .center
         label.text = "Messages.unreadMessages".bundleLocalized()

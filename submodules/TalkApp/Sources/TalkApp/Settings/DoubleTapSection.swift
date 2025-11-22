@@ -13,7 +13,7 @@ struct DoubleTapSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "hand.tap.fill", title: "Settings.DoubleTap.title", color: .App.color4, showDivider: false) {
+        ListSectionButton(imageName: "hand.tap", title: "Settings.DoubleTap.title", showDivider: false) {
             navModel.wrapAndPush(view: DoubleTapSettingView().environmentObject(navModel))
         }
         .listRowInsets(.zero)

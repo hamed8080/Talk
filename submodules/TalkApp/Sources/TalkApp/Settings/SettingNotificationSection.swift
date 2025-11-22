@@ -14,7 +14,7 @@ struct SettingNotificationSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "bell.fill", title: "Settings.notifictionSettings", color: .red, showDivider: false) {
+        ListSectionButton(imageName: "bell", title: "Settings.notifictionSettings", showDivider: false) {
             navModel.wrapAndPush(view: NotificationSettings())
         }
         .listRowInsets(.zero)
@@ -62,7 +62,7 @@ struct NotificationSettings: View {
                     } label: {
                         SectionNavigationLabel(imageName: "person.fill",
                                                title: "Notification.PrivateSettings",
-                                               color: Color.App.color5)
+                                               color: Color.clear)
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparatorTint(Color.App.dividerPrimary)
@@ -73,7 +73,7 @@ struct NotificationSettings: View {
                     } label: {
                         SectionNavigationLabel(imageName: "person.3.fill",
                                                title: "Notification.GroupSettings",
-                                               color: Color.App.color2)
+                                               color: Color.clear)
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparatorTint(Color.App.dividerPrimary)
@@ -84,7 +84,7 @@ struct NotificationSettings: View {
                     } label: {
                         SectionNavigationLabel(imageName: "megaphone.fill",
                                                title: "Notification.ChannelSettings",
-                                               color: Color.App.color3)
+                                               color: Color.clear)
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listSectionSeparator(.hidden)
@@ -94,7 +94,7 @@ struct NotificationSettings: View {
             }
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .onChange(of: model) { _ in

@@ -28,7 +28,7 @@ struct DetailEditConversationButton: View {
                         }
                 }
             } label: {
-                Image("ic_edit")
+                Image("ic_edit_empty")
                     .resizable()
                     .scaledToFit()
                     .padding(14)

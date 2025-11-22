@@ -10,6 +10,7 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkViewModels
+import Lottie
 
 class ForwardConversationTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ThreadsListSection, CalculatedConversation>!
@@ -17,9 +18,9 @@ class ForwardConversationTableViewController: UIViewController {
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONCERSATION-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
-    var contextMenuContainer: ContextMenuContainerView? = nil
-    private var previousOffset: CGPoint? = nil
-    private var previousContentSize: CGSize? = nil
+    private let centerLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
+    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
+    private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel
@@ -35,19 +36,44 @@ class ForwardConversationTableViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 96
         tableView.delegate = self
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
+        
+        bottomAnimation.translatesAutoresizingMaskIntoConstraints = false
+        bottomAnimation.accessibilityIdentifier = "bottomLoadingForwardConversationTableViewController"
+        bottomAnimation.isHidden = true
+        bottomAnimation.contentMode = .scaleAspectFit
+        bottomLoadingContainer.addSubview(self.bottomAnimation)
+        
+        tableView.tableFooterView = bottomLoadingContainer
         view.addSubview(tableView)
+        
+        centerLoading.translatesAutoresizingMaskIntoConstraints = false
+        centerLoading.isHidden = false
+        centerLoading.play()
+        view.addSubview(centerLoading)
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            centerLoading.widthAnchor.constraint(equalToConstant: 52),
+            centerLoading.heightAnchor.constraint(equalToConstant: 52),
+            centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            centerLoading.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+            
+            bottomAnimation.widthAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.heightAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
+            bottomAnimation.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
         ])
         configureDataSource()
     }
@@ -75,16 +101,12 @@ extension ForwardConversationTableViewController {
     }
 }
 
-extension ForwardConversationTableViewController: UIThreadsViewControllerDelegate {
-    var contentSize: CGSize { tableView.contentSize }
-
-    var contentOffset: CGPoint { tableView.contentOffset }
-
-    func setContentOffset(offset: CGPoint) {
-        tableView.contentOffset = offset
-    }
-
+extension ForwardConversationTableViewController: UIForwardThreadsViewControllerDelegate {
+   
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool) {
+        centerLoading.isHidden = true
+        centerLoading.stop()
+        showBottomAnimation(show: false)
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
@@ -97,55 +119,16 @@ extension ForwardConversationTableViewController: UIThreadsViewControllerDelegat
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ConversationCell
     }
     
-    func reloadCellWith(conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?
-            .setConversation(conversation: conversation)
-    }
-    
-    func setImageFor(id: Int, image: UIImage?) {
-        cell(id: id)?.setImage(image)
-    }
-    
-    func selectionChanged(conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?.selectionChanged(conversation: conversation)
-    }
-    
-    func unreadCountChanged(conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?.unreadCountChanged(conversation: conversation)
-    }
-    
-    func setEvent(smt: SMT?, conversation: CalculatedConversation) {
-        cell(id: conversation.id ?? -1)?.setEvent(smt, conversation)
-    }
-    
-    func indexPath<T: UITableViewCell>(for cell: T) -> IndexPath? {
-        tableView.indexPath(for: cell)
-    }
-    
-    func dataSourceItem(for indexPath: IndexPath) -> CalculatedConversation? {
-        dataSource?.itemIdentifier(for: indexPath)
-    }
-    
-    func scrollToFirstIndex() {
-        guard !viewModel.conversations.isEmpty && tableView.numberOfRows(inSection: 0) > 0 else { return }
-        let indexPath = IndexPath(row: 0, section: 0)
-        tableView.scrollToRow(at: indexPath, at: .top, animated: true)
-    }
-    
-    func createThreadViewController(conversation: Conversation) -> UIViewController {
-        let vc = ThreadViewController()
-        vc.viewModel = ThreadViewModel(thread: conversation)
-        return vc
-    }
-}
-
-extension ForwardConversationTableViewController: ContextMenuDelegate {
-    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
-  
-    }
-    
-    func dismissContextMenu(indexPath: IndexPath?) {
-        
+    func showBottomAnimation(show: Bool) {
+        bottomAnimation.isHidden = !show
+        bottomAnimation.isUserInteractionEnabled = show
+        if show {
+            tableView.tableFooterView = bottomLoadingContainer
+            bottomAnimation.play()
+        } else {
+            tableView.tableFooterView = UIView()
+            bottomAnimation.stop()
+        }
     }
 }
 
@@ -159,19 +142,7 @@ extension ForwardConversationTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
         Task {
-            await viewModel.loadMore(id: conversation.id)
+            try await viewModel.loadMore(id: conversation.id)
         }
     }
-}
-
-struct ForwardConversationTableViewControllerWrapper: UIViewControllerRepresentable {
-    let viewModel: ThreadOrContactPickerViewModel
-    let onSelect: (Conversation?, Contact?) -> Void
-    
-    func makeUIViewController(context: Context) -> some UIViewController {
-        let vc = ForwardConversationTableViewController(viewModel: viewModel, onSelect: onSelect)
-        return vc
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 }

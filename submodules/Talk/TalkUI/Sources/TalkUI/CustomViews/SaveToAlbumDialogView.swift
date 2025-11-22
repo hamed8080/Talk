@@ -27,7 +27,7 @@ public struct SaveToAlbumDialogView: View {
                 } label: {
                     Text("General.settings")
                         .foregroundStyle(Color.blue)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -37,7 +37,7 @@ public struct SaveToAlbumDialogView: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.accent)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

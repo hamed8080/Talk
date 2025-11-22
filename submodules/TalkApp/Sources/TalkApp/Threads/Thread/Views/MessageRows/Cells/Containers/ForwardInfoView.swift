@@ -33,26 +33,25 @@ final class ForwardInfoView: UIView {
 
     private func configureView(isMe: Bool) {
         translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = Color.App.bgPrimaryUIColor?.withAlphaComponent(0.5)
         layer.cornerRadius = ConstantSizes.messageForwardInfoViewStackCornerRadius
         layer.masksToBounds = true
         backgroundColor = isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
-        semanticContentAttribute = isMe ? .forceRightToLeft : .forceLeftToRight
+        semanticContentAttribute = Language.isRTL || isMe ? .forceRightToLeft : .forceLeftToRight
 
         forwardStaticLabel.translatesAutoresizingMaskIntoConstraints = false
-        forwardStaticLabel.font = UIFont.fCaption3
+        forwardStaticLabel.font = UIFont.normal(.caption3)
         forwardStaticLabel.textColor = Color.App.accentUIColor
         forwardStaticLabel.text = ForwardInfoView.forwardFromStaticText
         forwardStaticLabel.accessibilityIdentifier = "forwardStaticLebelForwardInfoView"
-        forwardStaticLabel.textAlignment = isMe ? .right : .left
+        forwardStaticLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         addSubview(forwardStaticLabel)
 
         participantLabel.translatesAutoresizingMaskIntoConstraints = false
-        participantLabel.font = UIFont.fBoldCaption2
+        participantLabel.font = UIFont.bold(.caption2)
         participantLabel.textColor = Color.App.accentUIColor
         participantLabel.numberOfLines = 1
         participantLabel.accessibilityIdentifier = "participantLabelForwardInfoView"
-        participantLabel.textAlignment = isMe ? .right : .left
+        participantLabel.textAlignment = Language.isRTL || isMe ? .right : .left
         participantLabel.setContentHuggingPriority(.defaultLow, for: .vertical)
         participantLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         participantLabel.layer.cornerRadius = 6

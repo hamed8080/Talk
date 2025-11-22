@@ -45,7 +45,7 @@ public final class UnreadMenitonsButton: UIButton {
 
         lblUnreadMentionsCount.translatesAutoresizingMaskIntoConstraints = false
         lblUnreadMentionsCount.label.textColor = Color.App.whiteUIColor
-        lblUnreadMentionsCount.label.font = .fBoldCaption
+        lblUnreadMentionsCount.label.font = UIFont.bold(.caption)
         lblUnreadMentionsCount.layer.backgroundColor = Color.App.accentUIColor?.cgColor
         lblUnreadMentionsCount.layer.cornerRadius = 12
         lblUnreadMentionsCount.label.textAlignment = .center

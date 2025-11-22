@@ -20,7 +20,8 @@ let package = Package(
         .package(path: "../TalkExtensions"),
         .package(path: "../../FFMpegKitContainer"),
         .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5"),
-        .package(url: "https://github.com/dmrschmidt/DSWaveformImage", exact: "14.2.1")
+        .package(url: "https://github.com/dmrschmidt/DSWaveformImage", exact: "14.2.1"),
+        .package(url: "https://github.com/airbnb/lottie-ios", exact: "4.5.2")
     ],
     targets: [
         .target(
@@ -30,6 +31,7 @@ let package = Package(
                 "TalkExtensions",
                 .product(name: "ZipArchive", package: "ZipArchive"),
                 .product(name: "DSWaveformImage", package: "DSWaveformImage"),
+                .product(name: "Lottie", package: "lottie-ios"),
                 .product(name: "FFMpegKitContainer", package: "FFMpegKitContainer")
             ]
         ),

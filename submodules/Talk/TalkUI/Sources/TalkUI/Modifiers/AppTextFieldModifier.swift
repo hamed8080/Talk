@@ -49,7 +49,7 @@ public struct AppTextFieldModifier<LeadingView: View>: ViewModifier {
     
     private var topPlaceholderView: some View {
         Text(topPlaceholder)
-            .font(.fCaption)
+            .font(Font.normal(.caption))
             .padding(.horizontal, 20)
             .offset(y: 8)
     }
@@ -58,7 +58,7 @@ public struct AppTextFieldModifier<LeadingView: View>: ViewModifier {
     private var errorVeiw: some View {
         if let error {
             Text(error)
-                .font(.fCaption)
+                .font(Font.normal(.caption))
                 .padding(.horizontal, 20)
                 .offset(y: -8)
                 .foregroundColor(Color.App.red)

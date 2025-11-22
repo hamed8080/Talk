@@ -35,7 +35,7 @@ public class CustomConversationNavigationBar: UIView {
     /// Constraints
     private var fullScreenButtonWidthConstraint: NSLayoutConstraint?
     private var centerYTitleConstraint: NSLayoutConstraint!
-    private var threadImageLeadingConstraint: NSLayoutConstraint?
+    private var detailViewButtonLeadingConstraint: NSLayoutConstraint?
 
     init(viewModel: ThreadViewModel?) {
         self.viewModel = viewModel
@@ -63,15 +63,16 @@ public class CustomConversationNavigationBar: UIView {
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.attributedText = titleAttributedStirng
-        titleLabel.font = UIFont.fBoldBody
-        titleLabel.textColor = Color.App.textPrimaryUIColor
+        titleLabel.font = UIFont.bold(.body)
+        titleLabel.textColor = Color.App.whiteUIColor
         titleLabel.textAlignment = Language.isRTL ? .right : .left
         titleLabel.accessibilityIdentifier = "titleLabelCustomConversationNavigationBar"
         detailViewButton.addSubview(titleLabel)
         
+        let isLight = traitCollection.userInterfaceStyle == .light
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.textColor = Color.App.textSecondaryUIColor
-        subtitleLabel.font = UIFont.fFootnote
+        subtitleLabel.textColor = Color.App.whiteUIColor?.withAlphaComponent(isLight ? 0.9 : 1.0)
+        subtitleLabel.font = UIFont.normal(.footnote)
         subtitleLabel.textAlignment = Language.isRTL ? .right : .left
         subtitleLabel.accessibilityIdentifier = "subtitleLabelCustomConversationNavigationBar"
         detailViewButton.addSubview(subtitleLabel)
@@ -93,7 +94,7 @@ public class CustomConversationNavigationBar: UIView {
         detailViewButton.addSubview(threadImageButton)
 
         threadTitleSupplementary.translatesAutoresizingMaskIntoConstraints = false
-        threadTitleSupplementary.font = UIFont.fBoldSubheadline
+        threadTitleSupplementary.font = UIFont.bold(.subheadline)
         threadTitleSupplementary.textColor = .white
         threadTitleSupplementary.accessibilityIdentifier = "threadTitleSupplementaryCustomConversationNavigationBar"
         detailViewButton.addSubview(threadTitleSupplementary)
@@ -101,7 +102,7 @@ public class CustomConversationNavigationBar: UIView {
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.imageView.image = UIImage(systemName: "chevron.backward")
         backButton.imageView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        backButton.imageView.tintColor = Color.App.accentUIColor
+        backButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         backButton.imageView.contentMode = .scaleAspectFit
         backButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
         backButton.action = { [weak self] in
@@ -112,7 +113,7 @@ public class CustomConversationNavigationBar: UIView {
         let isSimulated = viewModel?.id == LocalId.emptyThread.rawValue
         searchButton.translatesAutoresizingMaskIntoConstraints = false
         searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
-        searchButton.imageView.tintColor = Color.App.accentUIColor
+        searchButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         searchButton.imageView.contentMode = .scaleAspectFit
         searchButton.accessibilityIdentifier = "searchButtonCustomConversationNavigationBar"
         searchButton.isHidden = isSimulated
@@ -127,9 +128,9 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButton.setIsHidden(!showFullScreenButton)
         fullScreenButton.translatesAutoresizingMaskIntoConstraints = false
         fullScreenButton.imageView.image = UIImage(systemName: "sidebar.leading")
-        fullScreenButton.imageView.tintColor = Color.App.accentUIColor
+        fullScreenButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         fullScreenButton.imageView.contentMode = .scaleAspectFit
-        fullScreenButton.accessibilityIdentifier = "backButtonCustomConversationNavigationBar"
+        fullScreenButton.accessibilityIdentifier = "fullScreenButtonCustomConversationNavigationBar"
         fullScreenButton.action = {
             let currentState = AppState.isInSlimMode == false
             let vc = AppState.shared.objectsContainer.threadsVM.delegate as? UIViewController
@@ -195,18 +196,22 @@ public class CustomConversationNavigationBar: UIView {
         ])
         
         fullScreenButtonWidthConstraint = fullScreenButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth)
-        fullScreenButtonWidthConstraint?.isActive = true
-        fullScreenButtonWidthConstraint?.constant = showFullScreenButton ? 42 : 0
+        fullScreenButtonWidthConstraint?.isActive = showFullScreenButton
+        fullScreenButtonWidthConstraint?.constant = 42
         
-        threadImageLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: fullScreenButton.trailingAnchor, constant: 2)
-        threadImageLeadingConstraint?.isActive = true
-        threadImageLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
+        detailViewButtonLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: showFullScreenButton ? fullScreenButton.trailingAnchor : backButton.trailingAnchor, constant: 2)
+        detailViewButtonLeadingConstraint?.isActive = true
+        detailViewButtonLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
+        
+        if !showFullScreenButton {
+            fullScreenButton.removeFromSuperview()
+        }
         
 #if DEBUG
         revokeButton.translatesAutoresizingMaskIntoConstraints = false
         revokeButton.setTitle("revoke", for: .normal)
-        revokeButton.titleLabel?.font = UIFont.fBoldBody
-        revokeButton.setTitleColor(Color.App.textPrimaryUIColor, for: .normal)
+        revokeButton.titleLabel?.font = UIFont.bold(.body)
+        revokeButton.setTitleColor(Color.App.whiteUIColor, for: .normal)
         revokeButton.accessibilityIdentifier = "titlebuttonCustomConversationNavigationBar"
         revokeButton.addTarget(self, action: #selector(revokeButtonTapped), for: .touchUpInside)
         addSubview(revokeButton)
@@ -285,7 +290,8 @@ public class CustomConversationNavigationBar: UIView {
         let hide = subtitle == nil
         subtitleLabel.setIsHidden(hide)
         self.subtitleLabel.attributedText = subtilteAttributedStirng(text: subtitle, smt: smt)
-        subtitleLabel.textColor = smt != nil ? Color.App.accentUIColor : Color.App.textSecondaryUIColor
+        let isLight = traitCollection.userInterfaceStyle == .light
+        subtitleLabel.textColor = smt != nil ? Color.App.accentUIColor : Color.App.whiteUIColor?.withAlphaComponent(isLight ? 0.9 : 1.0)
         self.centerYTitleConstraint.constant = hide ? 0 : -8
         UIView.animate(withDuration: 0.2) {
             self.layoutIfNeeded()
@@ -383,7 +389,7 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButton.setIsHidden(!showFullScreenButton)
         fullScreenButtonWidthConstraint?.constant = showFullScreenButton ? 42 : 0
         fullScreenButton.isUserInteractionEnabled = showFullScreenButton
-        threadImageLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
+        detailViewButtonLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
     }
 
     private func hideImageUserNameSplitedLable(isHidden: Bool) {

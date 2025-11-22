@@ -29,6 +29,7 @@ class ConversationCell: UITableViewCell {
     private let mentionLable = UILabel(frame: .zero)
     private var radioIsHidden = true
     private let barView = UIView()
+    private let separator = TableViewControllerDevider()
     
     // MARK: Constraints
     private var statusWidthConstraint = NSLayoutConstraint()
@@ -65,7 +66,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(barView)
         
         /// Title of the conversation.
-        titleLabel.font = UIFont.fBoldSubheadline
+        titleLabel.font = UIFont.bold(.subheadline)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -74,7 +75,7 @@ class ConversationCell: UITableViewCell {
         contentView.addSubview(titleLabel)
         
         /// Last message of the thread or drafted message or event of the thread label.
-        subtitleLabel.font = UIFont.fBody
+        subtitleLabel.font = UIFont.normal(.caption)
         subtitleLabel.textColor = Color.App.textSecondaryUIColor
         subtitleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -101,7 +102,8 @@ class ConversationCell: UITableViewCell {
         avatarInitialLable.layer.cornerRadius = 22
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
-        avatarInitialLable.font = UIFont.fBoldSubheadline
+        avatarInitialLable.font = UIFont.bold(.subheadline)
+        avatarInitialLable.textColor = Color.App.whiteUIColor
         contentView.addSubview(avatarInitialLable)
         
         /// Status of a message either sent/seen or none.
@@ -114,7 +116,7 @@ class ConversationCell: UITableViewCell {
         /// Time of the last message of the conversation.
         timeLabel.accessibilityIdentifier = "ConversationCell.timeLabel"
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
-        timeLabel.font = UIFont.fBoldCaption2
+        timeLabel.font = UIFont.bold(.caption2)
         timeLabel.numberOfLines = 1
         timeLabelWidthConstraint = timeLabel.widthAnchor.constraint(equalToConstant: 64)
         contentView.addSubview(timeLabel)
@@ -127,7 +129,7 @@ class ConversationCell: UITableViewCell {
         /// Unread count label.
         unreadCountLabel.accessibilityIdentifier = "ConversationCell.unreadCountLabel"
         unreadCountLabel.translatesAutoresizingMaskIntoConstraints = false
-        unreadCountLabel.label.font = UIFont.fBoldBody
+        unreadCountLabel.label.font = UIFont.bold(.body)
         unreadCountLabel.label.numberOfLines = 1
         unreadCountLabelWidthConstraint = unreadCountLabel.widthAnchor.constraint(equalToConstant: 0)
         unreadCountLabel.layer.masksToBounds = true
@@ -156,13 +158,14 @@ class ConversationCell: UITableViewCell {
         mentionLable.layer.masksToBounds = true
         mentionLable.textColor = .white
         mentionLable.backgroundColor = Color.App.accentUIColor
+        mentionLable.font = UIFont.systemFont(ofSize: 14)
         
         let secondRowTrailingStack = UIStackView(
             arrangedSubviews: [
+                closedImageView,
                 pinImageView,
                 unreadCountLabel,
                 muteImageView,
-                closedImageView,
                 mentionLable,
             ]
         )
@@ -173,6 +176,8 @@ class ConversationCell: UITableViewCell {
         secondRowTrailingStack.spacing = 4
         secondRowTrailingStack.alignment = .center
         contentView.addSubview(secondRowTrailingStack)
+        
+        contentView.addSubview(separator)
         
         NSLayoutConstraint.activate([
             barView.widthAnchor.constraint(equalToConstant: 4),
@@ -188,7 +193,8 @@ class ConversationCell: UITableViewCell {
             avatar.widthAnchor.constraint(equalToConstant: 58),
             avatar.heightAnchor.constraint(equalToConstant: 58),
             
-            avatarInitialLable.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
+            /// Constant 2 will fix text was not in the middle of the avatar
+            avatarInitialLable.centerYAnchor.constraint(equalTo: avatar.centerYAnchor, constant: 2),
             avatarInitialLable.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
             avatarInitialLable.widthAnchor.constraint(equalToConstant: 52),
             avatarInitialLable.heightAnchor.constraint(equalToConstant: 52),
@@ -220,14 +226,18 @@ class ConversationCell: UITableViewCell {
             muteImageView.widthAnchor.constraint(equalToConstant: 16),
             muteImageView.heightAnchor.constraint(equalToConstant: 16),
             
-            closedImageView.widthAnchor.constraint(equalToConstant: 16),
-            closedImageView.heightAnchor.constraint(equalToConstant: 16),
+            closedImageView.widthAnchor.constraint(equalToConstant: 20),
+            closedImageView.heightAnchor.constraint(equalToConstant: 20),
             
             mentionLable.widthAnchor.constraint(equalToConstant: 24),
             mentionLable.heightAnchor.constraint(equalToConstant: 24),
             
             secondRowTrailingStack.centerYAnchor.constraint(equalTo: subtitleLabel.centerYAnchor),
-            secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8)
+            secondRowTrailingStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            
+            separator.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -ConstantSizes.tableViewSeparatorLeading),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: ConstantSizes.tableViewSeparatorHeight),
         ])
         
         radio.isHidden = radioIsHidden
@@ -264,12 +274,12 @@ class ConversationCell: UITableViewCell {
         timeLabel.textColor = conversation.isSelected ? Color.App.textPrimaryUIColor : Color.App.iconSecondaryUIColor
         timeLabelWidthConstraint.constant = timeLabel.sizeThatFits(.init(width: 64, height: 24)).width
         
-        pinImageView.isHidden = !(conversation.pin == true && conversation.hasSpaceToShowPin)
+        pinImageView.isHidden = conversation.pin ?? false == false
         muteImageView.isHidden = conversation.mute == false || conversation.mute == nil
         
         unreadCountLabel.label.text = conversation.unreadCountString
         unreadCountLabelWidthConstraint.constant = conversation.unreadCountString.isEmpty ? 0 : conversation.isCircleUnreadCount ? 24 : unreadCountLabel.label.sizeThatFits(.init(width: 128, height: 24)).width + 24
-        unreadCountLabel.label.textColor = conversation.mute == true ? Color.App.whiteUIColor : Color.App.textPrimaryUIColor
+        unreadCountLabel.label.textColor = Color.App.whiteUIColor
         unreadCountLabel.backgroundColor = conversation.mute == true ? Color.App.iconSecondaryUIColor : Color.App.accentUIColor
         unreadCountLabel.layer.cornerRadius = conversation.isCircleUnreadCount ? 12 : 10
         

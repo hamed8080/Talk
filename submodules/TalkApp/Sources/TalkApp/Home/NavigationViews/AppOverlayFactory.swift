@@ -37,7 +37,10 @@ struct AppOverlayFactory: View {
         case .toast(let leadingView, let message, let messageColor):
             ToastViewWrapper(message: message,
                              messageColor: messageColor!,
-                             leadingView: leadingView)
+                             leadingView: leadingView) {
+                /// OnSwipeDown
+                viewModel.dismissToastImmediately()
+            }
         case .error(let error):
             let isUnknown = error?.code == ServerErrorType.unknownError.rawValue
             if EnvironmentValues.isTalkTest, isUnknown {

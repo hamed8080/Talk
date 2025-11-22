@@ -67,7 +67,7 @@ struct DetailInfoViewSection: View {
         HStack {
             let threadName = viewModel.participantDetailViewModel?.participant.contactName ?? thread.titleRTLString.stringToScalarEmoji()
             Text(threadName)
-                .font(.fBody)
+                .font(Font.normal(.body))
                 .foregroundStyle(Color.App.textPrimary)
 
             if thread.isTalk == true {
@@ -93,7 +93,7 @@ struct DetailInfoViewSection: View {
             let localized = "Contacts.lastVisited".bundleLocalized()
             let formatted = String(format: localized, notSeenString)
             Text(formatted)
-                .font(.fCaption3)
+                .font(Font.normal(.caption3))
         }
     }
 }

@@ -46,12 +46,12 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         vStack.accessibilityIdentifier = "vStackReplyMessagePlaceholderView"
         vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
-        nameLabel.font = UIFont.fBody
+        nameLabel.font = UIFont.normal(.body)
         nameLabel.textColor = Color.App.accentUIColor
         nameLabel.numberOfLines = 1
         nameLabel.accessibilityIdentifier = "nameLabelReplyMessagePlaceholderView"
         
-        messageLabel.font = UIFont.fCaption2
+        messageLabel.font = UIFont.normal(.caption2)
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelReplyMessagePlaceholderView"
@@ -139,6 +139,7 @@ public final class ReplyMessagePlaceholderView: UIStackView {
         viewModel?.replyMessage = nil
         viewModel?.selectedMessagesViewModel.clearSelection()
         viewModel?.delegate?.openReplyMode(nil) // close the UI
+        viewModel?.sendContainerViewModel.setReplyMessageDraft(nil)
     }
     
     private func imageLink(_ replyMessage: Message?) -> Bool {

@@ -10,6 +10,7 @@ import TalkViewModels
 import TalkUI
 import TalkModels
 import Chat
+import Lottie
 
 struct ConversationBuilder: View {
     @EnvironmentObject var viewModel: ConversationBuilderViewModel
@@ -35,7 +36,9 @@ struct ConversationBuilder: View {
                             .listRowInsets(.zero)
                         } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                             if viewModel.isTypinginSearchString {
-                                ListLoadingView(isLoading: .constant(true))
+                                LottieView(animation: .named("dots_loading.json"))
+                                    .playing()
+                                    .frame(height: 52)
                             } else if !viewModel.lazyList.isLoading {
                                 Text("General.noResult")
                                     .fontWeight(.medium)
@@ -77,7 +80,7 @@ struct ConversationBuilder: View {
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                         .submitLabel(.done)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                 }
                 .background(.ultraThinMaterial)
             }
@@ -98,8 +101,12 @@ struct ConversationBuilder: View {
         .animation(.easeInOut, value: viewModel.searchedContacts)
         .animation(.easeInOut, value: viewModel.isCreateLoading)
         .overlay(alignment: .bottom) {
-            ListLoadingView(isLoading: $viewModel.isCreateLoading)
-                .id(UUID())
+            if viewModel.isCreateLoading {
+                LottieView(animation: .named("dots_loading.json"))
+                    .playing()
+                    .id(UUID())
+                    .frame(height: 52)
+            }
         }
         .onAppear {
             /// We use BuilderContactRowContainer view because it is essential to force the ineer contactRow View to show radio buttons.
@@ -238,10 +245,10 @@ struct EditCreatedConversationDetail: View {
                     .foregroundColor(Color.App.textPrimary)
                     .lineLimit(1)
                     .layoutPriority(1)
+                    .font(Font.normal(.subheadline))
                 Spacer()
                 Toggle("", isOn: $viewModel.isPublic)
                     .tint(Color.App.accent)
-                    .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
                     .offset(x: 8)
             }
             .padding(.leading)
@@ -279,8 +286,12 @@ struct EditCreatedConversationDetail: View {
             }
         }
         .overlay(alignment: .bottom) {
-            ListLoadingView(isLoading: $viewModel.lazyList.isLoading)
-                .id(UUID())
+            if viewModel.lazyList.isLoading {
+                LottieView(animation: .named("dots_loading.json"))
+                    .playing()
+                    .id(UUID())
+                    .frame(height: 52)
+            }
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(sourceType: .photoLibrary) { image, assestResources in
@@ -316,7 +327,7 @@ struct EditCreatedConversationDetail: View {
         let error = viewModel.showTitleError ? "ConversationBuilder.atLeatsEnterTwoCharacter" : nil
         TextField(key.bundleLocalized(), text: $viewModel.conversationTitle)
             .focused($focused, equals: .title)
-            .font(.fBody)
+            .font(Font.normal(.body))
             .padding()
             .submitLabel(.done)
             .applyAppTextfieldStyle(topPlaceholder: "", error: error, isFocused: focused == .title) {
@@ -424,8 +435,8 @@ struct ‌BuilderContactRow: View {
                     .padding(.trailing, isInSelectionMode ? 8 : 0)
                 ImageLoaderView(contact: contact)
                     .id("\(contact.image ?? "")\(contact.id ?? 0)")
-                    .font(.fBody)
-                    .foregroundColor(Color.App.textPrimary)
+                    .font(Font.normal(.body))
+                    .foregroundColor(Color.App.white)
                     .frame(width: 52, height: 52)
                     .background(Color(uiColor: String.getMaterialColorByCharCode(str: contact.firstName ?? "")))
                     .clipShape(RoundedRectangle(cornerRadius:(22)))
@@ -434,21 +445,21 @@ struct ‌BuilderContactRow: View {
                     Text(verbatim: "\(contact.firstName ?? "") \(contact.lastName ?? "")")
                         .padding(.leading, 16)
                         .lineLimit(1)
-                        .font(.fBoldBody)
+                        .font(Font.normal(.body))
                         .foregroundColor(Color.App.textPrimary)
 //                    if let notSeenDuration = contact.notSeenDuration?.localFormattedTime {
 //                        let lastVisitedLabel = "Contacts.lastVisited".bundleLocalized()
 //                        let time = String(format: lastVisitedLabel, notSeenDuration)
 //                        Text(time)
 //                            .padding(.leading, 16)
-//                            .font(.fBody)
+//                            .font(Font.normal(.body))
 //                            .foregroundColor(Color.App.textSecondary)
 //                    }
                 }
                 Spacer()
                 if contact.blocked == true {
                     Text("General.blocked")
-                        .font(.fCaption2)
+                        .font(Font.normal(.caption2))
                         .foregroundColor(Color.App.red)
                         .padding(.trailing, 4)
                 }

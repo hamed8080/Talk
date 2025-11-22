@@ -73,7 +73,7 @@ public extension Spec {
         guard let string = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2hhbWVkODA4MC9idW5kbGUvdjEuMC9TcGVjLmpzb24=".fromBase64(),
         let url = URL(string: string)
         else { throw URLError.init(.badURL) }
-        var req = URLRequest(url: url)
+        var req = URLRequest(url: url, timeoutInterval: 10.0)
         req.method = .get
         let (data, response) = await try URLSession.shared.data(req)
         let spec = try JSONDecoder.instance.decode(Spec.self, from: data)

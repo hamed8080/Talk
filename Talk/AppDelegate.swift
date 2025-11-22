@@ -29,6 +29,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
         application.registerForRemoteNotifications()
         Messaging.messaging().delegate = self
         ChatDelegateImplementation.sharedInstance.initialize()
+        ChatDelegateImplementation.sharedInstance.registerOnConnect()
         return true
     }
     

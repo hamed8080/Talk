@@ -7,18 +7,18 @@
 
 import Foundation
 import UIKit
+import TalkFont
 
 public extension NSMutableAttributedString {
-    private static let heavyFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=", size: 16)
-    private static let userMentionFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 14)
-    private static let boldFont = UIFont(name: "SVJBTlNhbnNYLUJvbGQ=", size: 14)
-    private static let bodyFont = UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 16)
+    private static let userMentionFont = UIFont.bold(.body)
+    private static let boldFont = UIFont.bold(.body)
+    private static let bodyFont = UIFont.normal(.body)
 
     func addDefaultTextColor(_ color: UIColor) {
         let allRange = NSRange(string.startIndex..., in: string)
         let style = NSMutableParagraphStyle()
         style.alignment = .right
-        style.lineSpacing = 1
+        style.lineSpacing = 12
         style.paragraphSpacing = 1
         style.lineBreakMode = .byWordWrapping
         let attributes = defalutTextAttributes(style: style, color: color)
@@ -83,7 +83,7 @@ public extension NSMutableAttributedString {
         let matches = regex.matches(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))
         for match in matches.reversed() {
             let range = match.range
-            addAttributes([.font: NSMutableAttributedString.heavyFont ?? .systemFont(ofSize: 16, weight: .heavy)], range: range)
+            addAttributes([.font: NSMutableAttributedString.boldFont], range: range)
             
             // Remove the surrounding `**` by replacing them with an empty string
             let fullRange = match.range

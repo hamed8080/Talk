@@ -11,6 +11,7 @@ import Chat
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Lottie
 
 class ThreadsSearchTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ThreadsSearchListSection, ThreadSearchItem>!
@@ -20,6 +21,7 @@ class ThreadsSearchTableViewController: UIViewController {
     static let conversationResuableIdentifier = "THREADS-SERARCH-CONCERSATION-ROW"
     static let contactResuableIdentifier = "CONTACTS-SERARCH-CONCERSATION-ROW"
     static let nothingFoundResuableIdentifier = "NOTHING-FOUND-SERARCH-CONCERSATION-ROW"
+    private let centerAnimation = LottieAnimationView(fileName: "talk_logo_animation.json")
     
     init(viewModel: ThreadsSearchViewModel) {
         self.viewModel = viewModel
@@ -55,7 +57,17 @@ class ThreadsSearchTableViewController: UIViewController {
         tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth, left: 0, bottom: ConstantSizes.bottomToolbarSize, right: 0)
         tableView.scrollIndicatorInsets = tableView.contentInset
         
+        centerAnimation.translatesAutoresizingMaskIntoConstraints = false
+        centerAnimation.isHidden = false
+        centerAnimation.play()
+        view.addSubview(centerAnimation)
+        
         NSLayoutConstraint.activate([
+            centerAnimation.widthAnchor.constraint(equalToConstant: 52),
+            centerAnimation.heightAnchor.constraint(equalToConstant: 52),
+            centerAnimation.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            centerAnimation.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+            
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -120,7 +132,9 @@ extension ThreadsSearchTableViewController: UIThreadsSearchViewControllerDelegat
     }
 
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsSearchListSection, ThreadSearchItem>, animatingDifferences: Bool) {
-        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences) { [weak self] in
+            self?.centerAnimation(show: false)
+        }
     }
     
     func updateImage(image: UIImage?, id: Int) {
@@ -254,6 +268,18 @@ extension ThreadsSearchTableViewController: UITableViewDelegate {
             return 36
         case .none:
             return 96
+        }
+    }
+}
+
+extension ThreadsSearchTableViewController {
+    private func centerAnimation(show: Bool) {
+        centerAnimation.isHidden = !show
+        centerAnimation.isUserInteractionEnabled = show
+        if show {
+            centerAnimation.play()
+        } else {
+            centerAnimation.stop()
         }
     }
 }

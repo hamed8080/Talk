@@ -9,6 +9,7 @@ import UIKit
 import TalkViewModels
 import TalkModels
 import SwiftUI
+import ImageEditor
 
 @MainActor
 public final class AttachmentFilesTableView: UIView {
@@ -160,5 +161,42 @@ extension AttachmentFilesTableView: AttachmentDelegate {
     
     public func reloadItem(indexPath: IndexPath) {
         tableView.reloadRows(at: [indexPath], with: .automatic)
+        showImageEditorIfOneImagePicked()
+    }
+}
+
+// MARK: ImageEditor
+extension AttachmentFilesTableView {
+    private func showImageEditorIfOneImagePicked() {
+        /// We have to show ImageEditor after data is being set by on image ready
+        /// in reload method AttachmentFile.data is a an empty Data() object.
+        let atts = viewModel?.attachmentsViewModel.attachments ?? []
+        let firstAtt = atts.first
+        guard atts.count == 1, let first = firstAtt else { return }
+        if first.type == .gallery, let url = first.createATempImageURL() {
+            showImageEditorDirectly(url: url, attachment: first)
+        }
+    }
+    
+    private func showImageEditorDirectly(url: URL, attachment: AttachmentFile) {
+        guard let vc = window?.rootViewController else { return }
+        let font = UIFont.normal(.body) ?? .systemFont(ofSize: 14)
+        let editorVC = ImageEditorViewController(url: url, font: font, doneTitle: "General.submit".bundleLocalized(), cancelTitle: "General.cancel".bundleLocalized())
+        editorVC.onDone = { [weak self, weak editorVC] outputURL, error in
+            guard let self = self,
+                  let outputURL = outputURL,
+                  let data = try? Data(contentsOf: outputURL)
+            else { return }
+            (attachment.request as? ImageItem)?.data = data
+            if let index = viewModel?.attachmentsViewModel.attachments.firstIndex(where: { $0.id == attachment.id }) {
+                tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+            }
+            editorVC?.dismiss(animated: true)
+        }
+        editorVC.onClose = { [weak editorVC] in
+            editorVC?.dismiss(animated: true)
+        }
+        editorVC.modalPresentationStyle = .fullScreen
+        vc.present(editorVC, animated: true)
     }
 }

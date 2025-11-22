@@ -17,13 +17,13 @@ struct LogoutDialogView: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("Settings.logoutFromAccount")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubtitle)
+                .font(Font.bold(.subtitle))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             Text("Settings.areYouSureToLogout")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fSubheadline)
+                .font(Font.normal(.subheadline))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -35,7 +35,7 @@ struct LogoutDialogView: View {
                 } label: {
                     Text("Settings.logout")
                         .foregroundStyle(Color.App.accent)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -45,7 +45,7 @@ struct LogoutDialogView: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -62,8 +62,9 @@ struct LogoutDialogView: View {
             ChatManager.activeInstance?.user.logOut()
         }
         TokenManager.shared.clearToken()
-        UserConfigManagerVM.instance.logout(delegate: ChatDelegateImplementation.sharedInstance)
+        await UserConfigManagerVM.instance.logout(delegate: ChatDelegateImplementation.sharedInstance)
         await container.reset()
+        NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }
 }
 

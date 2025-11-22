@@ -197,7 +197,8 @@ public final class ThreadsSearchViewModel: ObservableObject {
             /// Check greater than zero because of archive threads can lead hasNext to be set to false.
             lazyList.setHasNext(calThreads.count > 0)
             
-            searchedConversations.append(contentsOf: calThreads)
+            let filtered = calThreads.filter({ filtered in !self.searchedConversations.contains(where: { $0.id == filtered.id })})
+            searchedConversations.append(contentsOf: filtered)
             searchedConversations.sort(by: { $0.time ?? 0 > $1.time ?? 0 })
             searchedConversations.sort(by: { $0.pin == true && $1.pin == false })
             
@@ -210,13 +211,15 @@ public final class ThreadsSearchViewModel: ObservableObject {
                 return firstIndex < secondIndex
             })
             
-            for cal in calThreads {
+            for cal in filtered {
                 addImageLoader(cal)
             }
             
             if new == true {
                 searchedConversations.sort(by: { $0.unreadCount ?? 0 > $1.unreadCount ?? 0 })
             }
+            
+            searchedConversations
             updateUI(animation: false, reloadSections: false)
         } catch {
             log("Failed to get serach threads with error: \(error.localizedDescription)")
@@ -296,7 +299,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
     private func onCancelTimer(key: String) {
         if lazyList.isLoading {
             lazyList.setLoading(false)
-            animateObjectWillChange()
+            updateUI(animation: false, reloadSections: false)
         }
     }
     
@@ -312,7 +315,7 @@ public final class ThreadsSearchViewModel: ObservableObject {
             
             calculatedConversation.subtitleAttributedString = ThreadCalculators.caculateSubtitle(conversation: conversation, myId: myId, isFileType: message?.isFileType == true)
             calculatedConversation.timeString = message?.time?.date.localTimeOrDate ?? ""
-            calculatedConversation.animateObjectWillChange()
+            updateUI(animation: false, reloadSections: false)
         }
     }
     
@@ -371,7 +374,7 @@ private extension ThreadsSearchViewModel {
             conversation.imageLoader = viewModel
             viewModel.onImage = { [weak self] image in
                 Task { @MainActor [weak self] in
-                    conversation.animateObjectWillChange()
+                    self?.delegate?.reloadCellWith(conversation: conversation)
                 }
             }
             viewModel.fetch()

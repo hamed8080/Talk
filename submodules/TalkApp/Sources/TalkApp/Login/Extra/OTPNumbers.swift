@@ -31,7 +31,7 @@ struct OTPNumbers: View {
                     .textFieldStyle(borderStyle)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
-                    .font(.fBoldLargeTitle)
+                    .font(Font.bold(.largeTitle))
                     .focused($focusField, equals: VerifyFocusFileds.allCases.first(where: { i == $0.rawValue })!)
                     .disabled(viewModel.isLoading)
                     .opacity(viewModel.isLoading && !viewModel.showSuccessAnimation ? 0.5 : 1)
@@ -78,7 +78,9 @@ struct OTPNumbers: View {
         focusField = .sixth
         // We wait 500 millisecond to fill out all text fields if the user clicked on sms
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            viewModel.verifyCode()
+            Task {
+                await viewModel.verifyCode()
+            }
         }
     }
 

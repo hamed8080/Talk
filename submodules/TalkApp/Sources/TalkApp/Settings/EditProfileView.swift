@@ -32,7 +32,7 @@ struct EditProfileView: View {
                     ZStack(alignment: .leading) {
                         ImageLoaderView(user: AppState.shared.user)
                             .scaledToFit()
-                            .font(.fBoldCaption2)
+                            .font(Font.bold(.caption2))
                             .foregroundColor(.white)
                             .frame(width: 100, height: 100)
                             .background(Color(uiColor: String.getMaterialColorByCharCode(str: AppState.shared.user?.name ?? "")))
@@ -73,7 +73,7 @@ struct EditProfileView: View {
 
                 TextField("Setting.EditProfile.firstNameHint".bundleLocalized(), text: $viewModel.firstName)
                     .focused($focusedField, equals: .firstName)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
@@ -84,7 +84,7 @@ struct EditProfileView: View {
                     }
                 TextField("Setting.EditProfile.lastNameHint".bundleLocalized(), text: $viewModel.lastName)
                     .focused($focusedField, equals: .lastName)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
@@ -96,7 +96,7 @@ struct EditProfileView: View {
 
                 TextField("Setting.EditProfile.userNameHint".bundleLocalized(), text: $viewModel.userName)
                     .focused($focusedField, equals: .userName)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .submitLabel(.done)
                     .padding()
                     .frame(maxWidth: 420)
@@ -107,7 +107,7 @@ struct EditProfileView: View {
                     }
                 TextField("Setting.EditProfile.bioHint".bundleLocalized(), text: $viewModel.bio, axis: .vertical)
                     .focused($focusedField, equals: .bio)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .padding()
                     .frame(maxWidth: 420)
 //                    .disabled(viewModel.temporaryDisable)
@@ -125,7 +125,7 @@ struct EditProfileView: View {
 
                 Text("Setting.EditProfile.bioHintMore")
                     .foregroundStyle(Color.App.textSecondary)
-                    .font(.fSubheadline)
+                    .font(Font.normal(.subheadline))
                     .padding(.horizontal)
                     .frame(maxWidth: 420, alignment: .leading)
 
@@ -135,7 +135,7 @@ struct EditProfileView: View {
                     HStack {
                         Text("Setting.EditProfile.enterToPodAccount")
                             .foregroundStyle(Color.App.textPrimary)
-                            .font(.fBoldBody)
+                            .font(Font.bold(.body))
                             .multilineTextAlignment(.center)
                     }
                     .buttonStyle(.plain)
@@ -156,7 +156,7 @@ struct EditProfileView: View {
         }
         .animation(.easeInOut, value: focusedField)
         .background(Color.App.bgPrimary.ignoresSafeArea())
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .safeAreaInset(edge: .bottom) {
             SubmitBottomButton(text: "General.submit",
                                enableButton: .constant(true),

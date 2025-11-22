@@ -93,7 +93,7 @@ struct ReactionParticipantRow: View {
             ImageLoaderView(participant: reaction.participant)
                 .scaledToFit()
                 .id(reaction.participant?.id)
-                .font(.fBoldCaption2)
+                .font(Font.bold(.caption2))
                 .foregroundColor(.white)
                 .frame(width: 64, height: 64)
                 .background(Color(uiColor: String.getMaterialColorByCharCode(str: reaction.participant?.name ?? "")))
@@ -102,7 +102,7 @@ struct ReactionParticipantRow: View {
             Text(reaction.participant?.name ?? "")
                 .padding(.leading, 4)
                 .lineLimit(1)
-                .font(.fBody)
+                .font(Font.normal(.body))
             
             Spacer()
             

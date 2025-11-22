@@ -34,6 +34,7 @@ public final class AttachmentsViewModel: ObservableObject {
     public func addSelectedPhotos(imageItem: ImageItem) {
         attachments.removeAll(where: {$0.type != .gallery})
         attachments.append(.init(id: imageItem.id, type: .gallery, request: imageItem))
+        isExpanded = true
         delegate?.reload()
         animateObjectWillChange() // To enable/disable send button if it was downloading image/video form the iCloud
         resetSendContainerIfIsEmpty()
@@ -44,6 +45,7 @@ public final class AttachmentsViewModel: ObservableObject {
         selectedFileUrls.forEach { fileItem in
             attachments.append(.init(type: .file, request: fileItem))
         }
+        isExpanded = true
         delegate?.reload()
         resetSendContainerIfIsEmpty()
     }
@@ -51,6 +53,7 @@ public final class AttachmentsViewModel: ObservableObject {
     public func addFileURL(url: URL) {
         attachments.removeAll(where: {$0.type != .file})
         attachments.append(.init(type: .file, request: url))
+        isExpanded = true
         delegate?.reload()
         resetSendContainerIfIsEmpty()
     }
@@ -65,6 +68,7 @@ public final class AttachmentsViewModel: ObservableObject {
     public func append(attachments: [AttachmentFile]) {
         self.attachments.removeAll(where: {$0.type != attachments.first?.type})
         self.attachments.append(contentsOf: attachments)
+        isExpanded = true
         delegate?.reload()
     }
     

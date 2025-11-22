@@ -198,4 +198,8 @@ public final class SendContainerViewModel: ObservableObject {
     public var modePublisher: Published<SendcContainerMode>.Publisher {
         return $mode
     }
+    
+    public func hasAttachment() -> Bool {
+        viewModel?.attachmentsViewModel.attachments.count ?? 0 > 0
+    }
 }

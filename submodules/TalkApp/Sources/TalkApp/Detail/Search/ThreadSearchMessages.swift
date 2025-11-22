@@ -9,6 +9,7 @@ import SwiftUI
 import TalkUI
 import TalkViewModels
 import Chat
+import Lottie
 
 struct ThreadSearchMessages: View {
     let threadVM: ThreadViewModel
@@ -44,11 +45,12 @@ struct ThreadSearchMessages: View {
             } else {
                 ZStack {
                     if viewModel.isLoading {
-                        ListLoadingView(isLoading: .constant(viewModel.isLoading))
-                            .id(UUID())
+                        LottieView(animation: .named(viewModel.searchedMessages.isEmpty ? "talk_logo_animation.json" : "dots_loading.json"))
+                            .playing()
+                            .frame(height: 52)
                     } else if !viewModel.searchText.isEmpty && !viewModel.isLoading {
                         Text("General.nothingFound")
-                            .font(.fTitle)
+                            .font(Font.normal(.title))
                     }
                 }
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
@@ -100,7 +102,7 @@ struct ThreadSearchMessages: View {
     
     private var searchTextField: some View {
         TextField("General.searchHere".bundleLocalized(), text: $viewModel.searchText)
-            .font(.fBody)
+            .font(Font.normal(.body))
             .textFieldStyle(.clear)
             .focused($searchFocus, equals: .search)
             .frame(maxHeight: 38)
@@ -122,7 +124,7 @@ struct ThreadSearchMessages: View {
                 .resizable()
                 .padding(12)
                 .scaledToFit()
-                .font(.fBody)
+                .font(Font.normal(.body))
                 .foregroundStyle(Color.App.toolbarButton)
         }
         .buttonStyle(.borderless)

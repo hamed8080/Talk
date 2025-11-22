@@ -63,17 +63,22 @@ class ThreadRowContextMenuUIKit: UIView {
     private func configureMenu() -> CustomMenu {
         let menu = CustomMenu()
         let vm = AppState.shared.objectsContainer.threadsVM
-       
+        let isClosed = conversation.closed == true
         
         let hasSpaceToAddMorePin = vm.serverSortedPins.count < 5
         let isInArchiveList = conversation.isArchive == true
-        if !isInArchiveList {
+        
+        /// We can unpin a closed pin thread
+        let isClosedPin = isClosed && conversation.pin == true
+        
+        if !isInArchiveList, !isClosed || isClosedPin {
             let pinKey = conversation.pin == true ? "Thread.unpin" : "Thread.pin"
             let pinImage = conversation.pin == true ? "pin.slash" : "pin"
             let model = ActionItemModel(title: pinKey.bundleLocalized(), image: pinImage)
+            let isPin = conversation.pin == true
             let pinAction = ActionMenuItem(model: model) { [weak self] in
                 guard let self = self else { return }
-                if !hasSpaceToAddMorePin {
+                if !hasSpaceToAddMorePin, !isPin {
                     /// Hide menu
                     menu.contexMenuContainer?.hide()
                     
@@ -89,7 +94,7 @@ class ThreadRowContextMenuUIKit: UIView {
             menu.addItem(pinAction)
         }
         
-        if conversation.type != .selfThread, conversation.isArchive ?? false == false {
+        if !isInArchiveList, conversation.type != .selfThread, conversation.isArchive ?? false == false, !isClosed {
             let muteKey = conversation.mute == true ? "Thread.unmute" : "Thread.mute"
             let muteImage = conversation.mute == true ? "speaker" : "speaker.slash"
             let model = ActionItemModel(title: muteKey.bundleLocalized(), image: muteImage)
@@ -101,7 +106,7 @@ class ThreadRowContextMenuUIKit: UIView {
             menu.addItem(muteAction)
         }
         
-        if !conversation.closed, conversation.type != .selfThread {
+        if !isClosed, conversation.type != .selfThread {
             let archiveKey = conversation.isArchive == true ? "Thread.unarchive" : "Thread.archive"
             let archiveImage = conversation.isArchive == true ? "tray.and.arrow.up" : "tray.and.arrow.down"
             let model = ActionItemModel(title: archiveKey.bundleLocalized(), image: archiveImage)

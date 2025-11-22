@@ -18,7 +18,7 @@ struct DetailViewNumberOfParticipants: View {
     var body: some View {
         let label = "Thread.Toolbar.participants".bundleLocalized()
         Text(verbatim: "\(countString ?? "") \(label)")
-            .font(.fCaption3)
+            .font(Font.normal(.caption3))
             .foregroundStyle(Color.App.textSecondary)
     }
 

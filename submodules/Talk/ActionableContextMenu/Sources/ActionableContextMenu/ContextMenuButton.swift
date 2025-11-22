@@ -11,6 +11,7 @@ import SwiftUI
 public struct ContextMenuButton: View {
     private let title: String
     private let image: String
+    private let assetImageName: String?
     private let showSeparator: Bool
     private let iconColor: Color?
     private let bundle: Bundle
@@ -20,9 +21,10 @@ public struct ContextMenuButton: View {
     @EnvironmentObject var viewModel: ContextMenuModel
     @Environment(\.colorScheme) var scheme
 
-    public init(title: String, image: String, iconColor: Color? = nil, showSeparator: Bool = true, bundle: Bundle, isRTL: Bool, action: ( () -> Void)?) {
+    public init(title: String, image: String, assetImageName: String? = nil, iconColor: Color? = nil, showSeparator: Bool = true, bundle: Bundle, isRTL: Bool, action: ( () -> Void)?) {
         self.title = title
         self.image = image
+        self.assetImageName = assetImageName
         self.showSeparator = showSeparator
         self.action = action
         self.bundle = bundle
@@ -38,6 +40,14 @@ public struct ContextMenuButton: View {
             HStack {
                 if !image.isEmpty {
                     Image(systemName: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(iconColor ?? (scheme == .dark ? Color(red: 0.6, green: 0.62, blue: 0.68) : Color(red: 0.36, green: 0.4, blue: 0.47)))
+                }
+                
+                if let assetImageName = assetImageName {
+                    Image(assetImageName)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 18, height: 18)

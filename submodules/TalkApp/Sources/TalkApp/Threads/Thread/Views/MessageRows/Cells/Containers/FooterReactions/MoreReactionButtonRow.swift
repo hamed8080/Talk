@@ -20,7 +20,6 @@ class MoreReactionButtonRow: UIView, UIContextMenuInteractionDelegate {
     var row: ReactionRowsCalculated.Row?
 
     // Sizes
-    private let totlaWidth: CGFloat = 42
     private let emojiWidth: CGFloat = 20
     private let margin: CGFloat = 8
 
@@ -42,7 +41,7 @@ class MoreReactionButtonRow: UIView, UIContextMenuInteractionDelegate {
         imgCenter.image = UIImage(systemName: "chevron.down")
         imgCenter.translatesAutoresizingMaskIntoConstraints = false
         imgCenter.contentMode = .scaleAspectFit
-        imgCenter.tintColor = Color.App.textSecondaryUIColor
+        imgCenter.tintColor = Color.App.textPrimaryUIColor
         imgCenter.accessibilityIdentifier = "imgCenterMoveToBottomButton"
         addSubview(imgCenter)
 
@@ -50,7 +49,7 @@ class MoreReactionButtonRow: UIView, UIContextMenuInteractionDelegate {
         addInteraction(menu)
 
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(equalToConstant: totlaWidth),
+            widthAnchor.constraint(equalToConstant: ConstantSizes.moreReactionButtonWidth),
             imgCenter.heightAnchor.constraint(equalToConstant: emojiWidth),
             imgCenter.topAnchor.constraint(equalTo: topAnchor, constant: 6),
             imgCenter.leadingAnchor.constraint(equalTo: leadingAnchor, constant: margin),

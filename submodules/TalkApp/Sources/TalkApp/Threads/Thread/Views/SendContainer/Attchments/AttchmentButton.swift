@@ -40,7 +40,7 @@ public final class AttchmentButton: UIStackView {
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = AppSettingsModel.restore().isDarkModeEnabled == true ? Color.App.accentUIColor : Color.App.whiteUIColor
+        imageView.tintColor = Color.App.accentUIColor
         imageView.accessibilityIdentifier = "imageViewAttchmentButton"
 
         imageContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -52,7 +52,7 @@ public final class AttchmentButton: UIStackView {
         imageContainer.addSubview(imageView)
 
         label.textColor = Color.App.textSecondaryUIColor
-        label.font = UIFont.fCaption3
+        label.font = UIFont.normal(.caption3)
         label.textAlignment = .center
         label.numberOfLines = 1
         label.adjustsFontSizeToFitWidth = true

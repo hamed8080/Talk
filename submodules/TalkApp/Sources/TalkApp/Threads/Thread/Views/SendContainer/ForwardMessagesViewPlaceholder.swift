@@ -48,11 +48,11 @@ public final class ForwardMessagePlaceholderView: UIStackView {
 
         staticForwardLabel.textColor = Color.App.accentUIColor
         staticForwardLabel.numberOfLines = 1
-        staticForwardLabel.font = UIFont.fCaption
+        staticForwardLabel.font = UIFont.normal(.caption)
         staticForwardLabel.textAlignment = Language.isRTL ? .right : .left
         staticForwardLabel.accessibilityIdentifier = "staticForwardLabelForwardMessagePlaceholderView"
 
-        messageLabel.font = UIFont.fCaption2
+        messageLabel.font = UIFont.normal(.caption2)
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2
         messageLabel.accessibilityIdentifier = "messageLabelForwardMessagePlaceholderView"
