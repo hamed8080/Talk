@@ -45,7 +45,7 @@ class ContactsNavigationBar: UIView {
         overBlurEffectColorView.backgroundColor = isDark ? UIColor.clear : Color.App.accentUIColor
         addSubview(overBlurEffectColorView)
         
-        titleLabel.text = "Contacts"
+        titleLabel.text = "Tab.contacts".bundleLocalized()
         titleLabel.font = UIFont.bold(.subheadline)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = Color.App.toolbarButtonUIColor
