@@ -112,7 +112,9 @@ class ThreadRowContextMenuUIKit: UIView {
             let model = ActionItemModel(title: archiveKey.bundleLocalized(), image: archiveImage)
             let archiveAction = ActionMenuItem(model: model) { [weak self] in
                 guard let self = self else { return }
-                vm.toggleArchive(conversation.toStruct())
+                Task {
+                    try await vm.toggleArchive(conversation.toStruct())
+                }
                 menu.contexMenuContainer?.hide()
             }
             menu.addItem(archiveAction)

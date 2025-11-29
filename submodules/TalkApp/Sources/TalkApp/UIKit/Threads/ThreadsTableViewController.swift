@@ -338,7 +338,9 @@ extension ThreadsTableViewController: UITableViewDelegate {
         
         let archiveImage = conversation.isArchive == true ?  "tray.and.arrow.up" : "tray.and.arrow.down"
         let archiveAction = UIContextualAction(style: .normal, title: "") { [weak self] action, view, success in
-            self?.viewModel.toggleArchive(conversation.toStruct())
+            Task {
+                try await self?.viewModel.toggleArchive(conversation.toStruct())
+            }
             success(true)
         }
         archiveAction.image = UIImage(systemName: archiveImage)

@@ -999,9 +999,15 @@ extension ThreadsViewModel {
 }
 
 extension ThreadsViewModel {
-    public func toggleArchive(_ thread: Conversation) {
+    public func toggleArchive(_ thread: Conversation) async throws {
         guard let threadId = thread.id else { return }
         if thread.isArchive == false || thread.isArchive == nil {
+            
+            /// Unpin the thread before archiving
+            if thread.pin == true {
+                try await PinThreadRequester().unpin(.init(subjectId: threadId))
+            }
+            
             archive(threadId)
             let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
             let overlayVM = AppState.shared.objectsContainer.appOverlayVM

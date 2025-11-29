@@ -136,7 +136,9 @@ struct ThreadDetailRowActionMenu: View {
         showPopover = false
         delayActionOnHidePopover {
             let isUnarchived = thread.isArchive == false || thread.isArchive == nil
-            AppState.shared.objectsContainer.archivesVM.toggleArchive(thread.toStruct())
+            Task {
+                try await AppState.shared.objectsContainer.archivesVM.toggleArchive(thread.toStruct())
+            }
             if isUnarchived {
                 showArchivePopupIfNeeded()
             }
