@@ -17,7 +17,8 @@ final class FooterView: UIStackView {
     // Views
     private let pinImage = UIImageView(image: UIImage(systemName: "pin.fill"))
     private let timelabel = UILabel()
-    private let editedLabel = UILabel()
+    private static let editImage = UIImage(named: "ic_edit_no_tail")
+    private let editedImageView = UIImageView()
     private let statusImage = UIImageView()
 
     // Models
@@ -64,7 +65,7 @@ final class FooterView: UIStackView {
             statusImageWidthConstriant = statusImage.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewNormalStatusWidth)
             statusImageWidthConstriant?.isActive = true
             statusImageWidthConstriant?.identifier = "statusImageWidthConstriantFooterView"
-            statusImage.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusHeight).isActive = true
+            statusImage.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterItemHeight).isActive = true
         }
 
         timelabel.translatesAutoresizingMaskIntoConstraints = false
@@ -77,19 +78,18 @@ final class FooterView: UIStackView {
         timelabel.setContentHuggingPriority(.required, for: .horizontal)
         addArrangedSubview(timelabel)
 
-        editedLabel.translatesAutoresizingMaskIntoConstraints = false
-        editedLabel.font = UIFont.normal(.caption2)
-        editedLabel.textColor = Color.App.textSecondaryUIColor
-        editedLabel.text = FooterView.staticEditString
-        editedLabel.accessibilityIdentifier = "editedLabelFooterView"
-        editedLabel.isOpaque = true
-        editedLabel.textAlignment = .right
-        editedLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        editedLabel.setContentHuggingPriority(.required, for: .horizontal)
+        editedImageView.image = FooterView.editImage
+        editedImageView.translatesAutoresizingMaskIntoConstraints = false
+        editedImageView.accessibilityIdentifier = "editedImageViewFooterView"
+        editedImageView.isOpaque = true
+        editedImageView.contentMode = .scaleAspectFit
+        editedImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        editedImageView.tintColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.5)
+        editedImageView.setContentHuggingPriority(.required, for: .horizontal)
 
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewHeightWithReaction),
-            timelabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusHeight),
+            timelabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterItemHeight),
             timelabel.widthAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.messageFooterViewTimeLabelWidth)
         ])
     }
@@ -123,7 +123,7 @@ final class FooterView: UIStackView {
     private func attachOrdetachPinImage(isPin: Bool) {
         if isPin, pinImage.superview == nil {
             insertArrangedSubview(pinImage, at: 0)
-            pinImage.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusHeight).isActive = true
+            pinImage.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterItemHeight).isActive = true
             pinImage.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewPinWidth).isActive = true
         } else if !isPin {
             pinImage.removeFromSuperview()
@@ -132,11 +132,11 @@ final class FooterView: UIStackView {
 
     private func attachOrdetachEditLabel(isEdited: Bool) {
         if isEdited, pinImage.superview == nil {
-            addArrangedSubview(editedLabel)
-            editedLabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusHeight).isActive = true
-            editedLabel.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewEditLabelWidth).isActive = true
+            addArrangedSubview(editedImageView)
+            editedImageView.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterItemHeight).isActive = true
+            editedImageView.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewEditImageWidth).isActive = true
         } else if !isEdited {
-            editedLabel.removeFromSuperview()
+            editedImageView.removeFromSuperview()
         }
     }
 

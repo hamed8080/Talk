@@ -118,10 +118,10 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageFooterViewNormalStatusWidth: CGFloat = 12
     nonisolated(unsafe) public static let messageFooterViewSeenWidth: CGFloat = 22
     nonisolated(unsafe) public static let messageFooterViewPinWidth: CGFloat = 22
-    nonisolated(unsafe) public static let messageFooterViewStatusHeight: CGFloat = 16
     nonisolated(unsafe) public static let messageFooterViewStackSpacing: CGFloat = 4
     nonisolated(unsafe) public static let messageFooterViewTimeLabelWidth: CGFloat = 36
-    nonisolated(unsafe) public static let messageFooterViewEditLabelWidth: CGFloat = 64
+    nonisolated(unsafe) public static let messageFooterItemHeight: CGFloat = 16
+    nonisolated(unsafe) public static let messageFooterViewEditImageWidth: CGFloat = 12
 
     /// SelectMessageRadio sizes
     nonisolated(unsafe) public static let selectMessageRadioWidth: CGFloat = 48
