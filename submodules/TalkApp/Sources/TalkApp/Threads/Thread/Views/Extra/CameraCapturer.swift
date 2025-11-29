@@ -50,6 +50,12 @@ class CameraCapturer: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         }
         picker.dismiss(animated: true)
     }
+    
+    
+    public func isCameraAccessDenied() -> Bool {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        return status == .denied || status == .restricted
+    }
 }
 
 fileprivate extension UIImage {

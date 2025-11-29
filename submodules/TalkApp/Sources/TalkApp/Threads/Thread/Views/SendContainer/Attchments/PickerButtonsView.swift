@@ -184,7 +184,11 @@ extension PickerButtonsView {
             viewModel?.setMode(type: .voice)
         }
         self.cameraCapturer = captureObject
-        (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
+        if captureObject.isCameraAccessDenied() {
+            showPermissionDialog()
+        } else {
+            (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
+        }
     }
 
     private func openTakePicturePicker() {
@@ -200,6 +204,14 @@ extension PickerButtonsView {
             viewModel?.setMode(type: .voice)
         }
         self.cameraCapturer = captureObject
-        (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
+        if captureObject.isCameraAccessDenied() {
+            showPermissionDialog()
+        } else {
+            (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
+        }
+    }
+    
+    private func showPermissionDialog() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CameraAccessDialog())
     }
 }
