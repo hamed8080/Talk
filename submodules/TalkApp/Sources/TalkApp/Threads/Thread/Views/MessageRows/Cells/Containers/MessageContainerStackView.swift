@@ -412,24 +412,22 @@ extension MessageContainerStackView {
         }
     }
 
-    public func reactionsUpdated(viewModel: MessageRowViewModel){
+    public func reactionsUpdated(viewModel: MessageRowViewModel) {
         attachOrDetachReactions(viewModel: viewModel, animation: true)
     }
     
     public func reactionDeleted(_ reaction: Reaction) {
+        if let viewModel = viewModel {
+            attachOrDetachReactions(viewModel: viewModel, animation: true)
+        }
         reactionView.reactionDeleted(reaction)
     }
     
     public func reactionAdded(_ reaction: Reaction) {
-        if reactionView.superview == nil {
-            addArrangedSubview(reactionView)
-            reactionView.alpha = 1.0
-            if let viewModel = viewModel {
-                reactionView.set(viewModel)
-            }
-        } else {
-            reactionView.reactionAdded(reaction)
+        if let viewModel = viewModel {
+            attachOrDetachReactions(viewModel: viewModel, animation: true)
         }
+        reactionView.reactionAdded(reaction)
     }
     
     public func reactionReplaced(_ reaction: Reaction) {
