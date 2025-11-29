@@ -8,17 +8,39 @@
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Chat
 
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 struct DetailTopButtonsSection: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel
+    @EnvironmentObject var contactViewModel: ContactsViewModel
     @State private var showPopover = false
 
     var body: some View {
         HStack(spacing: 16) {
             Spacer()
             let isArchive = viewModel.thread?.isArchive == true
+            let isGroup = viewModel.thread?.group == true
+            let isP2PContact = !isGroup
+            
             if viewModel.thread?.type != .selfThread {
+                
+                if isGroup {
+                    DetailViewButton(accessibilityText: "", icon: "", assetImageIconName: "ic_exit") {
+                        onLeaveConversationTapped()
+                    }
+                } else if isP2PContact {
+                    if let participant = viewModel.participantDetailViewModel?.participant, participant.contactId == nil {
+                        DetailViewButton(accessibilityText: "", icon: "person.badge.plus") {
+                            onAddContactTapped()
+                        }
+                    } else {
+                        DetailViewButton(accessibilityText: "", icon: "trash") {
+                            onDeleteContactTapped()
+                        }
+                    }
+                }
+                
                 DetailViewButton(accessibilityText: "", icon: viewModel.thread?.mute ?? false ? "bell.slash.fill" : "bell.fill") {
                     viewModel.toggleMute()
                 }
@@ -26,14 +48,14 @@ struct DetailTopButtonsSection: View {
                 .disabled(isArchive)
                 .allowsHitTesting(!isArchive)
 
-                DetailViewButton(accessibilityText: "", icon: "phone.and.waveform.fill") {
+                DetailViewButton(accessibilityText: "", icon: "", assetImageIconName: "ic_export") {
 
                 }
                 .disabled(true)
                 .opacity(0.4)
                 .allowsHitTesting(false)
-
-                DetailViewButton(accessibilityText: "", icon: "video.fill") {
+                
+                DetailViewButton(accessibilityText: "", icon: "person") {
 
                 }
                 .disabled(true)
@@ -88,18 +110,53 @@ struct DetailTopButtonsSection: View {
         .disabled(viewModel.thread?.closed == true)
         .opacity(viewModel.thread?.closed == true ? 0.5 : 1.0)
     }
+    
+    private func onLeaveConversationTapped() {
+        guard let thread = viewModel.thread else { return }
+        showPopover = false
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread))
+    }
+    
+    private func onDeleteContactTapped() {
+        guard let participant = viewModel.participantDetailViewModel?.participant else { return }
+        showPopover = false
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
+            ConversationDetailDeleteContactDialog(participant: participant)
+        )
+    }
+    
+    private func onAddContactTapped() {
+        guard let participant = viewModel.participantDetailViewModel?.participant else { return }
+        showPopover = false
+        let contact = Contact(cellphoneNumber: participant.cellphoneNumber,
+                              email: participant.email,
+                              firstName: participant.firstName,
+                              lastName: participant.lastName,
+                              user: .init(username: participant.username))
+        contactViewModel.addContact = contact
+        contactViewModel.showAddOrEditContactSheet = true
+        contactViewModel.animateObjectWillChange()
+    }
 }
 
 fileprivate struct DetailViewButton: View {
     let accessibilityText: String
     let icon: String
+    let assetImageIconName: String?
     let action: (() -> Void)?
+    
+    init(accessibilityText: String, icon: String, assetImageIconName: String? = nil, action: (() -> Void)?) {
+        self.accessibilityText = accessibilityText
+        self.icon = icon
+        self.assetImageIconName = assetImageIconName
+        self.action = action
+    }
 
     var body: some View {
         Button {
             action?()
         } label: {
-            Image(systemName: icon)
+            imageView
                 .resizable()
                 .scaledToFit()
                 .frame(width: 16, height: 16)
@@ -111,6 +168,23 @@ fileprivate struct DetailViewButton: View {
         .frame(width: 48, height: 48)
         .background(.ultraThickMaterial)
         .clipShape(RoundedRectangle(cornerRadius:(8)))
+    }
+    
+    @ViewBuilder
+    private var imageView: SwiftUI.Image {
+        if let assetName = assetImageIconName {
+            return assetImageIcon(name: assetName)
+        } else {
+            return systemIcon
+        }
+    }
+    
+    private func assetImageIcon(name: String) -> SwiftUI.Image {
+        Image(name)
+    }
+    
+    private var systemIcon: SwiftUI.Image {
+        Image(systemName: icon)
     }
 }
 
