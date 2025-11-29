@@ -24,7 +24,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func delete(sections: [IndexSet], rows: [IndexPath])
     func moveRow(at: IndexPath, to: IndexPath)
     func edited(_ indexPath: IndexPath)
-    func pinChanged(_ indexPath: IndexPath)
+    func pinChanged(_ indexPath: IndexPath, pin: Bool)
     func sent(_ indexPath: IndexPath)
     func delivered(_ indexPath: IndexPath)
     func seen(_ indexPath: IndexPath)

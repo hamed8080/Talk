@@ -954,7 +954,7 @@ extension ThreadHistoryViewModel {
         if let messageId = response.result?.messageId, let vm = sections.messageViewModel(for: messageId) {
             vm.pinMessage(time: response.result?.time)
             guard let indexPath = sections.indexPath(for: vm) else { return }
-            delegate?.pinChanged(indexPath)
+            delegate?.pinChanged(indexPath, pin: true)
         }
     }
 
@@ -962,7 +962,7 @@ extension ThreadHistoryViewModel {
         if let messageId = response.result?.messageId, let vm = sections.messageViewModel(for: messageId) {
             vm.unpinMessage()
             guard let indexPath = sections.indexPath(for: vm) else { return }
-            delegate?.pinChanged(indexPath)
+            delegate?.pinChanged(indexPath, pin: false)
         }
     }
 

@@ -287,9 +287,9 @@ extension MessageContainerStackView {
         }
     }
 
-    func pinChanged() {
+    func pinChanged(pin: Bool) {
         guard let viewModel = viewModel else { return }
-        footerView.pinChanged(isPin: viewModel.message.pinned == true)
+        footerView.pinChanged(isPin: pin)
     }
 
     func sent() {

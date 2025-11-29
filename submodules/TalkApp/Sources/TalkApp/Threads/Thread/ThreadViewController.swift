@@ -318,9 +318,9 @@ extension ThreadViewController: ThreadViewDelegate {
         }
     }
 
-    func pinChanged(_ indexPath: IndexPath) {
+    func pinChanged(_ indexPath: IndexPath, pin: Bool) {
         if let cell = tableView.baseCell(indexPath) {
-            cell.pinChanged()
+            cell.pinChanged(pin: pin)
         }
     }
 
