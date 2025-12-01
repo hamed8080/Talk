@@ -263,7 +263,12 @@ public class ThreadsTopToolbarView: UIStackView {
     
     private func onSearchTapped() {
         isInSearchMode.toggle()
-        searchButton.imageView.image = UIImage(systemName: isInSearchMode ? "xmark" : "magnifyingglass")
+        if isInSearchMode {
+            searchButton.imageView.image = UIImage(systemName: "xmark")
+        } else {
+            searchButton.imageView.image = UIImage(named: "ic_search")
+            searchButton.imageView.transform = CGAffineTransform(scaleX: -1, y: 1)
+        }
         searchRowStack.isHidden = !isInSearchMode
         searchTextField.isHidden = !isInSearchMode
         searchTextField.isUserInteractionEnabled = isInSearchMode
