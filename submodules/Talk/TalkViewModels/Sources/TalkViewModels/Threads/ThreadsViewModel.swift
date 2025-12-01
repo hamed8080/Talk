@@ -168,6 +168,13 @@ public final class ThreadsViewModel: ObservableObject {
             await moveToContentOffset()
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
+            
+            let calculatedConversation = ThreadCalculators.calculate(conversation, myId)
+            let newThreads = await appendThreads(newThreads: [calculatedConversation], oldThreads: threads)
+            let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
+            self.threads = sorted
+            updateUI(animation: false, reloadSections: false)
+            
             if userNeverOpennedArchivedList(id: conversation.id) {
                 updateActiveArchivConversation(newConversation: conversation, messages: messages)
                 return
