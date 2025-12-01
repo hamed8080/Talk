@@ -87,11 +87,16 @@ class ContactsNavigationBar: UIView {
         menuButton.titleLabel?.textAlignment = Language.isRTL ? .right : .left
         menuButton.setTitleColor(isDark ? Color.App.accentUIColor : Color.App.whiteUIColor, for: .normal)
         menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        menuButton.setContentHuggingPriority(.required, for: .horizontal)
+        menuButton.setContentCompressionResistancePriority(.required, for: .horizontal)
                 
         let actions = SearchParticipantType.allCases.filter({ $0 != .admin }).compactMap({ type in
             UIAction(title: type.rawValue.bundleLocalized(), image: nil) { [weak self] _ in
                 self?.viewModel?.searchType = type
-                self?.menuButton.setTitle(type.rawValue.bundleLocalized() ?? "", for: .normal)
+                UIView.animate(withDuration: 0.2) { [weak self] in
+                    self?.menuButton.setTitle(type.rawValue.bundleLocalized() ?? "", for: .normal)
+                    self?.layoutIfNeeded()
+                }
             }
         })
         menuButton.menu = UIMenu(title: "", children: actions)
@@ -134,7 +139,6 @@ class ContactsNavigationBar: UIView {
 
             menuButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
             menuButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -8),
-            menuButton.widthAnchor.constraint(equalToConstant: 92),
             
             dropDownImageView.centerYAnchor.constraint(equalTo: menuButton.centerYAnchor, constant: 0),
             dropDownImageView.widthAnchor.constraint(equalToConstant: 16),
