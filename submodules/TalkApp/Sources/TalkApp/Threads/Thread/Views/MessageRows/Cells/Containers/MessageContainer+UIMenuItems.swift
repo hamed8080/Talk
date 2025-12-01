@@ -26,7 +26,23 @@ extension MessageContainerStackView {
 
         let menu = CustomMenu()
         menu.contexMenuContainer = (viewModel.threadVM?.delegate as? ThreadViewController)?.contextMenuContainer
-
+        
+        if let message = message as? Message {
+            let isDeletable = DeleteMessagesViewModelModel.isDeletable(isMe: viewModel.calMessage.isMe, message: message, thread: threadVM?.thread)
+            if isDeletable {
+                let deleteAction = ActionMenuItem(model: .delete) { [weak self] in
+                    self?.onDeleteAction(model)
+                    onMenuClickedDismiss()
+                }
+                menu.addItem(deleteAction)
+            }
+        }
+        
+        let forwardAction = ActionMenuItem(model: .forward) { [weak self] in
+            self?.onForwardAction(model)
+            onMenuClickedDismiss()
+        }
+        menu.addItem(forwardAction)
 
         let isChannel = threadVM?.thread.type?.isChannelType == true
         let admin = threadVM?.thread.admin == true
@@ -44,29 +60,6 @@ extension MessageContainerStackView {
                 }
                 menu.addItem(replyPrivatelyAction)
             }
-        }
-
-        let forwardAction = ActionMenuItem(model: .forward) { [weak self] in
-            self?.onForwardAction(model)
-            onMenuClickedDismiss()
-        }
-        menu.addItem(forwardAction)
-
-        if viewModel.calMessage.canEdit {
-            let emptyText = message.message == nil || message.message == ""
-            let editAction = ActionMenuItem(model: emptyText ? .add : .edit) { [weak self] in
-                self?.onEditAction(model)
-                onMenuClickedDismiss()
-            }
-            menu.addItem(editAction)
-        }
-
-        if let threadVM = threadVM, viewModel.message.ownerId == AppState.shared.user?.id && threadVM.thread.group == true {
-            let seenListAction = ActionMenuItem(model: .seenParticipants) { [weak self] in
-                self?.onSeenListAction(model)
-                onMenuClickedDismiss()
-            }
-            menu.addItem(seenListAction)
         }
 
         if viewModel.message.isImage, viewModel.fileState.state == .completed {
@@ -89,7 +82,47 @@ extension MessageContainerStackView {
             }
             menu.addItem(saveVideoAction)
         }
+    
+        if viewModel.fileState.state == .completed {
+            let shareAction = ActionMenuItem(model: .share) { [weak self] in
+                self?.onShareAction(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(shareAction)
+        }
+        
+        let isPinned = message.id == threadVM?.thread.pinMessage?.id && threadVM?.thread.pinMessage != nil
+        if threadVM?.thread.admin == true {
+            let pinAction = ActionMenuItem(model: isPinned ? .unpin : .pin) { [weak self] in
+                self?.onPinAction(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(pinAction)
+        }
 
+        let selectAction = ActionMenuItem(model: .select) { [weak self] in
+            self?.onSelectAction(model)
+            onMenuClickedDismiss()
+        }
+        menu.addItem(selectAction)
+        
+        if let threadVM = threadVM, viewModel.message.ownerId == AppState.shared.user?.id && threadVM.thread.group == true {
+            let messageDetailAction = ActionMenuItem(model: .messageDetail) { [weak self] in
+                self?.onMessageDetailAction(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(messageDetailAction)
+        }
+        
+        if viewModel.calMessage.canEdit {
+            let emptyText = message.message == nil || message.message == ""
+            let editAction = ActionMenuItem(model: emptyText ? .add : .edit) { [weak self] in
+                self?.onEditAction(model)
+                onMenuClickedDismiss()
+            }
+            menu.addItem(editAction)
+        }
+        
         if !viewModel.message.isFileType || message.message?.isEmpty == false {
             let copyAction = ActionMenuItem(model: .copy) { [weak self] in
                 self?.onCopyAction(model)
@@ -121,32 +154,7 @@ extension MessageContainerStackView {
             }
             menu.addItem(printMessageDebug)
         }
-
-        let isPinned = message.id == threadVM?.thread.pinMessage?.id && threadVM?.thread.pinMessage != nil
-        if threadVM?.thread.admin == true {
-            let pinAction = ActionMenuItem(model: isPinned ? .unpin : .pin) { [weak self] in
-                self?.onPinAction(model)
-                onMenuClickedDismiss()
-            }
-            menu.addItem(pinAction)
-        }
-
-        let selectAction = ActionMenuItem(model: .select) { [weak self] in
-            self?.onSelectAction(model)
-            onMenuClickedDismiss()
-        }
-        menu.addItem(selectAction)
-
-        if let message = message as? Message {
-            let isDeletable = DeleteMessagesViewModelModel.isDeletable(isMe: viewModel.calMessage.isMe, message: message, thread: threadVM?.thread)
-            if isDeletable {
-                let deleteAction = ActionMenuItem(model: .delete) { [weak self] in
-                    self?.onDeleteAction(model)
-                    onMenuClickedDismiss()
-                }
-                menu.addItem(deleteAction)
-            }
-        }
+        
         menu.removeLastSeparator()
         return menu
     }
@@ -194,9 +202,13 @@ private extension MessageContainerStackView {
         model.threadVM?.delegate?.openEditMode(message)
     }
 
-    func onSeenListAction(_ model: ActionModel) {
+    func onMessageDetailAction(_ model: ActionModel) {
         guard let message = model.message as? Message else { return }
         AppState.shared.objectsContainer.navVM.wrapAndPush(view: MessageParticipantsSeen(message: message))
+    }
+    
+    func onShareAction(_ model: ActionModel) {
+        model.viewModel.shareFile()
     }
 
     func onSaveAction(_ model: ActionModel) {

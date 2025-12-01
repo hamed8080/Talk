@@ -71,7 +71,7 @@ extension MessageContainerStackView {
     
     func makeContextMenuView(_ indexPath: IndexPath) -> UIView? {
         guard let viewModel = viewModel else { return nil }
-        let messsageStackContainer =  MessageContextMenuContentView(frame: .zero,
+        let messsageStackContainer = MessageContextMenuContentView(frame: .zero,
                                              messageWidth: cell?.messageContainer.bounds.width ?? 0,
                                              viewModel: viewModel,
                                              indexPath: indexPath,
