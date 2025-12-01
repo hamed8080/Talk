@@ -52,7 +52,10 @@ class ContactsNavigationBar: UIView {
         addSubview(titleLabel)
         
         searchButton.translatesAutoresizingMaskIntoConstraints = false
-        searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
+        searchButton.imageView.image = UIImage(named: "ic_search")
+        if Language.isRTL {
+            searchButton.imageView.transform = CGAffineTransform(scaleX: -1, y: 1)
+        }
         searchButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         searchButton.imageView.contentMode = .scaleAspectFit
         searchButton.accessibilityIdentifier = "searchButtonThreadsTopToolbarView"

@@ -95,7 +95,10 @@ public class ThreadsTopToolbarView: UIStackView {
         connectionStatusLabel.accessibilityIdentifier = "connectionStatusLabelThreadsTopToolbarView"
         
         searchButton.translatesAutoresizingMaskIntoConstraints = false
-        searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
+        searchButton.imageView.image = UIImage(named: "ic_search")
+        if Language.isRTL {
+            searchButton.imageView.transform = CGAffineTransform(scaleX: -1, y: 1)
+        }
         searchButton.imageView.tintColor = Color.App.accentUIColor
         searchButton.imageView.contentMode = .scaleAspectFit
         searchButton.imageView.tintColor = Color.App.toolbarButtonUIColor
