@@ -46,9 +46,9 @@ struct MessageListVideoView: View {
 
     var body: some View {
         ForEach(viewModel.messagesModels) { model in
-            VideoRowView(viewModel: detailViewModel)
+            VideoRowView(viewModel: detailViewModel, isContextMenu: false)
                 .environmentObject(model)
-                .appyDetailViewContextMenu(VideoRowView(viewModel: detailViewModel), model, detailViewModel)
+                .appyDetailViewContextMenu(contextMenuView, model, detailViewModel)
                 .overlay(alignment: .bottom) {
                     if model.message != viewModel.messagesModels.last?.message {
                         Rectangle()
@@ -65,13 +65,26 @@ struct MessageListVideoView: View {
         }
         DetailLoading()
     }
+    
+    private var contextMenuView: some View {
+        VideoRowView(viewModel: detailViewModel, isContextMenu: true)
+    }
 }
 
 struct VideoRowView: View {
     @EnvironmentObject var rowModel: TabRowModel
     let viewModel: ThreadDetailViewModel
+    let isContextMenu: Bool
    
     var body: some View {
+        if isContextMenu {
+            bodyContainer
+        } else {
+            bodyContainerWithFullScreenCoverView
+        }
+    }
+    
+    private var bodyContainer: some View {
         HStack {
             TabDownloadProgressButton()
             TabDetailsText(rowModel: rowModel)
@@ -80,17 +93,21 @@ struct VideoRowView: View {
         .padding(.all)
         .contentShape(Rectangle())
         .background(Color.App.bgPrimary)
-        .fullScreenCover(isPresented: $rowModel.showFullScreen) {
-            /// On dismiss
-            rowModel.playerVM?.player?.pause()
-        } content: {
-            if let player = rowModel.playerVM?.player {
-                PlayerViewRepresentable(player: player, showFullScreen: $rowModel.showFullScreen)
-            }
-        }
         .onTapGesture {
             rowModel.onTap(viewModel: viewModel)
         }
+    }
+    
+    private var bodyContainerWithFullScreenCoverView: some View {
+        bodyContainer
+            .fullScreenCover(isPresented: $rowModel.showFullScreen) {
+                /// On dismiss
+                rowModel.playerVM?.player?.pause()
+            } content: {
+                if let player = rowModel.playerVM?.player {
+                    PlayerViewRepresentable(player: player, showFullScreen: $rowModel.showFullScreen)
+                }
+            }
     }
 }
 
