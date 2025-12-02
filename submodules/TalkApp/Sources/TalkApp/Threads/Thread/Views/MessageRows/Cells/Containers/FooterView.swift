@@ -23,7 +23,6 @@ final class FooterView: UIStackView {
 
     // Models
     private static let staticEditString = "Messages.Footer.edited".bundleLocalized()
-    private var statusImageWidthConstriant: NSLayoutConstraint?
     private var shapeLayer = CAShapeLayer()
     private var rotateAnimation = CABasicAnimation(keyPath: "transform.rotation.z")
     private var viewModel: MessageRowViewModel?
@@ -62,9 +61,7 @@ final class FooterView: UIStackView {
             statusImage.contentMode = .scaleAspectFit
             statusImage.accessibilityIdentifier = "statusImageFooterView"
             addArrangedSubview(statusImage)
-            statusImageWidthConstriant = statusImage.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewNormalStatusWidth)
-            statusImageWidthConstriant?.isActive = true
-            statusImageWidthConstriant?.identifier = "statusImageWidthConstriantFooterView"
+            statusImage.widthAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewStatusWidth).isActive = true
             statusImage.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterItemHeight).isActive = true
         }
 
@@ -110,7 +107,6 @@ final class FooterView: UIStackView {
             let statusTuple = viewModel.message.uiFooterStatus
             statusImage.image = statusTuple.image
             statusImage.tintColor = statusTuple.fgColor
-            statusImageWidthConstriant?.constant = viewModel.message.seen == true ? ConstantSizes.messageFooterViewSeenWidth : ConstantSizes.messageFooterViewNormalStatusWidth
 
             if viewModel.message is UploadProtocol, viewModel.fileState.isUploading {
                 startSendingAnimation()
@@ -153,7 +149,6 @@ final class FooterView: UIStackView {
     }
 
     public func sent(image: UIImage?) {
-        statusImageWidthConstriant?.constant = ConstantSizes.messageFooterViewNormalStatusWidth
         self.statusImage.setIsHidden(false)
         UIView.animate(withDuration: 0.2) {
             self.layoutIfNeeded()
@@ -171,7 +166,6 @@ final class FooterView: UIStackView {
     }
 
     public func seen(image: UIImage?) {
-        statusImageWidthConstriant?.constant = ConstantSizes.messageFooterViewSeenWidth
         statusImage.setIsHidden(false)
         UIView.animate(withDuration: 0.2) {
             self.layoutIfNeeded()

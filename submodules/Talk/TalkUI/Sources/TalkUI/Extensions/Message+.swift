@@ -23,7 +23,7 @@ public extension HistoryMessageProtocol {
 //        } else if delivered == true {
 //            return (MessageHistoryStatics.seenImage!, Color.App.textSecondaryUIColor!)
         } else if id != nil, !(self is UploadProtocol) {
-            return (MessageHistoryStatics.sentImage!, Color.App.textSecondaryUIColor!)
+            return (MessageHistoryStatics.sentImagePadding!, Color.App.textSecondaryUIColor!)
         } else {
             return (MessageHistoryStatics.clockImage!, Color.App.textPrimaryUIColor!.withAlphaComponent(0.6))
         }
