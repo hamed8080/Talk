@@ -139,7 +139,7 @@ public final class MessageContainerStackView: UIStackView {
     }
 
     private func reattachOrDetach(viewModel: MessageRowViewModel) {
-        if viewModel.calMessage.isFirstMessageOfTheUser && !viewModel.calMessage.isMe {
+        if viewModel.threadVM?.thread.group == true && viewModel.calMessage.isFirstMessageOfTheUser && !viewModel.calMessage.isMe {
             groupParticipantNameView.set(viewModel)
             addArrangedSubview(groupParticipantNameView)
         } else {
