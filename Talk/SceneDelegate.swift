@@ -105,7 +105,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
 //        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
         
         /// This object reference will not be released and will be hold by the AppState automatically
-        let _ = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
+        if AppState.shared.objectsContainer == nil {
+            let _ = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
+        }
         
         if TokenManager.shared.isLoggedIn {
             window.rootViewController = SplitViewController(style: .doubleColumn)

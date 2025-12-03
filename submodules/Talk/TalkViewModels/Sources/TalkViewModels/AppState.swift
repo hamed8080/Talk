@@ -11,6 +11,9 @@ import SwiftUI
 import TalkExtensions
 import TalkModels
 
+/// AppState will remain in memory forever; it will not reinstantiate.
+/// This object holds an important object called `objectsContainer` that will instantiate only once
+/// and we prevent making it twice by checking in the SceneDelegate where we make this object.
 @MainActor
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
