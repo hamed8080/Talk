@@ -16,7 +16,7 @@ public extension Spec {
         self = Spec.empty
     }
     
-    static func config(spec: Spec, token: String, selectedServerType: ServerTypes) -> ChatConfig {
+    static func config(spec: Spec, token: String) -> ChatConfig {
         let callConfig = CallConfigBuilder()
             .callTimeout(20)
             .targetVideoWidth(640)
@@ -79,19 +79,5 @@ public extension Spec {
         let spec = try JSONDecoder.instance.decode(Spec.self, from: data)
         storeSpec(spec)        
         return spec
-    }
-}
-
-extension Spec {
-    static func serverType(config: ChatConfig?) -> ServerTypes? {
-        if config?.spec.server.server == ServerTypes.main.rawValue {
-            return .main
-        } else if config?.spec.server.server == ServerTypes.sandbox.rawValue {
-            return .sandbox
-        } else if config?.spec.server.server == ServerTypes.integration.rawValue {
-            return .integration
-        } else {
-            return nil
-        }
     }
 }

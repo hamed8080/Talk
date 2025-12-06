@@ -67,7 +67,7 @@ struct LoginContentView: View {
 //                    .font(Font.normal(.footnote))
 //                    .fixedSize(horizontal: false, vertical: true)
 //                    .foregroundColor(.gray.opacity(1))
-                if EnvironmentValues.isTalkTest {
+                if EnvironmentValues.isTalkTest || EnvironmentValues.isDebug {
                     Picker("Server", selection: $viewModel.selectedServerType) {
                         ForEach(ServerTypes.allCases) { server in
                             Text(server.rawValue)
