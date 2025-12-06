@@ -328,7 +328,8 @@ extension ThreadHistoryViewModel {
             showBottomLoading(true)
             
             /// Get new messages if there are any.
-            let vms = try await onReconnectViewModels()
+            var vms = try await onReconnectViewModels()
+            vms = removeDuplicateMessagesBeforeAppend(vms)
             
             /// If now new message is available so we need to return.
             if vms.isEmpty {
