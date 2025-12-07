@@ -21,6 +21,7 @@ public class MessageHistoryStatics {
     public static let textDirectionMark = Language.isRTL ? "\u{200f}" : "\u{200e}"
     public static let clockImage = UIImage(named: "clock")
     public static let sentImage = UIImage(named: "ic_single_check_mark")
+    public static let sentImagePadding = UIImage(named: "ic_single_check_mark_padding")
     public static let seenImage = UIImage(named: "ic_double_check_mark")
     public static let leadingTail = UIImage(named: "leading_tail")!
     public static let trailingTail = UIImage(named: "trailing_tail")!

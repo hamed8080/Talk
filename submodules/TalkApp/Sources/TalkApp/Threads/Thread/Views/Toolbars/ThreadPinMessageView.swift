@@ -130,7 +130,7 @@ public final class ThreadPinMessageView: UIStackView {
         } else if let icon = viewModel.icon {
             let image = UIImage(systemName: icon)
             imageView.image = image
-            imageView.tintColor = Color.App.textSecondaryUIColor
+            imageView.tintColor = Color.App.accentUIColor
             imageView.layer.cornerRadius = 0
         }
         textButton.setTitle(viewModel.title, for: .normal)

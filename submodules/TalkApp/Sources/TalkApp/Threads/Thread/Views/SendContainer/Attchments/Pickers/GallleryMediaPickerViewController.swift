@@ -126,7 +126,7 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
     
     private func onVideoItemPrepared(data: Data?, id: UUID, error: Error?, fileExt: String?) {
         if let data = data {
-            viewModel?.attachmentsViewModel.prepared(data, id, width: 0, height: 0, fileExt: fileExt)
+            viewModel?.attachmentsViewModel.prepared(data, id, width: 0, height: 0, fileExt: fileExt, isVideo: true)
         } else if let error = error {
             viewModel?.attachmentsViewModel.failed(error, id)
         }
@@ -145,7 +145,7 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
     private func onImageItemPrepared(data: Data?, id: UUID, error: Error?, fileExt: String?) async {
         if let data = data {
             let image = UIImage(data: data)
-            viewModel?.attachmentsViewModel.prepared(data, id, width: image?.size.width, height: image?.size.height ?? 0, fileExt: fileExt)
+            viewModel?.attachmentsViewModel.prepared(data, id, width: image?.size.width, height: image?.size.height ?? 0, fileExt: fileExt, isVideo: false)
         } else if let error = error {
             viewModel?.attachmentsViewModel.failed(error, id)
         }
@@ -154,7 +154,7 @@ public final class GallleryMediaPickerViewController: NSObject, PHPickerViewCont
     private func onImageItemPrepared(image: UIImage?, id: UUID, error: Error?, fileExt: String?) async {
         if let data = image?.jpegData(compressionQuality: 0.7) {
             let image = UIImage(data: data)
-            viewModel?.attachmentsViewModel.prepared(data, id, width: image?.size.width, height: image?.size.height ?? 0, fileExt: fileExt)
+            viewModel?.attachmentsViewModel.prepared(data, id, width: image?.size.width, height: image?.size.height ?? 0, fileExt: fileExt, isVideo: false)
         } else if let error = error {
             viewModel?.attachmentsViewModel.failed(error, id)
         }

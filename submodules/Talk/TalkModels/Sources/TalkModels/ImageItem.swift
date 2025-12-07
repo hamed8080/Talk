@@ -16,7 +16,7 @@ public class ImageItem: Hashable, Identifiable, ObservableObject {
     public var fileName: String? { originalFilename }
     public var width: Int
     public var height: Int
-    public let isVideo: Bool
+    public var isVideo: Bool
     public var progress: Progress?
     public var failed: Bool = false
 

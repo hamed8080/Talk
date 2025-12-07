@@ -173,7 +173,7 @@ extension AttachmentFilesTableView {
         let atts = viewModel?.attachmentsViewModel.attachments ?? []
         let firstAtt = atts.first
         guard atts.count == 1, let first = firstAtt else { return }
-        if first.type == .gallery, let url = first.createATempImageURL() {
+        if first.type == .gallery, let url = first.createATempImageURL(), (first.request as? ImageItem)?.isVideo == false {
             showImageEditorDirectly(url: url, attachment: first)
         }
     }

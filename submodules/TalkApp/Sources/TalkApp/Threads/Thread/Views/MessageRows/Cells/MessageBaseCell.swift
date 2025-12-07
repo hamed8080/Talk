@@ -232,8 +232,8 @@ public class MessageBaseCell: UITableViewCell {
         messageContainer.edited()
     }
 
-    public func pinChanged() {
-        messageContainer.pinChanged()
+    public func pinChanged(pin: Bool) {
+        messageContainer.pinChanged(pin: pin)
     }
 
     public func sent() {

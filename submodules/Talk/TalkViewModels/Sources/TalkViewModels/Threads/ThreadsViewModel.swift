@@ -63,7 +63,6 @@ public final class ThreadsViewModel: ObservableObject {
     
     private var previousOffset: CGPoint? = nil
     private var previousContentSize: CGSize? = nil
-    @AppBackgroundActor
     private var isCompleted = false
 
     internal var objectId = UUID().uuidString
@@ -104,16 +103,14 @@ public final class ThreadsViewModel: ObservableObject {
         }
         
         /// Apply
-        Task { @AppBackgroundActor in
-            isCompleted = false
-            await MainActor.run {
-                if delegate == nil {
-                    print("Delegate should not be nil")
-                }
-                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
-            }
-            self.isCompleted = true
-        }
+        isCompleted = false
+        print("[DELEGATE] Delegate is nil: \(delegate == nil) in viewModel and self mem addrress is: \(Unmanaged.passUnretained(self).toOpaque())")
+        delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+        isCompleted = true
+    }
+    
+    public func forceUpdateSnapshot() {
+        updateUI(animation: false, reloadSections: false)
     }
     
     public func savePreviousContentOffset() {
@@ -123,7 +120,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     public func moveToContentOffset() async {
-        while await !isCompleted {}
+        while !isCompleted {}
         if let previousOffset = previousOffset, let previousContentSize = previousContentSize {
             self.previousContentSize = nil
             self.previousOffset = nil
@@ -168,6 +165,16 @@ public final class ThreadsViewModel: ObservableObject {
             await moveToContentOffset()
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
+            
+            /// Update list of the threads in the normal thread list or archive list
+            if isArchive == conversation.isArchive ?? false {
+                let calculatedConversation = ThreadCalculators.calculate(conversation, myId)
+                let newThreads = await appendThreads(newThreads: [calculatedConversation], oldThreads: threads)
+                let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
+                self.threads = sorted
+                updateUI(animation: false, reloadSections: false)
+            }
+            
             if userNeverOpennedArchivedList(id: conversation.id) {
                 updateActiveArchivConversation(newConversation: conversation, messages: messages)
                 return
@@ -999,9 +1006,15 @@ extension ThreadsViewModel {
 }
 
 extension ThreadsViewModel {
-    public func toggleArchive(_ thread: Conversation) {
+    public func toggleArchive(_ thread: Conversation) async throws {
         guard let threadId = thread.id else { return }
         if thread.isArchive == false || thread.isArchive == nil {
+            
+            /// Unpin the thread before archiving
+            if thread.pin == true {
+                try await PinThreadRequester().unpin(.init(subjectId: threadId))
+            }
+            
             archive(threadId)
             let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
             let overlayVM = AppState.shared.objectsContainer.appOverlayVM

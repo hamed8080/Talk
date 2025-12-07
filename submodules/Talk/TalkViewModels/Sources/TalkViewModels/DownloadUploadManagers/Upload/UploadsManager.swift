@@ -9,16 +9,18 @@ import Foundation
 import Combine
 import Chat
 import TalkModels
+import Logger
 
 @MainActor
 public final class UploadsManager: ObservableObject {
     private var cancellableSet = Set<AnyCancellable>()
     @Published public private(set) var elements: [UploadManagerElement] = []
     public let stateMediator = UploadFileStateMediator()
-    public init(){
+    private let MAX_NUMBER_OF_CONCURRENT_UPLOAD = 1
+    
+    public init() {
         registerConnection()
     }
-    private let MAX_NUMBER_OF_CONCURRENT_UPLOAD = 1
     
     public func enqueue(element: UploadManagerElement) {
         element.viewModel.objectWillChange.sink { [weak self] in
@@ -29,6 +31,7 @@ public final class UploadsManager: ObservableObject {
         }.store(in: &cancellableSet)
         elements.append(element)
         elements.sort(by: {$0.date < $1.date})
+        log("New element has been enqueeud \(element.debugDescription)")
         
         uploadNextElement()
     }
@@ -42,12 +45,15 @@ public final class UploadsManager: ObservableObject {
         if element.viewModel.state == .completed || element.viewModel.state == .paused {
             stateMediator.stopSignalForActiveThread(threadId: element.threadId ?? -1)
         }
+        
+        log("On upload state changed to: \(element.viewModel.state) \(element.debugDescription)")
     }
     
     private func onComplete(uniqueId: String) {
         elements.removeAll(where: {$0.viewModel.uploadUniqueId == uniqueId})
         guard var element = elements.first else { return }
         uploadNextElement()
+        log("on complete element \(element.debugDescription)")
     }
     
     /**
@@ -59,20 +65,25 @@ public final class UploadsManager: ObservableObject {
     private func uploadNextElement() {
         let filtered = elements.filter{ $0.viewModel.state != .paused }
         guard filtered.count(where: {$0.viewModel.state == .uploading }) < MAX_NUMBER_OF_CONCURRENT_UPLOAD else { return }
+        
         let firstUnPausedItem = filtered.first
         if let index = elements.firstIndex(where: {$0.id == firstUnPausedItem?.id}) {
             elements[index].isInQueue = false
+            
         }
         firstUnPausedItem?.viewModel.startUpload()
+        log("uploadNext element \(firstUnPausedItem?.debugDescription ?? "")")
     }
     
     public func pause(element: UploadManagerElement) {
         element.viewModel.action(.suspend)
+        log("pause element \(element.debugDescription)")
         uploadNextElement()
     }
     
     public func resume(element: UploadManagerElement) {
         element.viewModel.action(.resume)
+        log("resume element \(element.debugDescription)")
     }
     
     public func cancel(element: UploadManagerElement, userCanceled: Bool) {
@@ -81,12 +92,15 @@ public final class UploadsManager: ObservableObject {
         elements.removeAll(where: {$0.viewModel.message.id == element.viewModel.message.id})
         stateMediator.removed(element)
         uploadNextElement()
+        log("cancel element \(element.debugDescription)")
     }
     
     public func pauseAll() {
         elements.forEach { element in
             element.viewModel.action(.suspend)
         }
+        
+        log("pauseAll")
     }
     
     public func cancelAll() {
@@ -94,6 +108,8 @@ public final class UploadsManager: ObservableObject {
             element.viewModel.action(.cancel)
         }
         elements.removeAll()
+        
+        log("cancelAll")
     }
     
     /// By resuming just one download another one will be triggered once download is completed.
@@ -105,6 +121,14 @@ public final class UploadsManager: ObservableObject {
                 element.viewModel.action(.resume)
             }
         }
+        
+        log("resumeAll")
+    }
+    
+    private func log(_ string: String) {
+#if DEBUG
+        Logger.log(title: "[UploadsManager]", message: string)
+#endif
     }
 }
 
@@ -127,6 +151,7 @@ extension UploadsManager {
     public func reupload(element: UploadManagerElement) {
         guard let element = elements.first(where: { $0.viewModel.uploadUniqueId == element.viewModel.uploadUniqueId }) else { return }
         element.viewModel.reUpload()
+        log("reupload \(element.debugDescription)")
     }
     
     public func hasAnyUpload(threadId: Int) -> Bool {

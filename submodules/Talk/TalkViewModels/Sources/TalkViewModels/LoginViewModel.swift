@@ -74,8 +74,7 @@ public final class LoginViewModel: ObservableObject {
                                          deviceOsVersion: UIDevice.current.systemVersion,
                                          deviceType: isiPad ? "TABLET" : "MOBILE_PHONE",
                                          deviceUID: UIDevice.current.identifierForVendor?.uuidString ?? "")
-        let spec = AppState.shared.spec
-        let address = "\(spec.server.talkback)\(spec.paths.talkBack.handshake)"
+        let address = getURLString(path: AppState.shared.spec.paths.talkBack.handshake)
         var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.httpBody = req.parameterData
         urlReq.method = .post
@@ -104,8 +103,7 @@ public final class LoginViewModel: ObservableObject {
     }
     
     private func makeAuthorizeRequest(keyId: String) -> URLRequest {
-        let spec = AppState.shared.spec
-        let address = "\(spec.server.talkback)\(spec.paths.talkBack.authorize)"
+        let address = getURLString(path: AppState.shared.spec.paths.talkBack.authorize)
         var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity.replaceRTLNumbers())])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
@@ -120,7 +118,17 @@ public final class LoginViewModel: ObservableObject {
     }
     
     private func createChatObject(token: String) {
-        let config = Spec.config(spec: AppState.shared.spec, token: token, selectedServerType: selectedServerType)
+        let isSnadbox = selectedServerType == .sandbox
+        let currentSpec = AppState.shared.spec
+        let sandboxServer = currentSpec.servers.first(where: { $0.server == ServerTypes.sandbox.rawValue })
+        if isSnadbox, var sandboxServer = sandboxServer {
+            AppState.shared.spec = Spec(servers: currentSpec.servers,
+                                        server: sandboxServer,
+                                        paths: currentSpec.paths,
+                                        subDomains: currentSpec.subDomains)
+        }
+        
+        let config = Spec.config(spec: AppState.shared.spec, token: token)
         UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
     }
 
@@ -151,8 +159,7 @@ public final class LoginViewModel: ObservableObject {
     }
     
     private func makeVerifyRequest(codes: String, keyId: String) -> URLRequest {
-        let spec = AppState.shared.spec
-        let address = "\(spec.server.talkback)\(spec.paths.talkBack.verify)"
+        let address = getURLString(path: AppState.shared.spec.paths.talkBack.verify)
         var urlReq = URLRequest(url: URL(string: address)!)
         urlReq.url?.append(queryItems: [.init(name: "identity", value: identity), .init(name: "otp", value: codes)])
         urlReq.allHTTPHeaderFields = ["keyId": keyId]
@@ -247,6 +254,18 @@ extension LoginViewModel {
                                         tokenType: nil)
         await onSuccessToken(ssoToken)
         isLoading = false
+    }
+}
+
+extension LoginViewModel {
+    /// Default main server or sandbox server base address.
+    private func getURLString(path: String) -> String {
+        let spec = AppState.shared.spec
+        let isSandbox = selectedServerType == .sandbox
+        let defaultServer = spec.server
+        let sandboxServer = spec.servers.first(where: { $0.server == ServerTypes.sandbox.rawValue })
+        let server: Server = isSandbox ? sandboxServer ?? defaultServer : defaultServer
+        return "\(server.talkback)\(path)"
     }
 }
 

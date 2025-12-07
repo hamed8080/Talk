@@ -34,6 +34,7 @@ final class ThreadViewController: UIViewController {
     private var isViewControllerVisible: Bool = true
     private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
     private var animatingKeyboard = false
+    private var hasEverViewAppeared = false
     
     /// After appending a row while this view is disappeard and return back to this view like adding a participant.
     /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
@@ -53,9 +54,13 @@ final class ThreadViewController: UIViewController {
         super.viewWillAppear(animated)
         isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
-        Task { [weak self] in
-            guard let self = self else { return }
-            await viewModel?.historyVM.start()
+        
+        if !hasEverViewAppeared {
+            hasEverViewAppeared = true
+            Task { [weak self] in
+                guard let self = self else { return }
+                await viewModel?.historyVM.start()
+            }
         }
     }
 
@@ -318,9 +323,9 @@ extension ThreadViewController: ThreadViewDelegate {
         }
     }
 
-    func pinChanged(_ indexPath: IndexPath) {
+    func pinChanged(_ indexPath: IndexPath, pin: Bool) {
         if let cell = tableView.baseCell(indexPath) {
-            cell.pinChanged()
+            cell.pinChanged(pin: pin)
         }
     }
 

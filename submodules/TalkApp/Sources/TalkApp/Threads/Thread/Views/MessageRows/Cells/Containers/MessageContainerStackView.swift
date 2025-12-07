@@ -139,7 +139,7 @@ public final class MessageContainerStackView: UIStackView {
     }
 
     private func reattachOrDetach(viewModel: MessageRowViewModel) {
-        if viewModel.calMessage.isFirstMessageOfTheUser && !viewModel.calMessage.isMe {
+        if viewModel.threadVM?.thread.group == true && viewModel.calMessage.isFirstMessageOfTheUser && !viewModel.calMessage.isMe {
             groupParticipantNameView.set(viewModel)
             addArrangedSubview(groupParticipantNameView)
         } else {
@@ -287,9 +287,9 @@ extension MessageContainerStackView {
         }
     }
 
-    func pinChanged() {
+    func pinChanged(pin: Bool) {
         guard let viewModel = viewModel else { return }
-        footerView.pinChanged(isPin: viewModel.message.pinned == true)
+        footerView.pinChanged(isPin: pin)
     }
 
     func sent() {
@@ -412,24 +412,22 @@ extension MessageContainerStackView {
         }
     }
 
-    public func reactionsUpdated(viewModel: MessageRowViewModel){
+    public func reactionsUpdated(viewModel: MessageRowViewModel) {
         attachOrDetachReactions(viewModel: viewModel, animation: true)
     }
     
     public func reactionDeleted(_ reaction: Reaction) {
+        if let viewModel = viewModel {
+            attachOrDetachReactions(viewModel: viewModel, animation: true)
+        }
         reactionView.reactionDeleted(reaction)
     }
     
     public func reactionAdded(_ reaction: Reaction) {
-        if reactionView.superview == nil {
-            addArrangedSubview(reactionView)
-            reactionView.alpha = 1.0
-            if let viewModel = viewModel {
-                reactionView.set(viewModel)
-            }
-        } else {
-            reactionView.reactionAdded(reaction)
+        if let viewModel = viewModel {
+            attachOrDetachReactions(viewModel: viewModel, animation: true)
         }
+        reactionView.reactionAdded(reaction)
     }
     
     public func reactionReplaced(_ reaction: Reaction) {

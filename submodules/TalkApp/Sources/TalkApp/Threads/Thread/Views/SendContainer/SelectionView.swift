@@ -151,7 +151,7 @@ public final class SelectionView: UIStackView {
             alpha = 1.0
             set(stack: stack)
         } else {
-            removeFromSuperViewWithAnimation()
+            removeFromSuperViewWithAnimation(checkAnimationCompletion: false)
         }
     }
 }

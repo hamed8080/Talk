@@ -24,14 +24,15 @@ public struct ActionItemModel {
 
 public extension ActionItemModel {
     nonisolated(unsafe) static let reply = ActionItemModel(title: "Messages.ActionMenu.reply", image:  "arrowshape.turn.up.left")
-    nonisolated(unsafe) static let replyPrivately = ActionItemModel(title: "Messages.ActionMenu.replyPrivately", image: "arrowshape.turn.up.left")
+    nonisolated(unsafe) static let replyPrivately = ActionItemModel(title: "Messages.ActionMenu.replyPrivately", image: "arrow.up.forward.app")
     nonisolated(unsafe) static let forward = ActionItemModel(title: "Messages.ActionMenu.forward", image: "arrowshape.turn.up.right")
     nonisolated(unsafe) static let edit = ActionItemModel(title: "General.edit", image: "pencil.circle")
     nonisolated(unsafe) static let add = ActionItemModel(title: "General.addText", image: "pencil.circle")
-    nonisolated(unsafe) static let seenParticipants = ActionItemModel(title: "SeenParticipants.title", image: "info.bubble")
+    nonisolated(unsafe) static let messageDetail = ActionItemModel(title: "Messages.ActionMenu.messageDetail", image: "eye")
     nonisolated(unsafe) static let saveImage = ActionItemModel(title: "Messages.ActionMenu.saveImage", image: "square.and.arrow.down")
     nonisolated(unsafe) static let saveVideo = ActionItemModel(title: "Messages.ActionMenu.saveImage", image: "square.and.arrow.down")
     nonisolated(unsafe) static let copy = ActionItemModel(title: "Messages.ActionMenu.copy", image: "doc.on.doc")
+    nonisolated(unsafe) static let share = ActionItemModel(title: "Messages.ActionMenu.share", image: "square.and.arrow.up")
     nonisolated(unsafe) static let deleteCache = ActionItemModel(title: "Messages.ActionMenu.deleteCache", image: "cylinder.split.1x2", sandbox: true)
     nonisolated(unsafe) static let reDownload = ActionItemModel(title: "Messages.ActionMenu.reDownload", image: "arrow.trianglehead.counterclockwise.rotate.90")
     nonisolated(unsafe) static let pin = ActionItemModel(title: "Messages.ActionMenu.pinMessage", image: "pin")

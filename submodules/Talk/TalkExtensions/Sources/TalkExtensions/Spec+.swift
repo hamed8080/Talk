@@ -16,7 +16,7 @@ public extension Spec {
         self = Spec.empty
     }
     
-    static func config(spec: Spec, token: String, selectedServerType: ServerTypes) -> ChatConfig {
+    static func config(spec: Spec, token: String) -> ChatConfig {
         let callConfig = CallConfigBuilder()
             .callTimeout(20)
             .targetVideoWidth(640)
@@ -69,8 +69,8 @@ public extension Spec {
     }
     
     static func dl() async throws -> Spec {
-        // https://raw.githubusercontent.com/hamed8080/bundle/v1.0/Spec.json
-        guard let string = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2hhbWVkODA4MC9idW5kbGUvdjEuMC9TcGVjLmpzb24=".fromBase64(),
+        // https://raw.githubusercontent.com/hamed8080/bundle/v1.101/Spec.json
+        guard let string = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2hhbWVkODA4MC9idW5kbGUvdjEuMTAxL1NwZWMuanNvbg==".fromBase64(),
         let url = URL(string: string)
         else { throw URLError.init(.badURL) }
         var req = URLRequest(url: url, timeoutInterval: 10.0)
@@ -79,19 +79,5 @@ public extension Spec {
         let spec = try JSONDecoder.instance.decode(Spec.self, from: data)
         storeSpec(spec)        
         return spec
-    }
-}
-
-extension Spec {
-    static func serverType(config: ChatConfig?) -> ServerTypes? {
-        if config?.spec.server.server == ServerTypes.main.rawValue {
-            return .main
-        } else if config?.spec.server.server == ServerTypes.sandbox.rawValue {
-            return .sandbox
-        } else if config?.spec.server.server == ServerTypes.integration.rawValue {
-            return .integration
-        } else {
-            return nil
-        }
     }
 }

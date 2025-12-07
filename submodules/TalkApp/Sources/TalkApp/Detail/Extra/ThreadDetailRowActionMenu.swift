@@ -74,13 +74,6 @@ struct ThreadDetailRowActionMenu: View {
             .sandboxLabel()
         }
 
-        if isDetailView, thread.group == true {
-            ContextMenuButton(title: leaveTitle, image: "", assetImageName: "ic_exit", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-                onLeaveConversationTapped()
-            }
-            .foregroundStyle(Color.App.red)
-        }
-
         /// You should be admin or the thread should be a p2p thread with two people.
         if isDetailView, thread.admin == true || thread.group == false {
             ContextMenuButton(title: deleteTitle, image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
@@ -136,7 +129,9 @@ struct ThreadDetailRowActionMenu: View {
         showPopover = false
         delayActionOnHidePopover {
             let isUnarchived = thread.isArchive == false || thread.isArchive == nil
-            AppState.shared.objectsContainer.archivesVM.toggleArchive(thread.toStruct())
+            Task {
+                try await AppState.shared.objectsContainer.archivesVM.toggleArchive(thread.toStruct())
+            }
             if isUnarchived {
                 showArchivePopupIfNeeded()
             }
@@ -147,13 +142,6 @@ struct ThreadDetailRowActionMenu: View {
         showPopover = false
         delayActionOnHidePopover {
             viewModel.showAddParticipants(thread.toStruct())
-        }
-    }
-
-    private func onLeaveConversationTapped() {
-        showPopover = false
-        delayActionOnHidePopover {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread.toStruct()))
         }
     }
 

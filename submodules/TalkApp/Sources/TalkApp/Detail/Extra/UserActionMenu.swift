@@ -19,11 +19,6 @@ struct UserActionMenu: View {
 
     var body: some View {
         Divider()
-        if participant.contactId == nil {
-            ContextMenuButton(title: "General.add".bundleLocalized(), image: "person.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-               onAddContactTapped()
-            }
-        }
 
         let blockKey = participant.blocked == true ? "General.unblock" : "General.block"
         ContextMenuButton(title: blockKey.bundleLocalized(), image: participant.blocked == true ? "hand.raised.slash" : "hand.raised", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
@@ -43,27 +38,6 @@ struct UserActionMenu: View {
             .disabled(true)
             .sandboxLabel()
         }
-
-        if participant.contactId != nil {
-            ContextMenuButton(title: "Contacts.delete".bundleLocalized(), image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-                onDeleteContactTapped()
-            }
-            .foregroundStyle(Color.App.red)
-        }
-    }
-
-    private func onAddContactTapped() {
-        showPopover = false
-        delayActionOnHidePopover {
-            let contact = Contact(cellphoneNumber: participant.cellphoneNumber,
-                                  email: participant.email,
-                                  firstName: participant.firstName,
-                                  lastName: participant.lastName,
-                                  user: .init(username: participant.username))
-            contactViewModel.addContact = contact
-            contactViewModel.showAddOrEditContactSheet = true
-            contactViewModel.animateObjectWillChange()
-        }
     }
 
     private func onBlockUnblockTapped() {
@@ -74,16 +48,6 @@ struct UserActionMenu: View {
             } else {
                 contactViewModel.block(.init(id: participant.contactId))
             }
-        }
-    }
-
-    private func onDeleteContactTapped() {
-        showPopover = false
-        delayActionOnHidePopover {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
-                ConversationDetailDeleteContactDialog(participant: participant)
-                    .environmentObject(contactViewModel)
-            )
         }
     }
 

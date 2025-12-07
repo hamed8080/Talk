@@ -92,13 +92,15 @@ public extension UIView {
         }
     }
 
-    func removeFromSuperViewWithAnimation(withAimation: Bool = true) {
+    func removeFromSuperViewWithAnimation(withAimation: Bool = true, checkAnimationCompletion: Bool = true) {
         if withAimation {
             UIView.animate(withDuration: 0.2) { [weak self] in
                 guard let self = self else { return }
                 alpha = 0.0
             } completion: { completed in
-                if completed {
+                if checkAnimationCompletion, completed {
+                    self.removeFromSuperview()
+                } else {
                     self.removeFromSuperview()
                 }
             }
