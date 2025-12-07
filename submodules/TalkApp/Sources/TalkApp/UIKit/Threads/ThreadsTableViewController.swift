@@ -152,12 +152,18 @@ extension ThreadsTableViewController {
             return cell
         }
     }
-    
+}
+
+extension ThreadsTableViewController {
     @objc private func onRefresh() {
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
             await viewModel.refresh()
-            tableView.refreshControl?.endRefreshing()
         }
+    }
+    
+    private func endRefreshing() {
+        tableView.refreshControl?.endRefreshing()
     }
 }
 
@@ -174,6 +180,7 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences) { [weak self] in
             self?.showCenterAnimation(show: false)
             self?.showBottomAnimation(show: false)
+            self?.endRefreshing()
         }
     }
     
