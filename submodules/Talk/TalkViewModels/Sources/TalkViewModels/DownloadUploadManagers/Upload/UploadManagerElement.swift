@@ -25,3 +25,21 @@ public struct UploadManagerElement: Identifiable {
     
     public var threadId: Int? { viewModel.message.threadId ?? viewModel.message.conversation?.id }
 }
+
+extension UploadManagerElement: @preconcurrency CustomDebugStringConvertible {
+    @MainActor
+    public var debugDescription: String {
+        return
+"""
+{
+    id: \(id),
+    date: \(date.millisecondsSince1970),
+    isInQueue: \(isInQueue),
+    threadId: \(threadId ?? -1),
+    percent: \(viewModel.uploadPercent),
+    fileName: \(viewModel.fileNameString),
+    fileSize: \(viewModel.fileSizeString)
+}
+"""
+    }
+}
