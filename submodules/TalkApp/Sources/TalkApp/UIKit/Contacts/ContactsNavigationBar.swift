@@ -169,9 +169,7 @@ class ContactsNavigationBar: UIView {
             self.searchField.alpha = showSearch ? 1 : 0
             self.menuButton.alpha = showSearch ? 1 : 0
             self.dropDownImageView.alpha = showSearch ? 1 : 0
-            
-            let iconName = showSearch ? "xmark" : "magnifyingglass"
-            self.searchButton.imageView.image = UIImage(systemName: iconName)
+            self.searchButton.imageView.image = showSearch ? UIImage(systemName: "xmark") : UIImage(named: "ic_search")
         }
         
         if showSearch {
