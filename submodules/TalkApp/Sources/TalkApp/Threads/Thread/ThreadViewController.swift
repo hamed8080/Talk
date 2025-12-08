@@ -90,7 +90,8 @@ final class ThreadViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if keyboardheight == 0 {
-            let height = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+            var height = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+            height = height + ConstantSizes.spaceLastMessageAndBottomContainer
             tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
             tableView.scrollIndicatorInsets = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
         }
@@ -752,9 +753,9 @@ extension ThreadViewController {
         keyboardheight = show ? tuple.rect.height : 0
         
         sendContainerBottomConstraint?.constant = show ? -keyboardheight : keyboardheight
-       
+        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
         let pureHeight = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
-        let showInset = pureHeight + keyboardheight - view.safeAreaInsets.bottom
+        let showInset = pureHeight + spaceLastMessage + keyboardheight - view.safeAreaInsets.bottom
         let hideInset = pureHeight /// No need to use safeAreaInset because it will handeled by UIKit itself
         let insetBottom = show ? showInset : hideInset
         tableView.contentInset.bottom = insetBottom
@@ -786,7 +787,8 @@ extension ThreadViewController {
     private func onSendHeightChanged(_ height: CGFloat) {
         let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
-        let height = (height - safeAreaHeight) + keyboardheight
+        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
+        let height = (height - safeAreaHeight) + keyboardheight + spaceLastMessage
         if tableView.contentInset.bottom != height {
             tableView.contentInset.bottom = height
         }

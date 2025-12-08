@@ -161,7 +161,13 @@ public class MessageBaseCell: UITableViewCell {
     public func setValues(viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
         let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser
-        messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -ConstantSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -ConstantSizes.messageContainerStackViewBottomMargin
+        let isLastMessageOfTheThread = viewModel.message.id == nil || viewModel.message.id == viewModel.threadVM?.thread.lastMessageVO?.id
+        
+        if isLastMessageOfTheThread {
+            messageContainerBottomConstraint.constant = 0 /// It will be managed by the contentOffset.bottom of the UITableView
+        } else {
+            messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -ConstantSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -ConstantSizes.messageContainerStackViewBottomMargin
+        }
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
         setMessageContainer(viewModel: viewModel)

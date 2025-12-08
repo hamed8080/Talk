@@ -177,6 +177,7 @@ public struct ConstantSizes: Sendable {
     
     /// Bottom toolbar size
     nonisolated(unsafe) public static let bottomToolbarSize: CGFloat = 52
+    nonisolated(unsafe) public static let spaceLastMessageAndBottomContainer: CGFloat = 8
     
     /// Toolbar top
     nonisolated(unsafe) public static let topToolbarHeight: CGFloat = 64
