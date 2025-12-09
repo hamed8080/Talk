@@ -40,6 +40,7 @@ public class ThreadLoadingManager {
         topLoading.translatesAutoresizingMaskIntoConstraints = false
         topLoading.accessibilityIdentifier = "topLoadingThreadViewController"
         topLoading.isHidden = true
+        topLoadingContainer.accessibilityIdentifier = "topLoadingContainerThreadLoadingManager"
         topLoadingContainer.addSubview(topLoading)
         tableView?.tableHeaderView = topLoadingContainer
     }
@@ -57,6 +58,7 @@ public class ThreadLoadingManager {
         bottomLoading.translatesAutoresizingMaskIntoConstraints = false
         bottomLoading.accessibilityIdentifier = "bottomLoadingThreadViewController"
         bottomLoading.isHidden = true
+        bottomLoadingContainer.accessibilityIdentifier = "bottomLoadingContainerThreadLoadingManager"
         bottomLoadingContainer.addSubview(bottomLoading)
         tableView?.tableFooterView = bottomLoadingContainer
     }
@@ -89,16 +91,11 @@ public class ThreadLoadingManager {
     
     func startTopAnimation(_ animate: Bool) {
         tableView?.tableHeaderView?.isHidden = !animate
-        UIView.animate(withDuration: 0.25) {
+        UIView.animate(withDuration: 0.10) {
             self.tableView?.tableHeaderView?.layoutIfNeeded()
         }
         
-        topLoading?.isHidden = !animate
-        if animate {
-            topLoading?.play()
-        } else {
-            topLoading?.stop()
-        }
+        resizeLoadingContainerHeight(animate: animate, container: topLoadingContainer, loadingView: topLoading)
     }
     
     func startCenterAnimation(_ animate: Bool) {
@@ -113,15 +110,24 @@ public class ThreadLoadingManager {
     }
 
     func startBottomAnimation(_ animate: Bool) {
-        bottomLoading?.isHidden = !animate
+        tableView?.tableFooterView?.isHidden = !animate
+        UIView.animate(withDuration: 0.10) {
+            self.tableView?.tableFooterView?.layoutIfNeeded()
+        }
+        resizeLoadingContainerHeight(animate: animate, container: bottomLoadingContainer, loadingView: bottomLoading)
+    }
+    
+    private func resizeLoadingContainerHeight(animate: Bool, container: UIView, loadingView: LottieAnimationView?) {
+        loadingView?.isHidden = !animate
+        container.frame.size.height = animate ? ThreadLoadingManager.loadingViewWidth + 2 : 0
         if animate {
-            bottomLoading?.play()
+            loadingView?.play()
         } else {
-            bottomLoading?.stop()
+            loadingView?.stop()
         }
     }
     
-    public func getBottomLoadingContainer() -> UIView{
+    public func getBottomLoadingContainer() -> UIView {
         return bottomLoadingContainer
     }
     
