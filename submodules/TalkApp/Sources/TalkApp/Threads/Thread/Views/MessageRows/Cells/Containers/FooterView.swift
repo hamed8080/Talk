@@ -85,7 +85,7 @@ final class FooterView: UIStackView {
         editedImageView.setContentHuggingPriority(.required, for: .horizontal)
 
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewHeightWithReaction),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterViewHeight),
             timelabel.heightAnchor.constraint(equalToConstant: ConstantSizes.messageFooterItemHeight),
             timelabel.widthAnchor.constraint(greaterThanOrEqualToConstant: ConstantSizes.messageFooterViewTimeLabelWidth)
         ])
