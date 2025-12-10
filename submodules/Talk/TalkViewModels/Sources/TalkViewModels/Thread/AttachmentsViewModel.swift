@@ -15,6 +15,7 @@ import TalkModels
 public protocol AttachmentDelegate: AnyObject {
     func reload()
     func reloadItem(indexPath: IndexPath)
+    func showImageEditorIfOneImagePicked()
 }
 
 @MainActor
