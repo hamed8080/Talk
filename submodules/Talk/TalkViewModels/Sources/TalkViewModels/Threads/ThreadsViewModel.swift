@@ -133,7 +133,8 @@ public final class ThreadsViewModel: ObservableObject {
 
     func onCreate(_ response: ChatResponse<Conversation>) async {
         lazyList.setLoading(false)
-        if let thread = response.result {
+        let isArchive = isArchive == true
+        if let thread = response.result, !isArchive {
             var thread = thread
             thread.reactionStatus = thread.reactionStatus ?? .enable
             await calculateAppendSortAnimate(thread)
