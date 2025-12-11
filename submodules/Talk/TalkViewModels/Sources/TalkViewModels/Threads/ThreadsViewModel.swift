@@ -50,14 +50,14 @@ public final class ThreadsViewModel: ObservableObject {
     public var serverSortedPins: [Int] = []
     private var cache: Bool = true
     public private(set) var lazyList = LazyListViewModel()
-    private let participantsCountManager = ParticipantsCountManager()
+    private let participantsCountManager: ParticipantsCountManager
     private var wasDisconnected = false
     internal let incForwardQueue = IncommingForwardMessagesQueue()
     internal let incNewQueue = IncommingNewMessagesQueue()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
     public weak var delegate: UIThreadsViewControllerDelegate?
     private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
-    public let isArchive: Bool?
+    public let isArchive: Bool
     public var isArchiveObserverInitialized = false
     public let isForwardList: Bool?
     
@@ -75,15 +75,16 @@ public final class ThreadsViewModel: ObservableObject {
     private var myId: Int { AppState.shared.user?.id ?? -1 }
     private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
 
-    public init(isArchive: Bool? = nil, isForwardList: Bool? = nil) {
+    public init(isArchive: Bool, isForwardList: Bool? = nil) {
         self.isArchive = isArchive
+        self.participantsCountManager = ParticipantsCountManager(isArchive: isArchive)
         print("init threadsView model isArchive:\(isArchive)")
         self.isForwardList = isForwardList
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
         
-        if isArchive == nil {
+        if isArchive == false {
             setupObservers()
         }
         
@@ -148,7 +149,7 @@ public final class ThreadsViewModel: ObservableObject {
             let isReferenceArchived = reference.isArchive == true
             
             /// Prevent calling wrong object instance
-            if isReferenceArchived && isArchive == nil { return }
+            if isReferenceArchived && isArchive == false { return }
             if !isReferenceArchived && isArchive == true { return }
             
             let old = reference.toStruct()
@@ -183,7 +184,7 @@ public final class ThreadsViewModel: ObservableObject {
             
             let isReferenceArchived = conversation.isArchive == true
             /// Prevent calling wrong object instance
-            if isReferenceArchived && isArchive == nil { return }
+            if isReferenceArchived && isArchive == false { return }
             if !isReferenceArchived && isArchive == true { return }
             
             savePreviousContentOffset()
@@ -277,7 +278,7 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.setLoading(true)
         do {
             
-            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, archived: isArchive, cache: cache)
+            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, archived: !isArchive ? nil : true, cache: cache)
             let conversations = try await GetThreadsReuqester().getCalculated(req: req,
                                                                               withCache: false,
                                                                               queueable: withQueue,
