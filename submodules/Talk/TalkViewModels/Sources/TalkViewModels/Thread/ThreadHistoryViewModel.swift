@@ -467,7 +467,11 @@ extension ThreadHistoryViewModel {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top, false)
             } else {
                 /// Call delegate?.inserted directly if the message we are move to does not exist in the topVMS or bottomVMS
-                delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top, false)
+                /// There is a chance after deleitng the whole messages of the thread and then sending a message we will hit by
+                /// a crash for not existing index so we need to check if the section is not empty.
+                if sections.indices.contains(where: {$0 == 0}), sections[0].vms.indices.contains(where: { $0 == 0 }) {
+                    delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top, false)
+                }
             }
             
             /// Animate to show hightlight if is needed.

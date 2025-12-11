@@ -104,10 +104,7 @@ final class ThreadViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if keyboardheight == 0 {
-            var height = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
-            height = height + ConstantSizes.spaceLastMessageAndBottomContainer
-            tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
-            tableView.scrollIndicatorInsets = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
+            updateContentInset(methodName: "viewDidLayoutSubviews")
         }
     }
 
@@ -165,6 +162,7 @@ extension ThreadViewController {
     
     private func configureTableView() {
         tableView = UIHistoryTableView(viewModel: viewModel)
+        tableView.contentInset = .zero
         view.addSubview(tableView)
     }
     
@@ -789,15 +787,7 @@ extension ThreadViewController {
         guard let tuple = notif.extractDurationAndAnimation() else { return }
         hasExternalKeyboard = tuple.rect.height <= 69
         keyboardheight = show ? tuple.rect.height : 0
-        
         sendContainerBottomConstraint?.constant = show ? -keyboardheight : keyboardheight
-        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
-        let pureHeight = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
-        let showInset = pureHeight + spaceLastMessage + keyboardheight - view.safeAreaInsets.bottom
-        let hideInset = pureHeight /// No need to use safeAreaInset because it will handeled by UIKit itself
-        let insetBottom = show ? showInset : hideInset
-        tableView.contentInset.bottom = insetBottom
-        tableView.scrollIndicatorInsets.bottom = insetBottom
         
         /// Disable onHeightChanged callback for the send container
         /// to manipulate the content inset during the animation
@@ -823,13 +813,7 @@ extension ThreadViewController {
     }
     
     private func onSendHeightChanged(_ height: CGFloat) {
-        let isButtonsVisible = sendVM?.getMode().type == .showButtonsPicker
-        let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
-        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
-        let height = (height - safeAreaHeight) + keyboardheight + spaceLastMessage
-        if tableView.contentInset.bottom != height {
-            tableView.contentInset.bottom = height
-        }
+        updateContentInset(methodName: "onSendHeightChanged")
     }
 
     @objc private func hideKeyboard() {
@@ -863,5 +847,71 @@ extension ThreadViewController {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         loadingManager.traitCollectionDidChange(previousTraitCollection)
+    }
+}
+
+/// ContentInset
+extension ThreadViewController {
+    
+    private func updateContentInset(methodName: String) {
+        /// Order do matter firstly we need to calculate bottom then we use calculated bottom constant.
+        setBottomContentInset()
+        setTopContentInset()
+        tableView.scrollIndicatorInsets = tableView.contentInset
+        printContentInset(methodName: methodName)
+    }
+    
+    private func bottomContainerHeight() -> CGFloat {
+        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
+        let height = sendContainer.bounds.height
+        return keyboardheight + height + spaceLastMessage - view.safeAreaInsets.bottom
+    }
+    
+    private func isContentSmallerThanHeight() -> Bool {
+        let bottom = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+        return tableView.contentSize.height < tableView.frame.height - (bottom + topToolbarHeight())
+    }
+    
+    private func topToolbarHeight() -> CGFloat {
+        topThreadToolbar.bounds.height + view.safeAreaInsets.top
+    }
+    
+    private func diffTableViewContentSizeAndFrameHeight() -> CGFloat {
+        return tableView.frame.height - bottomContainerHeight() - topToolbarHeight() - tableView.contentSize.height
+    }
+    
+    private func setTopContentInset() {
+        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
+        let isSmaller = isContentSmallerThanHeight()
+        let topToolbarInset = topToolbarHeight()
+        let top = isSmaller ? diffTableViewContentSizeAndFrameHeight() : topToolbarInset
+        if tableView.contentInset.top != top {
+            tableView.contentInset.top = top
+        }
+    }
+    
+    private func setBottomContentInset() {
+        let isSmaller = isContentSmallerThanHeight()
+        let bottom = isSmaller ? 0 : bottomContainerHeight()
+        if tableView.contentInset.bottom != bottom {
+            tableView.contentInset.bottom = bottom
+        }
+    }
+    
+    private func printContentInset(methodName: String) {
+        log(
+            """
+[CONTENT_INSET] in \(methodName)
+TableView ContentInset: \(tableView.contentInset)
+TableView ContentSize: \(tableView.contentSize)
+TableView Frame: \(tableView.frame)
+View top safe area : \(view.safeAreaInsets.top)
+View bottom safe area : \(view.safeAreaInsets.bottom)
+TopThreadToolbar Bounds: \(topThreadToolbar.bounds)
+TopThreadToolbar Frame: \(topThreadToolbar.frame)
+SendContainer Bounds: \(sendContainer.bounds)
+SendContainer Frame: \(sendContainer.frame)\n
+"""
+        )
     }
 }
