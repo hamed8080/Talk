@@ -116,6 +116,7 @@ public final class ParticipantsViewModel: ObservableObject {
     public func onAdded(_ participants: [Participant]) {
         withAnimation { [weak self] in
             self?.participants.insert(contentsOf: participants, at: 0)
+            self?.sort()
             self?.animateObjectWillChange()
         }
     }
@@ -169,8 +170,8 @@ public final class ParticipantsViewModel: ObservableObject {
         }
     }
 
-    public var sorted: [Participant] {
-        participants.sorted(by: { ($0.auditor ?? false && !($1.auditor ?? false)) || (($0.admin ?? false) && !($1.admin ?? false)) })
+    public func sort() {
+        participants = participants.sorted(by: { ($0.auditor ?? false && !($1.auditor ?? false)) || (($0.admin ?? false) && !($1.admin ?? false)) })
     }
 
     public func loadMore() async {
@@ -234,6 +235,7 @@ public final class ParticipantsViewModel: ObservableObject {
         // remove older data to prevent duplicate on view
         self.participants.removeAll(where: { participant in participants.contains(where: { participant.id == $0.id }) })
         self.participants.append(contentsOf: participants)
+        self.sort()
     }
 
     public func onRemoveRoles(_ response: ChatResponse<[UserRole]>) {
@@ -244,6 +246,7 @@ public final class ParticipantsViewModel: ObservableObject {
                userRole.isAdminRolesChanged
             {
                 participants[index].admin = false
+                sort()
             }
             animateObjectWillChange()
         }
@@ -257,6 +260,7 @@ public final class ParticipantsViewModel: ObservableObject {
                userRole.isAdminRolesChanged
             {
                 participants[index].admin = true
+                sort()
                 animateObjectWillChange()
             }
         }
@@ -266,6 +270,7 @@ public final class ParticipantsViewModel: ObservableObject {
             response.result?.forEach{ userRole in
                 if let index = participants.firstIndex(where: {$0.id == userRole.id}) {
                     participants[index].admin = true
+                    sort()
                     animateObjectWillChange()
                 }
             }
@@ -276,6 +281,7 @@ public final class ParticipantsViewModel: ObservableObject {
         response.result?.forEach{ adminRole in
             if adminRole.hasError == nil, adminRole.hasError == false, let index = participants.firstIndex(where: {$0.id == adminRole.participant?.id}) {
                 participants[index].admin = true
+                sort()
                 animateObjectWillChange()
             }
         }
@@ -285,6 +291,7 @@ public final class ParticipantsViewModel: ObservableObject {
         response.result?.forEach{ adminRole in
             if adminRole.hasError == nil, adminRole.hasError == false, let index = participants.firstIndex(where: {$0.id == adminRole.participant?.id}) {
                 participants[index].admin = false
+                sort()
                 animateObjectWillChange()
             }
         }

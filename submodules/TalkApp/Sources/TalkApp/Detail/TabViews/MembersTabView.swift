@@ -38,7 +38,7 @@ struct MembersTabView: View {
                         detailViewModel.scrollViewProxy?.scrollTo("DetailTabContainer", anchor: .top)
                     }
             } else {
-                ForEach(viewModel.sorted) { participant in
+                ForEach(viewModel.participants) { participant in
                     ParticipantRowContainer(participant: participant, isSearchRow: false)
                 }
             }
