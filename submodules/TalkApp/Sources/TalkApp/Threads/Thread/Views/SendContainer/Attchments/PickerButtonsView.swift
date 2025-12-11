@@ -18,9 +18,11 @@ public final class PickerButtonsView: UIStackView {
     private let btnFile = AttchmentButton(title: "General.file", image: "doc.fill")
     private let btnLocation = AttchmentButton(title: "General.location", image: "location.fill")
     private let btnContact = AttchmentButton(title: "General.contact", image: "person.2.crop.square.stack.fill")
+    private let btnCamera = AttchmentButton(title: "General.camera", image: "camera.fill")
     private weak var threadVM: ThreadViewModel?
     private var vc: UIViewController? { threadVM?.delegate as? UIViewController }
     private let documentPicker = DocumnetPickerViewController()
+    private var cameraCapturer: CameraCapturer?
     private let galleryPicker = GallleryMediaPickerViewController()
 
     public init(viewModel: SendContainerViewModel?, threadVM: ThreadViewModel?) {
@@ -51,17 +53,18 @@ public final class PickerButtonsView: UIStackView {
         trailingSpacer.accessibilityIdentifier = "trailingSpacerPickerButtonsView"
 
         NSLayoutConstraint.activate([
-            leadingSpacer.widthAnchor.constraint(equalToConstant: 66),
+            leadingSpacer.widthAnchor.constraint(equalToConstant: 24),
             leadingSpacer.heightAnchor.constraint(equalToConstant: 66),
-            trailingSpacer.widthAnchor.constraint(equalToConstant: 66),
+            trailingSpacer.widthAnchor.constraint(equalToConstant: 24),
             trailingSpacer.heightAnchor.constraint(equalToConstant: 66),
         ])
 
         btnGallery.accessibilityIdentifier = "btnGalleryPickerButtonsView"
         btnFile.accessibilityIdentifier = "btnFilePickerButtonsView"
         btnLocation.accessibilityIdentifier = "btnLocationPickerButtonsView"
+        btnCamera.accessibilityIdentifier = "btnCameraPickerButtonsView"
 
-        addArrangedSubviews([leadingSpacer, btnGallery, btnFile, btnLocation, trailingSpacer])
+        addArrangedSubviews([leadingSpacer, btnCamera, btnGallery, btnFile, btnLocation, trailingSpacer])
     }
 
     private func registerGestures() {
@@ -80,6 +83,10 @@ public final class PickerButtonsView: UIStackView {
         let contactGesture = UITapGestureRecognizer(target: self, action: #selector(onBtnContactTapped))
         contactGesture.numberOfTapsRequired = 1
         btnContact.addGestureRecognizer(contactGesture)
+        
+        let cameraGesture = UITapGestureRecognizer(target: self, action: #selector(onBtnCameraTapped))
+        cameraGesture.numberOfTapsRequired = 1
+        btnCamera.addGestureRecognizer(cameraGesture)
     }
 
     @objc private func onBtnGalleryTapped(_ sender: UIGestureRecognizer) {
@@ -102,6 +109,12 @@ public final class PickerButtonsView: UIStackView {
 
     @objc private func onBtnContactTapped(_ sender: UIGestureRecognizer) {
         hideKeyboard()
+        closePickerButtons()
+    }
+    
+    @objc private func onBtnCameraTapped(_ sender: UIGestureRecognizer) {
+        hideKeyboard()
+        openTakeVideoPicker()
         closePickerButtons()
     }
 
@@ -157,5 +170,52 @@ extension PickerButtonsView {
         mapVC.viewModel = threadVM
         mapVC.modalPresentationStyle = .fullScreen
         vc?.present(mapVC, animated: true)
+    }
+}
+
+extension PickerButtonsView {
+    private func openTakeVideoPicker() {
+        let captureObject = CameraCapturer(isVideo: true) { [weak self] image, url, resources in
+            if let image = image {
+                self?.onImageCaptured(image: image)
+            } else if let url = url {
+                self?.onVideoCaptured(videoURL: url)
+            }
+        }
+        self.cameraCapturer = captureObject
+        if captureObject.isCameraAccessDenied() {
+            showPermissionDialog()
+        } else {
+            (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
+        }
+    }
+    
+    private func onVideoCaptured(videoURL: URL) {
+        guard let data = try? Data(contentsOf: videoURL) else { return }
+        let fileName = "video-\(Date().fileDateString).mov"
+        let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
+        threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+        /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+        viewModel?.setMode(type: .voice)
+    }
+    
+    private func onImageCaptured(image: UIImage) {
+        let item = ImageItem(data: image.jpegData(compressionQuality: 0.8) ?? Data(),
+                             width: Int(image.size.width),
+                             height: Int(image.size.height),
+                             originalFilename: "image-\(Date().fileDateString).jpg")
+        threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+        
+        /// Wait to dismiss camera view controller then show image editor because image editor uses window.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            self?.threadVM?.attachmentsViewModel.delegate?.showImageEditorIfOneImagePicked()
+        }
+        self.cameraCapturer = nil
+        /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+        viewModel?.setMode(type: .voice)
+    }
+    
+    private func showPermissionDialog() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CameraAccessDialog())
     }
 }

@@ -12,6 +12,7 @@ import SwiftUI
 import TalkUI
 import TalkViewModels
 import TalkModels
+import Lottie
 
 struct StartThreadContactPickerView: View {
     @Environment(\.dismiss) var dismiss
@@ -36,7 +37,7 @@ struct StartThreadContactPickerView: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparatorTint(Color.App.dividerPrimary)
-                    .font(Font.fBody)
+                    .font(Font.normal(.body))
 
                     NavigationLink {
                         ConversationBuilder()
@@ -52,7 +53,7 @@ struct StartThreadContactPickerView: View {
                     }
                     .listRowBackground(Color.App.bgPrimary)
                     .listRowSeparator(.hidden)
-                    .font(Font.fBody)
+                    .font(Font.normal(.body))
                 }
 
                 if viewModel.searchedContacts.count > 0 {
@@ -66,10 +67,12 @@ struct StartThreadContactPickerView: View {
                     }
                 } else if viewModel.searchContactString.count > 0, viewModel.searchedContacts.isEmpty {
                     if viewModel.isTypinginSearchString {
-                        ListLoadingView(isLoading: .constant(true))
+                        LottieView(animation: .named("dots_loading.json"))
+                            .playing()
+                            .frame(height: 52)
                     } else if !viewModel.lazyList.isLoading {
                         Text("General.noResult")
-                            .font(Font.fBody)
+                            .font(Font.normal(.body))
                             .fontWeight(.medium)
                             .foregroundStyle(Color.App.textSecondary)
                             .frame(minWidth: 0, maxWidth: .infinity, alignment: .center)
@@ -97,14 +100,17 @@ struct StartThreadContactPickerView: View {
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                         .submitLabel(.done)
-                        .font(Font.fBody)
+                        .font(Font.normal(.body))
                 }
                 .frame(height: 48)
                 .background(.ultraThinMaterial)
             }
             .overlay(alignment: .bottom) {
-                ListLoadingView(isLoading: $viewModel.lazyList.isLoading)
-                    .id(UUID())
+                if viewModel.lazyList.isLoading {
+                    LottieView(animation: .named("dots_loading.json"))
+                        .playing()
+                        .frame(height: 52)
+                }
             }
         }
         .environmentObject(viewModel)

@@ -15,6 +15,7 @@ import TalkModels
 public protocol AttachmentDelegate: AnyObject {
     func reload()
     func reloadItem(indexPath: IndexPath)
+    func showImageEditorIfOneImagePicked()
 }
 
 @MainActor
@@ -34,6 +35,7 @@ public final class AttachmentsViewModel: ObservableObject {
     public func addSelectedPhotos(imageItem: ImageItem) {
         attachments.removeAll(where: {$0.type != .gallery})
         attachments.append(.init(id: imageItem.id, type: .gallery, request: imageItem))
+        isExpanded = true
         delegate?.reload()
         animateObjectWillChange() // To enable/disable send button if it was downloading image/video form the iCloud
         resetSendContainerIfIsEmpty()
@@ -44,6 +46,7 @@ public final class AttachmentsViewModel: ObservableObject {
         selectedFileUrls.forEach { fileItem in
             attachments.append(.init(type: .file, request: fileItem))
         }
+        isExpanded = true
         delegate?.reload()
         resetSendContainerIfIsEmpty()
     }
@@ -51,6 +54,7 @@ public final class AttachmentsViewModel: ObservableObject {
     public func addFileURL(url: URL) {
         attachments.removeAll(where: {$0.type != .file})
         attachments.append(.init(type: .file, request: url))
+        isExpanded = true
         delegate?.reload()
         resetSendContainerIfIsEmpty()
     }
@@ -65,6 +69,7 @@ public final class AttachmentsViewModel: ObservableObject {
     public func append(attachments: [AttachmentFile]) {
         self.attachments.removeAll(where: {$0.type != attachments.first?.type})
         self.attachments.append(contentsOf: attachments)
+        isExpanded = true
         delegate?.reload()
     }
     
@@ -115,12 +120,13 @@ public final class AttachmentsViewModel: ObservableObject {
         delegate?.reload()
     }
     
-    public func prepared(_ data: Data, _ id: UUID, width: CGFloat?, height: CGFloat?, fileExt: String?) {
+    public func prepared(_ data: Data, _ id: UUID, width: CGFloat?, height: CGFloat?, fileExt: String?, isVideo: Bool) {
         if let index = attachments.firstIndex(where: {$0.id == id}) {
             (attachments[index].request as? ImageItem)?.data = data
             (attachments[index].request as? ImageItem)?.width = Int(width ?? 0)
             (attachments[index].request as? ImageItem)?.height = Int(height ?? 0)
             (attachments[index].request as? ImageItem)?.fileExt = fileExt
+            (attachments[index].request as? ImageItem)?.isVideo = isVideo
             delegate?.reloadItem(indexPath: IndexPath(row: index, section: 0))
             animateObjectWillChange() // To enable/diable send button if it was downloading image/video form the iCloud
         }

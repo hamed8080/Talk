@@ -50,7 +50,7 @@ struct CreateDirectThreadView: View {
                     Label("General.send", systemImage: "paperplane")
                         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36)
                 }
-                .font(.fSubheadline)
+                .font(Font.normal(.subheadline))
             }
         }
     }

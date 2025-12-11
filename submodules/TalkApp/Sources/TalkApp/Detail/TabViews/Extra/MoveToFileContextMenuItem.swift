@@ -43,6 +43,6 @@ struct MoveToFileContextMenuItemViewModifier<V: View>: ViewModifier {
 extension View {
     func appyDetailViewContextMenu<V: View>(_ newInstance: V, _ rowModel: TabRowModel, _ viewModel: ThreadDetailViewModel) -> some View {
         self.modifier(MoveToFileContextMenuItemViewModifier(newInstance: newInstance, viewModel: viewModel, rowModel: rowModel))
-            .font(Font.fBody)
+            .font(Font.normal(.body))
     }
 }

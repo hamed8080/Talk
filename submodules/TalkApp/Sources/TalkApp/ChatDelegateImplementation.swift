@@ -20,6 +20,8 @@ import SwiftUI
 public final class ChatDelegateImplementation: ChatDelegate {
     private var retryCount = 0
     public private(set) static var sharedInstance = ChatDelegateImplementation()
+    private var networkObserver: NetworkAvailabilityProtocol?
+    private var isDownloading = false
     
     public func initialize() {
         let manager = BundleManager.init()
@@ -50,10 +52,14 @@ public final class ChatDelegateImplementation: ChatDelegate {
     
     private func dlReload(manager: BundleManager) async {
         do {
+            isDownloading = true
             let spec = try await Spec.dl()
             _ = try await manager.st()
             reload(spec: spec, bundle: manager.getBundle())
+            isDownloading = false
+            networkObserver = nil
         } catch {
+            isDownloading = false
             // Failed to download spec or bundle
             if retryCount < 3 {
                 retryCount += 1
@@ -195,7 +201,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
             ChatManager.activeInstance?.user.logOut()
         }
         TokenManager.shared.clearToken()
-        UserConfigManagerVM.instance.logout(delegate:  self)
+        await UserConfigManagerVM.instance.logout(delegate:  self)
         await AppState.shared.objectsContainer.reset()
         NotificationCenter.default.post(name: Notification.Name("RELAOD"), object: nil)
     }
@@ -215,6 +221,19 @@ public final class ChatDelegateImplementation: ChatDelegate {
         /// and then refetch them in 5 seconds period.
         Task { @MainActor in
             Logger.log(title: log.prefix ?? "", message: log.message ?? "", persist: ChatDelegateImplementation.isLogOnDisk)
+        }
+    }
+    
+    public func registerOnConnect() {
+        networkObserver = nil
+        networkObserver = NetworkAvailabilityFactory.create()
+        networkObserver?.onNetworkChange = { [weak self] isConnected in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                if isConnected, !self.isDownloading, Spec.cachedSpec() == nil {
+                    self.initialize()
+                }
+            }
         }
     }
 

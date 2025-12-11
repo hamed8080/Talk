@@ -18,6 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../SDK/Chat"),
+        .package(path: "../TalkFont"),
         .package(path: "../AdditiveUI"),
         .package(path: "../TalkModels"),
         .package(path: "../TalkExtensions"),
@@ -30,6 +31,7 @@ let package = Package(
             name: "Dependencies",
             dependencies: [
                 .product(name: "Chat", package: "Chat"),
+                .product(name: "TalkFont", package: "TalkFont"),
                 .product(name: "AdditiveUI", package: "AdditiveUI"),
                 .product(name: "TalkModels", package: "TalkModels"),
                 .product(name: "TalkExtensions", package: "TalkExtensions"),

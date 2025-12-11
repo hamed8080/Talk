@@ -34,6 +34,7 @@ final class ThreadViewController: UIViewController {
     private var isViewControllerVisible: Bool = true
     private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
     private var animatingKeyboard = false
+    private var hasEverViewAppeared = false
     
     /// After appending a row while this view is disappeard and return back to this view like adding a participant.
     /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
@@ -53,9 +54,13 @@ final class ThreadViewController: UIViewController {
         super.viewWillAppear(animated)
         isViewControllerVisible = true
         ThreadViewModel.threadWidth = view.frame.width
-        Task { [weak self] in
-            guard let self = self else { return }
-            await viewModel?.historyVM.start()
+        
+        if !hasEverViewAppeared {
+            hasEverViewAppeared = true
+            Task { [weak self] in
+                guard let self = self else { return }
+                await viewModel?.historyVM.start()
+            }
         }
     }
 
@@ -85,7 +90,8 @@ final class ThreadViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if keyboardheight == 0 {
-            let height = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+            var height = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
+            height = height + ConstantSizes.spaceLastMessageAndBottomContainer
             tableView.contentInset = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
             tableView.scrollIndicatorInsets = .init(top: topThreadToolbar.bounds.height + 4, left: 0, bottom: height, right: 0)
         }
@@ -318,9 +324,9 @@ extension ThreadViewController: ThreadViewDelegate {
         }
     }
 
-    func pinChanged(_ indexPath: IndexPath) {
+    func pinChanged(_ indexPath: IndexPath, pin: Bool) {
         if let cell = tableView.baseCell(indexPath) {
-            cell.pinChanged()
+            cell.pinChanged(pin: pin)
         }
     }
 
@@ -747,9 +753,9 @@ extension ThreadViewController {
         keyboardheight = show ? tuple.rect.height : 0
         
         sendContainerBottomConstraint?.constant = show ? -keyboardheight : keyboardheight
-       
+        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
         let pureHeight = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
-        let showInset = pureHeight + keyboardheight - view.safeAreaInsets.bottom
+        let showInset = pureHeight + spaceLastMessage + keyboardheight - view.safeAreaInsets.bottom
         let hideInset = pureHeight /// No need to use safeAreaInset because it will handeled by UIKit itself
         let insetBottom = show ? showInset : hideInset
         tableView.contentInset.bottom = insetBottom
@@ -781,7 +787,8 @@ extension ThreadViewController {
     private func onSendHeightChanged(_ height: CGFloat) {
         let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
-        let height = (height - safeAreaHeight) + keyboardheight
+        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
+        let height = (height - safeAreaHeight) + keyboardheight + spaceLastMessage
         if tableView.contentInset.bottom != height {
             tableView.contentInset.bottom = height
         }
@@ -811,5 +818,12 @@ extension Notification: @unchecked @retroactive Sendable {
             return (duration, opt, rect)
         }
         return nil
+    }
+}
+
+extension ThreadViewController {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        loadingManager.traitCollectionDidChange(previousTraitCollection)
     }
 }

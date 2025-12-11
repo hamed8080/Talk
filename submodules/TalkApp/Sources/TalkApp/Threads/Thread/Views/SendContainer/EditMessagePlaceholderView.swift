@@ -41,13 +41,13 @@ public final class EditMessagePlaceholderView: UIStackView {
         translatesAutoresizingMaskIntoConstraints = false
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
-        nameLabel.font = UIFont.fBody
+        nameLabel.font = UIFont.normal(.body)
         nameLabel.textColor = Color.App.accentUIColor
         nameLabel.numberOfLines = 1
         nameLabel.accessibilityIdentifier = "nameLabelSEditMessagePlaceholderView"
         nameLabel.setContentHuggingPriority(.required, for: .vertical)
 
-        messageLabel.font = UIFont.fCaption2
+        messageLabel.font = UIFont.normal(.caption2)
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.textColor = Color.App.textPlaceholderUIColor
         messageLabel.numberOfLines = 2

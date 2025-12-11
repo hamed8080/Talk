@@ -17,12 +17,14 @@ import TalkExtensions
 public protocol UIForwardThreadsViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<ThreadsListSection, CalculatedConversation>, animatingDifferences: Bool)
     func updateImage(image: UIImage?, id: Int)
+    func showBottomAnimation(show: Bool)
 }
 
 @MainActor
 public protocol UIForwardContactsViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<ContactListSection, Contact>, animatingDifferences: Bool)
     func updateImage(image: UIImage?, id: Int)
+    func showBottomAnimation(show: Bool)
 }
 
 @MainActor
@@ -39,7 +41,11 @@ public class ThreadOrContactPickerViewModel {
     public private(set) var contactsImages: [Int: ImageLoaderViewModel] = [:]
     private var searchTask: Task<Void, any Error>? = nil
 
-    public init() {}
+    public init() {
+        /// Clear out self thread and force it to fetch the new self thread.
+        UserDefaults.standard.removeObject(forKey: "SELF_THREAD")
+        UserDefaults.standard.synchronize()
+    }
     
     public func updateUI(animation: Bool, reloadSections: Bool) {
         /// Create
@@ -131,7 +137,9 @@ public class ThreadOrContactPickerViewModel {
         if !conversationsLazyList.canLoadMore(id: id) { return }
         conversationsLazyList.prepareForLoadMore()
         let req = ThreadsRequest(count: conversationsLazyList.count, offset: conversationsLazyList.offset)
+        delegate?.showBottomAnimation(show: true)
         try await getThreads(req)
+        delegate?.showBottomAnimation(show: false)
     }
 
     private func getThreads(_ req: ThreadsRequest) async throws {
@@ -180,7 +188,9 @@ public class ThreadOrContactPickerViewModel {
     public func loadMoreContacts() async throws {
         if !contactsLazyList.canLoadMore() { return }
         contactsLazyList.prepareForLoadMore()
+        contactsDelegate?.showBottomAnimation(show: true)
         try await getContacts()
+        contactsDelegate?.showBottomAnimation(show: false)
     }
         
     public func getContacts(text: String? = nil) async throws {

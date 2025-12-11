@@ -77,7 +77,7 @@ public struct UploadsManagerListView: View {
                .resizable()
                .scaledToFit()
                .padding(12)
-               .font(.fBoldBody)
+               .font(Font.bold(.body))
                .foregroundStyle(Color.App.toolbarButton)
        }
        .buttonStyle(.borderless)
@@ -95,7 +95,7 @@ public struct UploadsManagerListView: View {
                .resizable()
                .scaledToFit()
                .padding(12)
-               .font(.fBoldBody)
+               .font(Font.bold(.body))
                .foregroundStyle(Color.App.toolbarButton)
        }
        .buttonStyle(.borderless)
@@ -119,14 +119,14 @@ fileprivate struct UploadElementRow: View {
         HStack {
             VStack(alignment: .leading) {
                 Text(viewModel.fileNameString)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundStyle(Color.App.textPrimary)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 if element.isInQueue {
                     Text("UploadsManager.inUploadingQueue")
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption3)
+                        .font(Font.normal(.caption3))
                 }
             }
             
@@ -135,7 +135,7 @@ fileprivate struct UploadElementRow: View {
                 uploadButton
                 Text(viewModel.fileSizeString)
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption3)
+                    .font(Font.normal(.caption3))
             }
         }
         .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)

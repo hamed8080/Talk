@@ -25,9 +25,9 @@ class CameraCapturer: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         vc.sourceType = .camera
         if isVideo {
             if #available(iOS 15.0, *) {
-                vc.mediaTypes = [UTType.movie.identifier]
+                vc.mediaTypes = [UTType.movie.identifier, UTType.image.identifier]
             } else {
-                vc.mediaTypes = [kUTTypeMovie as String]
+                vc.mediaTypes = [kUTTypeMovie as String, kUTTypeImage as String]
             }
         }
     }
@@ -49,6 +49,12 @@ class CameraCapturer: NSObject, UIImagePickerControllerDelegate, UINavigationCon
             onImagePicked(uiImage, videoURL, assetResource)
         }
         picker.dismiss(animated: true)
+    }
+    
+    
+    public func isCameraAccessDenied() -> Bool {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        return status == .denied || status == .restricted
     }
 }
 

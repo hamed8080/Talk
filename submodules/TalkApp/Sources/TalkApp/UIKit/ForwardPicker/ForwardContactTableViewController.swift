@@ -10,6 +10,7 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkViewModels
+import Lottie
 
 class ForwardContactTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>?
@@ -17,6 +18,9 @@ class ForwardContactTableViewController: UIViewController {
     let viewModel: ThreadOrContactPickerViewModel
     static let resuableIdentifier = "CONTACT-ROW"
     private let onSelect: @Sendable (Conversation?, Contact?) -> Void
+    private let centerLoading = LottieAnimationView(fileName: "talk_logo_animation.json")
+    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
+    private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
     
     init(viewModel: ThreadOrContactPickerViewModel, onSelect: @Sendable @escaping (Conversation?, Contact?) -> Void) {
         self.viewModel = viewModel
@@ -40,13 +44,36 @@ class ForwardContactTableViewController: UIViewController {
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
+        
+        bottomAnimation.translatesAutoresizingMaskIntoConstraints = false
+        bottomAnimation.accessibilityIdentifier = "bottomLoadingForwardContactTableViewController"
+        bottomAnimation.isHidden = true
+        bottomAnimation.contentMode = .scaleAspectFit
+        bottomLoadingContainer.addSubview(self.bottomAnimation)
+        
+        tableView.tableFooterView = bottomLoadingContainer
         view.addSubview(tableView)
+        
+        centerLoading.translatesAutoresizingMaskIntoConstraints = false
+        centerLoading.isHidden = false
+        centerLoading.play()
+        view.addSubview(centerLoading)
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            centerLoading.widthAnchor.constraint(equalToConstant: 52),
+            centerLoading.heightAnchor.constraint(equalToConstant: 52),
+            centerLoading.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            centerLoading.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+            
+            bottomAnimation.widthAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.heightAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
+            bottomAnimation.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
         ])
         configureDataSource()
         
@@ -81,6 +108,9 @@ extension ForwardContactTableViewController {
 
 extension ForwardContactTableViewController: UIForwardContactsViewControllerDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<TalkViewModels.ContactListSection, ChatModels.Contact>, animatingDifferences: Bool) {
+        centerLoading.isHidden = true
+        centerLoading.stop()
+        showBottomAnimation(show: false)
         dataSource?.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
@@ -91,6 +121,18 @@ extension ForwardContactTableViewController: UIForwardContactsViewControllerDele
     private func cell(id: Int) -> ContactCell? {
         guard let index = viewModel.contacts.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? ContactCell
+    }
+    
+    func showBottomAnimation(show: Bool) {
+        bottomAnimation.isHidden = !show
+        bottomAnimation.isUserInteractionEnabled = show
+        if show {
+            tableView.tableFooterView = bottomLoadingContainer
+            bottomAnimation.play()
+        } else {
+            tableView.tableFooterView = UIView()
+            bottomAnimation.stop()
+        }
     }
 }
 

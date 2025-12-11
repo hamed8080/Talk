@@ -109,7 +109,6 @@ public final class ThreadBottomToolbar: UIStackView {
     }
 
     public func showPickerButtons(_ show: Bool) {
-        mainSendButtons.toggleAttchmentButton(show: show)
         showPicker(show: show)
         viewModel?.scrollVM.disableExcessiveLoading()
     }

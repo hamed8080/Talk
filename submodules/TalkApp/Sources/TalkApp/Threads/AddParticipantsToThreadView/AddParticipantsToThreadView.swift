@@ -78,6 +78,8 @@ struct AddParticipantsToThreadView: View {
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
                 .submitLabel(.done)
+                .font(.normal(.body))
+
             Spacer()
             Text("General.add")
                 .frame(height: 30)
@@ -85,6 +87,7 @@ struct AddParticipantsToThreadView: View {
                 .padding(.horizontal)
                 .background(Color.App.dividerSecondary)
                 .foregroundStyle(Color.App.textSecondary)
+                .font(.normal(.body))
         }
         .frame(height: 78)
         .background(.ultraThinMaterial)

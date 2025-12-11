@@ -13,7 +13,7 @@ import ChatModels
 
 @MainActor
 public final class ConversationHistoryCellFactory {
-    class func reuse(_ tableView: UITableView, _ indexPath: IndexPath, _ viewModel: ThreadViewModel?) -> UITableViewCell {
+    class func reuse(_ tableView: UITableView, _ indexPath: IndexPath, _ viewModel: ThreadViewModel?, _ onSwipe: ((Int) -> Void)? = nil) -> UITableViewCell {
         guard let viewModel = viewModel?.historyVM.sections.viewModelWith(indexPath) else {
             return UITableViewCell()
         }
@@ -27,10 +27,12 @@ public final class ConversationHistoryCellFactory {
         case .partnerMessage:
             let cell = cell as? PartnerMessageCell ?? .init()
             cell.setValues(viewModel: viewModel)
+            cell.swipeAction?.onSwipe = onSwipe
             return cell
         case .meMessage:
             let cell = cell as? MyselfMessageCell ?? .init()
             cell.setValues(viewModel: viewModel)
+            cell.swipeAction?.onSwipe = onSwipe
             return cell
         case .participants:
             let cell = (cell as? ParticipantsEventCell) ?? ParticipantsEventCell()

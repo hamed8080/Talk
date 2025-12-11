@@ -16,13 +16,13 @@ struct DeleteContactView: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("Contacts.deleteSelectedTitle")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubtitle)
+                .font(Font.bold(.subtitle))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             Text("Contacts.deleteSelectedSubTitle")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fSubheadline)
+                .font(Font.normal(.subheadline))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -32,7 +32,7 @@ struct DeleteContactView: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                 }
 
@@ -42,7 +42,7 @@ struct DeleteContactView: View {
                 } label: {
                     Text("General.delete")
                         .foregroundStyle(Color.App.red)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                 }
             }

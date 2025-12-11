@@ -34,6 +34,8 @@ public protocol UIThreadsViewControllerDelegate: AnyObject, ContextMenuDelegate 
     var contextMenuContainer: ContextMenuContainerView? { get set }
     func createThreadViewController(conversation: Conversation) -> UIViewController
     func setImageFor(id: Int, image: UIImage?)
+    func showCenterAnimation(show: Bool)
+    func showBottomAnimation(show: Bool)
 }
 
 @MainActor
@@ -46,23 +48,21 @@ public final class ThreadsViewModel: ObservableObject {
     public var selectedThraed: Conversation?
     public var calculatedSearchedThreads: [CalculatedConversation] = []
     public var serverSortedPins: [Int] = []
-    public var shimmerViewModel = ShimmerViewModel(delayToHide: 0, repeatInterval: 0.5)
     private var cache: Bool = true
     public private(set) var lazyList = LazyListViewModel()
-    private let participantsCountManager = ParticipantsCountManager()
+    private let participantsCountManager: ParticipantsCountManager
     private var wasDisconnected = false
     internal let incForwardQueue = IncommingForwardMessagesQueue()
     internal let incNewQueue = IncommingNewMessagesQueue()
     public var saveScrollPositionVM = ThreadsSaveScrollPositionViewModel()
     public weak var delegate: UIThreadsViewControllerDelegate?
     private var imageLoaders: [Int: ImageLoaderViewModel] = [:]
-    public let isArchive: Bool?
+    public let isArchive: Bool
     public var isArchiveObserverInitialized = false
     public let isForwardList: Bool?
     
     private var previousOffset: CGPoint? = nil
     private var previousContentSize: CGSize? = nil
-    @AppBackgroundActor
     private var isCompleted = false
 
     internal var objectId = UUID().uuidString
@@ -73,16 +73,18 @@ public final class ThreadsViewModel: ObservableObject {
     // MARK: Computed properties
     var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var myId: Int { AppState.shared.user?.id ?? -1 }
+    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
 
-    public init(isArchive: Bool? = nil, isForwardList: Bool? = nil) {
+    public init(isArchive: Bool, isForwardList: Bool? = nil) {
         self.isArchive = isArchive
+        self.participantsCountManager = ParticipantsCountManager(isArchive: isArchive)
         print("init threadsView model isArchive:\(isArchive)")
         self.isForwardList = isForwardList
         CHANNEL_TO_KEY = "CHANGE-TO-PUBLIC-\(objectId)"
         JOIN_TO_PUBLIC_GROUP_KEY = "JOIN-TO-PUBLIC-GROUP-\(objectId)"
         LEAVE_KEY = "LEAVE"
         
-        if isArchive == nil {
+        if isArchive == false {
             setupObservers()
         }
         
@@ -102,13 +104,14 @@ public final class ThreadsViewModel: ObservableObject {
         }
         
         /// Apply
-        Task { @AppBackgroundActor in
-            isCompleted = false
-            await MainActor.run {
-                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
-            }
-            self.isCompleted = true
-        }
+        isCompleted = false
+        print("[DELEGATE] Delegate is nil: \(delegate == nil) in viewModel and self mem addrress is: \(Unmanaged.passUnretained(self).toOpaque())")
+        delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+        isCompleted = true
+    }
+    
+    public func forceUpdateSnapshot() {
+        updateUI(animation: false, reloadSections: false)
     }
     
     public func savePreviousContentOffset() {
@@ -118,7 +121,7 @@ public final class ThreadsViewModel: ObservableObject {
     }
     
     public func moveToContentOffset() async {
-        while await !isCompleted {}
+        while !isCompleted {}
         if let previousOffset = previousOffset, let previousContentSize = previousContentSize {
             self.previousContentSize = nil
             self.previousOffset = nil
@@ -131,7 +134,8 @@ public final class ThreadsViewModel: ObservableObject {
 
     func onCreate(_ response: ChatResponse<Conversation>) async {
         lazyList.setLoading(false)
-        if let thread = response.result {
+        let isArchive = isArchive == true
+        if let thread = response.result, !isArchive {
             var thread = thread
             thread.reactionStatus = thread.reactionStatus ?? .enable
             await calculateAppendSortAnimate(thread)
@@ -145,7 +149,7 @@ public final class ThreadsViewModel: ObservableObject {
             let isReferenceArchived = reference.isArchive == true
             
             /// Prevent calling wrong object instance
-            if isReferenceArchived && isArchive == nil { return }
+            if isReferenceArchived && isArchive == false { return }
             if !isReferenceArchived && isArchive == true { return }
             
             let old = reference.toStruct()
@@ -164,9 +168,23 @@ public final class ThreadsViewModel: ObservableObject {
             animateObjectWillChange() /// We should update the ThreadList view because after receiving a message, sorting has been changed.
         } else if let conversation = await GetSpecificConversationViewModel().getNotActiveThreads(conversationId) {
             
+            /// Update list of the threads in the normal thread list or archive list
+            if isArchive == conversation.isArchive ?? false {
+                let calculatedConversation = ThreadCalculators.calculate(conversation, myId)
+                let newThreads = await appendThreads(newThreads: [calculatedConversation], oldThreads: threads)
+                let sorted = await sort(threads: newThreads, serverSortedPins: serverSortedPins)
+                self.threads = sorted
+                updateUI(animation: false, reloadSections: false)
+            }
+            
+            if userNeverOpennedArchivedList(id: conversation.id) {
+                updateActiveArchivConversation(newConversation: conversation, messages: messages)
+                return
+            }
+            
             let isReferenceArchived = conversation.isArchive == true
             /// Prevent calling wrong object instance
-            if isReferenceArchived && isArchive == nil { return }
+            if isReferenceArchived && isArchive == false { return }
             if !isReferenceArchived && isArchive == true { return }
             
             savePreviousContentOffset()
@@ -175,6 +193,18 @@ public final class ThreadsViewModel: ObservableObject {
             updateActiveConversationOnNewMessage(messages, conversation, oldConversation)
             await moveToContentOffset()
         }
+    }
+    
+    private func userNeverOpennedArchivedList(id: Int?) -> Bool {
+        let isArchiveListEmpty = archivesVM.threads.isEmpty
+        let samePresentedId = navVM.presentedThreadViewModel?.viewModel?.id == id
+        return isArchiveListEmpty && samePresentedId
+    }
+    
+    private func updateActiveArchivConversation(newConversation: Conversation, messages: [Message]) {
+        // Just update the active archived converstion.
+        let oldConversation = navVM.presentedThreadViewModel?.viewModel?.thread
+        updateActiveConversationOnNewMessage(messages, newConversation, oldConversation)
     }
 
     private func updateActiveConversationOnNewMessage(_ messages: [Message], _ updatedConversation: Conversation, _ oldConversation: Conversation?) {
@@ -245,13 +275,10 @@ public final class ThreadsViewModel: ObservableObject {
     public func getThreads(withQueue: Bool = false, keepOrder: Bool = false) async {
         /// Check if user didn't logged out
         if !TokenManager.shared.isLoggedIn { return }
-        if !firstSuccessResponse {
-            shimmerViewModel.show()
-        }
         lazyList.setLoading(true)
         do {
             
-            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, archived: isArchive, cache: cache)
+            let req = ThreadsRequest(count: lazyList.count, offset: lazyList.offset, archived: !isArchive ? nil : true, cache: cache)
             let conversations = try await GetThreadsReuqester().getCalculated(req: req,
                                                                               withCache: false,
                                                                               queueable: withQueue,
@@ -281,7 +308,9 @@ public final class ThreadsViewModel: ObservableObject {
     public func loadMore(id: Int?) async {
         if !lazyList.canLoadMore(id: id) { return }
         lazyList.prepareForLoadMore()
+        delegate?.showBottomAnimation(show: true)
         await getThreads()
+        delegate?.showBottomAnimation(show: false)
     }
     
     public func append(_ conversation: CalculatedConversation) async {
@@ -317,9 +346,6 @@ public final class ThreadsViewModel: ObservableObject {
         lazyList.setThreasholdIds(ids: threshold)
         if hasAnyResults {
             firstSuccessResponse = true
-        }
-        if firstSuccessResponse {
-            shimmerViewModel.hide()
         }
         objectWillChange.send()
         
@@ -982,9 +1008,15 @@ extension ThreadsViewModel {
 }
 
 extension ThreadsViewModel {
-    public func toggleArchive(_ thread: Conversation) {
+    public func toggleArchive(_ thread: Conversation) async throws {
         guard let threadId = thread.id else { return }
         if thread.isArchive == false || thread.isArchive == nil {
+            
+            /// Unpin the thread before archiving
+            if thread.pin == true {
+                try await PinThreadRequester().unpin(.init(subjectId: threadId))
+            }
+            
             archive(threadId)
             let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
             let overlayVM = AppState.shared.objectsContainer.appOverlayVM

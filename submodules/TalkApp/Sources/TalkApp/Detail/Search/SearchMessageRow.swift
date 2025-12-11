@@ -24,7 +24,7 @@ struct SearchMessageRow: View {
             HStack(alignment: .top) {
                 
                 Text(message.message ?? "")
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .multilineTextAlignment(.leading)
                     .foregroundStyle(Color.App.textPrimary)
                     .lineLimit(1)
@@ -36,13 +36,13 @@ struct SearchMessageRow: View {
                         Text(name)
                             .foregroundStyle(Color.App.textSecondary)
                             .lineLimit(1)
-                            .font(Font.fCaption2)
+                            .font(Font.normal(.caption2))
                     }
                     
                     if let timeString = message.time?.date.localFormattedTime {
                         Text(timeString)
                             .foregroundStyle(Color.App.textSecondary)
-                            .font(Font.fCaption2)
+                            .font(Font.normal(.caption2))
                     }
                 }
             }

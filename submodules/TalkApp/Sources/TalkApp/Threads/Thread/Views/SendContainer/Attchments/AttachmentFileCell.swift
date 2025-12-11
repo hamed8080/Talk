@@ -49,12 +49,12 @@ public final class AttachmentFileCell: UITableViewCell {
         hStack.accessibilityIdentifier = "hStackAttachmentFileCell"
         hStack.semanticContentAttribute = semantic
 
-        lblTitle.font = UIFont.fBoldBody
+        lblTitle.font = UIFont.bold(.body)
         lblTitle.textColor = Color.App.textPrimaryUIColor
         lblTitle.accessibilityIdentifier = "lblTitleAttachmentFileCell"
         lblTitle.semanticContentAttribute = semantic
 
-        lblSubtitle.font = UIFont.fCaption3
+        lblSubtitle.font = UIFont.normal(.caption3)
         lblSubtitle.textColor = Color.App.textSecondaryUIColor
         lblSubtitle.accessibilityIdentifier = "lblSubtitleAttachmentFileCell"
         lblSubtitle.semanticContentAttribute = semantic
@@ -68,7 +68,7 @@ public final class AttachmentFileCell: UITableViewCell {
         btnRemove.semanticContentAttribute = semantic
 
         btnEditImage.translatesAutoresizingMaskIntoConstraints = false
-        let editImage = UIImage(systemName: "pencil.line")
+        let editImage = UIImage(named: "ic_edit_empty")
         btnEditImage.setImage(editImage, for: .normal)
         btnEditImage.tintColor = Color.App.textSecondaryUIColor
         btnEditImage.accessibilityIdentifier = "btnEidtImageAttachmentFileCell"
@@ -170,7 +170,7 @@ public final class AttachmentFileCell: UITableViewCell {
     
     private func openEditor(_ url: URL) {
         guard let vc = contentView.window?.rootViewController else { return }
-        let font = UIFont.fBody ?? .systemFont(ofSize: 14)
+        let font = UIFont.normal(.body) ?? .systemFont(ofSize: 14)
         let editorVC = ImageEditorViewController(url: url, font: font, doneTitle: "General.submit".bundleLocalized(), cancelTitle: "General.cancel".bundleLocalized())
         
         editorVC.onDone = { [weak self, weak editorVC] outputURL, error in

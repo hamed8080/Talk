@@ -12,9 +12,10 @@ import TalkModels
 public final class SendContainerTextView: UIView, UITextViewDelegate {
     private var textView: UITextView = UITextView()
     public var onTextChanged: ((String?) -> Void)?
+    public var onHeightChange: ((CGFloat) -> Void)?
     private let placeholderLabel = UILabel()
     private var heightConstraint: NSLayoutConstraint!
-    private let initSize: CGFloat = 48
+    private let initSize: CGFloat = 52
     private let RTLMarker = "\u{200f}"
     
     public init() {
@@ -36,7 +37,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.textContainerInset = .init(top: 14, left: 10, bottom: 14, right: 10)
+        textView.textContainerInset = .init(top: 16, left: 10, bottom: 14, right: 10)
         textView.delegate = self
         textView.isEditable = true
         textView.isSelectable = true
@@ -49,7 +50,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         paragraphStyle.alignment = Language.isRTL ? .right : .left
         
         textView.typingAttributes = [
-            .font: UIFont.fSubheadline,
+            .font: UIFont.normal(.subheadline),
             .foregroundColor: UIColor(named: "text_primary") ?? .black,
             .paragraphStyle: paragraphStyle
         ]
@@ -57,7 +58,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         
         placeholderLabel.text = "Thread.SendContainer.typeMessageHere".bundleLocalized()
         placeholderLabel.textColor = Color.App.textPrimaryUIColor?.withAlphaComponent(0.7)
-        placeholderLabel.font = UIFont.fSubheadline
+        placeholderLabel.font = UIFont.normal(.subheadline)
         placeholderLabel.textAlignment = Language.isRTL ? .right : .left
         placeholderLabel.isUserInteractionEnabled = false
         addSubview(placeholderLabel)
@@ -157,7 +158,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     func recalculateHeight(newHeight: CGFloat) {
         if frame.size.height != newHeight {
             UIView.animate(withDuration: 0.3) {
-                self.heightConstraint.constant = newHeight // !! must be called asynchronously
+                self.heightConstraint.constant = newHeight // !! must be called asynchronouslyUIStackView
+                self.onHeightChange?(newHeight)
             }
         }
     }
@@ -181,7 +183,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         /// Add default color and font for all text it will ovverde by other attributes if needed
         let allRange = NSRange(text.startIndex..., in: text)
         attr.addAttribute(.foregroundColor, value: UIColor(named: "text_primary") ?? .black, range: allRange)
-        attr.addAttribute(.font, value: UIFont.fSubheadline, range: allRange)
+        attr.addAttribute(.font, value: UIFont.normal(.subheadline), range: allRange)
         
         /// Add mention accent color and default system font due to all user names must be in english.
         let mentionPattern = "@[A-Za-z0-9._]+"

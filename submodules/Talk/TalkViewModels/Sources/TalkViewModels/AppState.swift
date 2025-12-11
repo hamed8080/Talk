@@ -11,6 +11,9 @@ import SwiftUI
 import TalkExtensions
 import TalkModels
 
+/// AppState will remain in memory forever; it will not reinstantiate.
+/// This object holds an important object called `objectsContainer` that will instantiate only once
+/// and we prevent making it twice by checking in the SceneDelegate where we make this object.
 @MainActor
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
@@ -42,8 +45,10 @@ public final class AppState: ObservableObject, Sendable {
         windowMode = UIApplication.shared.windowMode()
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
             Task { @MainActor in
-                AppState.isInSlimMode =
-                UIApplication.shared.windowMode().isInSlimMode
+                AppState.isInSlimMode = UIApplication.shared.windowMode().isInSlimMode
+                
+                let newState = UIApplication.shared.windowMode()
+                NotificationCenter.windowMode.post(name: .windowMode, object: newState)
             }
         }
         
@@ -61,13 +66,6 @@ extension AppState {
             self?.updateWindowMode()
         }
         .store(in: &cancelable)
-    }
-}
-
-extension AppState {
-    public func openURL(url: URL) {
-        NotificationCenter.default.post(name: NSNotification.Name("openURL"), object: url)
-        animateObjectWillChange()
     }
 }
 

@@ -73,14 +73,14 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         addSubview(topGradientView)
         
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.fBoldCaption2
+        fileSizeLabel.font = UIFont.bold(.caption2)
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageVideoView"
         addSubview(fileSizeLabel)
 
         fileNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileNameLabel.font = UIFont.fBoldCaption2
+        fileNameLabel.font = UIFont.bold(.caption2)
         fileNameLabel.textAlignment = .left
         fileNameLabel.textColor = UIColor.white
         fileNameLabel.numberOfLines = 1
@@ -89,7 +89,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
         addSubview(fileNameLabel)
 
         fileTypeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileTypeLabel.font = UIFont.fBoldCaption2
+        fileTypeLabel.font = UIFont.bold(.caption2)
         fileTypeLabel.textAlignment = .left
         fileTypeLabel.textColor = UIColor.white.withAlphaComponent(0.9)
         fileTypeLabel.accessibilityIdentifier = "fileTypeLabelMessageVideoView"

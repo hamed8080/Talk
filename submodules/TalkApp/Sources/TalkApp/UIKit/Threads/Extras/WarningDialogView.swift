@@ -20,7 +20,7 @@ public struct WarningDialogView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(message)
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubheadline)
+                .font(Font.bold(.subheadline))
                 .multilineTextAlignment(.leading)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
@@ -30,7 +30,7 @@ public struct WarningDialogView: View {
                 } label: {
                     Text("General.close")
                         .foregroundStyle(Color.App.accent)
-                        .font(.fBoldBody)
+                        .font(Font.bold(.body))
                         .fontWeight(.medium)
                 }
             }

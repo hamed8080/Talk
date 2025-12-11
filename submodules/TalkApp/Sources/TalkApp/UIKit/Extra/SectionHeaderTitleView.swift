@@ -28,7 +28,7 @@ class SectionHeaderTitleView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = text
         label.textColor = Color.App.textSecondaryUIColor
-        label.font = UIFont.fCaption
+        label.font = UIFont.normal(.caption)
         label.textAlignment = Language.isRTL ? .right : .left
         
         backgroundColor = Color.App.dividerPrimaryUIColor

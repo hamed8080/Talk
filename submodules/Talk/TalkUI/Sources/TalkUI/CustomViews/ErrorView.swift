@@ -10,7 +10,7 @@ public struct ErrorView: View {
     public var body: some View {
         HStack {
             Text(error)
-                .font(.fCaption2)
+                .font(Font.normal(.caption2))
                 .foregroundColor(.red.opacity(0.7))
         }
         .padding()

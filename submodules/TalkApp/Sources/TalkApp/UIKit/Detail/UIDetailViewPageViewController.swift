@@ -123,7 +123,7 @@ final class UIDetailViewPageViewController: UIViewController {
             let button = UIButton(type: .system)
             button.setTitle(title, for: .normal)
             button.tag = index
-            button.titleLabel?.font = UIFont.fBody
+            button.titleLabel?.font = UIFont.normal(.body)
             button.translatesAutoresizingMaskIntoConstraints = false
             button.addTarget(self, action: #selector(tabTapped(_:)), for: .touchUpInside)
             buttons.append(button)

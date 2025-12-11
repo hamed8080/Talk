@@ -8,6 +8,7 @@
 import UIKit
 import TalkUI
 import SwiftUI
+import Combine
 
 /// Apple won't allow to put a UITabBarViewController as a primary view controller in a UISplitViewController
 /// So we have to make it ourself.
@@ -18,6 +19,7 @@ class PrimaryTabBarViewController: UIViewController {
     private let contactsVC = ContactTableViewController(viewModel: AppState.shared.objectsContainer.contactsVM)
     private let chatsVC = ThreadsTableViewController(viewModel: AppState.shared.objectsContainer.threadsVM)
     private let settingsVC = UIHostingController(rootView: SettingsTabWrapper())
+    private var windowModeCancellable: AnyCancellable?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,6 +87,7 @@ class PrimaryTabBarViewController: UIViewController {
         
         switchTo(chatsVC)
         tabBar.selectedItem = chatsTab
+        registerWindowChange()
     }
     
     @objc private func changeTab() {
@@ -129,7 +132,7 @@ class PrimaryTabBarViewController: UIViewController {
     
     private func makeTabItem(image: String, title: String) -> UITabBarItem {
         let fontAttr = [
-            NSAttributedString.Key.font: UIFont.fBody
+            NSAttributedString.Key.font: UIFont.normal(.body)
         ]
         
         let tabItem = UITabBarItem(title: title.bundleLocalized(), image: UIImage(systemName: image), selectedImage: nil)
@@ -137,6 +140,28 @@ class PrimaryTabBarViewController: UIViewController {
         tabItem.setTitleTextAttributes(fontAttr, for: .selected)
         
         return tabItem
+    }
+    
+    private func registerWindowChange() {
+        windowModeCancellable = NotificationCenter.windowMode.publisher(for: .windowMode).sink { [weak self] newValue in
+            guard let self = self else { return }
+            if let windowMode = newValue.object as?  WindowMode {
+                /// Remove active width constraint
+                let constraint = active?.view.constraints.first(where: { $0.firstAttribute == .width })
+                if let constraint = constraint {
+                    active?.view.removeConstraint(constraint)
+                }
+                
+                /// Add a new width constriant again.
+                if splitViewController?.isCollapsed == true {
+                    active?.view.widthAnchor.constraint(equalTo: container.widthAnchor).isActive = true
+                } else {
+                    let width: CGFloat = windowMode == .ipadFullScreen ? 420 : 320
+                    splitViewController?.preferredPrimaryColumnWidth = width
+                    active?.view.widthAnchor.constraint(equalToConstant: width).isActive = true
+                }
+            }
+        }
     }
 }
 

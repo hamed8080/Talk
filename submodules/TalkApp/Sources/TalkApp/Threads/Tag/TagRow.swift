@@ -38,10 +38,10 @@ struct TagRow: View {
                             .foregroundColor(Color.App.textSecondary.opacity(0.8))
                         VStack(alignment: .leading) {
                             Text(tag.name)
-                                .font(.fBody)
+                                .font(Font.normal(.body))
                             Text("\(tag.tagParticipants?.count ?? 0)")
                                 .lineLimit(1)
-                                .font(.fCaption2)
+                                .font(Font.normal(.caption2))
                         }
                         Spacer()
 

@@ -163,24 +163,24 @@ extension AttachmentFilesTableView: AttachmentDelegate {
         tableView.reloadRows(at: [indexPath], with: .automatic)
         showImageEditorIfOneImagePicked()
     }
-}
-
-// MARK: ImageEditor
-extension AttachmentFilesTableView {
-    private func showImageEditorIfOneImagePicked() {
+    
+    public func showImageEditorIfOneImagePicked() {
         /// We have to show ImageEditor after data is being set by on image ready
         /// in reload method AttachmentFile.data is a an empty Data() object.
         let atts = viewModel?.attachmentsViewModel.attachments ?? []
         let firstAtt = atts.first
         guard atts.count == 1, let first = firstAtt else { return }
-        if first.type == .gallery, let url = first.createATempImageURL() {
+        if first.type == .gallery, let url = first.createATempImageURL(), (first.request as? ImageItem)?.isVideo == false {
             showImageEditorDirectly(url: url, attachment: first)
         }
     }
-    
+}
+
+// MARK: ImageEditor
+extension AttachmentFilesTableView {
     private func showImageEditorDirectly(url: URL, attachment: AttachmentFile) {
         guard let vc = window?.rootViewController else { return }
-        let font = UIFont.fBody ?? .systemFont(ofSize: 14)
+        let font = UIFont.normal(.body) ?? .systemFont(ofSize: 14)
         let editorVC = ImageEditorViewController(url: url, font: font, doneTitle: "General.submit".bundleLocalized(), cancelTitle: "General.cancel".bundleLocalized())
         editorVC.onDone = { [weak self, weak editorVC] outputURL, error in
             guard let self = self,

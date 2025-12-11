@@ -31,12 +31,12 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
         backgroundView?.backgroundColor = .clear
 
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.label.font = UIFont.fBoldCaption
+        label.label.font = UIFont.bold(.caption)
         label.label.textColor = .white
         label.layer.cornerRadius = ConstantSizes.sectionHeaderViewLabelCornerRadius
         label.layer.masksToBounds = true
         label.label.textAlignment = .center
-        label.backgroundColor = .black.withAlphaComponent(0.4)
+        label.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
         label.accessibilityIdentifier = "labelSectionHeaderView"
 
         let pressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onPress(_:)))
@@ -47,7 +47,8 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
 
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: centerYAnchor),
+            label.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
         ])
     }
 
@@ -58,13 +59,13 @@ final class SectionHeaderView: UITableViewHeaderFooterView {
     @objc private func onPress(_ gesture: UILongPressGestureRecognizer) {
         switch gesture.state {
         case .began:
-            label.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.6)
+            label.backgroundColor = UIColor.gray.withAlphaComponent(0.4)
         case .ended:
-            label.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+            label.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             delegate?.openMoveToDatePicker()
         case .cancelled, .failed:
-            label.backgroundColor = Color.App.bgSecondaryUIColor?.withAlphaComponent(0.6)
+            label.backgroundColor = UIColor.gray.withAlphaComponent(0.6)
         default:
             break
         }

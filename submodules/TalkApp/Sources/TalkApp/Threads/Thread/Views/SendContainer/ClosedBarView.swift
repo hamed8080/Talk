@@ -27,13 +27,13 @@ public final class ClosedBarView: UIView {
 
     private func configureViews() {
         // Configure lblCloesd
-        lblCloesd.font = UIFont.fSubheadline
+        lblCloesd.font = UIFont.normal(.subheadline)
         lblCloesd.accessibilityIdentifier = "lblClosedBarView"
         lblCloesd.textColor = Color.App.textSecondaryUIColor
         lblCloesd.text = "Thread.groupCloesdByAdmin".bundleLocalized()
 
         // Configure btn
-        btn.titleLabel?.font = UIFont.fBoldSubheadline
+        btn.titleLabel?.font = UIFont.bold(.body)
         btn.accessibilityIdentifier = "btnClosedBarView"
         btn.setTitleColor(Color.App.accentUIColor, for: .normal)
         btn.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(btnTapped)))
@@ -44,6 +44,7 @@ public final class ClosedBarView: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .horizontal
         stackView.alignment = .center
+        stackView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         stackView.spacing = 8 // Space between lblCloesd and btn
         stackView.addArrangedSubview(lblCloesd)
         stackView.addArrangedSubview(btn)

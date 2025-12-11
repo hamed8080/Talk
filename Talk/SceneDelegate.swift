@@ -26,9 +26,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         let local = LeitnerBoxLoginViewModel.lo()
-        if local {
+        let buildName = Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String
+        if buildName == "LeitnerBox" {
+            runLeitnerBox(scene)
+        } else if local {
             runT(scene)
-        } else if Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String == "Sibche" && local {
+        } else if buildName == "Sibche" && local {
             runS(scene)
         } else {
             runLeitnerBox(scene)
@@ -97,12 +100,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     public func setupRoot(windowScene: UIWindowScene) {
         let window = UIWindow(windowScene: windowScene)
 //        let contentView = HomeContentView()
-//            .font(.fBody)
+//            .font(Font.bold(.body))
         /// CustomUIHosting is Needed for change status bar color per page
 //        window.rootViewController = CustomUIHostinViewController(rootView: contentView)
         
         /// This object reference will not be released and will be hold by the AppState automatically
-        let _ = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
+        if AppState.shared.objectsContainer == nil {
+            let _ = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
+        }
         
         if TokenManager.shared.isLoggedIn {
             window.rootViewController = SplitViewController(style: .doubleColumn)
@@ -141,7 +146,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
                 AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(publicGroupName: publicName))
             } else {
                 /// Open up the browser
-                AppState.shared.openURL(url: decodedOpenURL)
+                AppState.shared.objectsContainer.navVM.openURL(url: decodedOpenURL)
             }
         }
     }

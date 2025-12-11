@@ -237,6 +237,9 @@ extension ThreadHistoryViewModel {
             
             /// Insert and scroll to the last thread message.
             if let indexPath = lastMessageIndexPath {
+                if thread.lastSeenMessageId ?? 0 > thread.lastMessageVO?.id ?? 0 {
+                    fixLastMessageIfNeeded()
+                }
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .bottom, false)
             } else if !tuple.rows.isEmpty {
                 fixLastMessageIfNeeded()
@@ -325,7 +328,8 @@ extension ThreadHistoryViewModel {
             showBottomLoading(true)
             
             /// Get new messages if there are any.
-            let vms = try await onReconnectViewModels()
+            var vms = try await onReconnectViewModels()
+            vms = removeDuplicateMessagesBeforeAppend(vms)
             
             /// If now new message is available so we need to return.
             if vms.isEmpty {
@@ -951,7 +955,7 @@ extension ThreadHistoryViewModel {
         if let messageId = response.result?.messageId, let vm = sections.messageViewModel(for: messageId) {
             vm.pinMessage(time: response.result?.time)
             guard let indexPath = sections.indexPath(for: vm) else { return }
-            delegate?.pinChanged(indexPath)
+            delegate?.pinChanged(indexPath, pin: true)
         }
     }
 
@@ -959,7 +963,7 @@ extension ThreadHistoryViewModel {
         if let messageId = response.result?.messageId, let vm = sections.messageViewModel(for: messageId) {
             vm.unpinMessage()
             guard let indexPath = sections.indexPath(for: vm) else { return }
-            delegate?.pinChanged(indexPath)
+            delegate?.pinChanged(indexPath, pin: false)
         }
     }
 

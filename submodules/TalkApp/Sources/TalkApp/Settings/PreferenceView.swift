@@ -14,10 +14,13 @@ struct PreferenceView: View {
 
     var body: some View {
         List {
+            SettingNotificationSection()
+                .listRowInsets(.zero)
+                .listRowSeparator(.hidden)
             DarkModeSection()
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)
-            StickyHeaderSection(header: "", height: 10)
+            StickyHeaderSection(header: "", height: 0.5)
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)
             ManageSessionsSection()
@@ -28,7 +31,7 @@ struct PreferenceView: View {
                 .listRowSeparator(.hidden)
             SaveScrollPositionSection()
             if EnvironmentValues.isTalkTest {
-                StickyHeaderSection(header: "", height: 10)
+                StickyHeaderSection(header: "", height: 0.5)
                     .listRowInsets(.zero)
                     .listRowSeparator(.hidden)
                     .sandboxLabel()
@@ -37,7 +40,7 @@ struct PreferenceView: View {
                         Toggle("Contacts.Sync.sync".bundleLocalized(), isOn: $isSyncOn)
                         Text("Contacts.Sync.subtitle")
                             .foregroundColor(.gray)
-                            .font(.fCaption3)
+                            .font(Font.normal(.caption3))
                     }
                     .sandboxLabel()
                 }
@@ -46,9 +49,10 @@ struct PreferenceView: View {
                 .sandboxLabel()
             }
         }
-        .environment(\.defaultMinListRowHeight, 8)
+        .environment(\.defaultMinListRowHeight, 0.5)
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
+        .font(Font.normal(.body))
         .onChange(of: isSyncOn) { newValue in
             var model = AppSettingsModel.restore()
             model.isSyncOn = newValue

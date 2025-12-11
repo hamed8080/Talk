@@ -21,6 +21,7 @@ public class MessageHistoryStatics {
     public static let textDirectionMark = Language.isRTL ? "\u{200f}" : "\u{200e}"
     public static let clockImage = UIImage(named: "clock")
     public static let sentImage = UIImage(named: "ic_single_check_mark")
+    public static let sentImagePadding = UIImage(named: "ic_single_check_mark_padding")
     public static let seenImage = UIImage(named: "ic_double_check_mark")
     public static let leadingTail = UIImage(named: "leading_tail")!
     public static let trailingTail = UIImage(named: "trailing_tail")!
@@ -200,6 +201,26 @@ public extension HistoryMessageProtocol {
     func appleMapsURL(basePath: String) -> URL? {
         guard let coordinate = mapCoordinate(basePath: basePath) else { return nil }
         return URL(string: "maps://?q=\(message ?? "")&ll=\(coordinate.lat),\(coordinate.lng)")
+    }
+    
+    func splitedNeshan(basePath: String) -> URL? {
+        guard let mapLink = fileMetaData?.mapLink,
+              let coordinate = splitedCoordinateNeshan(mapLink: mapLink)
+        else { return nil }
+        return URL(string: "\(basePath)/@\(coordinate.lat),\(coordinate.lng),18.1z,0p")
+    }
+    
+    private func splitedCoordinateNeshan(mapLink: String) -> Coordinate? {
+        let comp = URLComponents(string: mapLink)
+        let splited = comp?.path.replacingOccurrences(of: "/@", with: "").split(separator: ",")
+        
+        guard let splited = splited,
+              splited.count >= 2,
+              let lat = Double(splited[0]),
+              let lng = Double(splited[1])
+        else { return nil }
+        
+        return Coordinate(lat: lat, lng: lng)
     }
 
     func addOrRemoveParticipantString(meId: Int?) -> String? {

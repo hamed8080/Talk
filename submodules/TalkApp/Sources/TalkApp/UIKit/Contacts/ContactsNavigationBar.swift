@@ -32,6 +32,8 @@ class ContactsNavigationBar: UIView {
     
     private func setupView() {
 
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        
         let blurEffect = UIBlurEffect(style: .systemThickMaterial)
         let effectView = UIVisualEffectView(effect: blurEffect)
         effectView.accessibilityIdentifier = "effectContactsNavigationBar"
@@ -40,17 +42,20 @@ class ContactsNavigationBar: UIView {
         
         overBlurEffectColorView.translatesAutoresizingMaskIntoConstraints = false
         overBlurEffectColorView.accessibilityIdentifier = "overBlurEffectColorViewContactsNavigationBar"
-        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        overBlurEffectColorView.backgroundColor = isDark ? UIColor.clear : Color.App.accentUIColor
         addSubview(overBlurEffectColorView)
         
-        titleLabel.text = "Contacts"
-        titleLabel.font = UIFont.fBoldSubheadline
+        titleLabel.text = "Tab.contacts".bundleLocalized()
+        titleLabel.font = UIFont.bold(.subheadline)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.textColor = Color.App.toolbarButtonUIColor
         addSubview(titleLabel)
         
         searchButton.translatesAutoresizingMaskIntoConstraints = false
-        searchButton.imageView.image = UIImage(systemName: "magnifyingglass")
+        searchButton.imageView.image = UIImage(named: "ic_search")
+        if Language.isRTL {
+            searchButton.imageView.transform = CGAffineTransform(scaleX: -1, y: 1)
+        }
         searchButton.imageView.tintColor = Color.App.toolbarButtonUIColor
         searchButton.imageView.contentMode = .scaleAspectFit
         searchButton.accessibilityIdentifier = "searchButtonThreadsTopToolbarView"
@@ -68,7 +73,7 @@ class ContactsNavigationBar: UIView {
         searchField.layer.backgroundColor = Color.App.bgSendInputUIColor?.withAlphaComponent(0.8).cgColor
         searchField.layer.cornerRadius = 16
         searchField.layer.masksToBounds = true
-        searchField.font = UIFont.fBody
+        searchField.font = UIFont.normal(.body)
         searchField.textAlignment = Language.isRTL ? .right : .left
         searchField.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         searchField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
@@ -81,14 +86,20 @@ class ContactsNavigationBar: UIView {
         menuButton.alpha = 0
         menuButton.translatesAutoresizingMaskIntoConstraints = false
         menuButton.showsMenuAsPrimaryAction = true
-        menuButton.titleLabel?.font = UIFont.fBoldCaption3
+        menuButton.titleLabel?.font = UIFont.bold(.caption)
         menuButton.titleLabel?.textAlignment = Language.isRTL ? .right : .left
+        menuButton.setTitleColor(isDark ? Color.App.accentUIColor : Color.App.whiteUIColor, for: .normal)
         menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        menuButton.setContentHuggingPriority(.required, for: .horizontal)
+        menuButton.setContentCompressionResistancePriority(.required, for: .horizontal)
                 
         let actions = SearchParticipantType.allCases.filter({ $0 != .admin }).compactMap({ type in
             UIAction(title: type.rawValue.bundleLocalized(), image: nil) { [weak self] _ in
                 self?.viewModel?.searchType = type
-                self?.menuButton.setTitle(type.rawValue.bundleLocalized() ?? "", for: .normal)
+                UIView.animate(withDuration: 0.2) { [weak self] in
+                    self?.menuButton.setTitle(type.rawValue.bundleLocalized() ?? "", for: .normal)
+                    self?.layoutIfNeeded()
+                }
             }
         })
         menuButton.menu = UIMenu(title: "", children: actions)
@@ -104,7 +115,7 @@ class ContactsNavigationBar: UIView {
         addSubview(dropDownImageView)
         
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 48),
+            heightAnchor.constraint(equalToConstant: ConstantSizes.topToolbarHeight),
             
             overBlurEffectColorView.trailingAnchor.constraint(equalTo: trailingAnchor),
             overBlurEffectColorView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -131,7 +142,6 @@ class ContactsNavigationBar: UIView {
 
             menuButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
             menuButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -8),
-            menuButton.widthAnchor.constraint(equalToConstant: 92),
             
             dropDownImageView.centerYAnchor.constraint(equalTo: menuButton.centerYAnchor, constant: 0),
             dropDownImageView.widthAnchor.constraint(equalToConstant: 16),
@@ -159,9 +169,7 @@ class ContactsNavigationBar: UIView {
             self.searchField.alpha = showSearch ? 1 : 0
             self.menuButton.alpha = showSearch ? 1 : 0
             self.dropDownImageView.alpha = showSearch ? 1 : 0
-            
-            let iconName = showSearch ? "xmark" : "magnifyingglass"
-            self.searchButton.imageView.image = UIImage(systemName: iconName)
+            self.searchButton.imageView.image = showSearch ? UIImage(systemName: "xmark") : UIImage(named: "ic_search")
         }
         
         if showSearch {
@@ -183,7 +191,9 @@ class ContactsNavigationBar: UIView {
     }
     
     public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        overBlurEffectColorView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? UIColor.clear : Color.App.accentUIColor
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        overBlurEffectColorView.backgroundColor = isDark ? UIColor.clear : Color.App.accentUIColor
+        menuButton.setTitleColor(isDark ? Color.App.accentUIColor : Color.App.whiteUIColor, for: .normal)
     }
 }
 

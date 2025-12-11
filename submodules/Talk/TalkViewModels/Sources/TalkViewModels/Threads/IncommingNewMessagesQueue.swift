@@ -45,10 +45,17 @@ public class IncommingNewMessagesQueue {
     }
 
     private func processBatch(_ messages: [ChatResponse<Message>], for subjectId: Int) async {
+        log("Processing \(messages.count) messages for thread \(subjectId)")
+        
         // Process the batch of messages
         let messages = messages.compactMap({$0.result})
-        log("Processing \(messages.count) messages for thread \(subjectId)")
-        let sorted = messages.sorted(by: { $0.id ?? 0 < $1.id ?? 0} )
+        
+        // Deduplicate based on message.id
+        let uniqueDict = Dictionary(grouping: messages, by: { $0.id ?? -1 }).compactMapValues { $0.first }
+        let uniqueMessages = Array(uniqueDict.values)
+        
+        // Sort by ID
+        let sorted = uniqueMessages.sorted(by: { $0.id ?? 0 < $1.id ?? 0} )
        
         await viewModel?.onNewMessage(sorted, conversationId: subjectId)
     }

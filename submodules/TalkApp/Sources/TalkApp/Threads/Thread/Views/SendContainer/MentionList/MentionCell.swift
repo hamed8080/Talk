@@ -40,12 +40,12 @@ final class MentionCell: UITableViewCell {
         hStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         hStack.accessibilityIdentifier = "hStackMentionCell"
 
-        lblName.font = .fCaption2
+        lblName.font = UIFont.normal(.caption2)
         lblName.textColor = Color.App.textPrimaryUIColor
         lblName.numberOfLines = 1
         lblName.accessibilityIdentifier = "lblNameMentionCell"
 
-        lblUserName.font = .fCaption2
+        lblUserName.font = UIFont.normal(.caption2)
         lblUserName.textColor = Color.App.accentUIColor
         lblUserName.numberOfLines = 1
         lblUserName.accessibilityIdentifier = "lblUserNameMentionCell"

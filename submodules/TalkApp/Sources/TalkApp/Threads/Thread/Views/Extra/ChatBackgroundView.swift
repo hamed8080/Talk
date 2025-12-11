@@ -7,19 +7,22 @@
 
 import UIKit
 import TalkViewModels
+import SwiftUI
+import TalkUI
 
 @MainActor
-class ChatBackgroundView: UIImageView {
+class ChatBackgroundView: UIView {
+    private let imageView = UIImageView()
     private let gradinetLayer = CAGradientLayer()
 
     private let lightColors = [
-        UIColor(red: 220/255, green: 194/255, blue: 178/255, alpha: 0.5).cgColor,
-        UIColor(red: 234/255, green: 173/255, blue: 120/255, alpha: 0.7).cgColor,
-        UIColor(red: 216/255, green: 125/255, blue: 78/255, alpha: 0.9).cgColor
+        UIColor(red: 220.0/255.0, green: 194.0/255.0, blue: 178.0/255.0, alpha: 0.5).cgColor,
+        UIColor(red: 234.0/255.0, green: 173.0/255.0, blue: 120.0/255.0, alpha: 0.7).cgColor,
+        UIColor(red: 216.0/255.0, green: 125.0/255.0, blue: 78.0/255.0, alpha: 0.9).cgColor
     ]
 
     private let darkColors = [
-        UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 1.0).cgColor
+        UIColor(red: 0.0/255.0, green: 0.0/255.0, blue: 0.0/255.0, alpha: 1.0).cgColor
     ]
 
     override init(frame: CGRect) {
@@ -32,23 +35,23 @@ class ChatBackgroundView: UIImageView {
     }
 
     private func configure() {
-        image = UIImage(named: "chat_bg")
-        contentMode = .scaleAspectFill
-
+        backgroundColor = UIColor(named: "bg_chat_color")
         let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? (traitCollection.userInterfaceStyle == .dark)
-        if isDarkModeEnabled {
-            tintColor = UIColor.gray
-            backgroundColor = UIColor.black.withAlphaComponent(0.35)
-        }
-            
+        
+        imageView.image = UIImage(named: "chat_bg")
+        imageView.contentMode = .scaleAspectFill
+        imageView.tintColor = isDarkModeEnabled ? UIColor.white.withAlphaComponent(0.8) : .black
+        
         gradinetLayer.colors = isDarkModeEnabled ? darkColors : lightColors
         gradinetLayer.startPoint = .init(x: 0, y: 0)
         gradinetLayer.endPoint = .init(x: 0, y: 1)
         layer.addSublayer(gradinetLayer)
+        addSubview(imageView)
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
         gradinetLayer.frame = bounds
+        imageView.frame = bounds
     }
 }

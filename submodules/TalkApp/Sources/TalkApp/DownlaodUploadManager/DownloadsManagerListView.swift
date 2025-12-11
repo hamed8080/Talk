@@ -77,7 +77,7 @@ public struct DownloadsManagerListView: View {
                .resizable()
                .scaledToFit()
                .padding(12)
-               .font(.fBoldBody)
+               .font(Font.bold(.body))
                .foregroundStyle(Color.App.toolbarButton)
        }
        .buttonStyle(.borderless)
@@ -95,7 +95,7 @@ public struct DownloadsManagerListView: View {
                .resizable()
                .scaledToFit()
                .padding(12)
-               .font(.fBoldBody)
+               .font(Font.bold(.body))
                .foregroundStyle(Color.App.toolbarButton)
        }
        .buttonStyle(.borderless)
@@ -120,14 +120,14 @@ fileprivate struct DownloadElementRow: View {
         HStack {
             VStack(alignment: .leading) {
                 Text(metadata?.name ?? viewModel.message.messageTitle)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundStyle(Color.App.textPrimary)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 if element.isInQueue {
                     Text("DownalodsManager.inDownloadingQueue")
                         .foregroundColor(Color.App.textSecondary)
-                        .font(.fCaption3)
+                        .font(Font.normal(.caption3))
                 }
             }
             
@@ -136,7 +136,7 @@ fileprivate struct DownloadElementRow: View {
                 downloadButton
                 Text(metadata?.file?.size?.toSizeStringShort(locale: Language.preferredLocale) ?? "")
                     .foregroundColor(Color.App.textSecondary)
-                    .font(.fCaption3)
+                    .font(Font.normal(.caption3))
             }
         }
         .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)

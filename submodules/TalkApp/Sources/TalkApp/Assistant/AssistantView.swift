@@ -122,7 +122,7 @@ struct AddAssistantRow: View {
         HStack {
             ImageLoaderView(contact: contact)
                 .id("\(contact.image ?? "")\(contact.id ?? 0)")
-                .font(.fBoldBody)
+                .font(Font.bold(.body))
                 .foregroundColor(.white)
                 .frame(width: 24, height: 24)
                 .background(Color.App.color1.opacity(0.4))
@@ -131,10 +131,10 @@ struct AddAssistantRow: View {
                 Text("\(contact.firstName ?? "") \(contact.lastName ?? "")")
                     .padding(.leading, 4)
                     .lineLimit(1)
-                    .font(.fSubheadline)
+                    .font(Font.bold(.subheadline))
                 Text(contact.notSeenDuration?.localFormattedTime ?? "General.notSpecified")
                     .padding(.leading, 4)
-                    .font(.fCaption3)
+                    .font(Font.normal(.caption3))
                     .foregroundColor(Color.App.textSecondary)
             }
         }

@@ -26,7 +26,7 @@ public struct SectionNavigationLabel: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 16, height: 16)
-                    .foregroundColor(.white)
+                    .foregroundColor(.gray)
             }
             .padding(4)
             .frame(width: 28, height: 28)

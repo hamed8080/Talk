@@ -70,8 +70,8 @@ public final class UserConfigManagerVM: ObservableObject, @preconcurrency Equata
         }
     }
 
-    public func switchToUser(_ userConfig: UserConfig, delegate: ChatDelegate) {
-        TokenManager.shared.saveSSOToken(ssoToken: userConfig.ssoToken)
+    public func switchToUser(_ userConfig: UserConfig, delegate: ChatDelegate) async {
+        await TokenManager.shared.saveSSOToken(ssoToken: userConfig.ssoToken)
         setCurrentUserAndSwitch(userConfig)
         createChatObjectAndConnect(userId: userConfig.user.id, config: userConfig.config, delegate: delegate)
         setup() // to set current user @Published var
@@ -89,13 +89,13 @@ public final class UserConfigManagerVM: ObservableObject, @preconcurrency Equata
         }
     }
 
-    public func logout(delegate: ChatDelegate) {
+    public func logout(delegate: ChatDelegate) async {
         if let index = userConfigs.firstIndex(where: { $0.id == currentUserConfig?.id }) {
             userConfigs.remove(at: index)
             UserDefaults.standard.set(userConfigs.data, forKey: UserDefaults.keys.userConfigsData.rawValue)
             setup()
             if let firstUser = userConfigs.first {
-                switchToUser(firstUser, delegate: delegate)
+                await switchToUser(firstUser, delegate: delegate)
             } else {
                 // Remove last user config from userDefaults
                 currentUserConfig = nil

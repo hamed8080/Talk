@@ -63,7 +63,7 @@ final class MessageImageView: UIImageView {
         effectView.accessibilityIdentifier = "effectViewMessageImageView"
 
         fileSizeLabel.translatesAutoresizingMaskIntoConstraints = false
-        fileSizeLabel.font = UIFont.fBoldCaption2
+        fileSizeLabel.font = UIFont.bold(.caption2)
         fileSizeLabel.textAlignment = .left
         fileSizeLabel.textColor = Color.App.textPrimaryUIColor
         fileSizeLabel.accessibilityIdentifier = "fileSizeLabelMessageImageView"

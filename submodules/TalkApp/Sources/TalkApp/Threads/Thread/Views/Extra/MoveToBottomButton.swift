@@ -32,8 +32,8 @@ public final class MoveToBottomButton: UIButton {
 
     private func configureView() {
         accessibilityIdentifier = "moveToBottomThreadViewController"
-        layer.backgroundColor = Color.App.bgPrimaryUIColor?.cgColor
-        backgroundColor = Color.App.bgPrimaryUIColor
+        layer.backgroundColor = Color.App.accentUIColor?.cgColor
+        backgroundColor = Color.App.accentUIColor
         layer.cornerRadius = 20
         layer.shadowRadius = 5
         layer.shadowColor = Color.App.accentUIColor?.cgColor
@@ -43,20 +43,26 @@ public final class MoveToBottomButton: UIButton {
         layer.shadowOffset = .init(width: 0.0, height: 1.0)
         setIsHidden(true)
 
-        imgCenter.image = UIImage(systemName: "chevron.down")
+        let config = UIImage.SymbolConfiguration(font: .bold(.body))
+        imgCenter.image = UIImage(systemName: "chevron.down", withConfiguration: config)
         imgCenter.translatesAutoresizingMaskIntoConstraints = false
         imgCenter.contentMode = .scaleAspectFit
-        imgCenter.tintColor = Color.App.accentUIColor
+        imgCenter.tintColor = Color.App.whiteUIColor
         imgCenter.accessibilityIdentifier = "imgCenterMoveToBottomButton"
         addSubview(imgCenter)
 
         lblUnreadCount.translatesAutoresizingMaskIntoConstraints = false
         lblUnreadCount.label.textColor = Color.App.whiteUIColor
-        lblUnreadCount.label.font = .fBoldCaption
+        lblUnreadCount.label.font = UIFont.bold(.caption)
         lblUnreadCount.layer.backgroundColor = Color.App.accentUIColor?.cgColor
         lblUnreadCount.layer.cornerRadius = 12
         lblUnreadCount.label.textAlignment = .center
         lblUnreadCount.label.numberOfLines = 1
+        lblUnreadCount.layer.shadowColor = UIColor.gray.withAlphaComponent(0.4).cgColor
+        lblUnreadCount.layer.shadowRadius = 1.5
+        lblUnreadCount.layer.masksToBounds = false
+        lblUnreadCount.layer.shadowOpacity = 1.0
+        lblUnreadCount.layer.shadowOffset = .init(width: 1.0, height: 1.0)
         lblUnreadCount.accessibilityIdentifier = "lblUnreadCountMoveToBottomButton"
 
         addSubview(lblUnreadCount)

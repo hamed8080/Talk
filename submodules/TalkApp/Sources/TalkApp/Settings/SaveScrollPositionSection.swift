@@ -15,14 +15,12 @@ struct SaveScrollPositionSection: View {
     var body: some View {
         HStack {
             HStack {
-                Image(systemName: "arrow.up.and.down")
+                Image("ic_save_scroll")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 16, height: 16)
                     .frame(width: 28, height: 28)
-                    .foregroundColor(.white)
-                    .background(Color.App.color3)
-                    .clipShape(RoundedRectangle(cornerRadius:(8)))
+                    .foregroundColor(.gray)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 
                 Text("Settings.saveScrollPositionTitle".bundleLocalized())
                     .padding(.leading, 8)
@@ -33,7 +31,6 @@ struct SaveScrollPositionSection: View {
             Spacer()
             Toggle("", isOn: $isSaveScrollPosition)
                 .tint(Color.App.accent)
-                .scaleEffect(x: 0.8, y: 0.8, anchor: .center)
                 .frame(maxWidth: 64)
         }
         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 36, alignment: .leading)

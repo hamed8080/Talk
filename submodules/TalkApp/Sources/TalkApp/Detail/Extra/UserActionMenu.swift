@@ -14,59 +14,86 @@ import TalkUI
 
 struct UserActionMenu: View {
     @Binding var showPopover: Bool
-    let participant: Participant
+    let participant: Participant?
     @EnvironmentObject var contactViewModel: ContactsViewModel
+    var thread: CalculatedConversation
+    @EnvironmentObject var viewModel: ThreadsViewModel
 
     var body: some View {
-        Divider()
-        if participant.contactId == nil {
-            ContextMenuButton(title: "General.add".bundleLocalized(), image: "person.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-               onAddContactTapped()
+        /// You should be admin or the thread should be a p2p thread with two people.
+        if thread.admin == true || thread.group == false {
+            ContextMenuButton(title: deleteTitle, image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                onDeleteConversationTapped()
+            }
+            .foregroundStyle(Color.App.red)
+        }
+
+        if thread.group == true, thread.type?.isChannelType == false, thread.admin == true {
+            Divider()
+            ContextMenuButton(title: "Thread.closeThread".bundleLocalized(), image: "lock", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                onCloseConversationTapped()
             }
         }
+        
+        Divider()
 
-        let blockKey = participant.blocked == true ? "General.unblock" : "General.block"
-        ContextMenuButton(title: blockKey.bundleLocalized(), image: participant.blocked == true ? "hand.raised.slash" : "hand.raised", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-           onBlockUnblockTapped()
+        if let participant = participant {
+            let blockKey = participant.blocked == true ? "General.unblock" : "General.block"
+            ContextMenuButton(title: blockKey.bundleLocalized(), image: participant.blocked == true ? "hand.raised.slash" : "hand.raised", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                onBlockUnblockTapped()
+            }
         }
-
+        
+        sandboxTestOptions
+    }
+    
+    @ViewBuilder
+    var sandboxTestOptions: some View {
         if EnvironmentValues.isTalkTest {
             ContextMenuButton(title: "General.share".bundleLocalized(), image: "square.and.arrow.up", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 showPopover = false
             }
             .disabled(true)
             .sandboxLabel()
-
+            
             ContextMenuButton(title: "Thread.export".bundleLocalized(), image: "tray.and.arrow.up", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
                 showPopover = false
             }
             .disabled(true)
             .sandboxLabel()
-        }
-
-        if participant.contactId != nil {
-            ContextMenuButton(title: "Contacts.delete".bundleLocalized(), image: "trash", iconColor: Color.App.red, bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-                onDeleteContactTapped()
+            
+            ContextMenuButton(title: "Thread.clearHistory".bundleLocalized(), image: "clock", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                onClearHistoryTapped()
             }
-            .foregroundStyle(Color.App.red)
-        }
-    }
-
-    private func onAddContactTapped() {
-        showPopover = false
-        delayActionOnHidePopover {
-            let contact = Contact(cellphoneNumber: participant.cellphoneNumber,
-                                  email: participant.email,
-                                  firstName: participant.firstName,
-                                  lastName: participant.lastName,
-                                  user: .init(username: participant.username))
-            contactViewModel.addContact = contact
-            contactViewModel.showAddOrEditContactSheet = true
-            contactViewModel.animateObjectWillChange()
+            .sandboxLabel()
+            
+            ContextMenuButton(title: "Thread.addToFolder".bundleLocalized(), image: "folder.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                onAddToFolderTapped()
+            }
+            .sandboxLabel()
+            
+            ContextMenuButton(title: "Thread.spam".bundleLocalized(), image: "ladybug", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                onSpamTapped()
+            }
+            .sandboxLabel()
+            
+            if canAddParticipant {
+                ContextMenuButton(title: "Thread.invite".bundleLocalized(), image: "person.crop.circle.badge.plus", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                    onInviteTapped()
+                }
+                .sandboxLabel()
+            }
+            
+            ContextMenuButton(title: "\(thread.id ?? -1)", image: "info", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
+                UIPasteboard.general.string = "\(thread.id ?? -1)"
+                dump(thread)
+            }
+            .sandboxLabel()
         }
     }
 
     private func onBlockUnblockTapped() {
+        guard let participant = participant else { return }
         showPopover = false
         delayActionOnHidePopover {
             if participant.blocked == true, let contactId = participant.contactId {
@@ -77,25 +104,65 @@ struct UserActionMenu: View {
         }
     }
 
-    private func onDeleteContactTapped() {
-        showPopover = false
-        delayActionOnHidePopover {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
-                ConversationDetailDeleteContactDialog(participant: participant)
-                    .environmentObject(contactViewModel)
-            )
-        }
-    }
-
     private func delayActionOnHidePopover(_ action: (() -> Void)? = nil) {
         Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
             action?()
         }
     }
+
+    private func onClearHistoryTapped() {
+        showPopover = false
+        delayActionOnHidePopover {
+            viewModel.clearHistory(thread.toStruct())
+        }
+    }
+
+    private func onAddToFolderTapped() {
+        showPopover = false
+        delayActionOnHidePopover {
+            viewModel.showAddThreadToTag(thread.toStruct())
+        }
+    }
+
+    private func onSpamTapped() {
+        showPopover = false
+        delayActionOnHidePopover {
+            viewModel.spamPV(thread.toStruct())
+        }
+    }
+
+    private func onInviteTapped() {
+        showPopover = false
+        delayActionOnHidePopover {
+            viewModel.showAddParticipants(thread.toStruct())
+        }
+    }
+
+    private func onDeleteConversationTapped() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
+        showPopover = false
+    }
+
+    private func onCloseConversationTapped() {
+        AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread.toStruct()))
+        showPopover = false
+    }
+
+    private var deleteTitle: String {
+        let deleteKey = thread.group == false ? "" : "Thread.delete".bundleLocalized()
+        let key = thread.type?.isChannelType == true ? "Thread.channel" : thread.group == true ? "Thread.group" : ""
+        let groupLocalized = String(format: deleteKey, key.bundleLocalized())
+        let p2pLocalized = "Genreal.deleteConversation".bundleLocalized()
+        return thread.group == true ? groupLocalized : p2pLocalized
+    }
+    
+    private var canAddParticipant: Bool {
+        thread.group ?? false && thread.admin ?? false == true
+    }
 }
 
 struct UserActionMenu_Previews: PreviewProvider {
     static var previews: some View {
-        UserActionMenu(showPopover: .constant(true), participant: .init(name: "Hamed Hosseini"))
+        UserActionMenu(showPopover: .constant(true), participant: .init(name: "Hamed Hosseini"), thread: .init())
     }
 }

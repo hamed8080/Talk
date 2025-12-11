@@ -14,7 +14,7 @@ struct AutomaticDownloadSection: View {
     @EnvironmentObject var navModel: NavigationModel
 
     var body: some View {
-        ListSectionButton(imageName: "arrow.down.square.fill", title: "Settings.download", color: Color.App.color5, showDivider: false) {
+        ListSectionButton(imageName: "arrow.down.square", title: "Settings.download", showDivider: false) {
             navModel.wrapAndPush(view: AutomaticDownloadSettings())
         }
         .listRowInsets(.zero)
@@ -78,7 +78,7 @@ struct AutomaticDownloadSettings: View {
             .listRowSeparatorTint(Color.clear)
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .normalToolbarView(title: "Settings.download", type: String.self)

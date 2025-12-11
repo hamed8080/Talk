@@ -70,7 +70,7 @@ struct ToolbarView<LeadingContentView: View, CenterContentView: View, TrailingCo
                 if let title {
                     Text(title)
                         .frame(minWidth: 0, maxWidth: isInSearchMode ? 0 : nil, minHeight: 0, maxHeight: isInSearchMode ? 0 : 48)
-                        .font(.fBoldSubheadline)
+                        .font(Font.bold(.subheadline))
                         .foregroundStyle(Color.App.toolbarButton)
                         .clipped()
                 }
@@ -121,7 +121,7 @@ struct ToolbarView<LeadingContentView: View, CenterContentView: View, TrailingCo
         if searchCompletion != nil {
             TextField((searchPlaceholder ?? "" ).bundleLocalized(), text: $searchText)
                 .keyboardType(searchKeyboardType)
-                .font(.fBody)
+                .font(Font.normal(.body))
                 .textFieldStyle(.clear)
                 .focused($searchFocus, equals: .search)
                 .frame(minWidth: 0, maxWidth: isInSearchMode ? nil : 0, minHeight: 0, maxHeight: isInSearchMode ? 38 : 0)
@@ -138,7 +138,7 @@ struct ToolbarView<LeadingContentView: View, CenterContentView: View, TrailingCo
             } label: {
                 Text("General.cancel")
                     .padding(.leading)
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundStyle(Color.App.toolbarButton)
             }
             .buttonStyle(.borderless)

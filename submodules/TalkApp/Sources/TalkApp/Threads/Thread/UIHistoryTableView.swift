@@ -90,16 +90,24 @@ extension UIHistoryTableView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        ConversationHistoryCellFactory.reuse(tableView, indexPath, viewModel)
+        ConversationHistoryCellFactory.reuse(tableView, indexPath, viewModel) { [weak self] id in
+            self?.onSwipedOnItem(id: id)
+        }
     }
 
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.backgroundColor = UIColor.clear
         revealAnimation.reveal(for: cell)
         let row = sections[indexPath.section].vms[indexPath.row]
+#if DEBUG
+        if abs(row.calMessage.sizes.estimatedHeight - cell.bounds.height) > 10 {
+            log("[HEIGHT][WILL_DISPLAY] Need improvement in calculation id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "")")
+        }
+#endif
         row.calMessage.sizes.estimatedHeight = cell.bounds.height
-        
+#if DEBUG
         log("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+#endif
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -128,14 +136,11 @@ extension UIHistoryTableView: UITableViewDelegate {
         return cell != nil
     }
 
-    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        if viewModel?.selectedMessagesViewModel.isInSelectMode == true { return nil }
-        return makeReplyButton(indexPath: indexPath)
-    }
-
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         let row = sections[indexPath.section].vms[indexPath.row]
+#if DEBUG
         log("[HEIGHT][ESTIMATE] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+#endif
         return sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
     }
 }
@@ -157,23 +162,21 @@ extension UIHistoryTableView: UITableViewDataSourcePrefetching {
 
 // Reply leading/trailing button
 extension UIHistoryTableView {
-    func makeReplyButton(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let viewModel = viewModel else { return nil }
-        let sections = sections
-        guard sections.indices.contains(indexPath.section), sections[indexPath.section].vms.indices.contains(indexPath.row) else { return nil }
+    
+    private func onSwipedOnItem(id: Int) {
+        guard let viewModel = viewModel,
+              viewModel.thread.closed != true,
+              viewModel.selectedMessagesViewModel.isInSelectMode == false,
+              let indexPath = viewModel.historyVM.sections.viewModelAndIndexPath(for: id)?.indexPath
+        else { return }
+        
         let vm = sections[indexPath.section].vms[indexPath.row]
-        if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return nil }
-        if vm.message.id == LocalId.unreadMessageBanner.rawValue { return nil }
-        if !vm.message.reactionableType { return nil }
-        let replyAction = UIContextualAction(style: .normal, title: "") { action, view, success in
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 1)
-            viewModel.delegate?.openReplyMode(vm.message)
-            success(true)
-        }
-        replyAction.image = UIImage(systemName: "arrowshape.turn.up.left.circle")
-        replyAction.backgroundColor = UIColor.clear.withAlphaComponent(0.001)
-        let config = UISwipeActionsConfiguration(actions: [replyAction])
-        return config
+        if viewModel.thread.admin == false && viewModel.thread.type?.isChannelType == true { return }
+        if vm.message.id == LocalId.unreadMessageBanner.rawValue { return }
+        if !vm.message.reactionableType { return }
+        
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 1)
+        viewModel.delegate?.openReplyMode(vm.message)
     }
 }
 
@@ -181,7 +184,10 @@ extension UIHistoryTableView {
 extension UIHistoryTableView {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if viewModel?.scrollVM.getIsProgramaticallyScrolling() == true {
+#if DEBUG
+
             log("Reject did scroll to, isProgramaticallyScroll is true")
+#endif
             return
         }
         viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)

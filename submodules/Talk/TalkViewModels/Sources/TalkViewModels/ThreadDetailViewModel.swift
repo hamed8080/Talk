@@ -288,7 +288,7 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     /// Fetch contact detail of the P2P participant by threadId directly here.
     public func fetchPartnerParticipant() async {
-        guard thread?.group == false else { return }
+        guard let thread = thread, thread.group == false || thread.group == nil else { return }
         getP2PPartnerParticipant()
     }
 
@@ -316,6 +316,13 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
 
     private func getP2PPartnerParticipant() {
+        /// Empty fake thread info
+        if thread?.id == LocalId.emptyThread.rawValue, let participant = thread?.participants?.first {
+            setupP2PParticipant(participant)
+            return
+        }
+        
+        /// Real normal thread info.
         guard let threadId = thread?.id else { return }
         p2pPartnerFinder.findPartnerBy(threadId: threadId) { [weak self] partner in
             if let self = self, let partner = partner {

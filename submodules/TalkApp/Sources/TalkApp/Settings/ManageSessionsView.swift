@@ -10,6 +10,7 @@ import TalkModels
 import TalkExtensions
 import TalkViewModels
 import TalkUI
+import Lottie
 
 struct ManageSessionsView: View {
     @StateObject private var viewModel = ManageSessionsViewModel()
@@ -22,7 +23,7 @@ struct ManageSessionsView: View {
             loadingView
         }
         .environment(\.defaultMinListRowHeight, 8)
-        .font(.fSubheadline)
+        .font(Font.normal(.subheadline))
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
         .normalToolbarView(title: "Settings.ManageSessions.title", innerBack: true, type: String.self)
@@ -72,6 +73,7 @@ struct ManageSessionsView: View {
                 )
             }
             .buttonStyle(DeviceSessionButtonViewModifier(bgColor: Color.App.accent, width: width))
+            .foregroundStyle(Color.App.white)
         }
         .frame(minWidth: 0, maxWidth: .infinity)
         .listRowSeparator(.hidden)
@@ -86,13 +88,22 @@ struct ManageSessionsView: View {
             }
         }
     }
-    
+   
+    @ViewBuilder
     private var loadingView: some View {
-        ListLoadingView(isLoading: .constant(viewModel.isLoading))
-            .id(UUID())
+        if viewModel.isLoading {
+            HStack {
+                Spacer()
+                LottieView(animation: .named("dots_loading.json"))
+                    .playing()
+                    .id(UUID())
+                Spacer()
+            }
+            .frame(height: 52)
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(.zero)
+        }
     }
 }
 
@@ -145,7 +156,7 @@ struct DeviceSessionRow: View {
                 Text(value ?? "")
                     .multilineTextAlignment(.leading)
                     .foregroundStyle(.gray)
-                    .font(.fCaption)
+                    .font(Font.normal(.caption))
                 
                 if isNameAndCurrent {
                     Spacer()
@@ -204,13 +215,13 @@ struct RemoveSessionDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("ManageSessions.RemoveOneSession.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubheadline)
+                .font(Font.bold(.subheadline))
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             
             Text(attributedString)
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubheadline)
+                .font(Font.bold(.subheadline))
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             
@@ -223,7 +234,7 @@ struct RemoveSessionDialog: View {
                 } label: {
                     Text("Genreal.confirm")
                         .foregroundStyle(Color.App.red)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -233,7 +244,7 @@ struct RemoveSessionDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -262,13 +273,13 @@ struct RemoveAllSessionDialog: View {
         VStack(alignment: .trailing, spacing: 16) {
             Text("ManageSessions.RemoveAllSessions.title")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubheadline)
+                .font(Font.bold(.subheadline))
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                         
             Text("ManageSessions.RemoveAllSessions.subtitle")
                 .foregroundStyle(Color.App.textPrimary)
-                .font(.fBoldSubheadline)
+                .font(Font.bold(.subheadline))
                 .multilineTextAlignment(.center)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             HStack {
@@ -280,7 +291,7 @@ struct RemoveAllSessionDialog: View {
                 } label: {
                     Text("Genreal.confirm")
                         .foregroundStyle(Color.App.red)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }
@@ -290,7 +301,7 @@ struct RemoveAllSessionDialog: View {
                 } label: {
                     Text("General.cancel")
                         .foregroundStyle(Color.App.textPlaceholder)
-                        .font(.fBody)
+                        .font(Font.normal(.body))
                         .frame(minWidth: 48, minHeight: 48)
                         .fontWeight(.medium)
                 }

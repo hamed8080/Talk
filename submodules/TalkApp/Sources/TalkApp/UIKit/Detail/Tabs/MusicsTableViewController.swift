@@ -138,7 +138,7 @@ class MusicCell: UITableViewCell {
         backgroundColor = .clear
         
         /// Title of the conversation.
-        titleLabel.font = UIFont.fSubheadline
+        titleLabel.font = UIFont.normal(.subheadline)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
         titleLabel.translatesAutoresizingMaskIntoConstraints = false

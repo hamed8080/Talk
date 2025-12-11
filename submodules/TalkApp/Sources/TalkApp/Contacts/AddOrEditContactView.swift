@@ -42,7 +42,7 @@ struct AddOrEditContactView: View {
             VStack(alignment: .leading, spacing: 20) {
                 if !showToolbar {
                     Text(isInEditMode ? "Contacts.Edit.title" : "Contacts.Add.title")
-                        .font(.fBoldSubtitle)
+                        .font(Font.bold(.subtitle))
                         .padding()
                         .offset(y: 24)
                 }
@@ -96,7 +96,7 @@ struct AddOrEditContactView: View {
         .animation(.easeInOut, value: enableButton)
         .animation(.easeInOut, value: focusState)
         .animation(.easeInOut, value: viewModel.userNotFound)
-        .font(.fBody)
+        .font(Font.normal(.body))
         .onChange(of: viewModel.successAdded) { newValue in
             if newValue == true {
                 withAnimation {

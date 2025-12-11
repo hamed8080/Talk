@@ -21,6 +21,7 @@ let package = Package(
         .package(path: "../TalkExtensions"),
         .package(path: "../TalkViewModels"),
         .package(path: "../ImageEditor"),
+        .package(path: "../TalkFont"),
     ],
     targets: [
         .target(
@@ -30,7 +31,8 @@ let package = Package(
                 "TalkModels",
                 "TalkExtensions",
                 "TalkViewModels",
-                "ImageEditor"
+                "ImageEditor",
+                "TalkFont"
             ]
         ),
         .testTarget(

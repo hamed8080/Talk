@@ -48,7 +48,7 @@ class MemberCell: UITableViewCell {
         addGestureRecognizer(longGesture)
         
         /// Title.
-        nameLabel.font = UIFont.fSubheadline
+        nameLabel.font = UIFont.normal(.subheadline)
         nameLabel.textColor = Color.App.textPrimaryUIColor
         nameLabel.accessibilityIdentifier = "MemberCell.nameLable"
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -69,12 +69,12 @@ class MemberCell: UITableViewCell {
         avatarInitialLable.layer.cornerRadius = 22
         avatarInitialLable.layer.masksToBounds = true
         avatarInitialLable.textAlignment = .center
-        avatarInitialLable.font = UIFont.fBoldBody
+        avatarInitialLable.font = UIFont.bold(.body)
         avatarInitialLable.textColor = Color.App.whiteUIColor
         contentView.addSubview(avatarInitialLable)
         
         /// Admin.
-        adminLabel.font = UIFont.fBoldCaption
+        adminLabel.font = UIFont.bold(.caption)
         adminLabel.textColor = Color.App.accentUIColor
         adminLabel.accessibilityIdentifier = "MemberCell.adminLabel"
         adminLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -84,7 +84,7 @@ class MemberCell: UITableViewCell {
         contentView.addSubview(adminLabel)
         
         /// Assistant.
-        assistantLabel.font = UIFont.fBoldCaption
+        assistantLabel.font = UIFont.bold(.caption)
         assistantLabel.textColor = Color.App.accentUIColor
         assistantLabel.accessibilityIdentifier = "MemberCell.assistantLabel"
         assistantLabel.translatesAutoresizingMaskIntoConstraints = false

@@ -27,7 +27,7 @@ public final class MuteChannelBarView: UIView {
 
     private func configureViews() {
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.titleLabel?.font = UIFont.fSubheadline
+        btn.titleLabel?.font = UIFont.normal(.subheadline)
         btn.accessibilityIdentifier = "btnMuteChannelBarView"
         btn.setTitleColor(Color.App.accentUIColor, for: .normal)
         btn.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(muteTapped)))
@@ -48,6 +48,12 @@ public final class MuteChannelBarView: UIView {
         let isMute = viewModel?.thread.mute == true
         let title = isMute ? "Thread.unmute".bundleLocalized() : "Thread.mute".bundleLocalized()
         btn.setTitle(title, for: .normal)
+        
+        let isArchive = viewModel?.thread.isArchive == true
+        if isArchive {
+            isUserInteractionEnabled = false
+            layer.opacity = 0.5
+        }
     }
 
     @objc private func muteTapped(_ sender: UIButton) {

@@ -260,7 +260,7 @@ final class MemberSearchCell: UITableViewCell {
         ])
         
         textField.placeholder = "General.searchHere".bundleLocalized()
-        textField.font = UIFont.fBody
+        textField.font = UIFont.normal(.body)
         textField.returnKeyType = .done
         textField.delegate = self
         textField.textAlignment = Language.isRTL ? .right : .left
@@ -287,7 +287,7 @@ final class MemberSearchCell: UITableViewCell {
         config.baseForegroundColor = Color.App.textSecondaryUIColor
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
             var newAttrs = attrs
-            newAttrs.font = UIFont.fBoldCaption3
+            newAttrs.font = UIFont.bold(.caption3)
             return newAttrs
         }
         
@@ -367,7 +367,7 @@ final class MemberAddParticipantCell: UITableViewCell {
         
         addParticipantLabel.translatesAutoresizingMaskIntoConstraints = false
         addParticipantLabel.text = "Thread.invite".bundleLocalized()
-        addParticipantLabel.font = .fBody
+        addParticipantLabel.font = UIFont.normal(.body)
         addParticipantLabel.textAlignment = Language.isRTL ? .right : .left
         addParticipantLabel.textColor = Color.App.accentUIColor
         container.addSubview(addParticipantLabel)

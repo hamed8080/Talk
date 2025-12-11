@@ -17,8 +17,22 @@
 		0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
 		05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 052F46652B21F5B400085C26 /* PhotosUI.framework */; };
 		05D493932B21FF3800508472 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 052F46652B21F5B400085C26 /* PhotosUI.framework */; };
+		AC27F3BA2EC6ED25008305C5 /* Talk.docc in Sources */ = {isa = PBXBuildFile; fileRef = 0506DE1E2AD42AF00009701E /* Talk.docc */; };
+		AC27F3BB2EC6ED25008305C5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */; };
+		AC27F3BC2EC6ED25008305C5 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */; };
+		AC27F3BD2EC6ED25008305C5 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
+		AC27F3BF2EC6ED25008305C5 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC27F3B52EC6ED25008305C5 /* TalkApp */; };
+		AC27F3C02EC6ED25008305C5 /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 052F46652B21F5B400085C26 /* PhotosUI.framework */; };
+		AC27F3C12EC6ED25008305C5 /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC27F3B72EC6ED25008305C5 /* LeitnerBoxApp */; };
+		AC27F3C32EC6ED25008305C5 /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
+		AC27F3C42EC6ED25008305C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
+		AC27F3C52EC6ED25008305C5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
 		AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
+		AC64B77A2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
+		AC64B77B2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
+		AC64B77C2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
+		AC64B77D2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
 		AC7408932D777A81009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408922D777A81009217C8 /* TalkApp */; };
 		AC7408952D777A86009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408942D777A86009217C8 /* TalkApp */; };
 		AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */; };
@@ -31,6 +45,9 @@
 		AC90FBB02E1C2ED500890CDA /* Talk.docc in Sources */ = {isa = PBXBuildFile; fileRef = 0506DE1E2AD42AF00009701E /* Talk.docc */; };
 		AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACA238F22D76CB8E00D8E43A /* Assets.xcassets */; };
 		AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0570CBC22AAEE98E001832E9 /* Preview Assets.xcassets */; };
+		ACCDE1942EC4BFC200499BDC /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
+		ACCDE1952EC4BFC200499BDC /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
+		ACCDE1962EC4BFC200499BDC /* talk_logo_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */; };
 		ACF538602DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 		ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */; };
 /* End PBXBuildFile section */
@@ -56,6 +73,16 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AC27F3C62EC6ED25008305C5 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -69,9 +96,13 @@
 		0570CC952AAEE9B2001832E9 /* Info-Sibche.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-Sibche.plist"; sourceTree = "<group>"; };
 		0570CC962AAEE9B2001832E9 /* Info-Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Info-Test.plist"; sourceTree = "<group>"; };
 		05B4C17A2ACEF2AF00FBC4DC /* TabButtonsContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabButtonsContainer.swift; sourceTree = "<group>"; };
+		AC27F3CA2EC6ED25008305C5 /* LeitnerBox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LeitnerBox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC27F3CC2EC6ED5C008305C5 /* LeitnerBox.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = LeitnerBox.plist; sourceTree = "<group>"; };
+		AC64B7792ECC950B009524EC /* dots_loading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = dots_loading.json; sourceTree = "<group>"; };
 		AC78B7392D737B4400FFF4F8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ACA238F22D76CB8E00D8E43A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ACAF916C2E1CD9DE00A0EE9A /* LeitnerBox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LeitnerBox.entitlements; sourceTree = "<group>"; };
+		ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = talk_logo_animation.json; sourceTree = "<group>"; };
 		ACE1EFAC2D7861E9003DEEDB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFAF2D7861EE003DEEDB /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ACE1EFB02D7861F3003DEEDB /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -101,6 +132,16 @@
 				AC7408932D777A81009217C8 /* TalkApp in Frameworks */,
 				05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */,
 				AC90FBAC2E1C2DA500890CDA /* LeitnerBoxApp in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC27F3BE2EC6ED25008305C5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC27F3BF2EC6ED25008305C5 /* TalkApp in Frameworks */,
+				AC27F3C02EC6ED25008305C5 /* PhotosUI.framework in Frameworks */,
+				AC27F3C12EC6ED25008305C5 /* LeitnerBoxApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +181,7 @@
 				0570CB172AAEE02A001832E9 /* Talk.app */,
 				0570CB332AAEE04B001832E9 /* Talk-Test.app */,
 				ACE77E772E1C24D800450E13 /* Talk.app */,
+				AC27F3CA2EC6ED25008305C5 /* LeitnerBox.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -153,9 +195,12 @@
 				0570CBDE2AAEE98E001832E9 /* AppDelegate.swift */,
 				0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */,
 				ACF5385F2DF42AC300D6C9A3 /* Logger+.swift */,
+				AC64B7792ECC950B009524EC /* dots_loading.json */,
+				ACCDE1932EC4BFC200499BDC /* talk_logo_animation.json */,
 				0570CC962AAEE9B2001832E9 /* Info-Test.plist */,
 				ACE77E852E1C253800450E13 /* Info-AppStore.plist */,
 				0570CC952AAEE9B2001832E9 /* Info-Sibche.plist */,
+				AC27F3CC2EC6ED5C008305C5 /* LeitnerBox.plist */,
 				0506DE1E2AD42AF00009701E /* Talk.docc */,
 				ACA238F22D76CB8E00D8E43A /* Assets.xcassets */,
 				ACE1EFAB2D7861E9003DEEDB /* Localizable.strings */,
@@ -226,6 +271,28 @@
 			productReference = 0570CB332AAEE04B001832E9 /* Talk-Test.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AC27F3B42EC6ED25008305C5 /* LeitnerBox */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC27F3C72EC6ED25008305C5 /* Build configuration list for PBXNativeTarget "LeitnerBox" */;
+			buildPhases = (
+				AC27F3B92EC6ED25008305C5 /* Sources */,
+				AC27F3BE2EC6ED25008305C5 /* Frameworks */,
+				AC27F3C22EC6ED25008305C5 /* Resources */,
+				AC27F3C62EC6ED25008305C5 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LeitnerBox;
+			packageProductDependencies = (
+				AC27F3B52EC6ED25008305C5 /* TalkApp */,
+				AC27F3B72EC6ED25008305C5 /* LeitnerBoxApp */,
+			);
+			productName = Talk;
+			productReference = AC27F3CA2EC6ED25008305C5 /* LeitnerBox.app */;
+			productType = "com.apple.product-type.application";
+		};
 		ACE77E762E1C24D800450E13 /* Talk-AppStore */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = ACE77E842E1C24D900450E13 /* Build configuration list for PBXNativeTarget "Talk-AppStore" */;
@@ -294,6 +361,7 @@
 				0570CB162AAEE02A001832E9 /* Talk-Sibche */,
 				0570CB282AAEE04B001832E9 /* Talk-Test */,
 				ACE77E762E1C24D800450E13 /* Talk-AppStore */,
+				AC27F3B42EC6ED25008305C5 /* LeitnerBox */,
 			);
 		};
 /* End PBXProject section */
@@ -303,6 +371,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77D2ECC950B009524EC /* dots_loading.json in Resources */,
+				ACCDE1952EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC484F2F2D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC772AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
 			);
@@ -312,8 +382,21 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77C2ECC950B009524EC /* dots_loading.json in Resources */,
+				ACCDE1962EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC484F302D8A954F008E7C62 /* Assets.xcassets in Resources */,
 				0570CC782AAEE98F001832E9 /* Preview Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC27F3C22EC6ED25008305C5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC64B77A2ECC950B009524EC /* dots_loading.json in Resources */,
+				AC27F3C32EC6ED25008305C5 /* talk_logo_animation.json in Resources */,
+				AC27F3C42EC6ED25008305C5 /* Assets.xcassets in Resources */,
+				AC27F3C52EC6ED25008305C5 /* Preview Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +404,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC64B77B2ECC950B009524EC /* dots_loading.json in Resources */,
+				ACCDE1942EC4BFC200499BDC /* talk_logo_animation.json in Resources */,
 				AC90FBB12E1C2EFF00890CDA /* Assets.xcassets in Resources */,
 				AC90FBB22E1C2F0900890CDA /* Preview Assets.xcassets in Resources */,
 			);
@@ -348,6 +433,17 @@
 				0570CC942AAEE98F001832E9 /* AppDelegate.swift in Sources */,
 				0570CC462AAEE98F001832E9 /* SceneDelegate.swift in Sources */,
 				ACF538612DF42AC300D6C9A3 /* Logger+.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC27F3B92EC6ED25008305C5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC27F3BA2EC6ED25008305C5 /* Talk.docc in Sources */,
+				AC27F3BB2EC6ED25008305C5 /* AppDelegate.swift in Sources */,
+				AC27F3BC2EC6ED25008305C5 /* SceneDelegate.swift in Sources */,
+				AC27F3BD2EC6ED25008305C5 /* Logger+.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -657,6 +753,84 @@
 			};
 			name = Release;
 		};
+		AC27F3C82EC6ED25008305C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = accent;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
+				DEVELOPMENT_TEAM = 7QN43D38LP;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Talk/Leitnerbox.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LeitnerBox;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.7.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ir.pod.talk;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC27F3C92EC6ED25008305C5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = accent;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
+				DEVELOPMENT_TEAM = 7QN43D38LP;
+				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_SOURCE_FILE_NAMES[arch=*]" = (
+					MockAppConfiguration.swift,
+					MockData.json,
+					MockData.swift,
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Talk/Leitnerbox.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LeitnerBox;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.7.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ir.pod.talk;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		ACE77E822E1C24D900450E13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -698,7 +872,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.5;
+				MARKETING_VERSION = 1.4.54;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lmlvrmedia.leitnerbox;
 				PRODUCT_NAME = Talk;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -757,7 +931,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.5;
+				MARKETING_VERSION = 1.4.54;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lmlvrmedia.leitnerbox;
 				PRODUCT_NAME = Talk;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -798,6 +972,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		AC27F3C72EC6ED25008305C5 /* Build configuration list for PBXNativeTarget "LeitnerBox" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC27F3C82EC6ED25008305C5 /* Debug */,
+				AC27F3C92EC6ED25008305C5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		ACE77E842E1C24D900450E13 /* Build configuration list for PBXNativeTarget "Talk-AppStore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -810,6 +993,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		AC27F3B62EC6ED25008305C5 /* XCLocalSwiftPackageReference "submodules/TalkApp" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = submodules/TalkApp;
+		};
+		AC27F3B82EC6ED25008305C5 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = submodules/LeitnerBox;
+		};
 		AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = submodules/TalkApp;
@@ -821,6 +1012,16 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		AC27F3B52EC6ED25008305C5 /* TalkApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AC27F3B62EC6ED25008305C5 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;
+			productName = TalkApp;
+		};
+		AC27F3B72EC6ED25008305C5 /* LeitnerBoxApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AC27F3B82EC6ED25008305C5 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
+			productName = LeitnerBoxApp;
+		};
 		AC7408922D777A81009217C8 /* TalkApp */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;

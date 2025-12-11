@@ -26,7 +26,7 @@ class NothingFoundView: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
-        label.font = UIFont.fBody
+        label.font = UIFont.normal(.body)
         label.textColor = Color.App.textSecondaryUIColor
         label.textAlignment = .center
         label.text = "General.noResult".bundleLocalized()

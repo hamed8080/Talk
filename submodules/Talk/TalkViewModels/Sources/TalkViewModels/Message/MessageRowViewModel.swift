@@ -136,7 +136,7 @@ public extension MessageRowViewModel {
         }
     }
 
-    private func shareFile(sourceView: UIView? = nil) {
+    public func shareFile(sourceView: UIView? = nil) {
         Task { [weak self] in
             guard let self = self else { return }
             _ = await message.makeTempURL()

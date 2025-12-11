@@ -16,6 +16,11 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messagebaseCellWidth: CGFloat = messageAvatarBeforeLeading + messageAvatarViewSize + messageAvatarAfterTrailing
     nonisolated(unsafe) public static let messagebaseCellTrailingSpaceForShowingMoveToBottom: CGFloat = 28
     
+    /// Swipe action
+    nonisolated(unsafe) public static let imageViewSwipeWidth: CGFloat = 28
+    nonisolated(unsafe) public static let minimumSwipeToConfirm: CGFloat = 64
+    nonisolated(unsafe) public static let maximumEdgeDistanceToConfirm: CGFloat = 48
+    
     /// MessageContainerStackView sizes
     nonisolated(unsafe) public static let messageContainerStackViewMargin: CGFloat = 4
     nonisolated(unsafe) public static let messageContainerStackViewMinWidth: CGFloat = 58
@@ -36,6 +41,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageTailViewWidth: CGFloat = 7.88
     nonisolated(unsafe) public static let messageTailViewHeight: CGFloat = 12.52
     nonisolated(unsafe) public static let messageTailViewLeading: CGFloat = 7.0
+    nonisolated(unsafe) public static let messageTailViewTrailing: CGFloat = 0.85
 
     /// MessageFileView sizes
     nonisolated(unsafe) public static let messageFileViewHeight: CGFloat = 48
@@ -81,7 +87,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageLocationHeight: CGFloat = min(320, max(128, (ThreadViewModel.maxAllowedWidth)))
 
     /// GroupParticipantNameView sizes
-    nonisolated(unsafe) public static let groupParticipantNameViewHeight: CGFloat = 16
+    nonisolated(unsafe) public static let groupParticipantNameViewHeight: CGFloat = 28
     
     /// MessageReplyInfoView sizes
     nonisolated(unsafe) public static let messageReplyInfoViewHeight: CGFloat = 54
@@ -108,13 +114,13 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageSingleEmojiViewHeight: CGFloat = 64
     
     /// MessageFooterView sizes
-    nonisolated(unsafe) public static let messageFooterViewHeightWithReaction: CGFloat = 28
-    nonisolated(unsafe) public static let messageFooterViewHeightWithoutReaction: CGFloat = 16
-    nonisolated(unsafe) public static let messageFooterViewNormalStatusWidth: CGFloat = 12
-    nonisolated(unsafe) public static let messageFooterViewSeenWidth: CGFloat = 22
+    nonisolated(unsafe) public static let messageFooterViewHeight: CGFloat = 28
+    nonisolated(unsafe) public static let messageFooterViewStatusWidth: CGFloat = 22
     nonisolated(unsafe) public static let messageFooterViewPinWidth: CGFloat = 22
-    nonisolated(unsafe) public static let messageFooterViewStatusHeight: CGFloat = 16
     nonisolated(unsafe) public static let messageFooterViewStackSpacing: CGFloat = 4
+    nonisolated(unsafe) public static let messageFooterViewTimeLabelWidth: CGFloat = 36
+    nonisolated(unsafe) public static let messageFooterItemHeight: CGFloat = 16
+    nonisolated(unsafe) public static let messageFooterViewEditImageWidth: CGFloat = 12
 
     /// SelectMessageRadio sizes
     nonisolated(unsafe) public static let selectMessageRadioWidth: CGFloat = 48
@@ -132,7 +138,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let footerReactionsCountViewMaxReactionsToShow: Int = 4
     nonisolated(unsafe) public static let footerReactionsCountViewStackSpacing: CGFloat = 4
     nonisolated(unsafe) public static let footerReactionsCountViewScrollViewHeight: CGFloat = 28
-    nonisolated(unsafe) public static let footerReactionsCountViewScrollViewMaxWidth: CGFloat = 200
+    nonisolated(unsafe) public static let footerReactionsCountViewScrollViewMaxWidth: CGFloat = 280
     
     /// MessageReactionRowView sizes
     nonisolated(unsafe) public static let messageReactionRowViewTotalWidth: CGFloat = 42
@@ -147,7 +153,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageUnreadBubbleCellLableHeight: CGFloat = 30
     
     /// SectionHeaderView sizes
-    nonisolated(unsafe) public static let sectionHeaderViewHeight: CGFloat = 28
+    nonisolated(unsafe) public static let sectionHeaderViewHeight: CGFloat = 36
     nonisolated(unsafe) public static let sectionHeaderViewLabelCornerRadius: CGFloat = 14
     nonisolated(unsafe) public static let sectionHeaderViewLableHorizontalPadding: CGFloat = 32
     nonisolated(unsafe) public static let sectionHeaderViewLableVerticalPadding: CGFloat = 8
@@ -156,14 +162,14 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageParticipantsEventCellCornerRadius: CGFloat = 14
     nonisolated(unsafe) public static let messageParticipantsEventCellMargin: CGFloat = 4
     nonisolated(unsafe) public static let messageParticipantsEventCellWidthRedaction: CGFloat = 24
-    nonisolated(unsafe) public static let messageParticipantsEventCellLableHorizontalPadding: CGFloat = 16
+    nonisolated(unsafe) public static let messageParticipantsEventCellLableHorizontalPadding: CGFloat = 32
     nonisolated(unsafe) public static let messageParticipantsEventCellLableVerticalPadding: CGFloat = 8
     
     /// CallEventCell sizes
     nonisolated(unsafe) public static let messageCallEventCellStackSapcing: CGFloat = 12
-    nonisolated(unsafe) public static let messageCallEventCellStackCornerRadius: CGFloat = 14
+    nonisolated(unsafe) public static let messageCallEventCellStackCornerRadius: CGFloat = 19
     nonisolated(unsafe) public static let messageCallEventCellStackLayoutMargin: CGFloat = 16
-    nonisolated(unsafe) public static let messageCallEventCellHeight: CGFloat = 32
+    nonisolated(unsafe) public static let messageCallEventCellHeight: CGFloat = 46
     nonisolated(unsafe) public static let messageCallEventCellStackMargin: CGFloat = 4
     
     /// Buttons vertical stack for mention/jump to bottom
@@ -171,7 +177,18 @@ public struct ConstantSizes: Sendable {
     
     /// Bottom toolbar size
     nonisolated(unsafe) public static let bottomToolbarSize: CGFloat = 52
-
+    nonisolated(unsafe) public static let spaceLastMessageAndBottomContainer: CGFloat = 8
+    
+    /// Toolbar top
+    nonisolated(unsafe) public static let topToolbarHeight: CGFloat = 64
+    
+    /// TableView Separator
+    nonisolated(unsafe) public static let tableViewSeparatorLeading: CGFloat = 64
+    nonisolated(unsafe) public static let tableViewSeparatorHeight = 0.3
+    
+    /// Reactions
+    nonisolated(unsafe) public static let moreReactionButtonWidth: CGFloat = 42
+    
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0
     public var replyContainerWidth: CGFloat?

@@ -10,6 +10,7 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkUI
+import Lottie
 
 class ContactTableViewController: UIViewController {
     private var dataSource: UITableViewDiffableDataSource<ContactListSection, Contact>!
@@ -20,6 +21,9 @@ class ContactTableViewController: UIViewController {
     private static let resuableIdentifier = "CONTACTROW"
     private static let headerResuableIdentifier = "CONTACTS_TABLE_VIEW_HEADER"
     private var viewHasEverAppeared = false
+    private var hasEverFixedScrollViewPosition = false
+    private let bottomLoadingContainer = UIView(frame: .init(x: 0, y: 0, width: 52, height: 52))
+    private let bottomAnimation = LottieAnimationView(fileName: "dots_loading.json", color: Color.App.textPrimaryUIColor ?? .black)
 
     init(viewModel: ContactsViewModel) {
         self.viewModel = viewModel
@@ -29,9 +33,6 @@ class ContactTableViewController: UIViewController {
         tableView.register(ContactsTableViewHeaderCell.self, forCellReuseIdentifier: ContactTableViewController.headerResuableIdentifier)
         configureViews()
         configureDataSource()
-        
-        /// Force to show loading at start
-        updateUI(animation: true, reloadSections: true)
     }
     
     required init?(coder: NSCoder) {
@@ -50,6 +51,13 @@ class ContactTableViewController: UIViewController {
         tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         tableView.sectionHeaderTopPadding = 0
     
+        bottomAnimation.translatesAutoresizingMaskIntoConstraints = false
+        bottomAnimation.accessibilityIdentifier = "bottomLoadingContactTableViewController"
+        bottomAnimation.isHidden = true
+        bottomAnimation.contentMode = .scaleAspectFit
+        bottomLoadingContainer.addSubview(self.bottomAnimation)
+        
+        tableView.tableFooterView = bottomLoadingContainer
         view.addSubview(tableView)
         
         /// Toolbar
@@ -64,12 +72,17 @@ class ContactTableViewController: UIViewController {
             navBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             navBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
+            bottomAnimation.widthAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.heightAnchor.constraint(equalToConstant: 52),
+            bottomAnimation.centerXAnchor.constraint(equalTo: bottomLoadingContainer.centerXAnchor),
+            bottomAnimation.centerYAnchor.constraint(equalTo: bottomLoadingContainer.centerYAnchor),
+            
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-        tableView.contentInset = .init(top: 52 + view.safeAreaInsets.top,
+        tableView.contentInset = .init(top: ToolbarButtonItem.buttonWidth + view.safeAreaInsets.top,
                                        left: 0,
                                        bottom: ConstantSizes.bottomToolbarSize + view.safeAreaInsets.bottom,
                                        right: 0)
@@ -91,8 +104,8 @@ class ContactTableViewController: UIViewController {
     }
     
     private func fixScrollPositionForFirstTime() {
-        guard !viewHasEverAppeared else { return }
-        viewHasEverAppeared = true
+        guard !hasEverFixedScrollViewPosition else { return }
+        hasEverFixedScrollViewPosition = true
 
         // Wait until layout is done and data is visible
         DispatchQueue.main.async { [weak self] in
@@ -108,6 +121,17 @@ class ContactTableViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         fixScrollPositionForFirstTime()
+        tableView.contentInset.top = navBar.frame.height
+        tableView.scrollIndicatorInsets = tableView.contentInset
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        /// Force to show loading at start if user clicked on the Contacts tab really fast at startup.
+        if !viewHasEverAppeared {
+            updateUI(animation: true, reloadSections: true)
+            viewHasEverAppeared = true
+        }
     }
 }
 
@@ -171,6 +195,8 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
         /// Apply
         dataSource.apply(snapshot, animatingDifferences: animation)
         
+        showBottomAnimation(show: false)
+        
         attachNoResultIfNeeded()
     }
     
@@ -190,6 +216,18 @@ extension ContactTableViewController: UIContactsViewControllerDelegate {
     private var list: [Contact] {
         let list = isInSearch ? viewModel.searchedContacts : viewModel.contacts
         return Array(list)
+    }
+    
+    func showBottomAnimation(show: Bool) {
+        bottomAnimation.isHidden = !show
+        bottomAnimation.isUserInteractionEnabled = show
+        if show {
+            tableView.tableFooterView = bottomLoadingContainer
+            bottomAnimation.play()
+        } else {
+            tableView.tableFooterView = UIView()
+            bottomAnimation.stop()
+        }
     }
 }
 

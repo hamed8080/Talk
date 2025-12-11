@@ -86,7 +86,6 @@ public class ThreadCalculators {
         classConversation.computedImageURL = calculateImageURL(conversation.image, classConversation.metaData)
         let isFileType = classConversation.lastMessageVO?.toMessage.isFileType == true
        
-        classConversation.hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
         classConversation.isSelected = calculateIsSelected(conversation, isSelected: false, isInForwardMode: false, navSelectedId)
         
         classConversation.isCircleUnreadCount = conversation.isCircleUnreadCount
@@ -119,7 +118,6 @@ public class ThreadCalculators {
         let computedImageURL = calculateImageURL(conversation.image, conversation.metaData)
         let isFileType = conversation.lastMessageVO?.toMessage.isFileType == true
         let fiftyFirstCharacter = calculateFifityFirst(conversation.lastMessageVO?.message ?? "", isFileType)
-        let hasSpaceToShowPin = calculateHasSpaceToShowPin(conversation)
         let sentFileString = sentFileString(conversation, isFileType, myId)
         let createConversationString = createConversationString(conversation)
         let isSelected = calculateIsSelected(conversation, isSelected: wasSelected, isInForwardMode: classConversation.isInForwardMode, navSelectedId)
@@ -140,7 +138,6 @@ public class ThreadCalculators {
             classConversation.splitedTitle = splitedTitle
             classConversation.computedImageURL = computedImageURL
             classConversation.subtitleAttributedString = subtitleAttributdString
-            classConversation.hasSpaceToShowPin = hasSpaceToShowPin
             classConversation.isSelected = isSelected
             classConversation.isCircleUnreadCount = isCircleUnreadCount
             classConversation.iconStatus = iconStatus
@@ -305,11 +302,6 @@ public class ThreadCalculators {
             return nil
         }
     }
-    
-    private class func calculateHasSpaceToShowPin(_ conversation: Conversation) -> Bool {
-        let allActive = conversation.pin == true && conversation.mute == true && conversation.unreadCount ?? 0 > 0
-        return !allActive
-    }
 
     private class func calculateFifityFirst(_ message: String, _ isFileType: Bool) -> NSAttributedString? {
         // Step 1: Remove Markdown style
@@ -464,14 +456,14 @@ public class ThreadCalculators {
         let color = UIColor(named: "text_primary")?.withAlphaComponent(0.7)
         mutable.append(NSAttributedString(string: missString ?? key, attributes: [
             .foregroundColor: color,
-            .font: UIFont(name: "SVJBTlNhbnNY".fromBase64() ?? "", size: 12)
+            .font: UIFont.normal(.caption)
         ]))
         mutable.append(NSAttributedString(string: " "))
         
         let dateString = Date(milliseconds: Int64(time)).localFormattedTime ?? ""
         mutable.append(NSAttributedString(string: dateString, attributes: [
             .foregroundColor: color,
-            .font: UIFont(name: "SVJBTlNhbnNYLUJvbGQ=".fromBase64() ?? "", size: 12)
+            .font: UIFont.bold(.caption)
         ]))
         mutable.append(NSAttributedString(string: " "))
         

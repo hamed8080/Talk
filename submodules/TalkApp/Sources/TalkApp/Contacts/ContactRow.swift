@@ -24,9 +24,9 @@ struct ContactRow: View {
                 ContactRowRadioButton(contact: contact)
                     .padding(.trailing, isInSelectionMode ? 8 : 0)
                 
-                ImageLoaderView(contact: contact, font: .fBoldBody)
+                ImageLoaderView(contact: contact, font: Font.bold(.body))
                     .id("\(contact.image ?? "")\(contact.id ?? 0)")
-                    .font(.fBody)
+                    .font(Font.normal(.body))
                     .foregroundColor(Color.App.white)
                     .frame(width: 52, height: 52)
                     .background(Color(uiColor: String.getMaterialColorByCharCode(str: contact.firstName ?? "")))
@@ -39,14 +39,14 @@ struct ContactRow: View {
                             .padding(.leading, 16)
                             .foregroundColor(Color.App.textPrimary)
                             .lineLimit(1)
-                            .font(.fSubheadline)
+                            .font(Font.normal(.subheadline))
                             .fontWeight(.semibold)
                     } else {
                         Text(verbatim: "\(contact.firstName ?? "") \(contact.lastName ?? "")")
                             .padding(.leading, 16)
                             .foregroundColor(Color.App.textPrimary)
                             .lineLimit(1)
-                            .font(.fSubheadline)
+                            .font(Font.normal(.subheadline))
                             .fontWeight(.semibold)
                     }
 //                    if let notSeenDuration = contact.notSeenDuration?.localFormattedTime {
@@ -54,7 +54,7 @@ struct ContactRow: View {
 //                        let time = String(format: lastVisitedLabel, notSeenDuration)
 //                        Text(time)
 //                            .padding(.leading, 16)
-//                            .font(.fBody)
+//                            .font(Font.normal(.body))
 //                            .foregroundColor(Color.App.textSecondary)
 //                    }
                     notFoundUserText
@@ -63,7 +63,7 @@ struct ContactRow: View {
                 inviteButton
                 if contact.blocked == true {
                     Text("General.blocked")
-                        .font(.fCaption2)
+                        .font(Font.normal(.caption2))
                         .foregroundColor(Color.App.red)
                         .padding(.trailing, 4)
                 }
@@ -96,7 +96,7 @@ struct ContactRow: View {
             .padding(.horizontal, 8)
             .background(Color.App.accent)
             .opacity(hasNumber ? 1.0 : 0.3)
-            .font(.fCaption2)
+            .font(Font.normal(.caption2))
             .contentShape(Rectangle())
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
@@ -107,7 +107,7 @@ struct ContactRow: View {
         if contact.hasUser == false || contact.hasUser == nil {
             Text("Contctas.list.notFound")
                 .foregroundStyle(Color.App.accent)
-                .font(.fCaption2)
+                .font(Font.normal(.caption2))
                 .fontWeight(.medium)
                 .padding(.leading, 16)
         }
