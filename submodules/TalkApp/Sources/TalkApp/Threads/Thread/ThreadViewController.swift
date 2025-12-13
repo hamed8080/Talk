@@ -700,6 +700,17 @@ extension ThreadViewController: HistoryScrollDelegate {
         tableView.isCellFullyVisible(indexPath, topInset: tableView.contentInset.top, bottomInset: tableView.contentInset.bottom + bottomPadding)
     }
     
+    /// Call this method to update the geometry of the previous last message
+    /// Note: If the previous last message was a multiline message,
+    /// we need to update the geometry after setting botttom constraint.
+    func updateTableViewGeometry() {
+        UIView.performWithoutAnimation { [weak self] in
+            guard let self = self else { return }
+            tableView.beginUpdates()
+            tableView.endUpdates()
+        }
+    }
+    
     private func cellFor(indexPath: IndexPath) -> (vm: MessageRowViewModel, cell: MessageBaseCell)?  {
         guard let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell else { return nil }
         guard let vm = sections.viewModelWith(indexPath) else { return nil }

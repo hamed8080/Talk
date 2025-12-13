@@ -1581,6 +1581,7 @@ extension ThreadHistoryViewModel {
         bottomVMBeforeJoin?.calMessage.isLastMessageOfTheUser = true        
         reloadStitchIfNeededForPreviousMessage(newMessage: newMessage)
         delegate?.reloadData(at: indexPath)
+        delegate?.updateTableViewGeometry()
     }
     
     private func reloadStitchIfNeededForPreviousMessage(newMessage: Message) {

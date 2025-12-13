@@ -43,6 +43,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     func visibleIndexPaths() -> [IndexPath]
     func lastMessageIndexPathIfVisible() -> IndexPath?
     func isCellFullyVisible(at: IndexPath, bottomPadding: CGFloat) -> Bool
+    func updateTableViewGeometry()
 }
 
 @MainActor
