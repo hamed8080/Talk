@@ -497,8 +497,16 @@ extension ThreadViewModel {
     }
     
     public func setPinMessage(_ pinMessage: PinMessage?) {
+        let oldPinMessageId = thread.pinMessage?.messageId
+        
         thread.pinMessage = pinMessage
         guard let index = indexInThreadsVM() else { return }
         threadsVM.threads[index].pinMessage = pinMessage
+        
+        /// unpin old message to remove pin icon
+        if let oldPinMessageId = oldPinMessageId, let tuple = historyVM.sections.viewModelAndIndexPath(for: oldPinMessageId) {
+            tuple.vm.message.pinned = false
+            historyVM.delegate?.pinChanged(tuple.indexPath, pin: false)
+        }
     }
 }
