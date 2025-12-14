@@ -184,6 +184,9 @@ extension ThreadHistoryViewModel {
             
             if let indexPath = sections.viewModelAndIndexPath(for: LocalId.unreadMessageBanner.rawValue)?.indexPath {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top, false)
+            } else {
+                /// Call delegate?.inserted directly if the banner we are move to does not exist in the topVMS or bottomVMS
+                delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top, false)
             }
             
             /// Hide cneter loading.
@@ -457,6 +460,9 @@ extension ThreadHistoryViewModel {
             /// Update UITableView and scroll to the disered indexPath.
             if let message = message, let indexPath = sections.viewModelAndIndexPath(for: message.id ?? -1)?.indexPath {
                 delegate?.inserted(tuple.sections, tuple.rows, indexPath, .top, false)
+            } else {
+                /// Call delegate?.inserted directly if the message we are move to does not exist in the topVMS or bottomVMS
+                delegate?.inserted(tuple.sections, tuple.rows, IndexPath(row: 0, section: 0), .top, false)
             }
             
             /// Animate to show hightlight if is needed.
