@@ -47,6 +47,7 @@ class ThreadsSearchTableViewController: UIViewController {
         tableView.allowsMultipleSelection = false
         tableView.backgroundColor = Color.App.bgPrimaryUIColor
         tableView.separatorStyle = .none
+        tableView.sectionHeaderTopPadding = 0
         tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         view.addSubview(tableView)
         

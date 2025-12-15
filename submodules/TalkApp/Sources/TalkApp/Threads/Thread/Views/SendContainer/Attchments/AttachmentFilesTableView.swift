@@ -163,11 +163,8 @@ extension AttachmentFilesTableView: AttachmentDelegate {
         tableView.reloadRows(at: [indexPath], with: .automatic)
         showImageEditorIfOneImagePicked()
     }
-}
-
-// MARK: ImageEditor
-extension AttachmentFilesTableView {
-    private func showImageEditorIfOneImagePicked() {
+    
+    public func showImageEditorIfOneImagePicked() {
         /// We have to show ImageEditor after data is being set by on image ready
         /// in reload method AttachmentFile.data is a an empty Data() object.
         let atts = viewModel?.attachmentsViewModel.attachments ?? []
@@ -177,7 +174,10 @@ extension AttachmentFilesTableView {
             showImageEditorDirectly(url: url, attachment: first)
         }
     }
-    
+}
+
+// MARK: ImageEditor
+extension AttachmentFilesTableView {
     private func showImageEditorDirectly(url: URL, attachment: AttachmentFile) {
         guard let vc = window?.rootViewController else { return }
         let font = UIFont.normal(.body) ?? .systemFont(ofSize: 14)

@@ -12,7 +12,7 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var loginVM: LoginViewModel
     @Published public var logVM = LogViewModel()
     @Published public var contactsVM = ContactsViewModel()
-    @Published public var threadsVM = ThreadsViewModel()
+    @Published public var threadsVM = ThreadsViewModel(isArchive: false)
     @Published public var tagsVM = TagsViewModel()
     @Published public var settingsVM = SettingViewModel()
     @Published public var tokenVM = TokenManager.shared

@@ -882,10 +882,10 @@ class MessageRowCalculators {
         /// Footer height
         /// Reactions are not part of the estimation.
         if isReactionable {
-            estimatedHeight += ConstantSizes.messageFooterViewHeightWithReaction
+            estimatedHeight += ConstantSizes.messageFooterViewHeight
             estimatedHeight += margin
             estimatedHeight += containerMargin
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
+            estimatedHeight += id == 0 ? 0 : ConstantSizes.messageContainerStackViewStackSpacing
         }
         
         return estimatedHeight

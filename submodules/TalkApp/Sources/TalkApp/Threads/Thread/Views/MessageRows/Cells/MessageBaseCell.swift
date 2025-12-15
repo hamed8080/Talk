@@ -160,14 +160,8 @@ public class MessageBaseCell: UITableViewCell {
 
     public func setValues(viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser
-        let isLastMessageOfTheThread = viewModel.message.id == nil || viewModel.message.id == viewModel.threadVM?.thread.lastMessageVO?.id
+        messageContainerBottomConstraint.constant = bottomConstant(viewModel: viewModel)
         
-        if isLastMessageOfTheThread {
-            messageContainerBottomConstraint.constant = 0 /// It will be managed by the contentOffset.bottom of the UITableView
-        } else {
-            messageContainerBottomConstraint.constant = isLastMessageOfOthers ? -ConstantSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : -ConstantSizes.messageContainerStackViewBottomMargin
-        }
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
         setMessageContainer(viewModel: viewModel)
@@ -178,6 +172,15 @@ public class MessageBaseCell: UITableViewCell {
         if !isInSelection, viewModel.threadVM?.thread.closed != true {
             swipeAction?.setupCell(cell: self, id: viewModel.id, edgeConstraint: edgeConstraint)
         }
+    }
+    
+    private func bottomConstant(viewModel: MessageRowViewModel) -> CGFloat {
+        let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser
+        let isLastMessageOfTheThread = viewModel.message.id == nil || viewModel.message.id == viewModel.threadVM?.thread.lastMessageVO?.id
+        
+        let bottomConstant = isLastMessageOfOthers ? ConstantSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : ConstantSizes.messageContainerStackViewBottomMargin
+        /// It will be managed by the contentOffset.bottom of the UITableView
+        return isLastMessageOfTheThread ? 0 : -bottomConstant
     }
 
     func deselect() {

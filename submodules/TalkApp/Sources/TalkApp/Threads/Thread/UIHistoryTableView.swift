@@ -99,9 +99,15 @@ extension UIHistoryTableView: UITableViewDelegate {
         cell.backgroundColor = UIColor.clear
         revealAnimation.reveal(for: cell)
         let row = sections[indexPath.section].vms[indexPath.row]
+#if DEBUG
+        if abs(row.calMessage.sizes.estimatedHeight - cell.bounds.height) > 10 {
+            log("[HEIGHT][WILL_DISPLAY] Need improvement in calculation id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "")")
+        }
+#endif
         row.calMessage.sizes.estimatedHeight = cell.bounds.height
-        
+#if DEBUG
         log("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+#endif
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
         }
@@ -132,7 +138,9 @@ extension UIHistoryTableView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         let row = sections[indexPath.section].vms[indexPath.row]
+#if DEBUG
         log("[HEIGHT][ESTIMATE] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+#endif
         return sections[indexPath.section].vms[indexPath.row].calMessage.sizes.estimatedHeight
     }
 }
@@ -176,7 +184,10 @@ extension UIHistoryTableView {
 extension UIHistoryTableView {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if viewModel?.scrollVM.getIsProgramaticallyScrolling() == true {
+#if DEBUG
+
             log("Reject did scroll to, isProgramaticallyScroll is true")
+#endif
             return
         }
         viewModel?.historyVM.didScrollTo(scrollView.contentOffset, scrollView.contentSize)

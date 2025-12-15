@@ -24,19 +24,18 @@ struct DetailTopButtonsSection: View {
             let isP2PContact = !isGroup
             
             if viewModel.thread?.type != .selfThread {
-                
                 if isGroup {
                     DetailViewButton(accessibilityText: "", icon: "", assetImageIconName: "ic_exit") {
                         onLeaveConversationTapped()
                     }
                 } else if isP2PContact {
-                    if let participant = viewModel.participantDetailViewModel?.participant, participant.contactId == nil {
-                        DetailViewButton(accessibilityText: "", icon: "person.badge.plus") {
-                            onAddContactTapped()
-                        }
-                    } else {
+                    if deletableParticipantContact != nil {
                         DetailViewButton(accessibilityText: "", icon: "trash") {
                             onDeleteContactTapped()
+                        }
+                    } else {
+                        DetailViewButton(accessibilityText: "", icon: "person.badge.plus") {
+                            onAddContactTapped()
                         }
                     }
                 }
@@ -81,17 +80,18 @@ struct DetailTopButtonsSection: View {
             //                DetailViewButton(accessibilityText: "", icon: "ellipsis"){}
             //            }
 
+            let thread = viewModel.thread
+            let isEmptyThread = thread?.id == LocalId.emptyThread.rawValue
+            let participant = viewModel.participantDetailViewModel?.participant
+            
             DetailViewButton(accessibilityText: "", icon: "ellipsis") {
                 showPopover.toggle()
             }
             .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
-                    if let thread = viewModel.thread {
-                        ThreadDetailRowActionMenu(showPopover: $showPopover, isDetailView: true, thread: thread.toClass())
+                    if let thread = thread {
+                        UserActionMenu(showPopover: $showPopover, participant: participant, thread: thread.toClass())
                             .environmentObject(AppState.shared.objectsContainer.threadsVM)
-                    }
-                    if let participant = viewModel.participantDetailViewModel?.participant {
-                        UserActionMenu(showPopover: $showPopover, participant: participant)
                     }
                 }
                 .environment(\.locale, Locale.current)
@@ -103,12 +103,15 @@ struct DetailTopButtonsSection: View {
                 .clipShape(RoundedRectangle(cornerRadius:((12))))
                 .presentationCompactAdaptation(horizontal: .popover, vertical: .sheet)
             }
+            .disabled(isEmptyThread)
+            .opacity(isEmptyThread ? 0.4 : 1.0)
+            .allowsTightening(!isEmptyThread)
             Spacer()
         }
         .padding([.leading, .trailing])
         .buttonStyle(.plain)
         .disabled(viewModel.thread?.closed == true)
-        .opacity(viewModel.thread?.closed == true ? 0.5 : 1.0)
+        .opacity(viewModel.thread?.closed == true ? 0.4 : 1.0)
     }
     
     private func onLeaveConversationTapped() {
@@ -116,17 +119,33 @@ struct DetailTopButtonsSection: View {
         showPopover = false
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(LeaveThreadDialog(conversation: thread))
     }
-    
+
     private func onDeleteContactTapped() {
-        guard let participant = viewModel.participantDetailViewModel?.participant else { return }
+        guard let participant = deletableParticipantContact else { return }
         showPopover = false
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
             ConversationDetailDeleteContactDialog(participant: participant)
         )
     }
     
+    private var deletableParticipantContact: Participant? {
+        viewModel.participantDetailViewModel?.participant ?? emptyThreadContantParticipant()
+    }
+    
+    private func emptyThreadContantParticipant() -> Participant? {
+        let firstParticipant = emptyThreadParticipant()
+        let hasContactId = firstParticipant?.contactId != nil
+        let emptyThreadParticipnat = hasContactId ? firstParticipant : nil
+        return emptyThreadParticipnat
+    }
+    
+    private func emptyThreadParticipant() -> Participant? {
+        let isEmptyThread = viewModel.thread?.id == LocalId.emptyThread.rawValue
+        return isEmptyThread ? viewModel.thread?.participants?.first : nil
+    }
+    
     private func onAddContactTapped() {
-        guard let participant = viewModel.participantDetailViewModel?.participant else { return }
+        guard let participant = emptyThreadParticipant() else { return }
         showPopover = false
         let contact = Contact(cellphoneNumber: participant.cellphoneNumber,
                               email: participant.email,

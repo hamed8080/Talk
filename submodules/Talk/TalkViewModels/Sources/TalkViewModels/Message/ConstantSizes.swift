@@ -114,7 +114,7 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let messageSingleEmojiViewHeight: CGFloat = 64
     
     /// MessageFooterView sizes
-    nonisolated(unsafe) public static let messageFooterViewHeightWithReaction: CGFloat = 28
+    nonisolated(unsafe) public static let messageFooterViewHeight: CGFloat = 28
     nonisolated(unsafe) public static let messageFooterViewStatusWidth: CGFloat = 22
     nonisolated(unsafe) public static let messageFooterViewPinWidth: CGFloat = 22
     nonisolated(unsafe) public static let messageFooterViewStackSpacing: CGFloat = 4

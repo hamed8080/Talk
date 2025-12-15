@@ -55,6 +55,12 @@ public final class SendContainerViewModel: ObservableObject {
         setEditMessageDraft(nil)
         setReplyMessageDraft(nil)
     }
+    
+    public func resetKeepText() {
+        mode = .init(type: .voice)
+        setEditMessageDraft(nil)
+        setReplyMessageDraft(nil)
+    }
 
     public func isTextEmpty() -> Bool {
         let sanitizedText = textMessage.replacingOccurrences(of: RTLMarker, with: "").trimmingCharacters(in: .whitespacesAndNewlines)

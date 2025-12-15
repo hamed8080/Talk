@@ -48,6 +48,12 @@ public final class MuteChannelBarView: UIView {
         let isMute = viewModel?.thread.mute == true
         let title = isMute ? "Thread.unmute".bundleLocalized() : "Thread.mute".bundleLocalized()
         btn.setTitle(title, for: .normal)
+        
+        let isArchive = viewModel?.thread.isArchive == true
+        if isArchive {
+            isUserInteractionEnabled = false
+            layer.opacity = 0.5
+        }
     }
 
     @objc private func muteTapped(_ sender: UIButton) {

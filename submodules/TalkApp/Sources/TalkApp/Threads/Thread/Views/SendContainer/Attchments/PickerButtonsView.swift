@@ -176,12 +176,11 @@ extension PickerButtonsView {
 extension PickerButtonsView {
     private func openTakeVideoPicker() {
         let captureObject = CameraCapturer(isVideo: true) { [weak self] image, url, resources in
-            guard let self = self, let videoURL = url, let data = try? Data(contentsOf: videoURL) else { return }
-            let fileName = "video-\(Date().fileDateString).mov"
-            let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
-            threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
-            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel?.setMode(type: .voice)
+            if let image = image {
+                self?.onImageCaptured(image: image)
+            } else if let url = url {
+                self?.onVideoCaptured(videoURL: url)
+            }
         }
         self.cameraCapturer = captureObject
         if captureObject.isCameraAccessDenied() {
@@ -190,25 +189,30 @@ extension PickerButtonsView {
             (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
         }
     }
-
-    private func openTakePicturePicker() {
-        let captureObject = CameraCapturer(isVideo: false) { [weak self] image, url, resources in
-            guard let self = self, let image = image else { return }
-            let item = ImageItem(data: image.jpegData(compressionQuality: 0.8) ?? Data(),
-                                 width: Int(image.size.width),
-                                 height: Int(image.size.height),
-                                 originalFilename: "image-\(Date().fileDateString).jpg")
-            threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
-            self.cameraCapturer = nil
-            /// Just update the UI to call registerModeChange inside that method it will detect the mode.
-            viewModel?.setMode(type: .voice)
+    
+    private func onVideoCaptured(videoURL: URL) {
+        guard let data = try? Data(contentsOf: videoURL) else { return }
+        let fileName = "video-\(Date().fileDateString).mov"
+        let item = ImageItem(id: UUID(), isVideo: true, data: data, width: 0, height: 0, originalFilename: fileName)
+        threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+        /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+        viewModel?.setMode(type: .voice)
+    }
+    
+    private func onImageCaptured(image: UIImage) {
+        let item = ImageItem(data: image.jpegData(compressionQuality: 0.8) ?? Data(),
+                             width: Int(image.size.width),
+                             height: Int(image.size.height),
+                             originalFilename: "image-\(Date().fileDateString).jpg")
+        threadVM?.attachmentsViewModel.addSelectedPhotos(imageItem: item)
+        
+        /// Wait to dismiss camera view controller then show image editor because image editor uses window.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            self?.threadVM?.attachmentsViewModel.delegate?.showImageEditorIfOneImagePicked()
         }
-        self.cameraCapturer = captureObject
-        if captureObject.isCameraAccessDenied() {
-            showPermissionDialog()
-        } else {
-            (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
-        }
+        self.cameraCapturer = nil
+        /// Just update the UI to call registerModeChange inside that method it will detect the mode.
+        viewModel?.setMode(type: .voice)
     }
     
     private func showPermissionDialog() {
