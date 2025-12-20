@@ -20,6 +20,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     private var cancellableSet = Set<AnyCancellable>()
     private let dt1 = "T_DT1"
     private let dt2 = "T_DT2"
+    
+    /// Force to run letiner even on the main application
+    public static let L_FORCE = "L_FORCE"
 
     func scene(_ scene: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -27,7 +30,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         let local = LeitnerBoxLoginViewModel.lo()
         let buildName = Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String
-        if buildName == "LeitnerBox" {
+        let forceLeitner = UserDefaults.standard.bool(forKey: SceneDelegate.L_FORCE)
+        if buildName == "LeitnerBox" || forceLeitner {
             runLeitnerBox(scene)
         } else if local {
             runT(scene)

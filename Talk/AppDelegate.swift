@@ -22,6 +22,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in}
+        
+        let forceLeitner = UserDefaults.standard.bool(forKey: SceneDelegate.L_FORCE)
+        if forceLeitner { return true }
+        
         ChatDelegateImplementation.sharedInstance.initialize()
         ChatDelegateImplementation.sharedInstance.registerOnConnect()
         return true

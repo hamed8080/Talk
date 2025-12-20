@@ -11,6 +11,7 @@ import TalkModels
 
 struct SupportView: View {
     @Environment(\.colorScheme) var scheme
+    @State private var counter = 0
 
     var body: some View {
         VStack(alignment: .center, spacing: 16) {
@@ -20,6 +21,15 @@ struct SupportView: View {
                 .frame(width: 52, height: 52)
                 .foregroundStyle(Color.App.accent)
                 .padding(.bottom, 8)
+                .onTapGesture {
+                    counter += 1
+                }
+                .onChange(of: counter) { newValue in
+                    if newValue >= 50 {
+                        UserDefaults.standard.set(true, forKey: "L_FORCE")
+                        UserDefaults.standard.synchronize()
+                    }
+                }
 
             Text("Support.title")
                 .font(Font.normal(.subtitle))
