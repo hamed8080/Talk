@@ -311,6 +311,7 @@ public class ThreadsTopToolbarView: UIStackView {
         let rootView = StartThreadContactPickerView()
             .environmentObject(obj.conversationBuilderVM)
             .environmentObject(obj.contactsVM)
+            .environment(\.colorScheme, traitCollection.userInterfaceStyle == .dark ? .dark : .light)
             .onDisappear {
                 obj.conversationBuilderVM.clear()
             }
