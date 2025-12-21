@@ -100,6 +100,7 @@ public enum PicturesListSection: Sendable {
 @MainActor
 public protocol UIPicturesViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem>, animatingDifferences: Bool)
+    func updateImage(id: Int, image: UIImage?) 
 }
 
 @MainActor
@@ -170,7 +171,7 @@ public class DetailTabDownloaderViewModel: ObservableObject {
                 
                 hasNext = response.hasNext
                 isLoading = false
-                animateObjectWillChange()
+                apply()
             }
         default:
             break
@@ -192,7 +193,7 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         RequestsManager.shared.append(prepend: DETAIL_HISTORY_KEY, value: req)
         offset += count
         isLoading = true
-        animateObjectWillChange()
+        apply()
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.message.history(req)
         }
@@ -218,5 +219,61 @@ public class DetailTabDownloaderViewModel: ObservableObject {
 #if DEBUG
         print("deinit DetailTabDownloaderViewModel for\(tabName)")
 #endif
+    }
+}
+
+/// Apply right snapshot to right tab type.
+extension DetailTabDownloaderViewModel {
+    private func apply() {
+        if linksDelegate != nil {
+            createAndApplyLinkSnapshot()
+        } else if picturesDelegate != nil {
+            CreateAndApplyPictureSnapshot()
+        }
+    }
+}
+
+/// Create pictures snapshot
+extension DetailTabDownloaderViewModel {
+    private func createPicutreSnapshot() -> NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem> {
+        let items = messagesModels.compactMap({ PictureItem.item($0) })
+        
+        var snapshot = NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem>()
+        if !items.isEmpty {
+            snapshot.appendSections([.main])
+            snapshot.appendItems(items, toSection: .main)
+        } else {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([], toSection: .noResult)
+        }
+        return snapshot
+    }
+    
+    private func CreateAndApplyPictureSnapshot() {
+        let snapshot = createPicutreSnapshot()
+        picturesDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
+    }
+}
+
+/// Create links snapshot
+extension DetailTabDownloaderViewModel {
+    private func createLinkSnapshot() -> NSDiffableDataSourceSnapshot<LinksListSection, LinkItem> {
+        let items = messagesModels.compactMap({ LinkItem.item($0) })
+        
+        var snapshot = NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>()
+        
+        if !items.isEmpty {
+            snapshot.appendSections([.main])
+            snapshot.appendItems(items, toSection: .main)
+        } else {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([], toSection: .noResult)
+        }
+        return snapshot
+    }
+    
+    private func createAndApplyLinkSnapshot() {
+        let snapshot = createLinkSnapshot()
+        linksDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
     }
 }

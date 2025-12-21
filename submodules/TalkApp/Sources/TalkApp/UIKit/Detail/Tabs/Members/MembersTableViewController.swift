@@ -28,8 +28,8 @@ class MembersTableViewController: UIViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
-        tableView.register(MemberSearchCell.self, forCellReuseIdentifier: MembersTableViewController.searchIdentifier)
-        tableView.register(MemberAddParticipantCell.self, forCellReuseIdentifier: MembersTableViewController.addParticipantIdentifier)
+        tableView.register(MemberSearchTextFieldCell.self, forCellReuseIdentifier: MembersTableViewController.searchIdentifier)
+        tableView.register(MemberAddParticipantButtonCell.self, forCellReuseIdentifier: MembersTableViewController.addParticipantIdentifier)
         tableView.register(MemberCell.self, forCellReuseIdentifier: MembersTableViewController.resuableIdentifier)
         tableView.register(NothingFoundCell.self, forCellReuseIdentifier: MembersTableViewController.nothingFoundIdentifier)
     }
@@ -80,14 +80,14 @@ extension MembersTableViewController {
                 let cell = tableView.dequeueReusableCell(
                     withIdentifier: MembersTableViewController.searchIdentifier,
                     for: indexPath
-                ) as? MemberSearchCell
+                ) as? MemberSearchTextFieldCell
                 cell?.viewModel = viewModel
                 return cell
             case .addParticipantButton:
                 let cell = tableView.dequeueReusableCell(
                     withIdentifier: MembersTableViewController.addParticipantIdentifier,
                     for: indexPath
-                ) as? MemberAddParticipantCell
+                ) as? MemberAddParticipantButtonCell
                 cell?.conversation = viewModel.thread
                 return cell
             case .item(let item):
@@ -148,7 +148,10 @@ extension MembersTableViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
+        guard
+            let conversation = dataSource.itemIdentifier(for: indexPath),
+            indexPath.row >= viewModel.participants.count - 10
+        else { return }
         Task {
             try await viewModel.loadMore()
         }
@@ -188,296 +191,6 @@ extension MembersTableViewController: ContextMenuDelegate {
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
-    }
-}
-
-final class MemberSearchCell: UITableViewCell {
-    
-    // MARK: - View Models
-    var viewModel: ParticipantsViewModel?
-    
-    // MARK: - UI Components
-    private let searchContainer = UIStackView()
-    private let iconView = UIImageView()
-    private let textField = UITextField()
-    private let menuButton = UIButton(type: .system)
-    
-    // MARK: - State
-    private var showPopover = false
-    
-    // MARK: - Init
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-        setupPopover()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Setup UI
-    private func setupUI() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
-        
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = Color.App.dividerSecondaryUIColor
-        backgroundColor = Color.App.dividerSecondaryUIColor
-        
-        // Container stack
-        let hStack = UIStackView()
-        hStack.axis = .horizontal
-        hStack.alignment = .center
-        hStack.spacing = 12
-        hStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(hStack)
-        
-        NSLayoutConstraint.activate([
-            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            hStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            hStack.bottomAnchor.constraint(equalTo: bottomAnchor)
-        ])
-        
-        // Search box
-        searchContainer.axis = .horizontal
-        searchContainer.alignment = .center
-        searchContainer.spacing = 8
-        searchContainer.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        
-        iconView.image = UIImage(systemName: "magnifyingglass")
-        iconView.tintColor = Color.App.textSecondaryUIColor
-        iconView.contentMode = .scaleAspectFit
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        iconView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        NSLayoutConstraint.activate([
-            iconView.widthAnchor.constraint(equalToConstant: 22),
-            iconView.heightAnchor.constraint(equalToConstant: 22)
-        ])
-        
-        textField.placeholder = "General.searchHere".bundleLocalized()
-        textField.font = UIFont.normal(.body)
-        textField.returnKeyType = .done
-        textField.delegate = self
-        textField.textAlignment = Language.isRTL ? .right : .left
-        textField.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        textField.addTarget(self, action: #selector(textDidChange(_:)), for: .editingChanged)
-        
-        searchContainer.addArrangedSubview(iconView)
-        searchContainer.addArrangedSubview(textField)
-        hStack.addArrangedSubview(searchContainer)
-        hStack.addArrangedSubview(menuButton)
-        
-        // Search Type Button
-        updateSearchTypeButton()
-    }
-    
-    private func updateSearchTypeButton() {
-        let title = viewModel?.searchType.rawValue ?? ""
-        let image = UIImage(systemName: "chevron.down")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .medium))
-        
-        var config = UIButton.Configuration.plain()
-        config.title = title
-        config.image = image
-        config.imagePadding = 4
-        config.baseForegroundColor = Color.App.textSecondaryUIColor
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attrs in
-            var newAttrs = attrs
-            newAttrs.font = UIFont.bold(.caption3)
-            return newAttrs
-        }
-        
-        menuButton.configuration = config
-    }
-    
-    // MARK: - Popover Setup
-    private func setupPopover() {
-        // Configure menu button
-        menuButton.translatesAutoresizingMaskIntoConstraints = false
-        menuButton.showsMenuAsPrimaryAction = true
-        menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        
-        // Default value
-        let defualtType = SearchParticipantType.name
-        menuButton.setTitle(defualtType.rawValue.bundleLocalized() ?? "", for: .normal)
-        viewModel?.searchType = defualtType
-        
-        let actions = SearchParticipantType.allCases.filter({ $0 != .admin }).compactMap({ type in
-            UIAction(title: type.rawValue.bundleLocalized(), image: nil) { [weak self] _ in
-                self?.viewModel?.searchType = type
-                self?.menuButton.setTitle(type.rawValue.bundleLocalized() ?? "", for: .normal)
-            }
-        })
-        menuButton.menu = UIMenu(title: "", children: actions)
-    }
-    
-    @objc private func textDidChange(_ textField: UITextField) {
-        viewModel?.searchText = textField.text ?? ""
-    }
-}
-
-// MARK: - UITextFieldDelegate
-extension MemberSearchCell: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
-}
-
-final class MemberAddParticipantCell: UITableViewCell {
-
-    // MARK: - UI Components
-    private let container = UIView()
-    private let addParticipantImageView = UIImageView(image: UIImage(systemName: "person.badge.plus"))
-    private let addParticipantLabel = UILabel()
-    
-    // MARK: - State
-    var conversation: Conversation?
-    
-    // MARK: - Init
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Setup UI
-    private func setupUI() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
-        
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = .clear
-        backgroundColor = .clear
-        
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onAddParticipantTapped))
-        container.addGestureRecognizer(tapGesture)
-        contentView.addSubview(container)
-        
-        addParticipantLabel.translatesAutoresizingMaskIntoConstraints = false
-        addParticipantLabel.text = "Thread.invite".bundleLocalized()
-        addParticipantLabel.font = UIFont.normal(.body)
-        addParticipantLabel.textAlignment = Language.isRTL ? .right : .left
-        addParticipantLabel.textColor = Color.App.accentUIColor
-        container.addSubview(addParticipantLabel)
-       
-        addParticipantImageView.translatesAutoresizingMaskIntoConstraints = false
-        addParticipantImageView.tintColor = Color.App.accentUIColor
-        addParticipantImageView.contentMode = .scaleAspectFit
-        container.addSubview(addParticipantImageView)
-        
-        NSLayoutConstraint.activate([
-            container.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            
-            addParticipantImageView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 0),
-            addParticipantImageView.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: 0),
-            addParticipantImageView.widthAnchor.constraint(equalToConstant: 26),
-            addParticipantImageView.heightAnchor.constraint(equalToConstant: 22),
-            
-            addParticipantLabel.leadingAnchor.constraint(equalTo: addParticipantImageView.trailingAnchor, constant: 0),
-            addParticipantLabel.centerYAnchor.constraint(equalTo: addParticipantImageView.centerYAnchor, constant: 2),
-            addParticipantLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            addParticipantLabel.heightAnchor.constraint(equalToConstant: 16),
-        ])
-    }
-    
-    @objc private func onAddParticipantTapped() {
-        let rootView = AddParticipantsToThreadView() { [weak self] contacts in
-            self?.onSelectedContacts(Array(contacts))
-        }
-        .injectAllObjects()
-        .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-        
-        let vc = UIHostingController(rootView: rootView)
-        vc.modalPresentationStyle = .formSheet
-        guard let parentVC = parentViewController else { return }
-        parentVC.present(vc, animated: true)
-    }
-    
-    private func onSelectedContacts(_ contacts: [Contact]) {
-        if conversation?.type?.isPrivate == true, conversation?.group == true {
-            AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
-                AdminLimitHistoryTimeDialog(threadId: conversation?.id ?? -1) { [weak self] historyTime in
-                    guard let self = self else { return }
-                    if let historyTime = historyTime {
-                        add(contacts, historyTime)
-                    } else {
-                        add(contacts)
-                    }
-                }
-                    .injectAllObjects()
-                    .environmentObject(AppState.shared.objectsContainer)
-            )
-        } else {
-            add(contacts)
-        }
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        if touches.first?.view == container {
-            setDimColor(dim: true)
-        }
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
-        if touches.first?.view == container {
-            setDimColor(dim: false)
-        }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesMoved(touches, with: event)
-        if touches.first?.view == container {
-            setDimColor(dim: false)
-        }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesCancelled(touches, with: event)
-        if touches.first?.view == container {
-            setDimColor(dim: false)
-        }
-    }
-    
-    private func setDimColor(dim: Bool) {
-        container.alpha = dim ? 0.5 : 1.0
-    }
-    
-    private func add(_ contacts: [Contact], _ historyTime: UInt? = nil) {
-        guard let threadId = conversation?.id else { return }
-        let invitees: [Invitee] = contacts.compactMap{ .init(id: $0.user?.username, idType: .username, historyTime: historyTime) }
-        let req = AddParticipantRequest(invitees: invitees, threadId: threadId)
-        Task { @ChatGlobalActor in
-            ChatManager.activeInstance?.conversation.participant.add(req)
-        }
-    }
-}
-
-// MARK: - UIView helper
-private extension UIView {
-    var parentViewController: UIViewController? {
-        var parentResponder: UIResponder? = self
-        while let next = parentResponder?.next {
-            if let vc = next as? UIViewController { return vc }
-            parentResponder = next
-        }
-        return nil
     }
 }
 

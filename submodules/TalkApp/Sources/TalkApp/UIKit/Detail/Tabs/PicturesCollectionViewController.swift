@@ -91,6 +91,12 @@ extension PicturesCollectionViewController: UIPicturesViewControllerDelegate {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
+    func updateImage(id: Int, image: UIImage?) {
+        if let cell = cell(id: id), let item = viewModel.messagesModels.first(where: { $0.id == id }) {
+            cell.setItem(item)
+        }
+    }
+    
     private func cell(id: Int) -> PictureCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? PictureCell
@@ -107,7 +113,10 @@ extension PicturesCollectionViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
+        guard
+            let conversation = dataSource.itemIdentifier(for: indexPath),
+            indexPath.row >= viewModel.messagesModels.count - 10
+        else { return }
         Task {
             try await viewModel.loadMore()
         }
@@ -115,7 +124,7 @@ extension PicturesCollectionViewController: UITableViewDelegate {
 }
 
 class PictureCell: UITableViewCell {
-    private let titleLabel = UILabel()
+    private var pictureView = UIImageView()
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -138,23 +147,19 @@ class PictureCell: UITableViewCell {
         backgroundColor = .clear
         
         /// Title of the conversation.
-        titleLabel.font = UIFont.normal(.subheadline)
-        titleLabel.textColor = Color.App.textPrimaryUIColor
-        titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.textAlignment = Language.isRTL ? .right : .left
-        titleLabel.numberOfLines = 1
-        contentView.addSubview(titleLabel)
+        pictureView.accessibilityIdentifier = "PictureCell.pictureView"
+        pictureView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(pictureView)
         
         NSLayoutConstraint.activate([
-            titleLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            pictureView.bottomAnchor.constraint(equalTo: centerYAnchor),
+            pictureView.leadingAnchor.constraint(equalTo: trailingAnchor, constant: 8),
+            pictureView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
         ])
     }
     
     public func setItem(_ item: TabRowModel) {
-        titleLabel.text = item.links.joined(separator: "\n")
+        pictureView.image = item.thumbnailImage
     }
 }
 

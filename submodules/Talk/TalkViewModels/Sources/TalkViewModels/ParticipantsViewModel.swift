@@ -191,7 +191,7 @@ public final class ParticipantsViewModel: ObservableObject {
         if lastRequestTime + 0.5 > .now {
             timerRequestQueue?.invalidate()
             timerRequestQueue = nil
-            timerRequestQueue = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            timerRequestQueue = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
                 Task { [weak self] in
                     await self?.loadByTimerQueue()
                 }

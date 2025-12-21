@@ -48,10 +48,10 @@ class MemberCell: UITableViewCell {
         addGestureRecognizer(longGesture)
         
         /// Title.
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.font = UIFont.normal(.subheadline)
         nameLabel.textColor = Color.App.textPrimaryUIColor
         nameLabel.accessibilityIdentifier = "MemberCell.nameLable"
-        nameLabel.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.textAlignment = Language.isRTL ? .right : .left
         nameLabel.numberOfLines = 1
         contentView.addSubview(nameLabel)

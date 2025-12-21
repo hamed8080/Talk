@@ -145,7 +145,6 @@ final class UIDetailViewPageViewController: UIViewController {
         NSLayoutConstraint.activate([
             segmentedStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             segmentedStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            segmentedStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             segmentedStack.heightAnchor.constraint(equalToConstant: 44),
 
             underlineView.topAnchor.constraint(equalTo: segmentedStack.bottomAnchor),
