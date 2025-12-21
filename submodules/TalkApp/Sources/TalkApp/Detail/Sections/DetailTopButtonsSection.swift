@@ -129,7 +129,11 @@ struct DetailTopButtonsSection: View {
     }
     
     private var deletableParticipantContact: Participant? {
-        viewModel.participantDetailViewModel?.participant ?? emptyThreadContantParticipant()
+        let participant = viewModel.participantDetailViewModel?.participant
+        if participant != nil && participant?.contactId == nil {
+            return nil
+        }
+        return participant ?? emptyThreadContantParticipant()
     }
     
     private func emptyThreadContantParticipant() -> Participant? {
@@ -139,9 +143,16 @@ struct DetailTopButtonsSection: View {
         return emptyThreadParticipnat
     }
     
+    private func isFakeConversation() -> Bool {
+        viewModel.thread?.id == LocalId.emptyThread.rawValue
+    }
+    
+    private func firstThreadPartnerParticipant() -> Participant? {
+        viewModel.thread?.participants?.first
+    }
+    
     private func emptyThreadParticipant() -> Participant? {
-        let isEmptyThread = viewModel.thread?.id == LocalId.emptyThread.rawValue
-        return isEmptyThread ? viewModel.thread?.participants?.first : nil
+        return isFakeConversation() ? firstThreadPartnerParticipant() : nil
     }
     
     private func onAddContactTapped() {

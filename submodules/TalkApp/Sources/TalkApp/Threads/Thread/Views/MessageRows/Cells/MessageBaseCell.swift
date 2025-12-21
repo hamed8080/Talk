@@ -160,7 +160,7 @@ public class MessageBaseCell: UITableViewCell {
 
     public func setValues(viewModel: MessageRowViewModel) {
         self.viewModel = viewModel
-        messageContainerBottomConstraint.constant = bottomConstatnt(viewModel: viewModel)
+        messageContainerBottomConstraint.constant = bottomConstant(viewModel: viewModel)
         
         attachOrDetachAvatar(viewModel: viewModel)
         attachOrDetachRadio(viewModel: viewModel)
@@ -174,7 +174,7 @@ public class MessageBaseCell: UITableViewCell {
         }
     }
     
-    private func bottomConstatnt(viewModel: MessageRowViewModel) -> CGFloat {
+    private func bottomConstant(viewModel: MessageRowViewModel) -> CGFloat {
         let isLastMessageOfOthers = viewModel.calMessage.isLastMessageOfTheUser
         let isLastMessageOfTheThread = viewModel.message.id == nil || viewModel.message.id == viewModel.threadVM?.thread.lastMessageVO?.id
         
