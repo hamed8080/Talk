@@ -12,8 +12,8 @@ import SwiftUI
 import TalkViewModels
 
 class PicturesCollectionViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<PicturesListSection, PictureItem>!
-    var tableView: UITableView = UITableView(frame: .zero)
+    var dataSource: UICollectionViewDiffableDataSource<PicturesListSection, PictureItem>!
+    var cv: UICollectionView!
     let viewModel: DetailTabDownloaderViewModel
     static let resuableIdentifier = "PICTURE-ROW"
     static let nothingFoundIdentifier = "NOTHING-FOUND-PICTURE-ROW"
@@ -23,9 +23,10 @@ class PicturesCollectionViewController: UIViewController {
         self.viewModel = viewModel
         self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
+        cv = UICollectionView(frame: .zero, collectionViewLayout: createlayout())
         viewModel.picturesDelegate = self
-        tableView.register(PictureCell.self, forCellReuseIdentifier: PicturesCollectionViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: PicturesCollectionViewController.nothingFoundIdentifier)
+        cv.register(PictureCell.self, forCellWithReuseIdentifier: PicturesCollectionViewController.resuableIdentifier)
+//        cv.register(NothingFoundCell.self, forCellReuseIdentifier: PicturesCollectionViewController.nothingFoundIdentifier)
     }
     
     required init?(coder: NSCoder) {
@@ -35,20 +36,24 @@ class PicturesCollectionViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        tableView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.rowHeight = 96
-        tableView.delegate = self
-        tableView.allowsMultipleSelection = false
-        tableView.backgroundColor = .clear
-        tableView.separatorStyle = .none
-        view.addSubview(tableView)
+        cv.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.delegate = self
+        cv.allowsMultipleSelection = false
+        cv.backgroundColor = .clear
+        cv.isUserInteractionEnabled = true
+        cv.allowsMultipleSelection = false
+        cv.allowsSelection = true
+        cv.showsHorizontalScrollIndicator = false
+//        cv.contentInset = .init(top: 48, left: 0, bottom: 64, right: 0)
+        
+        view.addSubview(cv)
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            cv.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            cv.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            cv.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
+            cv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
         configureDataSource()
     }
@@ -57,29 +62,43 @@ class PicturesCollectionViewController: UIViewController {
         super.viewDidAppear(animated)
         viewModel.loadMore()
     }
+    
+    private func createlayout() -> UICollectionViewLayout {
+        let fraction = 1.0 / 4.0
+
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(fraction), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(fraction))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        group.interItemSpacing = .fixed(4)
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 4
+        section.contentInsets = .zero
+        
+        let layout = UICollectionViewCompositionalLayout(section: section)
+        return layout
+    }
 }
 
 extension PicturesCollectionViewController {
     
     private func configureDataSource() {
-        dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, item) -> UITableViewCell? in
+        dataSource = UICollectionViewDiffableDataSource<PicturesListSection, PictureItem>(collectionView: cv) { [weak self] cv, indexPath, item -> UICollectionViewCell? in
             guard let self = self else { return nil }
             
             switch item {
             case .item(let item):
-                let cell = tableView.dequeueReusableCell(
-                    withIdentifier: PicturesCollectionViewController.resuableIdentifier,
-                    for: indexPath
-                ) as? PictureCell
+                let cell = cv.dequeueReusableCell(withReuseIdentifier: PicturesCollectionViewController.resuableIdentifier,
+                                                  for: indexPath) as? PictureCell
                 
                 // Set properties
                 cell?.setItem(item)
                 return cell
             case .noResult:
-                let cell = tableView.dequeueReusableCell(
-                    withIdentifier: PicturesCollectionViewController.nothingFoundIdentifier,
-                    for: indexPath
-                ) as? NothingFoundCell
+                let cell = cv.dequeueReusableCell(withReuseIdentifier: PicturesCollectionViewController.nothingFoundIdentifier,
+                                                  for: indexPath) as? NothingFoundCollectionViewCell
                 return cell
             }
         }
@@ -99,12 +118,12 @@ extension PicturesCollectionViewController: UIPicturesViewControllerDelegate {
     
     private func cell(id: Int) -> PictureCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
-        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? PictureCell
+        return cv.cellForItem(at: IndexPath(row: index, section: 0)) as? PictureCell
     }
 }
 
-extension PicturesCollectionViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+extension PicturesCollectionViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
             onSelect(item)
@@ -112,7 +131,7 @@ extension PicturesCollectionViewController: UITableViewDelegate {
         }
     }
     
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         guard
             let conversation = dataSource.itemIdentifier(for: indexPath),
             indexPath.row >= viewModel.messagesModels.count - 10
@@ -123,11 +142,11 @@ extension PicturesCollectionViewController: UITableViewDelegate {
     }
 }
 
-class PictureCell: UITableViewCell {
+class PictureCell: UICollectionViewCell {
     private var pictureView = UIImageView()
    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         configureView()
     }
     
@@ -137,8 +156,6 @@ class PictureCell: UITableViewCell {
     
     
     private func configureView() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
         
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
@@ -147,14 +164,17 @@ class PictureCell: UITableViewCell {
         backgroundColor = .clear
         
         /// Title of the conversation.
-        pictureView.accessibilityIdentifier = "PictureCell.pictureView"
         pictureView.translatesAutoresizingMaskIntoConstraints = false
+        pictureView.accessibilityIdentifier = "PictureCell.pictureView"
+        pictureView.contentMode = .scaleAspectFill
+        pictureView.clipsToBounds = true
         contentView.addSubview(pictureView)
         
         NSLayoutConstraint.activate([
-            pictureView.bottomAnchor.constraint(equalTo: centerYAnchor),
-            pictureView.leadingAnchor.constraint(equalTo: trailingAnchor, constant: 8),
-            pictureView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            pictureView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            pictureView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            pictureView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            pictureView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
     }
     

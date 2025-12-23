@@ -39,3 +39,33 @@ class NothingFoundCell: UITableViewCell {
         ])
     }
 }
+
+class NothingFoundCollectionViewCell: UICollectionViewCell {
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        configureView()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func configureView() {
+        
+        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        translatesAutoresizingMaskIntoConstraints = true
+        contentView.backgroundColor = .clear
+        backgroundColor = .clear
+        
+        let view = NothingFoundView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(view)
+        
+        NSLayoutConstraint.activate([
+            view.centerXAnchor.constraint(equalTo: contentView.centerXAnchor, constant: 0),
+            view.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+        ])
+    }
+}

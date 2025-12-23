@@ -161,6 +161,9 @@ public class DetailTabDownloaderViewModel: ObservableObject {
                         }
                         
                         messagesModels.append(model)
+                        if picturesDelegate != nil {
+                            registerModelChanges(model)
+                        }
                         
                         if model.links.isEmpty && model.message.type == .link {
                             messagesModels.removeLast()
@@ -198,6 +201,13 @@ public class DetailTabDownloaderViewModel: ObservableObject {
             ChatManager.activeInstance?.message.history(req)
         }
     }
+    
+    private func registerModelChanges(_ item: TabRowModel) {
+        Task {
+            await item.prepareThumbnail()
+            picturesDelegate?.updateImage(id: item.id, image: item.thumbnailImage)
+        }
+    }
 
     public func itemWidth(readerWidth: CGFloat) -> CGFloat {
         let modes: [WindowMode] = [.iPhone, .ipadOneThirdSplitView, .ipadSlideOver]
@@ -228,7 +238,7 @@ extension DetailTabDownloaderViewModel {
         if linksDelegate != nil {
             createAndApplyLinkSnapshot()
         } else if picturesDelegate != nil {
-            CreateAndApplyPictureSnapshot()
+            createAndApplyPictureSnapshot()
         }
     }
 }
@@ -249,7 +259,7 @@ extension DetailTabDownloaderViewModel {
         return snapshot
     }
     
-    private func CreateAndApplyPictureSnapshot() {
+    private func createAndApplyPictureSnapshot() {
         let snapshot = createPicutreSnapshot()
         picturesDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
     }
