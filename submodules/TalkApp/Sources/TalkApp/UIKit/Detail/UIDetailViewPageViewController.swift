@@ -38,39 +38,27 @@ final class UIDetailViewPageViewController: UIViewController {
                 }
             case .pictures:
                 if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(PicturesCollectionViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(PicturesCollectionViewController(viewModel: viewModel))
                 }
             case .video:
                 if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(VideosTableViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(VideosTableViewController(viewModel: viewModel))
                 }
             case .music:
                 if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(MusicsTableViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(MusicsTableViewController(viewModel: viewModel))
                 }
             case .voice:
                 if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(VoicesTableViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(VoicesTableViewController(viewModel: viewModel))
                 }
             case .file:
                 if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(FilesTableViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(FilesTableViewController(viewModel: viewModel))
                 }
             case .link:
                 if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(LinksTableViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(LinksTableViewController(viewModel: viewModel))
                 }
             case .mutual:
                 if let viewModel = tab.viewModel as? MutualGroupViewModel {
@@ -86,6 +74,13 @@ final class UIDetailViewPageViewController: UIViewController {
         self.onDisappear = onDisappear
         self.pageVC = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
         super.init(nibName: nil, bundle: nil)
+        
+        controllers.forEach { vc in
+            if let selectableVC = vc as? TabControllerDelegate {
+                selectableVC.onSelectDelegate = self
+                selectableVC.detailVM = viewModel
+            }
+        }
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -241,6 +236,11 @@ extension UIDetailViewPageViewController: UIPageViewControllerDelegate, UIPageVi
     }
 }
 
+extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
+    func onSelect(item: TabRowModel) {
+        item.onTap(viewModel: viewModel)
+    }
+}
 
 //struct ThreadDetailView: View {
 //    @EnvironmentObject var viewModel: ThreadDetailViewModel

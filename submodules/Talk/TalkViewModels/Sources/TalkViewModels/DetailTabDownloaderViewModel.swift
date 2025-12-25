@@ -40,6 +40,7 @@ public enum MusicsListSection: Sendable {
 @MainActor
 public protocol UIMusicsViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem>, animatingDifferences: Bool)
+    func updateProgress(item: TabRowModel)
 }
 
 public enum VoiceItem: Hashable, Sendable {
@@ -55,6 +56,7 @@ public enum VoicesListSection: Sendable {
 @MainActor
 public protocol UIVoicesViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem>, animatingDifferences: Bool)
+    func updateProgress(item: TabRowModel)
 }
 
 public enum VideoItem: Hashable, Sendable {
@@ -70,6 +72,7 @@ public enum VideosListSection: Sendable {
 @MainActor
 public protocol UIVideosViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>, animatingDifferences: Bool)
+    func updateProgress(item: TabRowModel)
 }
 
 public enum FileItem: Hashable, Sendable {
@@ -85,6 +88,7 @@ public enum FilesListSection: Sendable {
 @MainActor
 public protocol UIFilesViewControllerDelegate: AnyObject {
     func apply(snapshot: NSDiffableDataSourceSnapshot<FilesListSection, FileItem>, animatingDifferences: Bool)
+    func updateProgress(item: TabRowModel)
 }
 
 public enum PictureItem: Hashable, Sendable {
@@ -123,7 +127,6 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     public weak var videosDelegate: UIVideosViewControllerDelegate?
     public weak var filesDelegate: UIFilesViewControllerDelegate?
     public weak var picturesDelegate: UIPicturesViewControllerDelegate?
-    public weak var membersDelegate: UIMembersViewControllerDelegate?
 
     public init(conversation: Conversation, messageType: ChatModels.MessageType, tabName: String) {
         DETAIL_HISTORY_KEY = "DETAIL-HISTORY-\(tabName)-KEY-\(objectId)"
@@ -161,10 +164,8 @@ public class DetailTabDownloaderViewModel: ObservableObject {
                         }
                         
                         messagesModels.append(model)
-                        if picturesDelegate != nil {
-                            registerModelChanges(model)
-                        }
-                        
+                        registerModelChanges(model)
+
                         if model.links.isEmpty && model.message.type == .link {
                             messagesModels.removeLast()
                         }
@@ -203,25 +204,39 @@ public class DetailTabDownloaderViewModel: ObservableObject {
     }
     
     private func registerModelChanges(_ item: TabRowModel) {
-        Task {
-            await item.prepareThumbnail()
-            picturesDelegate?.updateImage(id: item.id, image: item.thumbnailImage)
+        if let picturesDelegate = picturesDelegate {
+            Task {
+                await item.prepareThumbnail()
+                picturesDelegate.updateImage(id: item.id, image: item.thumbnailImage)
+            }
         }
-    }
-
-    public func itemWidth(readerWidth: CGFloat) -> CGFloat {
-        let modes: [WindowMode] = [.iPhone, .ipadOneThirdSplitView, .ipadSlideOver]
-        let semiFullModes: [WindowMode] = [.ipadHalfSplitView, .ipadTwoThirdSplitView]
-        let isInSemiFullMode = semiFullModes.contains(UIApplication.shared.windowMode())
-        if modes.contains(UIApplication.shared.windowMode()) {
-            itemCount = 3
-            return readerWidth / 3
-        } else if isInSemiFullMode {
-            itemCount = 4
-            return readerWidth / 4
-        } else {
-            itemCount = 5
-            return readerWidth / 5
+        
+        if let videosDelegate = videosDelegate {
+            item.$state.sink { newState in
+                videosDelegate.updateProgress(item: item)
+            }
+            .store(in: &cancelable)
+        }
+        
+        if let filesDelegate = filesDelegate {
+            item.$state.sink { newState in
+                filesDelegate.updateProgress(item: item)
+            }
+            .store(in: &cancelable)
+        }
+        
+        if let voicesDelegate = voicesDelegate {
+            item.$state.sink { newState in
+                voicesDelegate.updateProgress(item: item)
+            }
+            .store(in: &cancelable)
+        }
+        
+        if let musicsDelegate = musicsDelegate {
+            item.$state.sink { newState in
+                musicsDelegate.updateProgress(item: item)
+            }
+            .store(in: &cancelable)
         }
     }
 
@@ -239,6 +254,14 @@ extension DetailTabDownloaderViewModel {
             createAndApplyLinkSnapshot()
         } else if picturesDelegate != nil {
             createAndApplyPictureSnapshot()
+        } else if videosDelegate != nil {
+            createAndApplyVideoSnapshot()
+        } else if filesDelegate != nil {
+            createAndApplyFileSnapshot()
+        } else if musicsDelegate != nil {
+            createAndApplyMusicSnapshot()
+        } else if voicesDelegate != nil {
+            createAndApplyVoiceSnapshot()
         }
     }
 }
@@ -262,6 +285,94 @@ extension DetailTabDownloaderViewModel {
     private func createAndApplyPictureSnapshot() {
         let snapshot = createPicutreSnapshot()
         picturesDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
+    }
+}
+
+/// Create videos snapshot
+extension DetailTabDownloaderViewModel {
+    private func createVideoSnapshot() -> NSDiffableDataSourceSnapshot<VideosListSection, VideoItem> {
+        let items = messagesModels.compactMap({ VideoItem.item($0) })
+        
+        var snapshot = NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>()
+        if !items.isEmpty {
+            snapshot.appendSections([.main])
+            snapshot.appendItems(items, toSection: .main)
+        } else {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([], toSection: .noResult)
+        }
+        return snapshot
+    }
+    
+    private func createAndApplyVideoSnapshot() {
+        let snapshot = createVideoSnapshot()
+        videosDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
+    }
+}
+
+/// Create files snapshot
+extension DetailTabDownloaderViewModel {
+    private func createFileSnapshot() -> NSDiffableDataSourceSnapshot<FilesListSection, FileItem> {
+        let items = messagesModels.compactMap({ FileItem.item($0) })
+        
+        var snapshot = NSDiffableDataSourceSnapshot<FilesListSection, FileItem>()
+        if !items.isEmpty {
+            snapshot.appendSections([.main])
+            snapshot.appendItems(items, toSection: .main)
+        } else {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([], toSection: .noResult)
+        }
+        return snapshot
+    }
+    
+    private func createAndApplyFileSnapshot() {
+        let snapshot = createFileSnapshot()
+        filesDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
+    }
+}
+
+/// Create musics snapshot
+extension DetailTabDownloaderViewModel {
+    private func createMusicSnapshot() -> NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem> {
+        let items = messagesModels.compactMap({ MusicItem.item($0) })
+        
+        var snapshot = NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem>()
+        if !items.isEmpty {
+            snapshot.appendSections([.main])
+            snapshot.appendItems(items, toSection: .main)
+        } else {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([], toSection: .noResult)
+        }
+        return snapshot
+    }
+    
+    private func createAndApplyMusicSnapshot() {
+        let snapshot = createMusicSnapshot()
+        musicsDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
+    }
+}
+
+/// Create voices snapshot
+extension DetailTabDownloaderViewModel {
+    private func createVoiceSnapshot() -> NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem> {
+        let items = messagesModels.compactMap({ VoiceItem.item($0) })
+        
+        var snapshot = NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem>()
+        if !items.isEmpty {
+            snapshot.appendSections([.main])
+            snapshot.appendItems(items, toSection: .main)
+        } else {
+            snapshot.appendSections([.noResult])
+            snapshot.appendItems([], toSection: .noResult)
+        }
+        return snapshot
+    }
+    
+    private func createAndApplyVoiceSnapshot() {
+        let snapshot = createVoiceSnapshot()
+        voicesDelegate?.apply(snapshot: snapshot, animatingDifferences: false)
     }
 }
 

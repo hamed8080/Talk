@@ -14,12 +14,14 @@ import TalkViewModels
 class MutualGroupsTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<MutualGroupsListSection, MutualGroupItem>!
     var tableView: UITableView = UITableView(frame: .zero)
-    let viewModel: MutualGroupViewModel
+    let viewModel: MutualGroupViewModel    
     static let resuableIdentifier = "MUTUAL-GROUPS-ROW"
     static let nothingFoundIdentifier = "NOTHING-FOUND-MUTUAL-GROUPS-ROW"
-    private let onSelect: @Sendable (Conversation) -> Void
     
-    init(viewModel: MutualGroupViewModel, onSelect: @Sendable @escaping (Conversation) -> Void) {
+    weak var detailVM: ThreadDetailViewModel?
+    private let onSelect: @Sendable (CalculatedConversation) -> Void
+    
+    init(viewModel: MutualGroupViewModel, onSelect: @Sendable @escaping (CalculatedConversation) -> Void) {
         self.viewModel = viewModel
         self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
@@ -118,85 +120,6 @@ extension MutualGroupsTableViewController: UITableViewDelegate {
         Task {
             try await viewModel.loadMoreMutualGroups()
         }
-    }
-}
-
-class MutualCell: UITableViewCell {
-    private let titleLabel = UILabel()
-    private let avatarInitialLable = UILabel()
-    private let avatar = UIImageView(frame: .zero)
-   
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configureView()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    private func configureView() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
-        
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = .clear
-        backgroundColor = .clear
-        
-        /// Title of the conversation.
-        titleLabel.font = UIFont.normal(.subheadline)
-        titleLabel.textColor = Color.App.textPrimaryUIColor
-        titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.textAlignment = Language.isRTL ? .right : .left
-        titleLabel.numberOfLines = 1
-        contentView.addSubview(titleLabel)
-        
-        /// Avatar or user name abbrevation
-        avatar.accessibilityIdentifier = "ConversationCell.avatar"
-        avatar.translatesAutoresizingMaskIntoConstraints = false
-        avatar.layer.cornerRadius = 24
-        avatar.layer.masksToBounds = true
-        avatar.contentMode = .scaleAspectFill
-        contentView.addSubview(avatar)
-        
-        /// User initial over the avatar image if the image is nil.
-        avatarInitialLable.accessibilityIdentifier = "ConversationCell.avatarInitialLable"
-        avatarInitialLable.translatesAutoresizingMaskIntoConstraints = false
-        avatarInitialLable.layer.cornerRadius = 22
-        avatarInitialLable.layer.masksToBounds = true
-        avatarInitialLable.textAlignment = .center
-        avatarInitialLable.font = UIFont.normal(.subheadline)
-        contentView.addSubview(avatarInitialLable)
-        
-        NSLayoutConstraint.activate([
-            avatar.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            avatar.widthAnchor.constraint(equalToConstant: 36),
-            avatar.heightAnchor.constraint(equalToConstant: 36),
-            
-            avatarInitialLable.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
-            avatarInitialLable.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
-            avatarInitialLable.widthAnchor.constraint(equalToConstant: 52),
-            avatarInitialLable.heightAnchor.constraint(equalToConstant: 52),
-            
-            titleLabel.bottomAnchor.constraint(equalTo: avatar.centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-        ])
-    }
-    
-    public func setConversation(conversation: Conversation) {
-        titleLabel.text = conversation.computedTitle
-        avatar.backgroundColor = String.getMaterialColorByCharCode(str: conversation.title ?? "")
-    }
-    
-    public func setImage(_ image: UIImage?) {
-        avatar.image = image
-        avatar.isHidden = image == nil
     }
 }
 

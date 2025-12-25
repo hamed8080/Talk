@@ -1,5 +1,5 @@
 //
-//  FilesTableViewController.swift
+//  VoicesTableViewController.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 9/23/21.
@@ -11,21 +11,24 @@ import Chat
 import SwiftUI
 import TalkViewModels
 
-class FilesTableViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<FilesListSection, FileItem>!
+class VoicesTableViewController: UIViewController, TabControllerDelegate {
+    var dataSource: UITableViewDiffableDataSource<VoicesListSection, VoiceItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
     static let resuableIdentifier = "VOICE-ROW"
     static let nothingFoundIdentifier = "NOTHING-FOUND-VOICE-ROW"
-    private let onSelect: @Sendable (TabRowModel) -> Void
     
-    init(viewModel: DetailTabDownloaderViewModel, onSelect: @Sendable @escaping (TabRowModel) -> Void) {
+    private var contextMenuContainer: ContextMenuContainerView?
+    
+    weak var detailVM: ThreadDetailViewModel?
+    public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
+    
+    init(viewModel: DetailTabDownloaderViewModel) {
         self.viewModel = viewModel
-        self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
-        viewModel.filesDelegate = self
-        tableView.register(VoiceCell.self, forCellReuseIdentifier: FilesTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: FilesTableViewController.nothingFoundIdentifier)
+        viewModel.voicesDelegate = self
+        tableView.register(VoiceCell.self, forCellReuseIdentifier: VoicesTableViewController.resuableIdentifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: VoicesTableViewController.nothingFoundIdentifier)
     }
     
     required init?(coder: NSCoder) {
@@ -55,11 +58,12 @@ class FilesTableViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
     }
 }
 
-extension FilesTableViewController {
+extension VoicesTableViewController {
     
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, item) -> UITableViewCell? in
@@ -68,16 +72,25 @@ extension FilesTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: FilesTableViewController.resuableIdentifier,
+                    withIdentifier: VoicesTableViewController.resuableIdentifier,
                     for: indexPath
-                ) as? FileCell
+                ) as? VoiceCell
                 
                 // Set properties
                 cell?.setItem(item)
+                cell?.onContextMenu = { [weak self] sender in
+                    guard let self = self else { return }
+                    if sender.state == .began {
+                        let index = viewModel.messagesModels.firstIndex(where: { $0.id == item.id })
+                        if let index = index, viewModel.messagesModels[index].id != AppState.shared.user?.id {
+                            showContextMenu(IndexPath(row: index, section: indexPath.section), contentView: UIView())
+                        }
+                    }
+                }
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: FilesTableViewController.nothingFoundIdentifier,
+                    withIdentifier: VoicesTableViewController.nothingFoundIdentifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -86,22 +99,28 @@ extension FilesTableViewController {
     }
 }
 
-extension FilesTableViewController: UIFilesViewControllerDelegate {
-    func apply(snapshot: NSDiffableDataSourceSnapshot<FilesListSection, FileItem>, animatingDifferences: Bool) {
+extension VoicesTableViewController: UIVoicesViewControllerDelegate {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem>, animatingDifferences: Bool) {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
-    private func cell(id: Int) -> FileCell? {
+    func updateProgress(item: TabRowModel) {
+        if let cell = cell(id: item.id) {
+            cell.updateProgress(item)
+        }
+    }
+    
+    private func cell(id: Int) -> VoiceCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
-        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? FileCell
+        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? VoiceCell
     }
 }
 
-extension FilesTableViewController: UITableViewDelegate {
+extension VoicesTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
-            onSelect(item)
+            onSelectDelegate?.onSelect(item: item)
             dismiss(animated: true)
         }
     }
@@ -116,56 +135,37 @@ extension FilesTableViewController: UITableViewDelegate {
     }
 }
 
-class FileCell: UITableViewCell {
-    private let titleLabel = UILabel()
-   
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configureView()
+extension VoicesTableViewController: ContextMenuDelegate {
+    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
+        guard
+            let indexPath = indexPath,
+            let item = dataSource.itemIdentifier(for: indexPath),
+            case let .item(model) = item
+        else { return }
+        let newCell = VoiceCell(frame: .zero)
+        newCell.setItem(model)
+        GeneralRowContextMenuUIKit.showGeneralContextMenuRow(newCell: newCell,
+                                                             tb: tableView,
+                                                             model: model,
+                                                             detailVM: detailVM,
+                                                             contextMenuContainer: contextMenuContainer,
+                                                             showFileShareSheet: model.state.state == .completed,
+                                                             parentVC: self,
+                                                             indexPath: indexPath
+        )
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    private func configureView() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
+    func dismissContextMenu(indexPath: IndexPath?) {
         
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = .clear
-        backgroundColor = .clear
-        
-        /// Title of the conversation.
-        titleLabel.font = UIFont.normal(.subheadline)
-        titleLabel.textColor = Color.App.textPrimaryUIColor
-        titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.textAlignment = Language.isRTL ? .right : .left
-        titleLabel.numberOfLines = 1
-        contentView.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-        ])
-    }
-    
-    public func setItem(_ item: TabRowModel) {
-        titleLabel.text = item.links.joined(separator: "\n")
     }
 }
 
 //
-//struct FilesTabView: View {
+//struct VoicesTabView: View {
 //    @StateObject var viewModel: DetailTabDownloaderViewModel
 //
 //    init(conversation: Conversation, messageType: ChatModels.MessageType) {
-//        _viewModel = StateObject(wrappedValue: .init(conversation: conversation, messageType: messageType, tabName: "File"))
+//        _viewModel =  StateObject(wrappedValue: .init(conversation: conversation, messageType: messageType, tabName: "Voice"))
 //    }
 //
 //    var body: some View {
@@ -176,8 +176,9 @@ class FileCell: UITableViewCell {
 //                        viewModel.loadMore()
 //                    }
 //                }
+//
 //            if viewModel.isLoading || viewModel.messagesModels.count > 0 {
-//                MessageListFileView()
+//                MessageListVoiceView()
 //                    .padding(.top, 8)
 //                    .environmentObject(viewModel)
 //            } else {
@@ -187,15 +188,15 @@ class FileCell: UITableViewCell {
 //    }
 //}
 //
-//struct MessageListFileView: View {
+//struct MessageListVoiceView: View {
 //    @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
 //    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
 //
 //    var body: some View {
 //        ForEach(viewModel.messagesModels) { model in
-//            FileRowView(viewModel: detailViewModel)
+//            VoiceRowView(viewModel: detailViewModel)
 //                .environmentObject(model)
-//                .appyDetailViewContextMenu(FileRowView(viewModel: detailViewModel), model, detailViewModel)
+//                .appyDetailViewContextMenu(VoiceRowView(viewModel: detailViewModel), model, detailViewModel)
 //                .overlay(alignment: .bottom) {
 //                    if model.message != viewModel.messagesModels.last?.message {
 //                        Rectangle()
@@ -214,7 +215,7 @@ class FileCell: UITableViewCell {
 //    }
 //}
 //
-//struct FileRowView: View {
+//struct VoiceRowView: View {
 //    @EnvironmentObject var rowModel: TabRowModel
 //    let viewModel: ThreadDetailViewModel
 //
@@ -225,13 +226,8 @@ class FileCell: UITableViewCell {
 //            Spacer()
 //        }
 //        .padding(.all)
-//        .background(Color.App.bgPrimary)
 //        .contentShape(Rectangle())
-//        .sheet(isPresented: $rowModel.shareDownloadedFile) {
-//            if let tempURL = rowModel.tempShareURL {
-//                ActivityViewControllerWrapper(activityItems: [tempURL], title: rowModel.metadata?.file?.originalName)
-//            }
-//        }
+//        .background(Color.App.bgPrimary)
 //        .onTapGesture {
 //            rowModel.onTap(viewModel: viewModel)
 //        }
@@ -239,11 +235,9 @@ class FileCell: UITableViewCell {
 //}
 //
 //#if DEBUG
-//struct FileView_Previews: PreviewProvider {
-//    static let thread = MockData.thread
-//
+//struct VoiceView_Previews: PreviewProvider {
 //    static var previews: some View {
-//        FilesTabView(conversation: thread, messageType: .file)
+//        VoicesTabView(conversation: MockData.thread, messageType: .podSpaceVoice)
 //    }
 //}
 //#endif

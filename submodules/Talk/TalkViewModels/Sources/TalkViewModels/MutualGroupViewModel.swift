@@ -12,7 +12,7 @@ import TalkModels
 import UIKit
 
 public enum MutualGroupItem: Hashable, Sendable {
-    case conversation(Conversation)
+    case conversation(CalculatedConversation)
     case noResult
 }
 
@@ -29,13 +29,17 @@ public protocol UIMutualGroupsViewControllerDelegate: AnyObject {
 
 @MainActor
 public final class MutualGroupViewModel {
-    public private(set) var mutualThreads: ContiguousArray<Conversation> = []
+    public private(set) var mutualThreads: ContiguousArray<CalculatedConversation> = []
     public private(set) var avatars: [Int: ImageLoaderViewModel] = [:]
     private var partner: Participant?
     private var cancelable: AnyCancellable?
     public weak var delegate: UIMutualGroupsViewControllerDelegate?
     public private(set) var lazyList = LazyListViewModel()
     private var isCompleted = false
+    
+    // MARK: Computed properties
+    var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
+    private var myId: Int { AppState.shared.user?.id ?? -1 }
 
     public init() {
         cancelable = NotificationCenter.thread.publisher(for: .thread)
@@ -62,11 +66,7 @@ public final class MutualGroupViewModel {
         }
         
         /// Apply
-        Task { @AppBackgroundActor in
-            await MainActor.run {
-                delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
-            }
-        }
+        delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
     }
 
     public func setPartner(_ partner: Participant?) {
@@ -104,12 +104,42 @@ public final class MutualGroupViewModel {
         if let threads = response.result {
             lazyList.setLoading(false)
             lazyList.setHasNext(response.hasNext)
-            for (_, thread) in threads.enumerated() {
-                if !self.mutualThreads.contains(where: {$0.id == thread.id}) {
-                    mutualThreads.append(thread)
+            let navSelectedId = navVM.selectedId
+            Task { @AppBackgroundActor in
+                let calConversations = await ThreadCalculators.calculate(conversations: threads,
+                                                                         myId: myId,
+                                                                         navSelectedId: navSelectedId,
+                                                                         nonArchives: false,
+                                                                         keepOrder: true)
+
+                await appendIfNew(calConversations)
+                await updateUI(animation: false, reloadSections: false)
+                for conversation in calConversations {
+                    await addImageLoader(conversation)
                 }
             }
         }
-        updateUI(animation: false, reloadSections: false)
+    }
+    
+    private func appendIfNew(_ conversations: [CalculatedConversation]) {
+        for cal in conversations {
+            if !self.mutualThreads.contains(where: {$0.id == cal.id}) {
+                mutualThreads.append(cal)
+            }
+        }
+    }
+    
+    private func addImageLoader(_ conversation: CalculatedConversation) {
+        let imageLink = conversation.image
+        if let id = conversation.id, conversation.imageLoader == nil, imageLink != nil || conversation.metadata != nil {
+            let viewModel = ImageLoaderViewModel(conversation: conversation)
+            conversation.imageLoader = viewModel
+            viewModel.onImage = { [weak self] image in
+                Task { @MainActor [weak self] in
+                    self?.delegate?.updateImage(image: image, id: id)
+                }
+            }
+            viewModel.fetch()
+        }
     }
 }

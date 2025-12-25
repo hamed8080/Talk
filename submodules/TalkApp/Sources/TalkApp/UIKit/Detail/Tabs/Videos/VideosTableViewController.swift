@@ -1,5 +1,5 @@
 //
-//  MusicsTableViewController.swift
+//  VideosTableViewController.swift
 //  Talk
 //
 //  Created by Hamed Hosseini on 9/23/21.
@@ -10,22 +10,26 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkViewModels
+import TalkUI
 
-class MusicsTableViewController: UIViewController {
-    var dataSource: UITableViewDiffableDataSource<MusicsListSection, MusicItem>!
+class VideosTableViewController: UIViewController, TabControllerDelegate {
+    var dataSource: UITableViewDiffableDataSource<VideosListSection, VideoItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "LINKS-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-LINKS-ROW"
-    private let onSelect: @Sendable (TabRowModel) -> Void
+    static let resuableIdentifier = "VIDEO-ROW"
+    static let nothingFoundIdentifier = "NOTHING-FOUND-VIDEO-ROW"
     
-    init(viewModel: DetailTabDownloaderViewModel, onSelect: @Sendable @escaping (TabRowModel) -> Void) {
+    private var contextMenuContainer: ContextMenuContainerView?
+    
+    weak var detailVM: ThreadDetailViewModel?
+    public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
+    
+    init(viewModel: DetailTabDownloaderViewModel) {
         self.viewModel = viewModel
-        self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
-        viewModel.musicsDelegate = self
-        tableView.register(MusicCell.self, forCellReuseIdentifier: MusicsTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: MusicsTableViewController.nothingFoundIdentifier)
+        viewModel.videosDelegate = self
+        tableView.register(VideoCell.self, forCellReuseIdentifier: VideosTableViewController.resuableIdentifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: VideosTableViewController.nothingFoundIdentifier)
     }
     
     required init?(coder: NSCoder) {
@@ -55,11 +59,12 @@ class MusicsTableViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
     }
 }
 
-extension MusicsTableViewController {
+extension VideosTableViewController {
     
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, item) -> UITableViewCell? in
@@ -68,16 +73,25 @@ extension MusicsTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MusicsTableViewController.resuableIdentifier,
+                    withIdentifier: VideosTableViewController.resuableIdentifier,
                     for: indexPath
-                ) as? MusicCell
+                ) as? VideoCell
                 
                 // Set properties
                 cell?.setItem(item)
+                cell?.onContextMenu = { [weak self] sender in
+                    guard let self = self else { return }
+                    if sender.state == .began {
+                        let index = viewModel.messagesModels.firstIndex(where: { $0.id == item.id })
+                        if let index = index, viewModel.messagesModels[index].id != AppState.shared.user?.id {
+                            showContextMenu(IndexPath(row: index, section: indexPath.section), contentView: UIView())
+                        }
+                    }
+                }
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MusicsTableViewController.nothingFoundIdentifier,
+                    withIdentifier: VideosTableViewController.nothingFoundIdentifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -86,23 +100,41 @@ extension MusicsTableViewController {
     }
 }
 
-extension MusicsTableViewController: UIMusicsViewControllerDelegate {
-    func apply(snapshot: NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem>, animatingDifferences: Bool) {
+extension VideosTableViewController: UIVideosViewControllerDelegate {
+    func apply(snapshot: NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>, animatingDifferences: Bool) {
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
     
-    private func cell(id: Int) -> MusicCell? {
+    func updateProgress(item: TabRowModel) {
+        if let cell = cell(id: item.id) {
+            cell.updateProgress(item)
+        }
+    }
+    
+    private func cell(id: Int) -> VideoCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
-        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? MusicCell
+        return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? VideoCell
     }
 }
 
-extension MusicsTableViewController: UITableViewDelegate {
+extension VideosTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
-            onSelect(item)
-            dismiss(animated: true)
+            
+            if item.state.state == .completed, let fileURL = item.fileURL {
+                let playerVM = VideoPlayerViewModel(fileURL: fileURL, ext: item.message.fileMetaData?.file?.mimeType?.ext)
+                item.playerVM = playerVM
+                item.playerVM?.toggle()
+                item.playerVM?.animateObjectWillChange()
+                if let player = playerVM.player {
+                    let vc = UIHostingController(rootView: PlayerViewRepresentable(player: player, showFullScreen: .constant(true)))
+                    vc.modalPresentationStyle = .fullScreen
+                    present(vc, animated: true)
+                }
+            } else {
+                onSelectDelegate?.onSelect(item: item)
+            }
         }
     }
     
@@ -116,67 +148,52 @@ extension MusicsTableViewController: UITableViewDelegate {
     }
 }
 
-class MusicCell: UITableViewCell {
-    private let titleLabel = UILabel()
-   
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configureView()
+extension VideosTableViewController: ContextMenuDelegate {
+    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
+        guard
+            let indexPath = indexPath,
+            let item = dataSource.itemIdentifier(for: indexPath),
+            case let .item(model) = item
+        else { return }
+        let newCell = VideoCell(frame: .zero)
+        newCell.setItem(model)
+        GeneralRowContextMenuUIKit.showGeneralContextMenuRow(newCell: newCell,
+                                                             tb: tableView,
+                                                             model: model,
+                                                             detailVM: detailVM,
+                                                             contextMenuContainer: contextMenuContainer,
+                                                             showFileShareSheet: model.state.state == .completed,
+                                                             parentVC: self,
+                                                             indexPath: indexPath
+        )
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    private func configureView() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
+    func dismissContextMenu(indexPath: IndexPath?) {
         
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = .clear
-        backgroundColor = .clear
-        
-        /// Title of the conversation.
-        titleLabel.font = UIFont.normal(.subheadline)
-        titleLabel.textColor = Color.App.textPrimaryUIColor
-        titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.textAlignment = Language.isRTL ? .right : .left
-        titleLabel.numberOfLines = 1
-        contentView.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-        ])
-    }
-    
-    public func setItem(_ item: TabRowModel) {
-        titleLabel.text = item.links.joined(separator: "\n")
     }
 }
 
-//struct MusicsTabView: View {
+
+//
+//struct VideosTabView: View {
 //    @StateObject var viewModel: DetailTabDownloaderViewModel
 //    
 //    init(conversation: Conversation, messageType: ChatModels.MessageType) {
-//        _viewModel = StateObject(wrappedValue: .init(conversation: conversation, messageType: messageType, tabName: "Music"))
+//        let vm = DetailTabDownloaderViewModel(conversation: conversation, messageType: messageType, tabName: "Video")
+//        _viewModel = StateObject(wrappedValue: vm)
 //    }
 //    
 //    var body: some View {
-//        VStack {
+//        LazyVStack {
 //            ThreadTabDetailStickyHeaderSection(header: "", height:  4)
 //                .onAppear {
 //                    if viewModel.messagesModels.count == 0 {
 //                        viewModel.loadMore()
 //                    }
 //                }
+//            
 //            if viewModel.isLoading || viewModel.messagesModels.count > 0 {
-//                MessageListMusicView()
+//                MessageListVideoView()
 //                    .padding(.top, 8)
 //                    .environmentObject(viewModel)
 //            } else {
@@ -186,15 +203,15 @@ class MusicCell: UITableViewCell {
 //    }
 //}
 //
-//struct MessageListMusicView: View {
+//struct MessageListVideoView: View {
 //    @EnvironmentObject var viewModel: DetailTabDownloaderViewModel
 //    @EnvironmentObject var detailViewModel: ThreadDetailViewModel
-//    
+//
 //    var body: some View {
 //        ForEach(viewModel.messagesModels) { model in
-//            MusicRowView(viewModel: detailViewModel)
+//            VideoRowView(viewModel: detailViewModel)
 //                .environmentObject(model)
-//                .appyDetailViewContextMenu(MusicRowView(viewModel: detailViewModel), model, detailViewModel)
+//                .appyDetailViewContextMenu(VideoRowView(viewModel: detailViewModel), model, detailViewModel)
 //                .overlay(alignment: .bottom) {
 //                    if model.message != viewModel.messagesModels.last?.message {
 //                        Rectangle()
@@ -213,10 +230,10 @@ class MusicCell: UITableViewCell {
 //    }
 //}
 //
-//struct MusicRowView: View {
+//struct VideoRowView: View {
 //    @EnvironmentObject var rowModel: TabRowModel
 //    let viewModel: ThreadDetailViewModel
-//    
+//   
 //    var body: some View {
 //        HStack {
 //            TabDownloadProgressButton()
@@ -226,6 +243,14 @@ class MusicCell: UITableViewCell {
 //        .padding(.all)
 //        .contentShape(Rectangle())
 //        .background(Color.App.bgPrimary)
+//        .fullScreenCover(isPresented: $rowModel.showFullScreen) {
+//            /// On dismiss
+//            rowModel.playerVM?.player?.pause()
+//        } content: {
+//            if let player = rowModel.playerVM?.player {
+//                PlayerViewRepresentable(player: player, showFullScreen: $rowModel.showFullScreen)
+//            }
+//        }
 //        .onTapGesture {
 //            rowModel.onTap(viewModel: viewModel)
 //        }
@@ -233,9 +258,11 @@ class MusicCell: UITableViewCell {
 //}
 //
 //#if DEBUG
-//struct MusicView_Previews: PreviewProvider {
+//struct VideoView_Previews: PreviewProvider {
+//    static let thread = MockData.thread
+//
 //    static var previews: some View {
-//        MusicsTabView(conversation: MockData.thread, messageType: .podSpaceSound)
+//        VideosTabView(conversation: thread, messageType: .file)
 //    }
 //}
 //#endif

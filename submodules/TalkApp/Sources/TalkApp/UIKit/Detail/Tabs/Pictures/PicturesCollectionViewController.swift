@@ -11,17 +11,20 @@ import Chat
 import SwiftUI
 import TalkViewModels
 
-class PicturesCollectionViewController: UIViewController {
+class PicturesCollectionViewController: UIViewController, TabControllerDelegate {
     var dataSource: UICollectionViewDiffableDataSource<PicturesListSection, PictureItem>!
     var cv: UICollectionView!
     let viewModel: DetailTabDownloaderViewModel
     static let resuableIdentifier = "PICTURE-ROW"
     static let nothingFoundIdentifier = "NOTHING-FOUND-PICTURE-ROW"
-    private let onSelect: @Sendable (TabRowModel) -> Void
     
-    init(viewModel: DetailTabDownloaderViewModel, onSelect: @Sendable @escaping (TabRowModel) -> Void) {
+    private var contextMenuContainer: ContextMenuContainerView?
+    
+    weak var detailVM: ThreadDetailViewModel?
+    public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
+    
+    init(viewModel: DetailTabDownloaderViewModel) {
         self.viewModel = viewModel
-        self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
         cv = UICollectionView(frame: .zero, collectionViewLayout: createlayout())
         viewModel.picturesDelegate = self
@@ -45,7 +48,7 @@ class PicturesCollectionViewController: UIViewController {
         cv.allowsMultipleSelection = false
         cv.allowsSelection = true
         cv.showsHorizontalScrollIndicator = false
-//        cv.contentInset = .init(top: 48, left: 0, bottom: 64, right: 0)
+        cv.contentInset = .init(top: 8, left: 0, bottom: 0, right: 0)
         
         view.addSubview(cv)
         
@@ -53,28 +56,32 @@ class PicturesCollectionViewController: UIViewController {
             cv.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             cv.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             cv.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 2),
-            cv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            cv.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -2),
         ])
         configureDataSource()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
     }
     
     private func createlayout() -> UICollectionViewLayout {
-        let fraction = 1.0 / 4.0
+        let spacing = 8.0
+        let mode = UIApplication.shared.windowMode()
+        let count = mode.isInSlimMode ? 3 : 5
+        let fraction = 1.0 / CGFloat(count)
 
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(fraction), heightDimension: .fractionalHeight(1.0))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(fraction))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.interItemSpacing = .fixed(4)
+        group.interItemSpacing = .fixed(spacing)
 
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 4
+        section.interGroupSpacing = spacing
         section.contentInsets = .zero
         
         let layout = UICollectionViewCompositionalLayout(section: section)
@@ -95,6 +102,15 @@ extension PicturesCollectionViewController {
                 
                 // Set properties
                 cell?.setItem(item)
+                cell?.onContextMenu = { [weak self] sender in
+                    guard let self = self else { return }
+                    if sender.state == .began {
+                        let index = viewModel.messagesModels.firstIndex(where: { $0.id == item.id })
+                        if let index = index, viewModel.messagesModels[index].id != AppState.shared.user?.id {
+                            showContextMenu(IndexPath(row: index, section: indexPath.section), contentView: UIView())
+                        }
+                    }
+                }
                 return cell
             case .noResult:
                 let cell = cv.dequeueReusableCell(withReuseIdentifier: PicturesCollectionViewController.nothingFoundIdentifier,
@@ -126,7 +142,7 @@ extension PicturesCollectionViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
-            onSelect(item)
+            onSelectDelegate?.onSelect(item: item)
             dismiss(animated: true)
         }
     }
@@ -142,44 +158,38 @@ extension PicturesCollectionViewController: UICollectionViewDelegate {
     }
 }
 
-class PictureCell: UICollectionViewCell {
-    private var pictureView = UIImageView()
-   
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        configureView()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    private func configureView() {
-        
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = .clear
-        backgroundColor = .clear
-        
-        /// Title of the conversation.
-        pictureView.translatesAutoresizingMaskIntoConstraints = false
-        pictureView.accessibilityIdentifier = "PictureCell.pictureView"
+extension PicturesCollectionViewController: ContextMenuDelegate {
+    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
+        guard
+            let indexPath = indexPath,
+            let item = dataSource.itemIdentifier(for: indexPath),
+            case let .item(model) = item
+        else { return }
+        let firstIndexPath = IndexPath(row: 0, section: 0)
+        let firstCellSize = cv.cellForItem(at: firstIndexPath)?.contentView.frame.size ?? .zero
+        let pictureView = UIImageView(image: model.thumbnailImage)
         pictureView.contentMode = .scaleAspectFill
+        pictureView.translatesAutoresizingMaskIntoConstraints = false
         pictureView.clipsToBounds = true
-        contentView.addSubview(pictureView)
+        pictureView.layer.cornerRadius = 8
+        pictureView.layer.masksToBounds = true
         
         NSLayoutConstraint.activate([
-            pictureView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            pictureView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            pictureView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            pictureView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            pictureView.widthAnchor.constraint(equalToConstant: firstCellSize.width),
+            pictureView.heightAnchor.constraint(equalToConstant: firstCellSize.height),
         ])
+        GeneralRowContextMenuUIKit.showGeneralContextMenuRow(view: pictureView,
+                                                             model: model,
+                                                             detailVM: detailVM,
+                                                             contextMenuContainer: contextMenuContainer,
+                                                             showFileShareSheet: true,
+                                                             parentVC: self,
+                                                             indexPath: indexPath
+        )
     }
     
-    public func setItem(_ item: TabRowModel) {
-        pictureView.image = item.thumbnailImage
+    func dismissContextMenu(indexPath: IndexPath?) {
+        
     }
 }
 

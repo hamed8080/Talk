@@ -10,21 +10,25 @@ import UIKit
 import Chat
 import SwiftUI
 import TalkViewModels
+import TalkUI
 
-class LinksTableViewController: UIViewController {
+class LinksTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<LinksListSection, LinkItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
     static let resuableIdentifier = "LINKS-ROW"
     static let nothingFoundIdentifier = "NOTHING-FOUND-LINKS-ROW"
-    private let onSelect: @Sendable (TabRowModel) -> Void
     
-    init(viewModel: DetailTabDownloaderViewModel, onSelect: @Sendable @escaping (TabRowModel) -> Void) {
+    private var contextMenuContainer: ContextMenuContainerView?
+    
+    weak var detailVM: ThreadDetailViewModel?
+    public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
+    
+    init(viewModel: DetailTabDownloaderViewModel) {
         self.viewModel = viewModel
-        self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
         viewModel.linksDelegate = self
-        tableView.register(MutualCell.self, forCellReuseIdentifier: LinksTableViewController.resuableIdentifier)
+        tableView.register(LinkCell.self, forCellReuseIdentifier: LinksTableViewController.resuableIdentifier)
         tableView.register(NothingFoundCell.self, forCellReuseIdentifier: LinksTableViewController.nothingFoundIdentifier)
     }
     
@@ -55,6 +59,7 @@ class LinksTableViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
     }
 }
@@ -74,6 +79,15 @@ extension LinksTableViewController {
                 
                 // Set properties
                 cell?.setItem(item)
+                cell?.onContextMenu = { [weak self] sender in
+                    guard let self = self else { return }
+                    if sender.state == .began {
+                        let index = viewModel.messagesModels.firstIndex(where: { $0.id == item.id })
+                        if let index = index, viewModel.messagesModels[index].id != AppState.shared.user?.id {
+                            showContextMenu(IndexPath(row: index, section: indexPath.section), contentView: UIView())
+                        }
+                    }
+                }
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
@@ -102,7 +116,7 @@ extension LinksTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .item(let item) = item {
-            onSelect(item)
+            onSelectDelegate?.onSelect(item: item)
             dismiss(animated: true)
         }
     }
@@ -117,47 +131,28 @@ extension LinksTableViewController: UITableViewDelegate {
     }
 }
 
-class LinkCell: UITableViewCell {
-    private let titleLabel = UILabel()
-   
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configureView()
+extension LinksTableViewController: ContextMenuDelegate {
+    func showContextMenu(_ indexPath: IndexPath?, contentView: UIView) {
+        guard
+            let indexPath = indexPath,
+            let item = dataSource.itemIdentifier(for: indexPath),
+            case let .item(model) = item
+        else { return }
+        let newCell = LinkCell(frame: .zero)
+        newCell.setItem(model)
+        GeneralRowContextMenuUIKit.showGeneralContextMenuRow(newCell: newCell,
+                                                             tb: tableView,
+                                                             model: model,
+                                                             detailVM: detailVM,
+                                                             contextMenuContainer: contextMenuContainer,
+                                                             showFileShareSheet: false,
+                                                             parentVC: self,
+                                                             indexPath: indexPath
+        )
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    private func configureView() {
-        /// Background color once is selected or tapped
-        selectionStyle = .none
+    func dismissContextMenu(indexPath: IndexPath?) {
         
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = .clear
-        backgroundColor = .clear
-        
-        /// Title of the conversation.
-        titleLabel.font = UIFont.normal(.subheadline)
-        titleLabel.textColor = Color.App.textPrimaryUIColor
-        titleLabel.accessibilityIdentifier = "ConversationCell.titleLable"
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.textAlignment = Language.isRTL ? .right : .left
-        titleLabel.numberOfLines = 1
-        contentView.addSubview(titleLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.bottomAnchor.constraint(equalTo: centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-        ])
-    }
-    
-    public func setItem(_ item: TabRowModel) {
-        titleLabel.text = item.links.joined(separator: "\n")
     }
 }
 

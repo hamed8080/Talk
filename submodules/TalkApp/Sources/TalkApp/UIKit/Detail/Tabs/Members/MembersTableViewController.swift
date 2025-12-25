@@ -14,7 +14,7 @@ import TalkModels
 import TalkExtensions
 import TalkUI
 
-class MembersTableViewController: UIViewController {
+class MembersTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<MembersListSection, MemberItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: ParticipantsViewModel
@@ -22,7 +22,11 @@ class MembersTableViewController: UIViewController {
     static let addParticipantIdentifier = "MEMBER-ADD-PARTICIPANT-CELL"
     static let resuableIdentifier = "MEMBER-ROW"
     static let nothingFoundIdentifier = "NOTHING-FOUND-MEMBER-ROW"
+    
     private var contextMenuContainer: ContextMenuContainerView?
+    
+    weak var detailVM: ThreadDetailViewModel?
+    var onSelectDelegate: (any TabRowItemOnSelectDelegate)?
     
     init(viewModel: ParticipantsViewModel) {
         self.viewModel = viewModel
