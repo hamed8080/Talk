@@ -14,9 +14,7 @@ import TalkViewModels
 class MutualGroupsTableViewController: UIViewController {
     var dataSource: UITableViewDiffableDataSource<MutualGroupsListSection, MutualGroupItem>!
     var tableView: UITableView = UITableView(frame: .zero)
-    let viewModel: MutualGroupViewModel    
-    static let resuableIdentifier = "MUTUAL-GROUPS-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-MUTUAL-GROUPS-ROW"
+    let viewModel: MutualGroupViewModel
     
     weak var detailVM: ThreadDetailViewModel?
     private let onSelect: @Sendable (CalculatedConversation) -> Void
@@ -26,8 +24,8 @@ class MutualGroupsTableViewController: UIViewController {
         self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
-        tableView.register(MutualCell.self, forCellReuseIdentifier: MutualGroupsTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: MutualGroupsTableViewController.nothingFoundIdentifier)
+        tableView.register(MutualCell.self, forCellReuseIdentifier: MutualCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
     }
     
     required init?(coder: NSCoder) {
@@ -70,7 +68,7 @@ extension MutualGroupsTableViewController {
             switch item {
             case .conversation(let conversation):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MutualGroupsTableViewController.resuableIdentifier,
+                    withIdentifier: MutualCell.identifier,
                     for: indexPath
                 ) as? MutualCell
                 
@@ -79,7 +77,7 @@ extension MutualGroupsTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MutualGroupsTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell

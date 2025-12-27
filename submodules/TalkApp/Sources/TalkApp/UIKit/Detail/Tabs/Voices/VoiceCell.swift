@@ -18,6 +18,7 @@ class VoiceCell: UITableViewCell {
     )
     private let separator = TableViewControllerDevider()
     public var onContextMenu: ((UIGestureRecognizer) -> Void)?
+    public static let identifier = "VOICE-ROW"
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)

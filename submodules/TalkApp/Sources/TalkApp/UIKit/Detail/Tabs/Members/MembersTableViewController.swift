@@ -18,10 +18,6 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<MembersListSection, MemberItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: ParticipantsViewModel
-    static let searchIdentifier = "MEMBER-SEARCH-CELL"
-    static let addParticipantIdentifier = "MEMBER-ADD-PARTICIPANT-CELL"
-    static let resuableIdentifier = "MEMBER-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-MEMBER-ROW"
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -32,10 +28,10 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
-        tableView.register(MemberSearchTextFieldCell.self, forCellReuseIdentifier: MembersTableViewController.searchIdentifier)
-        tableView.register(MemberAddParticipantButtonCell.self, forCellReuseIdentifier: MembersTableViewController.addParticipantIdentifier)
-        tableView.register(MemberCell.self, forCellReuseIdentifier: MembersTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: MembersTableViewController.nothingFoundIdentifier)
+        tableView.register(MemberSearchTextFieldCell.self, forCellReuseIdentifier: MemberSearchTextFieldCell.identifier)
+        tableView.register(MemberAddParticipantButtonCell.self, forCellReuseIdentifier: MemberAddParticipantButtonCell.identifier)
+        tableView.register(MemberCell.self, forCellReuseIdentifier: MemberCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
     }
     
     required init?(coder: NSCoder) {
@@ -82,21 +78,21 @@ extension MembersTableViewController {
             switch item {
             case .searchTextFields:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MembersTableViewController.searchIdentifier,
+                    withIdentifier: MemberSearchTextFieldCell.identifier,
                     for: indexPath
                 ) as? MemberSearchTextFieldCell
                 cell?.viewModel = viewModel
                 return cell
             case .addParticipantButton:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MembersTableViewController.addParticipantIdentifier,
+                    withIdentifier: MemberAddParticipantButtonCell.identifier,
                     for: indexPath
                 ) as? MemberAddParticipantButtonCell
                 cell?.conversation = viewModel.thread
                 return cell
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MembersTableViewController.resuableIdentifier,
+                    withIdentifier: MemberCell.identifier,
                     for: indexPath
                 ) as? MemberCell
                 
@@ -115,7 +111,7 @@ extension MembersTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MembersTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell

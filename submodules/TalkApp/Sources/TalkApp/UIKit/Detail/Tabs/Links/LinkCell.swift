@@ -13,6 +13,7 @@ class LinkCell: UITableViewCell {
     private let linkImageView = PaddingUIImageView()
     private let separator = TableViewControllerDevider()
     public var onContextMenu: ((UIGestureRecognizer) -> Void)?
+    public static let identifier = "LINKS-ROW"
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)

@@ -15,8 +15,7 @@ class VoicesTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<VoicesListSection, VoiceItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "VOICE-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-VOICE-ROW"
+    private let loadingManager = TabLoadingManager()
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -27,8 +26,9 @@ class VoicesTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.voicesDelegate = self
-        tableView.register(VoiceCell.self, forCellReuseIdentifier: VoicesTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: VoicesTableViewController.nothingFoundIdentifier)
+        tableView.register(VoiceCell.self, forCellReuseIdentifier: VoiceCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
+        loadingManager.configureBottomLoading(tableView)
     }
     
     required init?(coder: NSCoder) {
@@ -72,7 +72,7 @@ extension VoicesTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: VoicesTableViewController.resuableIdentifier,
+                    withIdentifier: VoiceCell.identifier,
                     for: indexPath
                 ) as? VoiceCell
                 
@@ -90,7 +90,7 @@ extension VoicesTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: VoicesTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -157,6 +157,13 @@ extension VoicesTableViewController: ContextMenuDelegate {
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+}
+
+/// Bottom Loading
+extension VoicesTableViewController: TabLoadingDelegate {
+    func startBottomAnimation(_ animate: Bool) {
+        loadingManager.startBottomAnimation(animate)
     }
 }
 

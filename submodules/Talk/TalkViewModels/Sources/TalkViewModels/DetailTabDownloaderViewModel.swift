@@ -12,6 +12,11 @@ import SwiftUI
 import TalkExtensions
 import TalkModels
 
+@MainActor
+public protocol TabLoadingDelegate {
+    func startBottomAnimation(_ animate: Bool)
+}
+
 public enum LinkItem: Hashable, Sendable {
     case item(TabRowModel)
     case noResult
@@ -23,7 +28,7 @@ public enum LinksListSection: Sendable {
 }
 
 @MainActor
-public protocol UILinksViewControllerDelegate: AnyObject {
+public protocol UILinksViewControllerDelegate: AnyObject, TabLoadingDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>, animatingDifferences: Bool)
 }
 
@@ -38,7 +43,7 @@ public enum MusicsListSection: Sendable {
 }
 
 @MainActor
-public protocol UIMusicsViewControllerDelegate: AnyObject {
+public protocol UIMusicsViewControllerDelegate: AnyObject, TabLoadingDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem>, animatingDifferences: Bool)
     func updateProgress(item: TabRowModel)
 }
@@ -54,7 +59,7 @@ public enum VoicesListSection: Sendable {
 }
 
 @MainActor
-public protocol UIVoicesViewControllerDelegate: AnyObject {
+public protocol UIVoicesViewControllerDelegate: AnyObject, TabLoadingDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem>, animatingDifferences: Bool)
     func updateProgress(item: TabRowModel)
 }
@@ -70,7 +75,7 @@ public enum VideosListSection: Sendable {
 }
 
 @MainActor
-public protocol UIVideosViewControllerDelegate: AnyObject {
+public protocol UIVideosViewControllerDelegate: AnyObject, TabLoadingDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>, animatingDifferences: Bool)
     func updateProgress(item: TabRowModel)
 }
@@ -86,7 +91,7 @@ public enum FilesListSection: Sendable {
 }
 
 @MainActor
-public protocol UIFilesViewControllerDelegate: AnyObject {
+public protocol UIFilesViewControllerDelegate: AnyObject, TabLoadingDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<FilesListSection, FileItem>, animatingDifferences: Bool)
     func updateProgress(item: TabRowModel)
 }
@@ -102,7 +107,7 @@ public enum PicturesListSection: Sendable {
 }
 
 @MainActor
-public protocol UIPicturesViewControllerDelegate: AnyObject {
+public protocol UIPicturesViewControllerDelegate: AnyObject, TabLoadingDelegate {
     func apply(snapshot: NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem>, animatingDifferences: Bool)
     func updateImage(id: Int, image: UIImage?) 
 }
@@ -175,6 +180,7 @@ public class DetailTabDownloaderViewModel: ObservableObject {
                 
                 hasNext = response.hasNext
                 isLoading = false
+                showLoading(show: false)
                 apply()
             }
         default:
@@ -197,6 +203,7 @@ public class DetailTabDownloaderViewModel: ObservableObject {
         RequestsManager.shared.append(prepend: DETAIL_HISTORY_KEY, value: req)
         offset += count
         isLoading = true
+        showLoading(show: true)
         apply()
         Task { @ChatGlobalActor in
             ChatManager.activeInstance?.message.history(req)
@@ -266,18 +273,40 @@ extension DetailTabDownloaderViewModel {
     }
 }
 
+/// Show loading
+extension DetailTabDownloaderViewModel {
+    private func showLoading(show: Bool) {
+        if linksDelegate != nil {
+            linksDelegate?.startBottomAnimation(show)
+        } else if picturesDelegate != nil {
+            picturesDelegate?.startBottomAnimation(show)
+        } else if videosDelegate != nil {
+            videosDelegate?.startBottomAnimation(show)
+        } else if filesDelegate != nil {
+            filesDelegate?.startBottomAnimation(show)
+        } else if musicsDelegate != nil {
+            musicsDelegate?.startBottomAnimation(show)
+        } else if voicesDelegate != nil {
+            voicesDelegate?.startBottomAnimation(show)
+        }
+    }
+}
+
 /// Create pictures snapshot
 extension DetailTabDownloaderViewModel {
     private func createPicutreSnapshot() -> NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem> {
-        let items = messagesModels.compactMap({ PictureItem.item($0) })
+        let isEmpty = messagesModels.isEmpty
+        let isLoadingAndEmpty = isEmpty && isLoading
         
+        let items = messagesModels.compactMap({ PictureItem.item($0) })
         var snapshot = NSDiffableDataSourceSnapshot<PicturesListSection, PictureItem>()
+        
         if !items.isEmpty {
             snapshot.appendSections([.main])
             snapshot.appendItems(items, toSection: .main)
-        } else {
+        } else if !isLoadingAndEmpty {
             snapshot.appendSections([.noResult])
-            snapshot.appendItems([], toSection: .noResult)
+            snapshot.appendItems([.noResult], toSection: .noResult)
         }
         return snapshot
     }
@@ -291,15 +320,18 @@ extension DetailTabDownloaderViewModel {
 /// Create videos snapshot
 extension DetailTabDownloaderViewModel {
     private func createVideoSnapshot() -> NSDiffableDataSourceSnapshot<VideosListSection, VideoItem> {
-        let items = messagesModels.compactMap({ VideoItem.item($0) })
+        let isEmpty = messagesModels.isEmpty
+        let isLoadingAndEmpty = isEmpty && isLoading
         
+        let items = messagesModels.compactMap({ VideoItem.item($0) })
         var snapshot = NSDiffableDataSourceSnapshot<VideosListSection, VideoItem>()
+        
         if !items.isEmpty {
             snapshot.appendSections([.main])
             snapshot.appendItems(items, toSection: .main)
-        } else {
+        } else if !isLoadingAndEmpty {
             snapshot.appendSections([.noResult])
-            snapshot.appendItems([], toSection: .noResult)
+            snapshot.appendItems([.noResult], toSection: .noResult)
         }
         return snapshot
     }
@@ -313,15 +345,18 @@ extension DetailTabDownloaderViewModel {
 /// Create files snapshot
 extension DetailTabDownloaderViewModel {
     private func createFileSnapshot() -> NSDiffableDataSourceSnapshot<FilesListSection, FileItem> {
-        let items = messagesModels.compactMap({ FileItem.item($0) })
+        let isEmpty = messagesModels.isEmpty
+        let isLoadingAndEmpty = isEmpty && isLoading
         
+        let items = messagesModels.compactMap({ FileItem.item($0) })
         var snapshot = NSDiffableDataSourceSnapshot<FilesListSection, FileItem>()
+        
         if !items.isEmpty {
             snapshot.appendSections([.main])
             snapshot.appendItems(items, toSection: .main)
-        } else {
+        } else if !isLoadingAndEmpty {
             snapshot.appendSections([.noResult])
-            snapshot.appendItems([], toSection: .noResult)
+            snapshot.appendItems([.noResult], toSection: .noResult)
         }
         return snapshot
     }
@@ -335,15 +370,18 @@ extension DetailTabDownloaderViewModel {
 /// Create musics snapshot
 extension DetailTabDownloaderViewModel {
     private func createMusicSnapshot() -> NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem> {
-        let items = messagesModels.compactMap({ MusicItem.item($0) })
+        let isEmpty = messagesModels.isEmpty
+        let isLoadingAndEmpty = isEmpty && isLoading
         
+        let items = messagesModels.compactMap({ MusicItem.item($0) })
         var snapshot = NSDiffableDataSourceSnapshot<MusicsListSection, MusicItem>()
+        
         if !items.isEmpty {
             snapshot.appendSections([.main])
             snapshot.appendItems(items, toSection: .main)
-        } else {
+        } else if !isLoadingAndEmpty {
             snapshot.appendSections([.noResult])
-            snapshot.appendItems([], toSection: .noResult)
+            snapshot.appendItems([.noResult], toSection: .noResult)
         }
         return snapshot
     }
@@ -357,15 +395,18 @@ extension DetailTabDownloaderViewModel {
 /// Create voices snapshot
 extension DetailTabDownloaderViewModel {
     private func createVoiceSnapshot() -> NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem> {
-        let items = messagesModels.compactMap({ VoiceItem.item($0) })
+        let isEmpty = messagesModels.isEmpty
+        let isLoadingAndEmpty = isEmpty && isLoading
         
+        let items = messagesModels.compactMap({ VoiceItem.item($0) })
         var snapshot = NSDiffableDataSourceSnapshot<VoicesListSection, VoiceItem>()
+        
         if !items.isEmpty {
             snapshot.appendSections([.main])
             snapshot.appendItems(items, toSection: .main)
-        } else {
+        } else if !isLoadingAndEmpty {
             snapshot.appendSections([.noResult])
-            snapshot.appendItems([], toSection: .noResult)
+            snapshot.appendItems([.noResult], toSection: .noResult)
         }
         return snapshot
     }
@@ -379,16 +420,18 @@ extension DetailTabDownloaderViewModel {
 /// Create links snapshot
 extension DetailTabDownloaderViewModel {
     private func createLinkSnapshot() -> NSDiffableDataSourceSnapshot<LinksListSection, LinkItem> {
-        let items = messagesModels.compactMap({ LinkItem.item($0) })
+        let isEmpty = messagesModels.isEmpty
+        let isLoadingAndEmpty = isEmpty && isLoading
         
+        let items = messagesModels.compactMap({ LinkItem.item($0) })
         var snapshot = NSDiffableDataSourceSnapshot<LinksListSection, LinkItem>()
         
         if !items.isEmpty {
             snapshot.appendSections([.main])
             snapshot.appendItems(items, toSection: .main)
-        } else {
+        } else if !isLoadingAndEmpty {
             snapshot.appendSections([.noResult])
-            snapshot.appendItems([], toSection: .noResult)
+            snapshot.appendItems([.noResult], toSection: .noResult)
         }
         return snapshot
     }

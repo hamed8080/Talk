@@ -11,13 +11,13 @@ import Chat
 import SwiftUI
 import TalkViewModels
 import TalkUI
+import Lottie
 
 class FilesTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<FilesListSection, FileItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "VOICE-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-VOICE-ROW"
+    private let loadingManager = TabLoadingManager()
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -28,8 +28,9 @@ class FilesTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.filesDelegate = self
-        tableView.register(FileCell.self, forCellReuseIdentifier: FilesTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: FilesTableViewController.nothingFoundIdentifier)
+        tableView.register(FileCell.self, forCellReuseIdentifier: FileCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
+        loadingManager.configureBottomLoading(tableView)
     }
     
     required init?(coder: NSCoder) {
@@ -73,7 +74,7 @@ extension FilesTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: FilesTableViewController.resuableIdentifier,
+                    withIdentifier: FileCell.identifier,
                     for: indexPath
                 ) as? FileCell
                 
@@ -91,7 +92,7 @@ extension FilesTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: FilesTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -114,6 +115,10 @@ extension FilesTableViewController: UIFilesViewControllerDelegate {
     private func cell(id: Int) -> FileCell? {
         guard let index = viewModel.messagesModels.firstIndex(where: { $0.id == id }) else { return nil }
         return tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? FileCell
+    }
+    
+    func startBottomAnimation(_ animate: Bool) {
+        loadingManager.startBottomAnimation(animate)
     }
 }
 

@@ -22,6 +22,7 @@ class MemberCell: UITableViewCell {
     
     public var onContextMenu: ((UIGestureRecognizer) -> Void)?
     public weak var viewModel: ParticipantsViewModel?
+    public static let identifier = "MEMBER-ROW"
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)

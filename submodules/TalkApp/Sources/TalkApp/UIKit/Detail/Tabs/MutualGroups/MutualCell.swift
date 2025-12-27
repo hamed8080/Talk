@@ -13,6 +13,7 @@ class MutualCell: UITableViewCell {
     private let avatarInitialLable = UILabel()
     private let avatar = UIImageView(frame: .zero)
     private let separator = TableViewControllerDevider()
+    public static let identifier = "MUTUAL-GROUPS-ROW"
    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)

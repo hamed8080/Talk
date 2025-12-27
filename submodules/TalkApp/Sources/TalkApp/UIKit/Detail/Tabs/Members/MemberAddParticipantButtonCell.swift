@@ -18,6 +18,7 @@ final class MemberAddParticipantButtonCell: UITableViewCell {
     
     // MARK: - State
     var conversation: Conversation?
+    public static let identifier = "MEMBER-ADD-PARTICIPANT-CELL"
     
     // MARK: - Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

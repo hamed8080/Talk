@@ -21,6 +21,7 @@ final class MemberSearchTextFieldCell: UITableViewCell {
     
     // MARK: - State
     private var showPopover = false
+    public static let identifier = "MEMBER-SEARCH-CELL"
     
     // MARK: - Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

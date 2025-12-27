@@ -11,6 +11,8 @@ import SwiftUI
 class PictureCell: UICollectionViewCell {
     private var pictureView = UIImageView()
     public var onContextMenu: ((UIGestureRecognizer) -> Void)?
+    public static let identifier = "PICTURE-ROW"
+    private weak var model: TabRowModel?
    
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -52,10 +54,30 @@ class PictureCell: UICollectionViewCell {
     }
     
     public func setItem(_ item: TabRowModel) {
+        model = item
         pictureView.image = item.thumbnailImage
     }
     
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
         onContextMenu?(sender)
+    }
+}
+
+@MainActor
+extension PictureCell {
+    public func makePictureView() -> UIImageView {
+        let pictureView = UIImageView(image: model?.thumbnailImage)
+        pictureView.contentMode = .scaleAspectFill
+        pictureView.translatesAutoresizingMaskIntoConstraints = false
+        pictureView.clipsToBounds = true
+        pictureView.layer.cornerRadius = 8
+        pictureView.layer.masksToBounds = true
+        
+        NSLayoutConstraint.activate([
+            pictureView.widthAnchor.constraint(equalToConstant: contentView.frame.width),
+            pictureView.heightAnchor.constraint(equalToConstant: contentView.frame.height),
+        ])
+        
+        return pictureView
     }
 }

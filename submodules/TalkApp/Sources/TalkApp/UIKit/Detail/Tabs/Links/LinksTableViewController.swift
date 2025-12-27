@@ -16,8 +16,7 @@ class LinksTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<LinksListSection, LinkItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "LINKS-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-LINKS-ROW"
+    private let loadingManager = TabLoadingManager()
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -28,8 +27,9 @@ class LinksTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.linksDelegate = self
-        tableView.register(LinkCell.self, forCellReuseIdentifier: LinksTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: LinksTableViewController.nothingFoundIdentifier)
+        tableView.register(LinkCell.self, forCellReuseIdentifier: LinkCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
+        loadingManager.configureBottomLoading(tableView)
     }
     
     required init?(coder: NSCoder) {
@@ -73,7 +73,7 @@ extension LinksTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: LinksTableViewController.resuableIdentifier,
+                    withIdentifier: LinkCell.identifier,
                     for: indexPath
                 ) as? LinkCell
                 
@@ -91,7 +91,7 @@ extension LinksTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: LinksTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -153,6 +153,13 @@ extension LinksTableViewController: ContextMenuDelegate {
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+}
+
+/// Bottom Loading
+extension LinksTableViewController: TabLoadingDelegate {
+    func startBottomAnimation(_ animate: Bool) {
+        loadingManager.startBottomAnimation(animate)
     }
 }
 

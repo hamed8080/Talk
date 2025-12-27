@@ -15,8 +15,7 @@ class MusicsTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<MusicsListSection, MusicItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "LINKS-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-LINKS-ROW"
+    private let loadingManager = TabLoadingManager()
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -27,8 +26,9 @@ class MusicsTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.musicsDelegate = self
-        tableView.register(MusicCell.self, forCellReuseIdentifier: MusicsTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: MusicsTableViewController.nothingFoundIdentifier)
+        tableView.register(MusicCell.self, forCellReuseIdentifier: MusicCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
+        loadingManager.configureBottomLoading(tableView)
     }
     
     required init?(coder: NSCoder) {
@@ -72,7 +72,7 @@ extension MusicsTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MusicsTableViewController.resuableIdentifier,
+                    withIdentifier: MusicCell.identifier,
                     for: indexPath
                 ) as? MusicCell
                 
@@ -90,7 +90,7 @@ extension MusicsTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: MusicsTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -157,6 +157,13 @@ extension MusicsTableViewController: ContextMenuDelegate {
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+}
+
+/// Bottom Loading
+extension MusicsTableViewController: TabLoadingDelegate {
+    func startBottomAnimation(_ animate: Bool) {
+        loadingManager.startBottomAnimation(animate)
     }
 }
 

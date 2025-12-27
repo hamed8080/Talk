@@ -14,9 +14,8 @@ import TalkViewModels
 class PicturesCollectionViewController: UIViewController, TabControllerDelegate {
     var dataSource: UICollectionViewDiffableDataSource<PicturesListSection, PictureItem>!
     var cv: UICollectionView!
+    var flowLayoutManager: PictureCollectionViewLayout
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "PICTURE-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-PICTURE-ROW"
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -25,11 +24,17 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
     
     init(viewModel: DetailTabDownloaderViewModel) {
         self.viewModel = viewModel
+        self.flowLayoutManager = .init(viewModel: viewModel)
         super.init(nibName: nil, bundle: nil)
-        cv = UICollectionView(frame: .zero, collectionViewLayout: createlayout())
+        cv = UICollectionView(frame: .zero, collectionViewLayout: flowLayoutManager.createlayout())
         viewModel.picturesDelegate = self
-        cv.register(PictureCell.self, forCellWithReuseIdentifier: PicturesCollectionViewController.resuableIdentifier)
-//        cv.register(NothingFoundCell.self, forCellReuseIdentifier: PicturesCollectionViewController.nothingFoundIdentifier)
+        cv.register(PictureCell.self, forCellWithReuseIdentifier: PictureCell.identifier)
+        cv.register(NothingFoundCollectionViewCell.self, forCellWithReuseIdentifier: NothingFoundCollectionViewCell.identifier)
+        cv.register(
+            LoadingFooterView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+            withReuseIdentifier: LoadingFooterView.identifier
+        )
     }
     
     required init?(coder: NSCoder) {
@@ -66,27 +71,6 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
         contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
     }
-    
-    private func createlayout() -> UICollectionViewLayout {
-        let spacing = 8.0
-        let mode = UIApplication.shared.windowMode()
-        let count = mode.isInSlimMode ? 3 : 5
-        let fraction = 1.0 / CGFloat(count)
-
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(fraction), heightDimension: .fractionalHeight(1.0))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(fraction))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.interItemSpacing = .fixed(spacing)
-
-        let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = spacing
-        section.contentInsets = .zero
-        
-        let layout = UICollectionViewCompositionalLayout(section: section)
-        return layout
-    }
 }
 
 extension PicturesCollectionViewController {
@@ -97,7 +81,7 @@ extension PicturesCollectionViewController {
             
             switch item {
             case .item(let item):
-                let cell = cv.dequeueReusableCell(withReuseIdentifier: PicturesCollectionViewController.resuableIdentifier,
+                let cell = cv.dequeueReusableCell(withReuseIdentifier: PictureCell.identifier,
                                                   for: indexPath) as? PictureCell
                 
                 // Set properties
@@ -113,10 +97,15 @@ extension PicturesCollectionViewController {
                 }
                 return cell
             case .noResult:
-                let cell = cv.dequeueReusableCell(withReuseIdentifier: PicturesCollectionViewController.nothingFoundIdentifier,
+                let cell = cv.dequeueReusableCell(withReuseIdentifier: NothingFoundCollectionViewCell.identifier,
                                                   for: indexPath) as? NothingFoundCollectionViewCell
                 return cell
             }
+        }
+        
+        dataSource.supplementaryViewProvider = { [weak self] (cv, kind, indexPath) -> UICollectionReusableView? in
+            guard kind == UICollectionView.elementKindSectionFooter else { return UICollectionReusableView() }
+            return cv.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: LoadingFooterView.identifier, for: indexPath)
         }
     }
 }
@@ -163,21 +152,11 @@ extension PicturesCollectionViewController: ContextMenuDelegate {
         guard
             let indexPath = indexPath,
             let item = dataSource.itemIdentifier(for: indexPath),
-            case let .item(model) = item
+            case let .item(model) = item,
+            let cell = cv.cellForItem(at: indexPath) as? PictureCell
         else { return }
-        let firstIndexPath = IndexPath(row: 0, section: 0)
-        let firstCellSize = cv.cellForItem(at: firstIndexPath)?.contentView.frame.size ?? .zero
-        let pictureView = UIImageView(image: model.thumbnailImage)
-        pictureView.contentMode = .scaleAspectFill
-        pictureView.translatesAutoresizingMaskIntoConstraints = false
-        pictureView.clipsToBounds = true
-        pictureView.layer.cornerRadius = 8
-        pictureView.layer.masksToBounds = true
         
-        NSLayoutConstraint.activate([
-            pictureView.widthAnchor.constraint(equalToConstant: firstCellSize.width),
-            pictureView.heightAnchor.constraint(equalToConstant: firstCellSize.height),
-        ])
+        let pictureView = cell.makePictureView()
         GeneralRowContextMenuUIKit.showGeneralContextMenuRow(view: pictureView,
                                                              model: model,
                                                              detailVM: detailVM,
@@ -190,6 +169,23 @@ extension PicturesCollectionViewController: ContextMenuDelegate {
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+}
+
+extension PicturesCollectionViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        viewModel.isLoading ? CGSize(width: collectionView.bounds.width, height: 44) : .zero
+    }
+}
+
+/// Bottom Loading
+extension PicturesCollectionViewController: TabLoadingDelegate {
+    func startBottomAnimation(_ animate: Bool) {
+        if animate {
+            cv.performBatchUpdates {
+                  // no-op: forces layout refresh
+              }
+        }
     }
 }
 

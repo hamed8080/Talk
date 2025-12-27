@@ -16,8 +16,7 @@ class VideosTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<VideosListSection, VideoItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: DetailTabDownloaderViewModel
-    static let resuableIdentifier = "VIDEO-ROW"
-    static let nothingFoundIdentifier = "NOTHING-FOUND-VIDEO-ROW"
+    private let loadingManager = TabLoadingManager()
     
     private var contextMenuContainer: ContextMenuContainerView?
     
@@ -28,8 +27,9 @@ class VideosTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.videosDelegate = self
-        tableView.register(VideoCell.self, forCellReuseIdentifier: VideosTableViewController.resuableIdentifier)
-        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: VideosTableViewController.nothingFoundIdentifier)
+        tableView.register(VideoCell.self, forCellReuseIdentifier: VideoCell.identifier)
+        tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
+        loadingManager.configureBottomLoading(tableView)
     }
     
     required init?(coder: NSCoder) {
@@ -73,7 +73,7 @@ extension VideosTableViewController {
             switch item {
             case .item(let item):
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: VideosTableViewController.resuableIdentifier,
+                    withIdentifier: VideoCell.identifier,
                     for: indexPath
                 ) as? VideoCell
                 
@@ -91,7 +91,7 @@ extension VideosTableViewController {
                 return cell
             case .noResult:
                 let cell = tableView.dequeueReusableCell(
-                    withIdentifier: VideosTableViewController.nothingFoundIdentifier,
+                    withIdentifier: NothingFoundCell.identifier,
                     for: indexPath
                 ) as? NothingFoundCell
                 return cell
@@ -173,6 +173,12 @@ extension VideosTableViewController: ContextMenuDelegate {
     }
 }
 
+/// Bottom Loading
+extension VideosTableViewController: TabLoadingDelegate {
+    func startBottomAnimation(_ animate: Bool) {
+        loadingManager.startBottomAnimation(animate)
+    }
+}
 
 //
 //struct VideosTabView: View {
