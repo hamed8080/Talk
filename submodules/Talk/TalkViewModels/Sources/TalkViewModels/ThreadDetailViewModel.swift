@@ -461,3 +461,21 @@ extension ThreadDetailViewModel {
         }
     }
 }
+
+
+extension ThreadDetailViewModel {
+    public func descriptionString() -> (String, String) {
+        /// P2P thread partner bio
+        let partnerBio = participantDetailViewModel?.participant.chatProfileVO?.bio ?? "General.noDescription".bundleLocalized()
+        
+        /// Group thread description
+        let groupDescription = thread?.description.validateString ?? "General.noDescription".bundleLocalized()
+        
+        let isGroup = thread?.group == true
+        
+        let key = isGroup ? "General.description" : "Settings.bio"
+        
+        let value = isGroup ? groupDescription : partnerBio
+        return (key, value)
+    }
+}

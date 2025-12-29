@@ -23,12 +23,14 @@ final class UIDetailViewPageViewController: UIViewController {
     private var selectedIndex: Int = 0
     private var buttons: [UIButton] = []
 
+    private let topStaticView: ThreadDetailStaticTopView
     private let pageVC: UIPageViewController
     private var controllers: [UIViewController] = []
     
     private var underlineLeadingConstraint: NSLayoutConstraint? = nil
 
     init(viewModel: ThreadDetailViewModel, onDisappear: @escaping () -> Void) {
+        self.topStaticView = .init(viewModel: viewModel)
         var controllers: [UIViewController] = []
         for tab in viewModel.tabs {
             switch tab.id {
@@ -88,6 +90,7 @@ final class UIDetailViewPageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAppearance()
+        setupTopStaticView()
         setupTabs()
         setupPageViewController()
         view.backgroundColor = Color.App.bgPrimaryUIColor
@@ -103,6 +106,19 @@ final class UIDetailViewPageViewController: UIViewController {
         view.backgroundColor = UIColor(named: "AppBackgroundPrimary") ?? .systemBackground
         let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? false
         overrideUserInterfaceStyle = isDarkModeEnabled ? .dark : .light
+    }
+    
+    // MARK: - Top Static view
+    private func setupTopStaticView() {
+        topStaticView.viewModel = viewModel
+        topStaticView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(topStaticView)
+        NSLayoutConstraint.activate([
+            topStaticView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topStaticView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topStaticView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topStaticView.heightAnchor.constraint(lessThanOrEqualToConstant: 320),
+        ])
     }
 
     // MARK: - Tabs
@@ -138,7 +154,7 @@ final class UIDetailViewPageViewController: UIViewController {
         underlineLeadingConstraint?.isActive = true
         
         NSLayoutConstraint.activate([
-            segmentedStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            segmentedStack.topAnchor.constraint(equalTo: topStaticView.bottomAnchor, constant: 8),
             segmentedStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             segmentedStack.heightAnchor.constraint(equalToConstant: 44),
 

@@ -25,7 +25,7 @@ struct DetailSectionContainer: View {
                     .environmentObject(participantViewModel)
             }
             DetailPublicLinkSection()
-            DetailThreadDescriptionSection()
+//            DetailThreadDescriptionSection()
             if #available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *) {
                 DetailTopButtonsSection()
                     .padding([.top, .bottom])
