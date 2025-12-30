@@ -12,14 +12,14 @@ public class DetailViewButtonItem: UIView {
     private let imageView = PaddingUIImageView()
     public var onTap:(() -> Void)?
     
-    public init (asssetImageName: String, inset: UIEdgeInsets = .init(all: 10)) {
+    public init (asssetImageName: String, inset: UIEdgeInsets = .init(all: 12)) {
         super.init(frame: .zero)
         configureView()
         setImage(image: UIImage(named: asssetImageName) ?? .init())
         imageView.setInset(inset: inset)
     }
     
-    public init (systemName: String, inset: UIEdgeInsets = .init(all: 10)) {
+    public init (systemName: String, inset: UIEdgeInsets = .init(all: 12)) {
         super.init(frame: .zero)
         configureView()
         setImage(image: UIImage(systemName: systemName) ?? .init())

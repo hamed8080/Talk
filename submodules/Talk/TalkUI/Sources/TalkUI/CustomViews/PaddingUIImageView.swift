@@ -41,9 +41,11 @@ public final class PaddingUIImageView: UIView {
         ])
     }
 
-    public func set(image: UIImage, inset: UIEdgeInsets = .zero) {
+    public func set(image: UIImage, inset: UIEdgeInsets? = nil) {
         imageView.image = image
-        setInset(inset: inset)
+        if let inset = inset {
+            setInset(inset: inset)
+        }
     }
     
     public func setInset(inset: UIEdgeInsets = .zero) {

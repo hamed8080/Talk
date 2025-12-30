@@ -17,7 +17,7 @@ public class ThreadDetailStaticTopView: UIStackView {
     private let userNameView = DetailTopSectionRowView(key: "Settings.userName", value: "")
     private let publicLinkView = DetailTopSectionRowView(key: "Thread.inviteLink", value: "")
     private let descriptionView = DetailTopSectionRowView(key: "", value: "")
-    private let buttonsRowView = DetailTopSectionButtonsRowView()
+    private let buttonsRowView: DetailTopSectionButtonsRowView
     
     /// Models
     weak var viewModel: ThreadDetailViewModel?
@@ -27,6 +27,7 @@ public class ThreadDetailStaticTopView: UIStackView {
     init(viewModel: ThreadDetailViewModel?) {
         self.viewModel = viewModel
         self.topSection = DetailInfoTopSectionView(viewModel: viewModel)
+        self.buttonsRowView = DetailTopSectionButtonsRowView(viewModel: viewModel)
         super.init(frame: .zero)
         configureViews()
         register()
@@ -51,6 +52,7 @@ public class ThreadDetailStaticTopView: UIStackView {
         
         appenORUpdateUI()
         
+        buttonsRowView.viewModel = viewModel
         addArrangedSubview(buttonsRowView)
 //        NSLayoutConstraint.activate([
 //            buttonsRowView.centerXAnchor.constraint(equalTo: centerXAnchor),

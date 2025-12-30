@@ -9,6 +9,7 @@ import UIKit
 import SwiftUI
 import TalkFont
 import TalkUI
+import Combine
 
 class DetailInfoTopSectionView: UIView {
     /// Views
@@ -19,14 +20,17 @@ class DetailInfoTopSectionView: UIView {
     private let lastSeenLabel = UILabel()
     private let approvedIcon = UIImageView(image: UIImage(named: "ic_approved"))
     private let selfThreadImageView = SelfThreadIconView(imageSize: 64, iconSize: 28)
+    private let downloadingAvatarProgress = UIActivityIndicatorView()
     
     /// Models
     public weak var viewModel: ThreadDetailViewModel?
+    private var cancellableSet: Set<AnyCancellable> = Set()
     
     init(viewModel: ThreadDetailViewModel?) {
         self.viewModel = viewModel
         super.init(frame: .zero)
         configureViews()
+        register()
     }
     
     required init?(coder: NSCoder) {
@@ -43,7 +47,16 @@ class DetailInfoTopSectionView: UIView {
         avatar.layer.cornerRadius = 24
         avatar.layer.masksToBounds = true
         avatar.contentMode = .scaleAspectFill
+        avatar.isUserInteractionEnabled = true
+        let avatarGesture = UITapGestureRecognizer(target: self, action: #selector(onAvatarTapped))
+        avatar.addGestureRecognizer(avatarGesture)
         addSubview(avatar)
+        
+        downloadingAvatarProgress.translatesAutoresizingMaskIntoConstraints = false
+        downloadingAvatarProgress.isHidden = true
+        downloadingAvatarProgress.isUserInteractionEnabled = false
+        downloadingAvatarProgress.stopAnimating()
+        addSubview(downloadingAvatarProgress)
         
         /// User initial over the avatar image if the image is nil.
         avatarInitialLabel.accessibilityIdentifier = "DetailInfoTopSectionView.avatarInitialLabel"
@@ -76,14 +89,21 @@ class DetailInfoTopSectionView: UIView {
         
         approvedIcon.translatesAutoresizingMaskIntoConstraints = false
         addSubview(approvedIcon)
+        
+        bringSubviewToFront(downloadingAvatarProgress)
     
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 72),
+            heightAnchor.constraint(equalToConstant: 80),
             
             avatar.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             avatar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             avatar.widthAnchor.constraint(equalToConstant: 64),
             avatar.heightAnchor.constraint(equalToConstant: 64),
+            
+            downloadingAvatarProgress.widthAnchor.constraint(equalTo: avatar.widthAnchor),
+            downloadingAvatarProgress.heightAnchor.constraint(equalTo: avatar.heightAnchor),
+            downloadingAvatarProgress.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
+            downloadingAvatarProgress.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
             
             selfThreadImageView.centerXAnchor.constraint(equalTo: avatar.centerXAnchor),
             selfThreadImageView.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
@@ -172,5 +192,23 @@ class DetailInfoTopSectionView: UIView {
         else { return nil }
         let label = "Thread.Toolbar.participants".bundleLocalized()
         return "\(localCountString ?? "") \(label)"
+    }
+    
+    private func register() {
+        viewModel?.$showDownloading
+            .sink { [weak self] showDownloading in
+                guard let self = self else { return }
+                downloadingAvatarProgress.isHidden = !showDownloading
+                if showDownloading {
+                    downloadingAvatarProgress.startAnimating()
+                } else {
+                    downloadingAvatarProgress.stopAnimating()
+                }
+            }
+            .store(in: &cancellableSet)
+    }
+    
+    @objc private func onAvatarTapped() {
+        viewModel?.onTapAvatarAction()
     }
 }
