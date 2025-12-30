@@ -9,7 +9,6 @@ import UIKit
 import SwiftUI
 
 public class DetailTopSectionRowView: UIView {
-    
     /// Views
     private var keyLabel: UILabel = UILabel(frame: .zero)
     private var valueLabel: UILabel = UILabel(frame: .zero)
@@ -76,5 +75,33 @@ public class DetailTopSectionRowView: UIView {
     
     @objc private func onTapped() {
         onTap?()
+    }
+    
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        UIView.animate(withDuration: 0.1) {
+            self.alpha = 0.5
+        }
+    }
+    
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        UIView.animate(withDuration: 0.1) {
+            self.alpha = 1.0
+        }
+    }
+    
+    public override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        UIView.animate(withDuration: 0.1) {
+            self.alpha = 1.0
+        }
+    }
+    
+    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        UIView.animate(withDuration: 0.1) {
+            self.alpha = 1.0
+        }
     }
 }

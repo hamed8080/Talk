@@ -14,8 +14,10 @@ public class ThreadDetailStaticTopView: UIStackView {
     /// Views
     private let topSection: DetailInfoTopSectionView
     private let cellPhoneNumberView = DetailTopSectionRowView(key: "Participant.Search.Type.cellphoneNumber", value: "")
-    private let descriptionView: DetailTopSectionRowView
     private let userNameView = DetailTopSectionRowView(key: "Settings.userName", value: "")
+    private let publicLinkView = DetailTopSectionRowView(key: "Thread.inviteLink", value: "")
+    private let descriptionView = DetailTopSectionRowView(key: "", value: "")
+    private let buttonsRowView = DetailTopSectionButtonsRowView()
     
     /// Models
     weak var viewModel: ThreadDetailViewModel?
@@ -25,9 +27,6 @@ public class ThreadDetailStaticTopView: UIStackView {
     init(viewModel: ThreadDetailViewModel?) {
         self.viewModel = viewModel
         self.topSection = DetailInfoTopSectionView(viewModel: viewModel)
-        
-        let tuple: (key: String, value: String)? = viewModel?.descriptionString()
-        self.descriptionView = DetailTopSectionRowView(key: tuple?.key ?? "", value: tuple?.value ?? "")
         super.init(frame: .zero)
         configureViews()
         register()
@@ -41,40 +40,50 @@ public class ThreadDetailStaticTopView: UIStackView {
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         axis = .vertical
         spacing = 16
-        alignment = .top
+        alignment = .center
         distribution = .fill
         
         /// Top thread image view and description and participants count
         addArrangedSubview(topSection)
-    
-        appendOrUpdateCellPhoneNumber()
-        appendOrUpdateUserName()
+        NSLayoutConstraint.activate([
+            topSection.leadingAnchor.constraint(equalTo: leadingAnchor)
+        ])
         
-        addArrangedSubview(descriptionView)
+        appenORUpdateUI()
+        
+        addArrangedSubview(buttonsRowView)
+//        NSLayoutConstraint.activate([
+//            buttonsRowView.centerXAnchor.constraint(equalTo: centerXAnchor),
+//        ])
     }
     
     public func register() {
         let value = viewModel?.participantDetailViewModel?.cellPhoneNumber.validateString
         viewModel?.participantDetailViewModel?.objectWillChange.sink { [weak self] _ in
-            self?.updateUI()
+            self?.appenORUpdateUI()
         }
         .store(in: &cancellableSet)
         
         viewModel?.objectWillChange.sink { [weak self] _ in
-            self?.updateUI()
+            self?.appenORUpdateUI()
         }
         .store(in: &cancellableSet)
     }
     
-    private func updateUI() {
+    private func appenORUpdateUI() {
         appendOrUpdateCellPhoneNumber()
         appendOrUpdateUserName()
+        appendOrUpdatePublicLink()
+        appendOrUpdateDescription()
     }
     
     /// Append or update
     public func appendOrUpdateCellPhoneNumber() {
         if cellPhoneNumberView.superview == nil {
             addArrangedSubview(cellPhoneNumberView)
+            NSLayoutConstraint.activate([
+                cellPhoneNumberView.leadingAnchor.constraint(equalTo: leadingAnchor)
+            ])
         }
         
         let value = participantVM?.cellPhoneNumber
@@ -90,6 +99,9 @@ public class ThreadDetailStaticTopView: UIStackView {
     public func appendOrUpdateUserName() {
         if userNameView.superview == nil {
             addArrangedSubview(userNameView)
+            NSLayoutConstraint.activate([
+                userNameView.leadingAnchor.constraint(equalTo: leadingAnchor)
+            ])
         }
         
         let value = viewModel?.participantDetailViewModel?.userName
@@ -100,27 +112,70 @@ public class ThreadDetailStaticTopView: UIStackView {
         }
         userNameView.isHidden = value == nil
     }
+    
+    /// Append or update
+    public func appendOrUpdatePublicLink() {
+        if publicLinkView.superview == nil {
+            addArrangedSubview(publicLinkView)
+            NSLayoutConstraint.activate([
+                publicLinkView.leadingAnchor.constraint(equalTo: leadingAnchor)
+            ])
+        }
+        
+        let value = viewModel?.joinLink
+        publicLinkView.setValue(value ?? "")
+        publicLinkView.onTap = { [weak self] in
+            self?.onPublicLinkTapped(joinLink: self?.viewModel?.joinLink ?? "")
+        }
+        let isPrivate = viewModel?.thread?.type?.isPrivate == true
+        publicLinkView.isHidden = isPrivate || value == nil
+    }
+    
+    /// Append or update
+    public func appendOrUpdateDescription() {
+        if descriptionView.superview == nil {
+            addArrangedSubview(descriptionView)
+            NSLayoutConstraint.activate([
+                descriptionView.leadingAnchor.constraint(equalTo: leadingAnchor)
+            ])
+        }
+        
+        let tuple: (key: String, value: String)? = viewModel?.descriptionString()
+        descriptionView.setValue(tuple?.value ?? "")
+        descriptionView.setKey(tuple?.key.bundleLocalized() ?? "")
+    }
+    
+    /// Append or update
+    public func appendOrUpdateButtonsRow() {
+        if buttonsRowView.superview == nil {
+            addArrangedSubview(buttonsRowView)
+            NSLayoutConstraint.activate([
+                buttonsRowView.leadingAnchor.constraint(equalTo: leadingAnchor)
+            ])
+        }
+    }
 }
 
 /// Actions
 extension ThreadDetailStaticTopView {
     private func onPhoneNumberTapped(phoneNumber: String) {
-        UIPasteboard.general.string = phoneNumber
-        let imageView = UIImageView(image: UIImage(systemName: "phone"))
-        AppState.shared.objectsContainer.appOverlayVM.toast(
-            leadingView: imageView,
-            message: "General.copied",
-            messageColor: Color.App.textPrimaryUIColor!
-        )
+        copyAndToast(phoneNumber, "General.copied", "phone")
     }
     
     private func onUserNameTapped(userName: String) {
-        UIPasteboard.general.string = userName
-        let imageView = UIImageView(image: UIImage(systemName: "person"))
-        let key = "Settings.userNameCopied".bundleLocalized()
+        copyAndToast(userName, "Settings.userNameCopied", "person")
+    }
+    
+    private func onPublicLinkTapped(joinLink: String) {
+        copyAndToast(joinLink, "General.copied", "doc.on.doc")
+    }
+    
+    private func copyAndToast(_ value: String, _ messageTitle: String, _ iconName: String) {
+        UIPasteboard.general.string = value
+        let imageView = UIImageView(image: UIImage(systemName: iconName))
         AppState.shared.objectsContainer.appOverlayVM.toast(
             leadingView: imageView,
-            message: key,
+            message: messageTitle,
             messageColor: Color.App.textPrimaryUIColor!
         )
     }

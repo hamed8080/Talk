@@ -43,6 +43,10 @@ public final class PaddingUIImageView: UIView {
 
     public func set(image: UIImage, inset: UIEdgeInsets = .zero) {
         imageView.image = image
+        setInset(inset: inset)
+    }
+    
+    public func setInset(inset: UIEdgeInsets = .zero) {
         leadingConstraint.constant = inset.left
         trailingConstraint.constant = -inset.right
         topConstraint.constant = inset.top

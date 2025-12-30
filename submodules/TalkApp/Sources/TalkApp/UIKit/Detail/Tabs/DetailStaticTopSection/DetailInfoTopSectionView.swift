@@ -114,40 +114,45 @@ class DetailInfoTopSectionView: UIView {
         let titleString = thread?.titleRTLString.stringToScalarEmoji()
         let contactName = viewModel?.participantDetailViewModel?.participant.contactName
         let threadName = contactName ?? titleString
+        let isSelfThread = thread?.type == .selfThread
+        let lastSeenString = lastSeenString
+        let countString = countString
+        let title = thread?.computedTitle
+        let materialBackground = String.getMaterialColorByCharCode(str: title ?? "")
+        let splitedTitle = String.splitedCharacter(title ?? "")
+        let vm = viewModel?.avatarVM
+        let readyOrSelfThread = vm?.isImageReady == true || isSelfThread
+        
         
         titleLabel.text = threadName
         
-        let lastSeenString = lastSeenString
         lastSeenLabel.text = lastSeenString
         if lastSeenString == nil {
             lastSeenLabel.isHidden = true
             lastSeenLabel.frame.size.height = 0.0
         }
         
-        let countString = countString
         participantCountLabel.text = countString
         if countString == nil {
             participantCountLabel.isHidden = true
             participantCountLabel.frame.size.height = 0.0
         }
         
-        let isSelfThread = thread?.type == .selfThread
+        if isSelfThread {
+            participantCountLabel.isHidden = true
+        }
+        
         if !isSelfThread {
             selfThreadImageView.isHidden = true
             selfThreadImageView.frame.size.height = 0.0
         }
         
-        let vm = viewModel?.avatarVM
-        let readyOrSelfThread = vm?.isImageReady == true || isSelfThread
         avatarInitialLabel.isHidden = readyOrSelfThread
-        
-        let title = thread?.computedTitle
-        let materialBackground = String.getMaterialColorByCharCode(str: title ?? "")
-        let splitedTitle = String.splitedCharacter(title ?? "")
-        
         avatarInitialLabel.text = readyOrSelfThread ? nil : splitedTitle
         avatar.backgroundColor = readyOrSelfThread ? nil : materialBackground
         avatar.image = isSelfThread ? UIImage(named: "self_thread") : readyOrSelfThread ? vm?.image : nil
+        
+        approvedIcon.isHidden = thread?.isTalk ?? false == false
     }
 
     private var lastSeenString: String? {

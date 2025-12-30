@@ -478,4 +478,12 @@ extension ThreadDetailViewModel {
         let value = isGroup ? groupDescription : partnerBio
         return (key, value)
     }
+    
+    public var shortJoinLink: String { "talk/\(thread?.uniqueName ?? "")" }
+    
+    public var joinLink: String {
+        let talk = AppState.shared.spec.server.talk
+        let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"
+        return "\(talkJoin)\(thread?.uniqueName ?? "")"
+    }
 }
