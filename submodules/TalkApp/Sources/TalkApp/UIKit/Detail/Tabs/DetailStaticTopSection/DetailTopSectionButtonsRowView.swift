@@ -10,6 +10,7 @@ import TalkViewModels
 import Combine
 import Chat
 import SwiftUI
+import TalkUI
 
 public class DetailTopSectionButtonsRowView: UIStackView {
     /// Views
@@ -161,26 +162,20 @@ extension DetailTopSectionButtonsRowView {
         guard let thread = viewModel?.thread else { return }
         let participant = viewModel?.participantDetailViewModel?.participant
         let view = VStack(alignment: .leading, spacing: 0) {
-            UserActionMenu(showPopover: .constant(true), participant: participant, thread: thread.toClass())
-                .environmentObject(AppState.shared.objectsContainer.threadsVM)
+            UserActionMenu(participant: participant, thread: thread.toClass()) {
+                /// On Tapped an option
+                PopupViewController.dismissAndRemovePopup()
+            }
+            .environmentObject(AppState.shared.objectsContainer.threadsVM)
         }
-        .environment(\.locale, Locale.current)
-        .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
-        .font(Font.normal(.body))
-        .foregroundColor(.primary)
-        .frame(width: 246)
-        .background(MixMaterialBackground())
-        .clipShape(RoundedRectangle(cornerRadius:((12))))
-        
-        let vc = UIHostingController(rootView: view)
-        vc.modalPresentationStyle = .popover
-
-        if let popover = vc.popoverPresentationController {
-            popover.sourceView = btnShowMore
-            popover.sourceRect = btnShowMore.bounds
-            popover.permittedArrowDirections = .up
-        }
-        AppState.shared.objectsContainer.navVM.splitVC?.present(vc, animated: true)
+            .environment(\.locale, Locale.current)
+            .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)
+            .font(Font.normal(.body))
+            .foregroundColor(.primary)
+            .frame(width: 246)
+            .background(MixMaterialBackground())
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        PopupViewController.showPopup(view: view, anchorView: btnShowMore, parentVCView: superview?.superview)
     }
 }
 

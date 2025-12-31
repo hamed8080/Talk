@@ -54,9 +54,6 @@ public class ThreadDetailStaticTopView: UIStackView {
         
         buttonsRowView.viewModel = viewModel
         addArrangedSubview(buttonsRowView)
-//        NSLayoutConstraint.activate([
-//            buttonsRowView.centerXAnchor.constraint(equalTo: centerXAnchor),
-//        ])
     }
     
     public func register() {

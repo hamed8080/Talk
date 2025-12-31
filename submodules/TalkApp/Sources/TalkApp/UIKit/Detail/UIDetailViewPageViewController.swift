@@ -18,6 +18,7 @@ final class UIDetailViewPageViewController: UIViewController {
     private let viewModel: ThreadDetailViewModel
     private let onDisappear: () -> Void
 
+    private let segmentedStackButtonsScrollView = UIScrollView()
     private let segmentedStack = UIStackView()
     private let underlineView = UIView()
     private var selectedIndex: Int = 0
@@ -97,6 +98,7 @@ final class UIDetailViewPageViewController: UIViewController {
         setupTabs()
         setupPageViewController()
         view.backgroundColor = Color.App.bgPrimaryUIColor
+        scrollToSelectedIndex()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -141,6 +143,17 @@ final class UIDetailViewPageViewController: UIViewController {
         segmentedStack.translatesAutoresizingMaskIntoConstraints = false
         segmentedStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
 
+        segmentedStackButtonsScrollView.translatesAutoresizingMaskIntoConstraints = false
+        segmentedStackButtonsScrollView.showsHorizontalScrollIndicator = false
+        segmentedStackButtonsScrollView.showsVerticalScrollIndicator = false
+        segmentedStackButtonsScrollView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        segmentedStackButtonsScrollView.addSubview(segmentedStack)
+        
+        underlineView.backgroundColor = Color.App.accentUIColor
+        underlineView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        underlineView.translatesAutoresizingMaskIntoConstraints = false
+        segmentedStackButtonsScrollView.addSubview(underlineView)
+
         let titles = viewModel.tabs.compactMap({ $0.title.bundleLocalized() })
 
         for (index, title) in titles.enumerated() {
@@ -153,25 +166,25 @@ final class UIDetailViewPageViewController: UIViewController {
             buttons.append(button)
             segmentedStack.addArrangedSubview(button)
         }
-
-        underlineView.backgroundColor = Color.App.accentUIColor
-        underlineView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        underlineView.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(segmentedStack)
-        view.addSubview(underlineView)
-
         
-        // Define constraints with stored references
-        underlineLeadingConstraint = underlineView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        view.addSubview(segmentedStackButtonsScrollView)
+        
+        underlineLeadingConstraint = underlineView.leadingAnchor.constraint(equalTo: segmentedStack.leadingAnchor)
         underlineLeadingConstraint?.isActive = true
         
         NSLayoutConstraint.activate([
-            segmentedStack.topAnchor.constraint(equalTo: topStaticView.bottomAnchor, constant: 8),
-            segmentedStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            segmentedStack.heightAnchor.constraint(equalToConstant: 44),
+            segmentedStackButtonsScrollView.topAnchor.constraint(equalTo: topStaticView.bottomAnchor, constant: 8),
+            segmentedStackButtonsScrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            segmentedStackButtonsScrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            segmentedStackButtonsScrollView.heightAnchor.constraint(equalToConstant: 44),
+            
+            segmentedStack.topAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.topAnchor),
+            segmentedStack.bottomAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.bottomAnchor),
+            segmentedStack.leadingAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.leadingAnchor),
+            segmentedStack.trailingAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.trailingAnchor),
+            segmentedStack.heightAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.heightAnchor),
 
-            underlineView.topAnchor.constraint(equalTo: segmentedStack.bottomAnchor),
+            underlineView.bottomAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.bottomAnchor),
             underlineView.heightAnchor.constraint(equalToConstant: 2),
             underlineView.widthAnchor.constraint(equalToConstant: 96)
         ])
@@ -231,8 +244,24 @@ final class UIDetailViewPageViewController: UIViewController {
         } else {
             self.view.layoutIfNeeded()
         }
+    
+        scrollToSelectedIndex()
     }
     
+    private func scrollToSelectedIndex() {
+        guard selectedIndex < buttons.count else { return }
+
+          let button = buttons[selectedIndex]
+
+          // Convert button frame into scrollView's content space
+          let rect = segmentedStack.convert(button.frame, to: segmentedStackButtonsScrollView)
+
+          segmentedStackButtonsScrollView.scrollRectToVisible(
+              rect.insetBy(dx: -16, dy: 0), // optional padding
+              animated: true
+          )
+    }
+
     deinit {
 #if DEBUG
         print("deinit called for SelectConversationOrContactListViewController")

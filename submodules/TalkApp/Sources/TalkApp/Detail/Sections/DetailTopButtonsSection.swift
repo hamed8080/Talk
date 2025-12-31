@@ -90,8 +90,10 @@ struct DetailTopButtonsSection: View {
             .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
                     if let thread = thread {
-                        UserActionMenu(showPopover: $showPopover, participant: participant, thread: thread.toClass())
-                            .environmentObject(AppState.shared.objectsContainer.threadsVM)
+                        UserActionMenu(participant: participant, thread: thread.toClass()) {
+                            showPopover = false
+                        }
+                        .environmentObject(AppState.shared.objectsContainer.threadsVM)
                     }
                 }
                 .environment(\.locale, Locale.current)

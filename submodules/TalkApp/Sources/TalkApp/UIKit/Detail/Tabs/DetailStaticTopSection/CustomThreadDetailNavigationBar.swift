@@ -76,6 +76,7 @@ public class CustomThreadDetailNavigationBar: UIView {
             backButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             backButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             titleLabel.trailingAnchor.constraint(equalTo: editGroupOrContactButton.leadingAnchor, constant: -8),
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),

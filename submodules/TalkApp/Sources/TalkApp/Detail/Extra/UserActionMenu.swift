@@ -13,11 +13,11 @@ import Chat
 import TalkUI
 
 struct UserActionMenu: View {
-    @Binding var showPopover: Bool
     let participant: Participant?
     @EnvironmentObject var contactViewModel: ContactsViewModel
     var thread: CalculatedConversation
     @EnvironmentObject var viewModel: ThreadsViewModel
+    var onTapped: () -> Void
 
     var body: some View {
         /// You should be admin or the thread should be a p2p thread with two people.
@@ -51,13 +51,13 @@ struct UserActionMenu: View {
     var sandboxTestOptions: some View {
         if EnvironmentValues.isTalkTest {
             ContextMenuButton(title: "General.share".bundleLocalized(), image: "square.and.arrow.up", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-                showPopover = false
+                onTapped()
             }
             .disabled(true)
             .sandboxLabel()
             
             ContextMenuButton(title: "Thread.export".bundleLocalized(), image: "tray.and.arrow.up", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-                showPopover = false
+                onTapped()
             }
             .disabled(true)
             .sandboxLabel()
@@ -94,7 +94,7 @@ struct UserActionMenu: View {
 
     private func onBlockUnblockTapped() {
         guard let participant = participant else { return }
-        showPopover = false
+        onTapped()
         delayActionOnHidePopover {
             if participant.blocked == true, let contactId = participant.contactId {
                 contactViewModel.unblockWith(contactId)
@@ -111,28 +111,28 @@ struct UserActionMenu: View {
     }
 
     private func onClearHistoryTapped() {
-        showPopover = false
+        onTapped()
         delayActionOnHidePopover {
             viewModel.clearHistory(thread.toStruct())
         }
     }
 
     private func onAddToFolderTapped() {
-        showPopover = false
+        onTapped()
         delayActionOnHidePopover {
             viewModel.showAddThreadToTag(thread.toStruct())
         }
     }
 
     private func onSpamTapped() {
-        showPopover = false
+        onTapped()
         delayActionOnHidePopover {
             viewModel.spamPV(thread.toStruct())
         }
     }
 
     private func onInviteTapped() {
-        showPopover = false
+        onTapped()
         delayActionOnHidePopover {
             viewModel.showAddParticipants(thread.toStruct())
         }
@@ -140,12 +140,12 @@ struct UserActionMenu: View {
 
     private func onDeleteConversationTapped() {
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(DeleteThreadDialog(threadId: thread.id))
-        showPopover = false
+        onTapped()
     }
 
     private func onCloseConversationTapped() {
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(CloseThreadDialog(conversation: thread.toStruct()))
-        showPopover = false
+        onTapped()
     }
 
     private var deleteTitle: String {
@@ -163,6 +163,6 @@ struct UserActionMenu: View {
 
 struct UserActionMenu_Previews: PreviewProvider {
     static var previews: some View {
-        UserActionMenu(showPopover: .constant(true), participant: .init(name: "Hamed Hosseini"), thread: .init())
+        UserActionMenu(participant: .init(name: "Hamed Hosseini"), thread: .init()) {}
     }
 }
