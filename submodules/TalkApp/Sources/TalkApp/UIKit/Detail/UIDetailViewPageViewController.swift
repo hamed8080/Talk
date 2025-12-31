@@ -23,6 +23,7 @@ final class UIDetailViewPageViewController: UIViewController {
     private var selectedIndex: Int = 0
     private var buttons: [UIButton] = []
 
+    private let navigationBar: ThreadDetailTopToolbar
     private let topStaticView: ThreadDetailStaticTopView
     private let pageVC: UIPageViewController
     private var controllers: [UIViewController] = []
@@ -30,6 +31,7 @@ final class UIDetailViewPageViewController: UIViewController {
     private var underlineLeadingConstraint: NSLayoutConstraint? = nil
 
     init(viewModel: ThreadDetailViewModel, onDisappear: @escaping () -> Void) {
+        self.navigationBar = .init(viewModel: viewModel)
         self.topStaticView = .init(viewModel: viewModel)
         var controllers: [UIViewController] = []
         for tab in viewModel.tabs {
@@ -90,6 +92,7 @@ final class UIDetailViewPageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAppearance()
+        setupNavigationToolbar()
         setupTopStaticView()
         setupTabs()
         setupPageViewController()
@@ -108,13 +111,23 @@ final class UIDetailViewPageViewController: UIViewController {
         overrideUserInterfaceStyle = isDarkModeEnabled ? .dark : .light
     }
     
+    private func setupNavigationToolbar() {
+        navigationBar.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(navigationBar)
+        NSLayoutConstraint.activate([
+            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+    }
+    
     // MARK: - Top Static view
     private func setupTopStaticView() {
         topStaticView.viewModel = viewModel
         topStaticView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(topStaticView)
         NSLayoutConstraint.activate([
-            topStaticView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topStaticView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 0),
             topStaticView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             topStaticView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             topStaticView.heightAnchor.constraint(lessThanOrEqualToConstant: 320),

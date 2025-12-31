@@ -13,9 +13,9 @@ struct DetailEditConversationButton: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        if viewModel.canShowEditConversationButton == true, viewModel.thread?.closed == false {
+        if viewModel.canShowEditConversationButton() {
             NavigationLink {
-                if viewModel.canShowEditConversationButton, let viewModel = viewModel.editConversationViewModel {
+                if viewModel.canShowEditConversationButton(), let viewModel = viewModel.editConversationViewModel {
                     EditGroup(threadVM: viewModel.threadVM)
                         .injectAllObjects()
                         .environmentObject(viewModel)

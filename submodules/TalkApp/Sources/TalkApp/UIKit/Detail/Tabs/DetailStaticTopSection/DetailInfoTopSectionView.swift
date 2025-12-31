@@ -206,6 +206,12 @@ class DetailInfoTopSectionView: UIView {
                 }
             }
             .store(in: &cancellableSet)
+        
+        viewModel?.objectWillChange
+            .sink { [weak self] _ in
+                self?.setValues()
+            }
+            .store(in: &cancellableSet)
     }
     
     @objc private func onAvatarTapped() {

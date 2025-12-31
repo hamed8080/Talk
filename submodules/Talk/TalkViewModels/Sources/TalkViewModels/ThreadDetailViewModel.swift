@@ -50,7 +50,6 @@ public final class ThreadDetailViewModel: ObservableObject {
     public weak var threadVM: ThreadViewModel?
     @Published public var isLoading = false
     public var avatarVM: ImageLoaderViewModel?
-    public var canShowEditConversationButton: Bool { thread?.group == true && thread?.admin == true && thread?.type != .selfThread }
     public var participantDetailViewModel: ParticipantDetailViewModel?
     public var editConversationViewModel: EditConversationViewModel?
     private let p2pPartnerFinder = FindPartnerParticipantViewModel()
@@ -485,5 +484,16 @@ extension ThreadDetailViewModel {
         let talk = AppState.shared.spec.server.talk
         let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"
         return "\(talkJoin)\(thread?.uniqueName ?? "")"
+    }
+}
+
+/// Helper functions.
+extension ThreadDetailViewModel {
+    public func canShowEditConversationButton() -> Bool {
+       let result = thread?.group == true &&
+        thread?.admin == true &&
+        thread?.type != .selfThread &&
+        thread?.closed == false
+        return result
     }
 }
