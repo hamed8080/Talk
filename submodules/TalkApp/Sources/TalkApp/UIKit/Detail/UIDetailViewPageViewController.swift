@@ -67,9 +67,7 @@ final class UIDetailViewPageViewController: UIViewController {
                 }
             case .mutual:
                 if let viewModel = tab.viewModel as? MutualGroupViewModel {
-                    controllers.append(MutualGroupsTableViewController(viewModel: viewModel, onSelect: { model in
-                        
-                    }))
+                    controllers.append(MutualGroupsTableViewController(viewModel: viewModel))
                 }
             }
         }
@@ -99,6 +97,19 @@ final class UIDetailViewPageViewController: UIViewController {
         setupPageViewController()
         view.backgroundColor = Color.App.bgPrimaryUIColor
         scrollToSelectedIndex()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AppState.shared.objectsContainer.navVM.pushToLinkId(id: "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)")
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        let linkId = AppState.shared.objectsContainer.navVM.getLinkId() as? String ?? ""
+        if linkId == "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)" {
+            viewModel.dismissBySwipe()
+        }
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -297,6 +308,23 @@ extension UIDetailViewPageViewController: UIPageViewControllerDelegate, UIPageVi
 extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
     func onSelect(item: TabRowModel) {
         item.onTap(viewModel: viewModel)
+    }
+    
+    func onSelectMutualGroup(conversation: Conversation) {
+        Task {
+            try await goToConversation(conversation)
+        }
+    }
+    
+    /// We have to refetch the conversation because it is not a complete instance of Conversation in mutual response.
+    /// So things like admin, public link, and ... don't have any values.
+    private func goToConversation(_ conversation: Conversation) async throws {
+
+        guard
+            let id = conversation.id,
+            let serverConversation = try await GetThreadsReuqester().get(.init(threadIds: [id])).first
+        else { return }
+        AppState.shared.objectsContainer.navVM.createAndAppend(conversation: serverConversation)
     }
 }
 

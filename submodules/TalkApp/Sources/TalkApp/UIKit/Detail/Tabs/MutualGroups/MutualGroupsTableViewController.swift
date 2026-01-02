@@ -11,17 +11,16 @@ import Chat
 import SwiftUI
 import TalkViewModels
 
-class MutualGroupsTableViewController: UIViewController {
+class MutualGroupsTableViewController: UIViewController, TabControllerDelegate {
     var dataSource: UITableViewDiffableDataSource<MutualGroupsListSection, MutualGroupItem>!
     var tableView: UITableView = UITableView(frame: .zero)
     let viewModel: MutualGroupViewModel
     
     weak var detailVM: ThreadDetailViewModel?
-    private let onSelect: @Sendable (CalculatedConversation) -> Void
+    public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
-    init(viewModel: MutualGroupViewModel, onSelect: @Sendable @escaping (CalculatedConversation) -> Void) {
+    init(viewModel: MutualGroupViewModel) {
         self.viewModel = viewModel
-        self.onSelect = onSelect
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
         tableView.register(MutualCell.self, forCellReuseIdentifier: MutualCell.identifier)
@@ -106,7 +105,7 @@ extension MutualGroupsTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         if case .conversation(let conversation) = item {
-            onSelect(conversation)
+            onSelectDelegate?.onSelectMutualGroup(conversation: conversation.toStruct())
             dismiss(animated: true)
         }
     }

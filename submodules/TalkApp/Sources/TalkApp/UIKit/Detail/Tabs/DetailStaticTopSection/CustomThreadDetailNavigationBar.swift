@@ -17,7 +17,7 @@ public class CustomThreadDetailNavigationBar: UIView {
     /// Views
     private let backButton = UIImageButton(imagePadding: .init(all: 14))
     private let titleLabel = UILabel()
-    private let editGroupOrContactButton = UIImageButton(imagePadding: .init(all: 14))
+    private let editGroupOrContactButton = UIImageButton(imagePadding: .init(all: 10))
     
     /// Models
     private weak var viewModel: ThreadDetailViewModel?
@@ -138,12 +138,10 @@ extension CustomThreadDetailNavigationBar {
             let viewModel = viewModel,
             let editConversationVM = viewModel.editConversationViewModel
         else { return }
+        AppState.shared.objectsContainer.navVM.pushToLinkId(id: "DetailEditConversation-\(viewModel.thread?.id ?? 0)" )
         let view = EditGroup(threadVM: viewModel.threadVM)
             .environmentObject(editConversationVM)
             .navigationBarBackButtonHidden(true)
-            .onAppear {
-                AppState.shared.objectsContainer.navVM.pushToLinkId(id: "DetailEditConversation-\(viewModel.thread?.id ?? 0)" )
-            }
             .onDisappear {
                 AppState.shared.objectsContainer.navVM.popLinkId(id: "DetailEditConversation-\(viewModel.thread?.id ?? 0)")
             }
@@ -155,15 +153,12 @@ extension CustomThreadDetailNavigationBar {
             let viewModel = viewModel,
             let participantVM = viewModel.participantDetailViewModel
         else { return }
-        
+        AppState.shared.objectsContainer.navVM.pushToLinkId(id: "EditContact-\(participantVM.partnerContact?.id ?? 0)")
         let view = EditContactInParticipantDetailView()
             .environmentObject(viewModel)
             .environmentObject(participantVM)
             .background(Color.App.bgSecondary)
             .navigationBarBackButtonHidden(true)
-            .onAppear {
-                AppState.shared.objectsContainer.navVM.pushToLinkId(id: "EditContact-\(participantVM.partnerContact?.id ?? 0)")
-            }
             .onDisappear {
                 AppState.shared.objectsContainer.navVM.popLinkId(id: "EditContact-\(participantVM.partnerContact?.id ?? 0)")
             }

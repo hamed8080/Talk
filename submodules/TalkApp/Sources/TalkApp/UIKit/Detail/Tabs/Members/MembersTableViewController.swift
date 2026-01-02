@@ -22,7 +22,7 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
     private var contextMenuContainer: ContextMenuContainerView?
     
     weak var detailVM: ThreadDetailViewModel?
-    var onSelectDelegate: (any TabRowItemOnSelectDelegate)?
+    weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
     init(viewModel: ParticipantsViewModel) {
         self.viewModel = viewModel

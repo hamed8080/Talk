@@ -7,10 +7,12 @@
 
 import UIKit
 import TalkViewModels
+import Chat
 
 @MainActor
 public protocol TabRowItemOnSelectDelegate: AnyObject {
     func onSelect(item: TabRowModel)
+    func onSelectMutualGroup(conversation: Conversation)
 }
 
 @MainActor
