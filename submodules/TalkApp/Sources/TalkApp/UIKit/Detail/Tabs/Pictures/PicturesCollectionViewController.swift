@@ -20,6 +20,7 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
     private var contextMenuContainer: ContextMenuContainerView?
     
     weak var detailVM: ThreadDetailViewModel?
+    public weak var scrollDelegate: UIChildViewScrollDelegate?
     public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
     init(viewModel: DetailTabDownloaderViewModel) {
@@ -70,6 +71,16 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
         super.viewDidAppear(animated)
         contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
+    }
+}
+
+extension PicturesCollectionViewController: UIViewControllerScrollDelegate {
+    func getInternalScrollView() -> UIScrollView {
+        return cv
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollDelegate?.onChildViewDidScrolled(scrollView)
     }
 }
 

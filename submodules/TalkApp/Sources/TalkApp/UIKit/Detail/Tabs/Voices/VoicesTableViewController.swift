@@ -20,6 +20,7 @@ class VoicesTableViewController: UIViewController, TabControllerDelegate {
     private var contextMenuContainer: ContextMenuContainerView?
     
     weak var detailVM: ThreadDetailViewModel?
+    public weak var scrollDelegate: UIChildViewScrollDelegate?
     public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
     init(viewModel: DetailTabDownloaderViewModel) {
@@ -63,8 +64,17 @@ class VoicesTableViewController: UIViewController, TabControllerDelegate {
     }
 }
 
-extension VoicesTableViewController {
+extension VoicesTableViewController: UIViewControllerScrollDelegate {
+    func getInternalScrollView() -> UIScrollView {
+        return tableView
+    }
     
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollDelegate?.onChildViewDidScrolled(scrollView)
+    }
+}
+
+extension VoicesTableViewController {
     private func configureDataSource() {
         dataSource = UITableViewDiffableDataSource(tableView: tableView) { [weak self] (tableView, indexPath, item) -> UITableViewCell? in
             guard let self = self else { return nil }

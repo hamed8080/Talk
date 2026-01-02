@@ -13,13 +13,12 @@ import TalkViewModels
 import TalkModels
 import UIKit
 
-enum DetailTableViewSection: Int, CaseIterable {
+fileprivate enum DetailTableViewSection: Int, CaseIterable {
     case topHeader = 0
     case pageView = 1
 }
 
-final class UIDetailViewPageViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    
+final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelegate {
     private let viewModel: ThreadDetailViewModel
     private var selectedIndex: Int = 0
     private let navigationBar: ThreadDetailTopToolbar
@@ -27,6 +26,7 @@ final class UIDetailViewPageViewController: UIViewController, UITableViewDelegat
     private let pageVC: UIPageViewController
     private var controllers: [UIViewController] = []
     private var viewHasEverAppeared = false
+    private var parentScrollLimit: CGFloat = 0
     
     // Table view as vertical container
     private let tableView = UITableView(frame: .zero, style: .plain)
@@ -62,6 +62,11 @@ final class UIDetailViewPageViewController: UIViewController, UITableViewDelegat
             viewHasEverAppeared = true
             headerSectionView?.updateTabSelection(animated: false, selectedIndex: 0)
         }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        setParentScrollLimitter()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -127,6 +132,7 @@ final class UIDetailViewPageViewController: UIViewController, UITableViewDelegat
         pageVC.dataSource = self
         pageVC.view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         pageVC.setViewControllers([controllers[0]], direction: .forward, animated: false)
+        disableAllScrollViewControllers()
         pageVC.view.translatesAutoresizingMaskIntoConstraints = false
     }
     
@@ -142,8 +148,16 @@ final class UIDetailViewPageViewController: UIViewController, UITableViewDelegat
     private var headerSectionView: ScrollableTabViewSegmentsHeader? {
         tableView.headerView(forSection: DetailTableViewSection.pageView.rawValue) as? ScrollableTabViewSegmentsHeader
     }
+    
+    deinit {
+#if DEBUG
+        print("deinit called for SelectConversationOrContactListViewController")
+#endif
+    }
+}
 
-    // MARK: - UITableViewDataSource
+// MARK: - UITableView data source
+extension UIDetailViewPageViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
         return DetailTableViewSection.allCases.count
     }
@@ -177,8 +191,10 @@ final class UIDetailViewPageViewController: UIViewController, UITableViewDelegat
         }
         return cell
     }
-    
-    // MARK: - Sticky Section Header (Segmented Tabs)
+}
+
+// MARK: - UITableView delegate
+extension UIDetailViewPageViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let identifier = String(describing: ScrollableTabViewSegmentsHeader.self)
         guard section == DetailTableViewSection.pageView.rawValue,
@@ -196,11 +212,47 @@ final class UIDetailViewPageViewController: UIViewController, UITableViewDelegat
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return section == DetailTableViewSection.pageView.rawValue ? 44 : 0
     }
+}
+
+// MARK: - Handoff scrollView. Pin segmented tabs to top.
+extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
+    /// Calculate the Y offset at which the segmented header becomes pinned
+    private func setParentScrollLimitter() {
+        let section = DetailTableViewSection.pageView.rawValue
+        let headerRect = tableView.rectForHeader(inSection: section)
+        parentScrollLimit = headerRect.origin.y
+    }
     
-    deinit {
-#if DEBUG
-        print("deinit called for SelectConversationOrContactListViewController")
-#endif
+    /// Disable all controllers for UITableViews/CollectionViews initially.
+    private func disableAllScrollViewControllers() {
+        controllers.compactMap { $0 as? UIViewControllerScrollDelegate }.forEach {
+            $0.getInternalScrollView().isScrollEnabled = false
+        }
+    }
+    
+    /// Parent table scrolling
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if parentScrollLimit > 0, scrollView.contentOffset.y >= parentScrollLimit {
+            tableView.contentOffset.y = parentScrollLimit
+            tableView.isScrollEnabled = false
+            setCurrentChildScrollEnabled(true)
+        }
+    }
+    
+    /// Child scroll view scrolling
+    func onChildViewDidScrolled(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset.y <= 0 {
+            tableView.isScrollEnabled = true
+            setCurrentChildScrollEnabled(false)
+        }
+    }
+    
+    private func setCurrentChildScrollEnabled(_ enabled: Bool) {
+        guard
+            let childVC = pageVC.viewControllers?.first,
+            let scrollView = (childVC as? UIViewControllerScrollDelegate)?.getInternalScrollView()
+        else { return }
+        scrollView.isScrollEnabled = enabled
     }
 }
 
@@ -226,9 +278,12 @@ extension UIDetailViewPageViewController: UIPageViewControllerDelegate, UIPageVi
               let index = controllers.firstIndex(of: visibleVC) else { return }
         selectedIndex = index
         headerSectionView?.updateTabSelection(animated: true, selectedIndex: selectedIndex)
+        setCurrentChildScrollEnabled(false)
+        tableView.isScrollEnabled = true
     }
 }
 
+// MARK: - Row Selection.
 extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
     func onSelect(item: TabRowModel) {
         item.onTap(viewModel: viewModel)
@@ -249,6 +304,7 @@ extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
     }
 }
 
+// MARK: - Manage tabs.
 extension UIDetailViewPageViewController {
     private func appendTabControllers() {
         for tab in viewModel.tabs {
@@ -292,6 +348,7 @@ extension UIDetailViewPageViewController {
     private func setTabControllersDelegate() {
         controllers.forEach { vc in
             if let selectableVC = vc as? TabControllerDelegate {
+                selectableVC.scrollDelegate = self
                 selectableVC.onSelectDelegate = self
                 selectableVC.detailVM = viewModel
             }

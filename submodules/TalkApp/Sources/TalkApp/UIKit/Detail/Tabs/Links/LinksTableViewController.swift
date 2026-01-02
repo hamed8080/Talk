@@ -21,6 +21,7 @@ class LinksTableViewController: UIViewController, TabControllerDelegate {
     private var contextMenuContainer: ContextMenuContainerView?
     
     weak var detailVM: ThreadDetailViewModel?
+    public weak var scrollDelegate: UIChildViewScrollDelegate?
     public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
     init(viewModel: DetailTabDownloaderViewModel) {
@@ -61,6 +62,16 @@ class LinksTableViewController: UIViewController, TabControllerDelegate {
         super.viewDidAppear(animated)
         contextMenuContainer = .init(delegate: self)
         viewModel.loadMore()
+    }
+}
+
+extension LinksTableViewController: UIViewControllerScrollDelegate {
+    func getInternalScrollView() -> UIScrollView {
+        return tableView
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollDelegate?.onChildViewDidScrolled(scrollView)
     }
 }
 

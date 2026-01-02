@@ -22,7 +22,8 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
     private var contextMenuContainer: ContextMenuContainerView?
     
     weak var detailVM: ThreadDetailViewModel?
-    weak var onSelectDelegate: TabRowItemOnSelectDelegate?
+    public weak var scrollDelegate: UIChildViewScrollDelegate?
+    public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
     init(viewModel: ParticipantsViewModel) {
         self.viewModel = viewModel
@@ -67,6 +68,18 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
                 await viewModel.getParticipants()
             }
         }
+    }
+}
+
+extension MembersTableViewController: UIViewControllerScrollDelegate {
+    func getInternalScrollView() -> UIScrollView {
+        return tableView
+    }
+}
+
+extension MembersTableViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollDelegate?.onChildViewDidScrolled(scrollView)
     }
 }
 

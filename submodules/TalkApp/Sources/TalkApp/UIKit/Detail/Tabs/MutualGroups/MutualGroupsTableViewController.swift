@@ -17,6 +17,7 @@ class MutualGroupsTableViewController: UIViewController, TabControllerDelegate {
     let viewModel: MutualGroupViewModel
     
     weak var detailVM: ThreadDetailViewModel?
+    public weak var scrollDelegate: UIChildViewScrollDelegate?
     public weak var onSelectDelegate: TabRowItemOnSelectDelegate?
     
     init(viewModel: MutualGroupViewModel) {
@@ -55,6 +56,16 @@ class MutualGroupsTableViewController: UIViewController, TabControllerDelegate {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         viewModel.fetchMutualThreads()
+    }
+}
+
+extension MutualGroupsTableViewController: UIViewControllerScrollDelegate {
+    func getInternalScrollView() -> UIScrollView {
+        return tableView
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollDelegate?.onChildViewDidScrolled(scrollView)
     }
 }
 
