@@ -239,9 +239,7 @@ public class CustomConversationNavigationBar: UIView {
         
         let detailViewModel = ThreadDetailViewModel()
         detailViewModel.setup(threadVM: viewModel)
-        let detailVC = UIDetailViewPageViewController(viewModel: detailViewModel) { [weak self] in
-            
-        }
+        let detailVC = UIDetailViewPageViewController(viewModel: detailViewModel)
         let navigationController = (viewModel.delegate as? ThreadViewController)?.navigationController
         
         AppState.shared.objectsContainer.navVM.appendThreadDetailUIKit(vc: detailVC,
