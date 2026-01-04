@@ -29,6 +29,8 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
         super.init(nibName: nil, bundle: nil)
         cv = UICollectionView(frame: .zero, collectionViewLayout: flowLayoutManager.createlayout())
         viewModel.picturesDelegate = self
+        cv.contentInset = .init(top: 8, left: 0, bottom: 132, right: 0)
+        cv.scrollIndicatorInsets = cv.contentInset
         cv.register(PictureCell.self, forCellWithReuseIdentifier: PictureCell.identifier)
         cv.register(NothingFoundCollectionViewCell.self, forCellWithReuseIdentifier: NothingFoundCollectionViewCell.identifier)
         cv.register(
@@ -51,10 +53,8 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
         cv.allowsMultipleSelection = false
         cv.backgroundColor = .clear
         cv.isUserInteractionEnabled = true
-        cv.allowsMultipleSelection = false
         cv.allowsSelection = true
         cv.showsHorizontalScrollIndicator = false
-        cv.contentInset = .init(top: 8, left: 0, bottom: 0, right: 0)
         
         view.addSubview(cv)
         

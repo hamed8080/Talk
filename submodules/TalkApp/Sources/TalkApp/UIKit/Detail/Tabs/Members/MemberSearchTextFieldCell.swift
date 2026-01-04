@@ -7,6 +7,7 @@
 
 import UIKit
 import SwiftUI
+import TalkUI
 
 final class MemberSearchTextFieldCell: UITableViewCell {
     
@@ -42,8 +43,8 @@ final class MemberSearchTextFieldCell: UITableViewCell {
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         translatesAutoresizingMaskIntoConstraints = true
-        contentView.backgroundColor = Color.App.dividerSecondaryUIColor
-        backgroundColor = Color.App.dividerSecondaryUIColor
+        contentView.backgroundColor = Color.App.bgSecondaryUIColor
+        backgroundColor = Color.App.bgSecondaryUIColor
         
         // Container stack
         let hStack = UIStackView()
@@ -118,6 +119,7 @@ final class MemberSearchTextFieldCell: UITableViewCell {
         menuButton.translatesAutoresizingMaskIntoConstraints = false
         menuButton.showsMenuAsPrimaryAction = true
         menuButton.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        menuButton.setContentCompressionResistancePriority(.required, for: .horizontal)
         
         // Default value
         let defualtType = SearchParticipantType.name

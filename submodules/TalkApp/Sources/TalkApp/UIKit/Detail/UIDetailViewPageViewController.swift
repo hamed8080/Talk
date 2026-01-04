@@ -169,18 +169,23 @@ extension UIDetailViewPageViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
         cell.selectionStyle = .none
+        let isGroup = viewModel.thread?.group == true
         
         if indexPath.section == DetailTableViewSection.topHeader.rawValue {
             cell.contentView.addSubview(topStaticView)
+            cell.contentView.backgroundColor = .clear
+            cell.backgroundColor = .clear
             NSLayoutConstraint.activate([
                 topStaticView.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
                 topStaticView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
                 topStaticView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
                 topStaticView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
-                topStaticView.heightAnchor.constraint(equalToConstant: 320)
+                topStaticView.heightAnchor.constraint(equalToConstant: isGroup ? 280 : 460)
             ])
         } else if indexPath.section == DetailTableViewSection.pageView.rawValue {
             cell.contentView.addSubview(pageVC.view)
+            cell.contentView.backgroundColor = .clear
+            cell.backgroundColor = .clear
             NSLayoutConstraint.activate([
                 pageVC.view.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
                 pageVC.view.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
@@ -232,7 +237,7 @@ extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
     
     /// Parent table scrolling
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if parentScrollLimit > 0, scrollView.contentOffset.y >= parentScrollLimit {
+        if scrollView.isDecelerating, parentScrollLimit > 0, scrollView.contentOffset.y >= parentScrollLimit {
             tableView.contentOffset.y = parentScrollLimit
             tableView.isScrollEnabled = false
             setCurrentChildScrollEnabled(true)
@@ -241,10 +246,32 @@ extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
     
     /// Child scroll view scrolling
     func onChildViewDidScrolled(_ scrollView: UIScrollView) {
-        if scrollView.contentOffset.y <= 0 {
-            tableView.isScrollEnabled = true
-            setCurrentChildScrollEnabled(false)
-        }
+        // Only care when child reaches top
+        guard scrollView.contentOffset.y <= 0 else { return }
+        
+        // 1. Capture current vertical velocity
+        let velocityY = scrollView.panGestureRecognizer.velocity(in: scrollView).y
+        
+        // 2. Disable child scrolling
+        scrollView.isScrollEnabled = false
+        
+        // 3. Enable parent scrolling
+        tableView.isScrollEnabled = true
+        
+        // Ignore upward velocity (finger pulling down)
+        guard velocityY > 0 else { return }
+        
+        // Match system deceleration
+        let decelerationRate = scrollView.decelerationRate.rawValue
+        let projectedOffset = velocityY / (1 - decelerationRate)
+        
+        let targetOffsetY = min(
+            scrollView.contentOffset.y + projectedOffset,
+            scrollView.contentSize.height - scrollView.bounds.height
+        )
+        
+        // 4. Transfer momentum to parent
+        tableView.setContentOffset(CGPoint(x: 0, y: targetOffsetY), animated: true)
     }
     
     private func setCurrentChildScrollEnabled(_ enabled: Bool) {

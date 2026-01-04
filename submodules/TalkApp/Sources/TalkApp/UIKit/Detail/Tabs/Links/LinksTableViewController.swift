@@ -30,6 +30,8 @@ class LinksTableViewController: UIViewController, TabControllerDelegate {
         viewModel.linksDelegate = self
         tableView.register(LinkCell.self, forCellReuseIdentifier: LinkCell.identifier)
         tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
+        tableView.contentInset = .init(top: 0, left: 0, bottom: 128, right: 0)
+        tableView.scrollIndicatorInsets = tableView.contentInset
         loadingManager.configureBottomLoading(tableView)
     }
     

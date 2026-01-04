@@ -42,9 +42,10 @@ public class DetailTopSectionButtonsRowView: UIStackView {
         translatesAutoresizingMaskIntoConstraints = false
         axis = .horizontal
         alignment = .center
-        spacing = 8
+        spacing = 16
         distribution = .equalSpacing
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        setContentCompressionResistancePriority(.required, for: .vertical)
         
         btnExit.onTap = { [weak self] in
             self?.onLeaveConversationTapped()

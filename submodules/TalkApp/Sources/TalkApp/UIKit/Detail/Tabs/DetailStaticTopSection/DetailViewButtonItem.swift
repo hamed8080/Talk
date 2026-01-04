@@ -7,6 +7,7 @@
 
 import UIKit
 import TalkUI
+import SwiftUI
 
 public class DetailViewButtonItem: UIView {
     private let imageView = PaddingUIImageView()
@@ -36,6 +37,9 @@ public class DetailViewButtonItem: UIView {
     }
     
     private func configureView() {
+        layer.backgroundColor = Color.App.bgSecondaryUIColor?.cgColor
+        layer.cornerRadius = 8
+        layer.masksToBounds = true
         translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(imageView)

@@ -27,6 +27,8 @@ class MusicsTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.musicsDelegate = self
+        tableView.contentInset = .init(top: 0, left: 0, bottom: 128, right: 0)
+        tableView.scrollIndicatorInsets = tableView.contentInset
         tableView.register(MusicCell.self, forCellReuseIdentifier: MusicCell.identifier)
         tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
         loadingManager.configureBottomLoading(tableView)

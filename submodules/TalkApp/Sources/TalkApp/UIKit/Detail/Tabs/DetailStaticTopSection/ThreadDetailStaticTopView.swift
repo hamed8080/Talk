@@ -13,11 +13,13 @@ import SwiftUI
 public class ThreadDetailStaticTopView: UIStackView {
     /// Views
     private let topSection: DetailInfoTopSectionView
-    private let cellPhoneNumberView = DetailTopSectionRowView(key: "Participant.Search.Type.cellphoneNumber", value: "")
+    private let cellPhoneNumberView = DetailTopSectionRowView(key: "Settings.phoneNumber", value: "")
     private let userNameView = DetailTopSectionRowView(key: "Settings.userName", value: "")
     private let publicLinkView = DetailTopSectionRowView(key: "Thread.inviteLink", value: "")
     private let descriptionView = DetailTopSectionRowView(key: "", value: "")
     private let buttonsRowView: DetailTopSectionButtonsRowView
+    private let firstSeparator = DetailViewDivider()
+    private let secondSeparator = DetailViewDivider()
     
     /// Models
     weak var viewModel: ThreadDetailViewModel?
@@ -46,14 +48,24 @@ public class ThreadDetailStaticTopView: UIStackView {
         
         /// Top thread image view and description and participants count
         addArrangedSubview(topSection)
-        NSLayoutConstraint.activate([
-            topSection.leadingAnchor.constraint(equalTo: leadingAnchor)
-        ])
         
         appenORUpdateUI()
         
         buttonsRowView.viewModel = viewModel
         addArrangedSubview(buttonsRowView)
+        addArrangedSubview(secondSeparator)
+        
+        NSLayoutConstraint.activate([
+            topSection.leadingAnchor.constraint(equalTo: leadingAnchor),
+            
+            firstSeparator.heightAnchor.constraint(equalToConstant: 10),
+            firstSeparator.leadingAnchor.constraint(equalTo: leadingAnchor),
+            firstSeparator.trailingAnchor.constraint(equalTo: trailingAnchor),
+            
+            secondSeparator.heightAnchor.constraint(equalToConstant: 10),
+            secondSeparator.leadingAnchor.constraint(equalTo: leadingAnchor),
+            secondSeparator.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
     }
     
     public func register() {
@@ -74,14 +86,21 @@ public class ThreadDetailStaticTopView: UIStackView {
         appendOrUpdateUserName()
         appendOrUpdatePublicLink()
         appendOrUpdateDescription()
+        appendOrUpdateSeparator()
     }
     
     /// Append or update
     public func appendOrUpdateCellPhoneNumber() {
         if cellPhoneNumberView.superview == nil {
+            let separator = TableViewControllerDevider()
             addArrangedSubview(cellPhoneNumberView)
+            addSubview(separator)
+            separator.isHidden = viewModel?.thread?.group == true
             NSLayoutConstraint.activate([
-                cellPhoneNumberView.leadingAnchor.constraint(equalTo: leadingAnchor)
+                cellPhoneNumberView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                separator.bottomAnchor.constraint(equalTo: cellPhoneNumberView.bottomAnchor, constant: 8),
+                separator.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+                separator.trailingAnchor.constraint(equalTo: trailingAnchor),
             ])
         }
         
@@ -97,9 +116,15 @@ public class ThreadDetailStaticTopView: UIStackView {
     /// Append or update
     public func appendOrUpdateUserName() {
         if userNameView.superview == nil {
+            let separator = TableViewControllerDevider()
             addArrangedSubview(userNameView)
+            addSubview(separator)
+            separator.isHidden = viewModel?.thread?.group == true
             NSLayoutConstraint.activate([
-                userNameView.leadingAnchor.constraint(equalTo: leadingAnchor)
+                userNameView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                separator.bottomAnchor.constraint(equalTo: userNameView.bottomAnchor, constant: 8),
+                separator.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+                separator.trailingAnchor.constraint(equalTo: trailingAnchor),
             ])
         }
         
@@ -151,6 +176,13 @@ public class ThreadDetailStaticTopView: UIStackView {
             NSLayoutConstraint.activate([
                 buttonsRowView.leadingAnchor.constraint(equalTo: leadingAnchor)
             ])
+        }
+    }
+    
+    /// Append or update
+    public func appendOrUpdateSeparator() {
+        if firstSeparator.superview == nil {
+            addArrangedSubview(firstSeparator)
         }
     }
 }

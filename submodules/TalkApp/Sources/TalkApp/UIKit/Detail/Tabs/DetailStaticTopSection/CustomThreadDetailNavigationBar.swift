@@ -41,7 +41,7 @@ public class CustomThreadDetailNavigationBar: UIView {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = toolbarTitle()
         titleLabel.font = UIFont.bold(.body)
-        titleLabel.textColor = Color.App.accentUIColor
+        titleLabel.textColor = Color.App.whiteUIColor
         titleLabel.textAlignment = .center
         titleLabel.accessibilityIdentifier = "CustomThreadDetailNavigationBar.titleLabel"
         addSubview(titleLabel)

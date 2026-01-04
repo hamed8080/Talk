@@ -40,7 +40,6 @@ class MemberCell: UITableViewCell {
         
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        translatesAutoresizingMaskIntoConstraints = true
         contentView.backgroundColor = .clear
         backgroundColor = .clear
         
@@ -55,6 +54,8 @@ class MemberCell: UITableViewCell {
         nameLabel.accessibilityIdentifier = "MemberCell.nameLable"
         nameLabel.textAlignment = Language.isRTL ? .right : .left
         nameLabel.numberOfLines = 1
+        let nameTrailingToContent = nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8)
+        nameTrailingToContent.priority = .defaultLow
         contentView.addSubview(nameLabel)
         
         /// Avatar or user name abbrevation
@@ -99,6 +100,8 @@ class MemberCell: UITableViewCell {
         separtor.translatesAutoresizingMaskIntoConstraints = false
         separtor.backgroundColor = Color.App.dividerPrimaryUIColor
         contentView.addSubview(separtor)
+        
+  
     
         NSLayoutConstraint.activate([
             avatar.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
@@ -114,6 +117,7 @@ class MemberCell: UITableViewCell {
             nameLabel.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
             nameLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8),
             nameLabel.trailingAnchor.constraint(equalTo: assistantLabel.leadingAnchor, constant: -8),
+            nameTrailingToContent,
             
             adminLabel.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
             adminLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),

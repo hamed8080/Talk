@@ -24,6 +24,8 @@ class MutualGroupsTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
+        tableView.contentInset = .init(top: 0, left: 0, bottom: 128, right: 0)
+        tableView.scrollIndicatorInsets = tableView.contentInset
         tableView.register(MutualCell.self, forCellReuseIdentifier: MutualCell.identifier)
         tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
     }

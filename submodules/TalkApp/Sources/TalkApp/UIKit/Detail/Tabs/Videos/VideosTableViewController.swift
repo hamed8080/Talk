@@ -28,6 +28,8 @@ class VideosTableViewController: UIViewController, TabControllerDelegate {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         viewModel.videosDelegate = self
+        tableView.contentInset = .init(top: 0, left: 0, bottom: 128, right: 0)
+        tableView.scrollIndicatorInsets = tableView.contentInset
         tableView.register(VideoCell.self, forCellReuseIdentifier: VideoCell.identifier)
         tableView.register(NothingFoundCell.self, forCellReuseIdentifier: NothingFoundCell.identifier)
         loadingManager.configureBottomLoading(tableView)

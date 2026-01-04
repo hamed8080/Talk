@@ -38,8 +38,14 @@ class DetailInfoTopSectionView: UIView {
     }
     
     @objc private func configureViews() {
+        setContentCompressionResistancePriority(.required, for: .vertical)
         translatesAutoresizingMaskIntoConstraints = false
         semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        backgroundColor = Color.App.bgSecondaryUIColor
+        
+        let isGroup = viewModel?.thread?.group == true
+        let stack = isGroup ? groupStackStyle() : p2pStackStyle()
+        addSubview(stack)
         
         /// Avatar or user name abbrevation
         avatar.accessibilityIdentifier = "DetailInfoTopSectionView.avatar"
@@ -48,9 +54,9 @@ class DetailInfoTopSectionView: UIView {
         avatar.layer.masksToBounds = true
         avatar.contentMode = .scaleAspectFill
         avatar.isUserInteractionEnabled = true
+        avatar.setContentCompressionResistancePriority(.required, for: .vertical)
         let avatarGesture = UITapGestureRecognizer(target: self, action: #selector(onAvatarTapped))
         avatar.addGestureRecognizer(avatarGesture)
-        addSubview(avatar)
         
         downloadingAvatarProgress.translatesAutoresizingMaskIntoConstraints = false
         downloadingAvatarProgress.isHidden = true
@@ -72,20 +78,20 @@ class DetailInfoTopSectionView: UIView {
         addSubview(selfThreadImageView)
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont.normal(.body)
+        titleLabel.font = UIFont.bold(.body)
         titleLabel.textColor = Color.App.textPrimaryUIColor
         titleLabel.textAlignment = Language.isRTL ? .right : .left
-        addSubview(titleLabel)
+        titleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         
         lastSeenLabel.translatesAutoresizingMaskIntoConstraints = false
-        lastSeenLabel.font = UIFont.normal(.caption3)
-        addSubview(lastSeenLabel)
+        lastSeenLabel.font = UIFont.bold(.caption3)
+        lastSeenLabel.textColor = Color.App.accentUIColor
+        lastSeenLabel.setContentCompressionResistancePriority(.required, for: .vertical)
         
         participantCountLabel.translatesAutoresizingMaskIntoConstraints = false
         participantCountLabel.font = UIFont.normal(.caption3)
         participantCountLabel.textColor = Color.App.textSecondaryUIColor
         participantCountLabel.textAlignment = Language.isRTL ? .right : .left
-        addSubview(participantCountLabel)
         
         approvedIcon.translatesAutoresizingMaskIntoConstraints = false
         addSubview(approvedIcon)
@@ -93,10 +99,11 @@ class DetailInfoTopSectionView: UIView {
         bringSubviewToFront(downloadingAvatarProgress)
     
         NSLayoutConstraint.activate([
-            heightAnchor.constraint(equalToConstant: 80),
+            stack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             
-            avatar.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            avatar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             avatar.widthAnchor.constraint(equalToConstant: 64),
             avatar.heightAnchor.constraint(equalToConstant: 64),
             
@@ -111,13 +118,6 @@ class DetailInfoTopSectionView: UIView {
             avatarInitialLabel.leadingAnchor.constraint(equalTo: avatar.leadingAnchor),
             avatarInitialLabel.trailingAnchor.constraint(equalTo: avatar.trailingAnchor),
             avatarInitialLabel.centerYAnchor.constraint(equalTo: avatar.centerYAnchor),
-            
-            titleLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8),
-            titleLabel.centerYAnchor.constraint(equalTo: avatar.centerYAnchor, constant: -14),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            
-            participantCountLabel.leadingAnchor.constraint(equalTo: avatar.trailingAnchor, constant: 8),
-            participantCountLabel.centerYAnchor.constraint(equalTo: avatar.centerYAnchor, constant: 14),
             
             approvedIcon.widthAnchor.constraint(equalToConstant: 16),
             approvedIcon.heightAnchor.constraint(equalToConstant: 16),
@@ -142,23 +142,24 @@ class DetailInfoTopSectionView: UIView {
         let splitedTitle = String.splitedCharacter(title ?? "")
         let vm = viewModel?.avatarVM
         let readyOrSelfThread = vm?.isImageReady == true || isSelfThread
-        
+        let isGroup = thread?.group == true
         
         titleLabel.text = threadName
         
+        let showLastSeen = lastSeenString != nil && !isGroup
         lastSeenLabel.text = lastSeenString
-        if lastSeenString == nil {
-            lastSeenLabel.isHidden = true
+        lastSeenLabel.isHidden = !showLastSeen
+        if !showLastSeen {
             lastSeenLabel.frame.size.height = 0.0
         }
         
         participantCountLabel.text = countString
-        if countString == nil {
-            participantCountLabel.isHidden = true
+        participantCountLabel.isHidden = countString == nil
+        if countString == nil {          
             participantCountLabel.frame.size.height = 0.0
         }
         
-        if isSelfThread {
+        if isSelfThread || !isGroup {
             participantCountLabel.isHidden = true
         }
         
@@ -174,15 +175,50 @@ class DetailInfoTopSectionView: UIView {
         
         approvedIcon.isHidden = thread?.isTalk ?? false == false
     }
-
+    
+    private func groupStackStyle() -> UIStackView {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.spacing = 8
+        stack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        stack.axis = .horizontal
+        
+        let vStack = UIStackView()
+        vStack.axis = .vertical
+        vStack.distribution = .fillEqually
+        vStack.spacing = 8
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        stack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        vStack.addArrangedSubview(titleLabel)
+        vStack.addArrangedSubview(participantCountLabel)
+        
+        stack.addArrangedSubview(avatar)
+        stack.addArrangedSubview(vStack)
+        
+        return stack
+    }
+    
+    private func p2pStackStyle() -> UIStackView {
+        let vStack = UIStackView()
+        vStack.axis = .vertical
+        vStack.spacing = 8
+        vStack.alignment = .center
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        vStack.addArrangedSubview(avatar)
+        vStack.addArrangedSubview(titleLabel)
+        vStack.addArrangedSubview(lastSeenLabel)
+        
+        return vStack
+    }
+    
     private var lastSeenString: String? {
-        if viewModel?.thread?.group == true { return nil }
-        if let notSeenString = viewModel?.participantDetailViewModel?.notSeenString {
-            let localized = "Contacts.lastVisited".bundleLocalized()
-            let formatted = String(format: localized, notSeenString)
-            lastSeenLabel.text = formatted
-        }
-        return nil
+        guard
+            let notSeenString = viewModel?.participantDetailViewModel?.notSeenString
+        else { return nil }
+        let localized = "Contacts.lastVisited".bundleLocalized()
+        let formatted = String(format: localized, notSeenString)
+        return formatted
     }
 
     private var countString: String? {
