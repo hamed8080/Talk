@@ -23,6 +23,7 @@ public protocol TabRowItemOnSelectDelegate: AnyObject {
 @MainActor
 public protocol UIViewControllerScrollDelegate {
     func getInternalScrollView() -> UIScrollView
+    func setBottomInset(_ inset: CGFloat)
 }
 
 @MainActor

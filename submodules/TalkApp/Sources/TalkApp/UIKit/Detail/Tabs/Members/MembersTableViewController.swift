@@ -64,7 +64,7 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        contextMenuContainer = .init(delegate: self)
+        contextMenuContainer = .init(delegate: self, vc: parentVC)
         if viewModel.participants.count == 0 {
             Task {
                 await viewModel.getParticipants()
@@ -76,6 +76,10 @@ class MembersTableViewController: UIViewController, TabControllerDelegate {
 extension MembersTableViewController: UIViewControllerScrollDelegate {
     func getInternalScrollView() -> UIScrollView {
         return tableView
+    }
+    
+    func setBottomInset(_ inset: CGFloat) {
+        tableView.contentInset.bottom = inset
     }
 }
 
@@ -206,6 +210,12 @@ extension MembersTableViewController: ContextMenuDelegate {
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+    
+    private var parentVC: UIViewController {
+        let isCollapsed = AppState.shared.objectsContainer.navVM.splitVC?.isCollapsed == true
+        let parent = isCollapsed ? AppState.shared.objectsContainer.navVM.splitVC ?? self : self
+        return parent
     }
 }
 

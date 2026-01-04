@@ -69,7 +69,7 @@ class PicturesCollectionViewController: UIViewController, TabControllerDelegate 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        contextMenuContainer = .init(delegate: self)
+        contextMenuContainer = .init(delegate: self, vc: parentVC)
         viewModel.loadMore()
     }
 }
@@ -81,6 +81,10 @@ extension PicturesCollectionViewController: UIViewControllerScrollDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         scrollDelegate?.onChildViewDidScrolled(scrollView)
+    }
+    
+    func setBottomInset(_ inset: CGFloat) {
+        cv.contentInset.bottom = inset
     }
 }
 
@@ -173,13 +177,19 @@ extension PicturesCollectionViewController: ContextMenuDelegate {
                                                              detailVM: detailVM,
                                                              contextMenuContainer: contextMenuContainer,
                                                              showFileShareSheet: true,
-                                                             parentVC: self,
+                                                             parentVC: parentVC,
                                                              indexPath: indexPath
         )
     }
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+    
+    private var parentVC: UIViewController {
+        let isCollapsed = AppState.shared.objectsContainer.navVM.splitVC?.isCollapsed == true
+        let parent = isCollapsed ? AppState.shared.objectsContainer.navVM.splitVC ?? self : self
+        return parent
     }
 }
 

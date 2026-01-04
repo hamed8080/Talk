@@ -21,13 +21,13 @@ public class ContextMenuContainerView: UIView {
     let contentView = UIView()
     var indexPath: IndexPath?
     private weak var delegate: ContextMenuDelegate?
-    private var vc: UIViewController? { delegate as? UIViewController }
+    private weak var vc: UIViewController?
     private var contentViewHeightConstraint: NSLayoutConstraint?
 
-    public init(delegate: ContextMenuDelegate) {
+    public init(delegate: ContextMenuDelegate, vc: UIViewController? = nil) {
         self.delegate = delegate
-        let vc = delegate as? UIViewController
-        let frame = vc?.navigationController?.view.frame ?? vc?.view.frame ?? .zero
+        self.vc = vc ?? delegate as? UIViewController
+        let frame = self.vc?.navigationController?.view.frame ?? vc?.view.frame ?? .zero
         self.scrollView = UIScrollView(frame: frame)
         super.init(frame: frame)
         setupView()

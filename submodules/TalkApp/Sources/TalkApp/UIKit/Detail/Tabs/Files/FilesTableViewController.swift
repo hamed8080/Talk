@@ -63,7 +63,7 @@ class FilesTableViewController: UIViewController, TabControllerDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        contextMenuContainer = .init(delegate: self)
+        contextMenuContainer = .init(delegate: self, vc: parentVC)
         viewModel.loadMore()
     }
 }
@@ -75,6 +75,10 @@ extension FilesTableViewController: UIViewControllerScrollDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         scrollDelegate?.onChildViewDidScrolled(scrollView)
+    }
+    
+    func setBottomInset(_ inset: CGFloat) {
+        tableView.contentInset.bottom = inset
     }
 }
 
@@ -172,13 +176,19 @@ extension FilesTableViewController: ContextMenuDelegate {
                                                              detailVM: detailVM,
                                                              contextMenuContainer: contextMenuContainer,
                                                              showFileShareSheet: model.state.state == .completed,
-                                                             parentVC: self,
+                                                             parentVC: parentVC,
                                                              indexPath: indexPath
         )
     }
     
     func dismissContextMenu(indexPath: IndexPath?) {
         
+    }
+    
+    private var parentVC: UIViewController {
+        let isCollapsed = AppState.shared.objectsContainer.navVM.splitVC?.isCollapsed == true
+        let parent = isCollapsed ? AppState.shared.objectsContainer.navVM.splitVC ?? self : self
+        return parent
     }
 }
 

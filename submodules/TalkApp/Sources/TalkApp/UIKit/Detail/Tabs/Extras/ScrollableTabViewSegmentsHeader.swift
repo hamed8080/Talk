@@ -13,6 +13,7 @@ final class ScrollableTabViewSegmentsHeader : UITableViewHeaderFooterView {
     private let segmentedStack = UIStackView()
     private let underlineView = UIView()
     private var buttons: [UIButton] = []
+    public static let identifier: String = "ScrollableTabViewSegmentsHeader"
     
     /// Models
     public var onTapped: ((Int) -> Void)?
@@ -30,7 +31,7 @@ final class ScrollableTabViewSegmentsHeader : UITableViewHeaderFooterView {
     }
     
     private func configureView() {
-        semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        contentView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         
         segmentedStack.axis = .horizontal
         segmentedStack.distribution = .fill
@@ -52,14 +53,14 @@ final class ScrollableTabViewSegmentsHeader : UITableViewHeaderFooterView {
         underlineLeadingConstraint = underlineView.leadingAnchor.constraint(equalTo: segmentedStack.leadingAnchor)
         underlineLeadingConstraint?.isActive = true
         
-        addSubview(segmentedStackButtonsScrollView)
-        
+        contentView.addSubview(segmentedStackButtonsScrollView)
+    
         NSLayoutConstraint.activate([
             segmentedStackButtonsScrollView.heightAnchor.constraint(equalToConstant: 44),
-            segmentedStackButtonsScrollView.topAnchor.constraint(equalTo: topAnchor),
-            segmentedStackButtonsScrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            segmentedStackButtonsScrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            segmentedStackButtonsScrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            segmentedStackButtonsScrollView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            segmentedStackButtonsScrollView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            segmentedStackButtonsScrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            segmentedStackButtonsScrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             
             segmentedStack.topAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.topAnchor),
             segmentedStack.bottomAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.bottomAnchor),

@@ -69,6 +69,10 @@ extension MutualGroupsTableViewController: UIViewControllerScrollDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         scrollDelegate?.onChildViewDidScrolled(scrollView)
     }
+    
+    func setBottomInset(_ inset: CGFloat) {
+        tableView.contentInset.bottom = inset
+    }
 }
 
 extension MutualGroupsTableViewController {

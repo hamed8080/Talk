@@ -20,27 +20,22 @@ fileprivate enum DetailTableViewSection: Int, CaseIterable {
 
 final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelegate {
     private let viewModel: ThreadDetailViewModel
-    private var selectedIndex: Int = 0
     private let navigationBar: ThreadDetailTopToolbar
     private let topStaticView: ThreadDetailStaticTopView
-    private let pageVC: UIPageViewController
-    private var controllers: [UIViewController] = []
     private var viewHasEverAppeared = false
     private var parentScrollLimit: CGFloat = 0
+    private var pageManager: DetailPageControllerManager?
     
     // Table view as vertical container
-    private let tableView = UITableView(frame: .zero, style: .plain)
+    public let tableView = UITableView(frame: .zero, style: .plain)
     
     init(viewModel: ThreadDetailViewModel) {
         self.navigationBar = .init(viewModel: viewModel)
         self.topStaticView = .init(viewModel: viewModel)
-        var controllers: [UIViewController] = []
-        self.controllers = controllers
         self.viewModel = viewModel
-        self.pageVC = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
+        self.pageManager = DetailPageControllerManager(viewModel: viewModel)
         super.init(nibName: nil, bundle: nil)
-        appendTabControllers()
-        setTabControllersDelegate()
+        pageManager?.setupPageView(vc: self)
     }
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -49,7 +44,6 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
         super.viewDidLoad()
         setupAppearance()
         setupNavigationToolbar()
-        setupPageView()
         setupTableView()
         setupTopStaticView()
         view.backgroundColor = Color.App.bgPrimaryUIColor
@@ -67,6 +61,8 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         setParentScrollLimitter()
+        let inset = view.safeAreaInsets.top + view.safeAreaInsets.bottom + navigationBar.frame.height + (headerSectionView?.frame.height ?? 0)
+        pageManager?.setBottomInsetForChilds(bottomInset: inset)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -124,28 +120,14 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
         topStaticView.translatesAutoresizingMaskIntoConstraints = false
     }
     
-    // MARK: - PageView
-    private func setupPageView () {
-        addChild(pageVC)
-        pageVC.didMove(toParent: self)
-        pageVC.delegate = self
-        pageVC.dataSource = self
-        pageVC.view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        pageVC.setViewControllers([controllers[0]], direction: .forward, animated: false)
-        disableAllScrollViewControllers()
-        pageVC.view.translatesAutoresizingMaskIntoConstraints = false
-    }
-    
     // MARK: - Tab Interaction
     @objc private func tabTapped(_ index: Int) {
-        guard index != selectedIndex else { return }
-        let direction: UIPageViewController.NavigationDirection = index > selectedIndex ? .forward : .reverse
-        pageVC.setViewControllers([controllers[index]], direction: direction, animated: true)
-        selectedIndex = index
-        headerSectionView?.updateTabSelection(animated: true, selectedIndex: selectedIndex)
+        guard index != pageManager?.selectedIndex else { return }
+        pageManager?.setPage(index: index)
+        headerSectionView?.updateTabSelection(animated: true, selectedIndex: index)
     }
     
-    private var headerSectionView: ScrollableTabViewSegmentsHeader? {
+    var headerSectionView: ScrollableTabViewSegmentsHeader? {
         tableView.headerView(forSection: DetailTableViewSection.pageView.rawValue) as? ScrollableTabViewSegmentsHeader
     }
     
@@ -182,7 +164,7 @@ extension UIDetailViewPageViewController: UITableViewDataSource {
                 topStaticView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
                 topStaticView.heightAnchor.constraint(equalToConstant: isGroup ? 280 : 460)
             ])
-        } else if indexPath.section == DetailTableViewSection.pageView.rawValue {
+        } else if indexPath.section == DetailTableViewSection.pageView.rawValue, let pageVC = pageManager {
             cell.contentView.addSubview(pageVC.view)
             cell.contentView.backgroundColor = .clear
             cell.backgroundColor = .clear
@@ -201,9 +183,8 @@ extension UIDetailViewPageViewController: UITableViewDataSource {
 // MARK: - UITableView delegate
 extension UIDetailViewPageViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let identifier = String(describing: ScrollableTabViewSegmentsHeader.self)
         guard section == DetailTableViewSection.pageView.rawValue,
-              let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: identifier) as? ScrollableTabViewSegmentsHeader
+              let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: ScrollableTabViewSegmentsHeader.identifier) as? ScrollableTabViewSegmentsHeader
         else { return nil }
         
         let titles = viewModel.tabs.compactMap({ $0.title.bundleLocalized() })
@@ -228,19 +209,12 @@ extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
         parentScrollLimit = headerRect.origin.y
     }
     
-    /// Disable all controllers for UITableViews/CollectionViews initially.
-    private func disableAllScrollViewControllers() {
-        controllers.compactMap { $0 as? UIViewControllerScrollDelegate }.forEach {
-            $0.getInternalScrollView().isScrollEnabled = false
-        }
-    }
-    
     /// Parent table scrolling
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView.isDecelerating, parentScrollLimit > 0, scrollView.contentOffset.y >= parentScrollLimit {
             tableView.contentOffset.y = parentScrollLimit
             tableView.isScrollEnabled = false
-            setCurrentChildScrollEnabled(true)
+            pageManager?.setCurrentChildScrollEnabled(true)
         }
     }
     
@@ -248,65 +222,16 @@ extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
     func onChildViewDidScrolled(_ scrollView: UIScrollView) {
         // Only care when child reaches top
         guard scrollView.contentOffset.y <= 0 else { return }
-        
-        // 1. Capture current vertical velocity
-        let velocityY = scrollView.panGestureRecognizer.velocity(in: scrollView).y
-        
-        // 2. Disable child scrolling
+        // 1. Disable child scrolling
         scrollView.isScrollEnabled = false
         
-        // 3. Enable parent scrolling
+        // 2. Enable parent scrolling
         tableView.isScrollEnabled = true
-        
-        // Ignore upward velocity (finger pulling down)
-        guard velocityY > 0 else { return }
-        
-        // Match system deceleration
-        let decelerationRate = scrollView.decelerationRate.rawValue
-        let projectedOffset = velocityY / (1 - decelerationRate)
-        
-        let targetOffsetY = min(
-            scrollView.contentOffset.y + projectedOffset,
-            scrollView.contentSize.height - scrollView.bounds.height
-        )
-        
-        // 4. Transfer momentum to parent
-        tableView.setContentOffset(CGPoint(x: 0, y: targetOffsetY), animated: true)
-    }
-    
-    private func setCurrentChildScrollEnabled(_ enabled: Bool) {
-        guard
-            let childVC = pageVC.viewControllers?.first,
-            let scrollView = (childVC as? UIViewControllerScrollDelegate)?.getInternalScrollView()
-        else { return }
-        scrollView.isScrollEnabled = enabled
-    }
-}
 
-// MARK: - UIPageViewController Delegate & DataSource
-extension UIDetailViewPageViewController: UIPageViewControllerDelegate, UIPageViewControllerDataSource {
-    func pageViewController(_ pageViewController: UIPageViewController,
-                            viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        guard let index = controllers.firstIndex(of: viewController), index > 0 else { return nil }
-        return controllers[index - 1]
-    }
-
-    func pageViewController(_ pageViewController: UIPageViewController,
-                            viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        guard let index = controllers.firstIndex(of: viewController), index < controllers.count - 1 else { return nil }
-        return controllers[index + 1]
-    }
-
-    func pageViewController(_ pageViewController: UIPageViewController,
-                            didFinishAnimating finished: Bool,
-                            previousViewControllers: [UIViewController],
-                            transitionCompleted completed: Bool) {
-        guard completed, let visibleVC = pageViewController.viewControllers?.first,
-              let index = controllers.firstIndex(of: visibleVC) else { return }
-        selectedIndex = index
-        headerSectionView?.updateTabSelection(animated: true, selectedIndex: selectedIndex)
-        setCurrentChildScrollEnabled(false)
-        tableView.isScrollEnabled = true
+        if !scrollView.isDecelerating {
+            // 3. Transfer momentum to parent
+            tableView.setContentOffset(CGPoint(x: 0, y: 0), animated: true)
+        }
     }
 }
 
@@ -328,57 +253,5 @@ extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
             let serverConversation = try await GetThreadsReuqester().get(.init(threadIds: [id])).first
         else { return }
         AppState.shared.objectsContainer.navVM.createAndAppend(conversation: serverConversation)
-    }
-}
-
-// MARK: - Manage tabs.
-extension UIDetailViewPageViewController {
-    private func appendTabControllers() {
-        for tab in viewModel.tabs {
-            switch tab.id {
-            case .members:
-                if let viewModel = tab.viewModel as? ParticipantsViewModel {
-                    controllers.append(MembersTableViewController(viewModel: viewModel))
-                }
-            case .pictures:
-                if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(PicturesCollectionViewController(viewModel: viewModel))
-                }
-            case .video:
-                if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(VideosTableViewController(viewModel: viewModel))
-                }
-            case .music:
-                if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(MusicsTableViewController(viewModel: viewModel))
-                }
-            case .voice:
-                if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(VoicesTableViewController(viewModel: viewModel))
-                }
-            case .file:
-                if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(FilesTableViewController(viewModel: viewModel))
-                }
-            case .link:
-                if let viewModel = tab.viewModel as? DetailTabDownloaderViewModel {
-                    controllers.append(LinksTableViewController(viewModel: viewModel))
-                }
-            case .mutual:
-                if let viewModel = tab.viewModel as? MutualGroupViewModel {
-                    controllers.append(MutualGroupsTableViewController(viewModel: viewModel))
-                }
-            }
-        }
-    }
-    
-    private func setTabControllersDelegate() {
-        controllers.forEach { vc in
-            if let selectableVC = vc as? TabControllerDelegate {
-                selectableVC.scrollDelegate = self
-                selectableVC.onSelectDelegate = self
-                selectableVC.detailVM = viewModel
-            }
-        }
     }
 }
