@@ -183,7 +183,7 @@ public final class ParticipantsViewModel: ObservableObject {
         withAnimation { [weak self] in
             self?.participants.insert(contentsOf: participants, at: 0)
             self?.sort()
-            self?.animateObjectWillChange()
+            self?.updateUI(animation: true, reloadSections: false)
         }
     }
 
@@ -322,7 +322,7 @@ public final class ParticipantsViewModel: ObservableObject {
                 participants[index].admin = false
                 sort()
             }
-            animateObjectWillChange()
+            updateUI(animation: true, reloadSections: false)
         }
     }
 
@@ -335,7 +335,7 @@ public final class ParticipantsViewModel: ObservableObject {
             {
                 participants[index].admin = true
                 sort()
-                animateObjectWillChange()
+                updateUI(animation: true, reloadSections: false)
             }
         }
 
@@ -345,7 +345,7 @@ public final class ParticipantsViewModel: ObservableObject {
                 if let index = participants.firstIndex(where: {$0.id == userRole.id}) {
                     participants[index].admin = true
                     sort()
-                    animateObjectWillChange()
+                    updateUI(animation: true, reloadSections: false)
                 }
             }
         }
@@ -356,7 +356,7 @@ public final class ParticipantsViewModel: ObservableObject {
             if adminRole.hasError == nil, adminRole.hasError == false, let index = participants.firstIndex(where: {$0.id == adminRole.participant?.id}) {
                 participants[index].admin = true
                 sort()
-                animateObjectWillChange()
+                updateUI(animation: true, reloadSections: false)
             }
         }
     }
@@ -366,7 +366,7 @@ public final class ParticipantsViewModel: ObservableObject {
             if adminRole.hasError == nil, adminRole.hasError == false, let index = participants.firstIndex(where: {$0.id == adminRole.participant?.id}) {
                 participants[index].admin = false
                 sort()
-                animateObjectWillChange()
+                updateUI(animation: true, reloadSections: false)
             }
         }
     }

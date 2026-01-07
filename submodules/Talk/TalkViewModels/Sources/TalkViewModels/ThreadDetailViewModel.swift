@@ -337,7 +337,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
 
     private func registerP2PParticipantObserver() {
-        guard let participantDetailViewModel else { return }
+        guard let participantDetailViewModel = self.participantDetailViewModel else { return }
         participantDetailViewModel.objectWillChange.sink { [weak self] _ in
             self?.updateThreadTitle()
             /// We have to update the ui all the time and keep it in sync with the ParticipantDetailViewModel.

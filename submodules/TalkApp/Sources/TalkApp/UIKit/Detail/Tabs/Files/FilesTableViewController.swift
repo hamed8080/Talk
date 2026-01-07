@@ -186,9 +186,7 @@ extension FilesTableViewController: ContextMenuDelegate {
     }
     
     private var parentVC: UIViewController {
-        let isCollapsed = AppState.shared.objectsContainer.navVM.splitVC?.isCollapsed == true
-        let parent = isCollapsed ? AppState.shared.objectsContainer.navVM.splitVC ?? self : self
-        return parent
+        return AppState.shared.objectsContainer.navVM.splitVC ?? self
     }
 }
 

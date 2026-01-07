@@ -7,9 +7,11 @@
 
 import UIKit
 import SwiftUI
+import TalkUI
 
 final class ScrollableTabViewSegmentsHeader : UITableViewHeaderFooterView {
-    private let segmentedStackButtonsScrollView = UIScrollView()
+    private let scrollView = UIScrollView()
+    private let scrollContainer = UIView()
     private let segmentedStack = UIStackView()
     private let underlineView = UIView()
     private var buttons: [UIButton] = []
@@ -37,41 +39,53 @@ final class ScrollableTabViewSegmentsHeader : UITableViewHeaderFooterView {
         segmentedStack.distribution = .fill
         segmentedStack.translatesAutoresizingMaskIntoConstraints = false
         segmentedStack.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        
-        segmentedStackButtonsScrollView.translatesAutoresizingMaskIntoConstraints = false
-        segmentedStackButtonsScrollView.showsHorizontalScrollIndicator = false
-        segmentedStackButtonsScrollView.showsVerticalScrollIndicator = false
-        segmentedStackButtonsScrollView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
-        segmentedStackButtonsScrollView.addSubview(segmentedStack)
-        
+      
         underlineView.backgroundColor = Color.App.accentUIColor
         underlineView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         underlineView.translatesAutoresizingMaskIntoConstraints = false
-        segmentedStackButtonsScrollView.addSubview(underlineView)
-       
+        
+        scrollContainer.translatesAutoresizingMaskIntoConstraints = false
+        scrollContainer.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        scrollContainer.addSubview(segmentedStack)
+        scrollContainer.addSubview(underlineView)
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
+        scrollView.addSubview(scrollContainer)
+        
+        contentView.addSubview(scrollView)
+    
         // Do NOT add segmentedStackButtonsScrollView to the main view hierarchy here
         underlineLeadingConstraint = underlineView.leadingAnchor.constraint(equalTo: segmentedStack.leadingAnchor)
         underlineLeadingConstraint?.isActive = true
         
-        contentView.addSubview(segmentedStackButtonsScrollView)
-    
         NSLayoutConstraint.activate([
-            segmentedStackButtonsScrollView.heightAnchor.constraint(equalToConstant: 44),
-            segmentedStackButtonsScrollView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            segmentedStackButtonsScrollView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            segmentedStackButtonsScrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            segmentedStackButtonsScrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            
-            segmentedStack.topAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.topAnchor),
-            segmentedStack.bottomAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.bottomAnchor),
-            segmentedStack.leadingAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.leadingAnchor),
-            segmentedStack.trailingAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.trailingAnchor),
-            segmentedStack.heightAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.heightAnchor),
-            
-            underlineView.bottomAnchor.constraint(equalTo: segmentedStackButtonsScrollView.contentLayoutGuide.bottomAnchor),
+            scrollView.heightAnchor.constraint(equalToConstant: 44),
+            scrollView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            scrollContainer.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            scrollContainer.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            scrollContainer.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            scrollContainer.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            scrollContainer.widthAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.widthAnchor),
+            scrollContainer.heightAnchor.constraint(equalToConstant: 44),
+
+            segmentedStack.topAnchor.constraint(equalTo: scrollContainer.topAnchor),
+            segmentedStack.leadingAnchor.constraint(equalTo: scrollContainer.leadingAnchor),
+            segmentedStack.heightAnchor.constraint(equalTo: scrollContainer.heightAnchor),
+
+            underlineView.bottomAnchor.constraint(equalTo: scrollContainer.bottomAnchor),
             underlineView.heightAnchor.constraint(equalToConstant: 2),
             underlineView.widthAnchor.constraint(equalToConstant: 96)
         ])
+        
+        if UIDevice.current.userInterfaceIdiom == .phone || traitCollection.horizontalSizeClass == .compact {
+            segmentedStack.trailingAnchor.constraint(equalTo: scrollContainer.trailingAnchor).isActive = true
+        }
     }
     
     public func setButtons(buttonTitles: [String]) {
@@ -129,9 +143,9 @@ final class ScrollableTabViewSegmentsHeader : UITableViewHeaderFooterView {
         let button = buttons[selectedIndex]
         
         // Convert button frame into scrollView's content space
-        let rect = segmentedStack.convert(button.frame, to: segmentedStackButtonsScrollView)
+        let rect = segmentedStack.convert(button.frame, to: scrollView)
 
-        segmentedStackButtonsScrollView.scrollRectToVisible(
+        scrollView.scrollRectToVisible(
             rect.insetBy(dx: -16, dy: 0), // optional padding
             animated: true
         )
