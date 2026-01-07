@@ -151,7 +151,6 @@ extension UIDetailViewPageViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
         cell.selectionStyle = .none
-        let isGroup = viewModel.thread?.group == true
         
         if indexPath.section == DetailTableViewSection.topHeader.rawValue {
             cell.contentView.addSubview(topStaticView)
@@ -162,7 +161,7 @@ extension UIDetailViewPageViewController: UITableViewDataSource {
                 topStaticView.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
                 topStaticView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
                 topStaticView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
-                topStaticView.heightAnchor.constraint(equalToConstant: isGroup ? 280 : 460)
+                topStaticView.heightAnchor.constraint(equalToConstant: topSectionHeight)
             ])
         } else if indexPath.section == DetailTableViewSection.pageView.rawValue, let pageVC = pageManager {
             cell.contentView.addSubview(pageVC.view)
@@ -206,12 +205,12 @@ extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
     private func setParentScrollLimitter() {
         let section = DetailTableViewSection.pageView.rawValue
         let headerRect = tableView.rectForHeader(inSection: section)
-        parentScrollLimit = headerRect.origin.y
+        parentScrollLimit = topSectionHeight
     }
     
     /// Parent table scrolling
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.isDecelerating, parentScrollLimit > 0, scrollView.contentOffset.y >= parentScrollLimit {
+        if parentScrollLimit > 0, scrollView.contentOffset.y >= parentScrollLimit {
             tableView.contentOffset.y = parentScrollLimit
             tableView.isScrollEnabled = false
             pageManager?.setCurrentChildScrollEnabled(true)
@@ -253,5 +252,16 @@ extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
             let serverConversation = try await GetThreadsReuqester().get(.init(threadIds: [id])).first
         else { return }
         AppState.shared.objectsContainer.navVM.createAndAppend(conversation: serverConversation)
+    }
+}
+
+// MARK: - Normal Helper methods
+extension UIDetailViewPageViewController {
+    private var isGroup: Bool {
+       return viewModel.thread?.group == true
+    }
+    
+    private var topSectionHeight: CGFloat {
+        isGroup ? 280 : 480
     }
 }
