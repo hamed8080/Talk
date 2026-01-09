@@ -17,8 +17,10 @@ import Chat
 @MainActor
 public class ParticipantsCountManager {
     public var cancelable: Set<AnyCancellable> = []
-    private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
-    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
+    private var appState: AppState { AppState.shared }
+    private var navVM: NavigationModel { appState.objectsContainer.navVM }
+    private var threadsVM: ThreadsViewModel { appState.objectsContainer.threadsVM }
+    private var archivesVM: ThreadsViewModel { appState.objectsContainer.archivesVM }
     private let isArchive: Bool
 
     init(isArchive: Bool) {
@@ -85,7 +87,7 @@ public class ParticipantsCountManager {
             let vm = threadViewModel(threadId: threadId)
             vm?.setParticipantsCount(count)
             vm?.conversationSubtitle.updateSubtitle()
-            AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
+            navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
     }
     
@@ -95,12 +97,12 @@ public class ParticipantsCountManager {
             let vm = threadViewModel(threadId: threadId)
             vm?.setParticipantsCount(count)
             vm?.conversationSubtitle.updateSubtitle()
-            AppState.shared.objectsContainer.navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
+            navVM.detailViewModel(threadId: threadId)?.animateObjectWillChange()
         }
     }
     
     private func threadViewModel(threadId: Int) -> ThreadViewModel? {
-        AppState.shared.objectsContainer.navVM.viewModel(for: threadId)
+        navVM.viewModel(for: threadId)
     }
 
     private func currentCount(threadId: Int?) -> Int {

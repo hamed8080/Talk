@@ -58,10 +58,13 @@ public final class ThreadViewModel: ObservableObject {
 
     // MARK: Computed Properties
     public var id: Int
-    private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
-    public var isActiveThread: Bool { AppState.shared.objectsContainer.navVM.presentedThreadViewModel?.threadId == id }
+    private var appState: AppState { AppState.shared }
+    private var objs: ObjectsContainer { appState.objectsContainer }
+    private var threadsVM: ThreadsViewModel { objs.threadsVM }
+    private var navVM: NavigationModel { objs.navVM }
+    public var isActiveThread: Bool { `navVM`.presentedThreadViewModel?.threadId == id }
     public var isSimulatedThared: Bool {
-        AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
+        navVM.navigationProperties.userToCreateThread != nil && thread.id == LocalId.emptyThread.rawValue
     }
     nonisolated(unsafe) public static var maxAllowedWidth: CGFloat = ThreadViewModel.threadWidth
     nonisolated(unsafe) public static var maxAllowedWidthIsMe: CGFloat = ThreadViewModel.threadWidth
@@ -109,7 +112,7 @@ public final class ThreadViewModel: ObservableObject {
     }
 
     private func setup() {
-        participant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread
+        participant = navVM.navigationProperties.userToCreateThread
         seenVM.setup(viewModel: self)
         unreadMentionsViewModel.setup(viewModel: self)
         mentionListPickerViewModel.setup(viewModel: self)

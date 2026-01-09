@@ -247,9 +247,10 @@ public final class ImageLoaderViewModel: ObservableObject {
     }
     
     private func getPaths() -> (images: String, files: String) {
-        let podspace = AppState.shared.spec.server.file
-        let images = "\(podspace)\(AppState.shared.spec.paths.podspace.download.images)"
-        let files = "\(podspace)\(AppState.shared.spec.paths.podspace.download.files)"
+        let spec = AppState.shared.spec
+        let podspace = spec.server.file
+        let images = "\(podspace)\(spec.paths.podspace.download.images)"
+        let files = "\(podspace)\(spec.paths.podspace.download.files)"
         return (images, files)
     }
 

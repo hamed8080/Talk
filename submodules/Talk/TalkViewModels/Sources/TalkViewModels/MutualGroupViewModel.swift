@@ -81,7 +81,7 @@ public final class MutualGroupViewModel {
     }
 
     public func fetchMutualThreads() {
-        guard let username = partner?.username, AppState.shared.objectsContainer.navVM.selectedId != LocalId.emptyThread.rawValue else { return }
+        guard let username = partner?.username, navVM.selectedId != LocalId.emptyThread.rawValue else { return }
         lazyList.setLoading(true)
         let invitee = Invitee(id: "\(username)", idType: .username)
         let req = MutualGroupsRequest(toBeUser: invitee, count: lazyList.count, offset: lazyList.offset)

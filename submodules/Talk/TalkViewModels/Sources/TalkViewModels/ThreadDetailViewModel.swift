@@ -60,9 +60,11 @@ public final class ThreadDetailViewModel: ObservableObject {
     @Published public var showDownloading: Bool = false
     private var isDismissed = false
     public var tabs: [DetailTabProtocol] = []
-    // MARK: Computed properties
     
-    private var objs: ObjectsContainer { AppState.shared.objectsContainer }
+    // MARK: - Computed properties    
+    private var appState: AppState { AppState.shared }
+    private var navVM: NavigationModel { appState.objectsContainer.navVM }
+    private var objs: ObjectsContainer { appState.objectsContainer }
     private var appOverlayVM: AppOverlayViewModel { objs.appOverlayVM }
 
     public init() {
@@ -102,7 +104,7 @@ public final class ThreadDetailViewModel: ObservableObject {
     }
     
     private var cachedAvatarVM: ImageLoaderViewModel? {
-        return objs.navVM.allThreads
+        return navVM.allThreads
             .first(where: { $0.id == threadVM?.thread.id })?.imageLoader as? ImageLoaderViewModel
     }
 
@@ -293,8 +295,8 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     private func setupParticipantDetailViewModel(participant: Participant?) {
         if threadVM?.thread.group == true { return }
-        let partner = threadVM?.participantsViewModel.participants.first(where: {$0.auditor == false && $0.id != AppState.shared.user?.id})
-        let threadP2PParticipant = AppState.shared.objectsContainer.navVM.navigationProperties.userToCreateThread
+        let partner = threadVM?.participantsViewModel.participants.first(where: {$0.auditor == false && $0.id != appState.user?.id})
+        let threadP2PParticipant = navVM.navigationProperties.userToCreateThread
         let participant = participant ?? threadP2PParticipant ?? partner
         if let participant = participant {
             setupP2PParticipant(participant)
@@ -372,8 +374,8 @@ public extension ThreadDetailViewModel {
         
         /// In Swipe action we don't remove an item directly from the path, the os will do it itself
         /// we just need to clear out path trackings.
-        objs.navVM.popLastPathTracking()
-        objs.navVM.popLastDetail()
+        navVM.popLastPathTracking()
+        navVM.popLastDetail()
     }
     
     func dismissByBackButton() {
@@ -383,7 +385,7 @@ public extension ThreadDetailViewModel {
         threadVM?.scrollVM.disableExcessiveLoading()
         clearObjects()
         
-        objs.navVM.removeDetail(id: threadVM?.thread.id ?? -1)
+        navVM.removeDetail(id: threadVM?.thread.id ?? -1)
     }
     
     func dismissBothDetailAndThreadProgramatically() {
@@ -395,10 +397,10 @@ public extension ThreadDetailViewModel {
         clearObjects()
        
         /// Firstly, remove ThreadDetailViewModel path and pop it up.
-        objs.navVM.removeDetail(id: threadVM?.thread.id ?? -1)
+        navVM.removeDetail(id: threadVM?.thread.id ?? -1)
       
         /// Secondly, remove ThreadViewModel path and pop it up.
-        objs.navVM.remove(threadId: threadId)
+        navVM.remove(threadId: threadId)
     }
     
     func dismisByMoveToAMessage() {
@@ -408,7 +410,7 @@ public extension ThreadDetailViewModel {
         clearObjects()
        
         /// Firstly, remove ThreadDetailViewModel path and pop it up.
-        objs.navVM.removeDetail(id: threadVM?.thread.id ?? -1)
+        navVM.removeDetail(id: threadVM?.thread.id ?? -1)
     }
     
     private func clearObjects() {
@@ -418,8 +420,8 @@ public extension ThreadDetailViewModel {
         threadVM = nil
         threadVM?.participantsViewModel.clear()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            AppState.shared.objectsContainer.navVM.setParticipantToCreateThread(nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.navVM.setParticipantToCreateThread(nil)
         }
     }
 }
@@ -481,8 +483,8 @@ extension ThreadDetailViewModel {
     public var shortJoinLink: String { "talk/\(thread?.uniqueName ?? "")" }
     
     public var joinLink: String {
-        let talk = AppState.shared.spec.server.talk
-        let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"
+        let talk = appState.spec.server.talk
+        let talkJoin = "\(talk)\(appState.spec.paths.talk.join)"
         return "\(talkJoin)\(thread?.uniqueName ?? "")"
     }
 }

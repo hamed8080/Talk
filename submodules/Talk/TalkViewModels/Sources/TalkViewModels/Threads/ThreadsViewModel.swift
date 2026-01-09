@@ -71,9 +71,12 @@ public final class ThreadsViewModel: ObservableObject {
     internal let LEAVE_KEY: String
 
     // MARK: Computed properties
-    var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
-    private var myId: Int { AppState.shared.user?.id ?? -1 }
-    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
+    private var appState: AppState { AppState.shared }
+    internal var navVM: NavigationModel { appState.objectsContainer.navVM }
+    private var myId: Int { appState.user?.id ?? -1 }
+    private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
+    private var archivesVM: ThreadsViewModel { appState.objectsContainer.archivesVM }
+    private var overlayVM: AppOverlayViewModel { AppState.shared.objectsContainer.appOverlayVM }
 
     public init(isArchive: Bool, isForwardList: Bool? = nil) {
         self.isArchive = isArchive
@@ -471,7 +474,7 @@ public final class ThreadsViewModel: ObservableObject {
 
         if isArchive {
             /// Append to ArchiveViewModels
-            await AppState.shared.objectsContainer.archivesVM.calculateAppendSortAnimate(conversation)
+            await archivesVM.calculateAppendSortAnimate(conversation)
         } else if isMyselfAdded || isChannel {
             /*
              * Append to ThreadsViewModel itself
@@ -1019,7 +1022,6 @@ extension ThreadsViewModel {
             
             archive(threadId)
             let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
-            let overlayVM = AppState.shared.objectsContainer.appOverlayVM
             overlayVM.dismissToastImmediately() /// Dismiss if there is any other toast in progress
             
             overlayVM.toast(leadingView: imageView,
@@ -1060,7 +1062,6 @@ extension ThreadsViewModel {
     }
     
     func onArchive(_ response: ChatResponse<Int>) async {
-        let threadsVM = AppState.shared.objectsContainer.threadsVM
         guard let id = response.result else { return }
         
         if let index = threadsVM.threads.firstIndex(where: { $0.id == id }) {

@@ -25,6 +25,7 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     private var viewHasEverAppeared = false
     private var parentScrollLimit: CGFloat = 0
     private var pageManager: DetailPageControllerManager?
+    private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     
     // Table view as vertical container
     public let tableView = UITableView(frame: .zero, style: .plain)
@@ -51,7 +52,7 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        AppState.shared.objectsContainer.navVM.pushToLinkId(id: "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)")
+        navVM.pushToLinkId(id: "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)")
         if !viewHasEverAppeared {
             viewHasEverAppeared = true
             headerSectionView?.updateTabSelection(animated: false, selectedIndex: 0)
@@ -67,7 +68,7 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        let linkId = AppState.shared.objectsContainer.navVM.getLinkId() as? String ?? ""
+        let linkId = navVM.getLinkId() as? String ?? ""
         if linkId == "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)" {
             viewModel.dismissBySwipe()
         }
@@ -251,7 +252,7 @@ extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
             let id = conversation.id,
             let serverConversation = try await GetThreadsReuqester().get(.init(threadIds: [id])).first
         else { return }
-        AppState.shared.objectsContainer.navVM.createAndAppend(conversation: serverConversation)
+        navVM.createAndAppend(conversation: serverConversation)
     }
 }
 
