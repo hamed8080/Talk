@@ -96,3 +96,25 @@ class FileCell: UITableViewCell {
         onContextMenu?(sender)
     }
 }
+
+extension FileCell {
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        self.contentView.scaleAnimaiton(isBegan: true, bg: .clear, transformView: self)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        self.contentView.scaleAnimaiton(isBegan: false, bg: .clear, transformView: self)
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        self.contentView.scaleAnimaiton(isBegan: false, bg: .clear, transformView: self)
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        self.contentView.scaleAnimaiton(isBegan: false, bg: .clear, transformView: self)
+    }
+}
