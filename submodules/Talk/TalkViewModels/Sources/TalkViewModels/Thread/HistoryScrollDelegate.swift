@@ -15,6 +15,7 @@ public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable
     var tb: UITableView { get }
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool)
     func scrollTo(uniqueId: String, messageId: Int, position: UITableView.ScrollPosition, animate: Bool)
+    func scrollTo(messageId: Int, position: UITableView.ScrollPosition, animate: Bool)
     func reload()
     func reload(at: IndexPath)
     // Reload data only not the cell
