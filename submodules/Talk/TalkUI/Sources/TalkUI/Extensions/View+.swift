@@ -172,3 +172,14 @@ public class TransformAnimator {
     }
 }
 
+
+public extension UIView {
+    func scaleAnimaiton(isBegan: Bool, bg: UIColor) {
+        let scale = isBegan ? 0.98 : 1.0
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            guard let self = self else { return }
+            self.transform = CGAffineTransform(scaleX: scale, y: scale)
+            self.backgroundColor = bg
+        }
+    }
+}

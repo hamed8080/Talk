@@ -346,40 +346,34 @@ class ConversationCell: UITableViewCell {
     
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
-        setTouches(isBegan: true)
+        self.contentView.scaleAnimaiton(isBegan: true, bg: touchAnimationBackground(true))
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        setTouches(isBegan: false)
+        self.contentView.scaleAnimaiton(isBegan: false, bg: touchAnimationBackground(false))
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
-        setTouches(isBegan: false)
+        self.contentView.scaleAnimaiton(isBegan: false, bg: touchAnimationBackground(false))
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesMoved(touches, with: event)
-        setTouches(isBegan: false)
+        self.contentView.scaleAnimaiton(isBegan: false, bg: touchAnimationBackground(false))
     }
     
-    private func setTouches(isBegan: Bool) {
-        let scale = isBegan ? 0.98 : 1.0
+    private func touchAnimationBackground(_ isBegan: Bool) -> UIColor {
         let selectedColor = Color.App.bgChatSelectedUIColor
         let pinColor = Color.App.bgSecondaryUIColor
         let normalColor = Color.App.bgPrimaryUIColor
         let touchColor = selectedColor?.withAlphaComponent(0.3)
-        
         let isSelected = conversation?.isSelected == true
         let isPin = conversation?.pin == true
         
         let bg = isBegan ? touchColor : isSelected ? selectedColor : isPin ? pinColor : normalColor
-        UIView.animate(withDuration: 0.2) { [weak self] in
-            guard let self = self else { return }
-            self.transform = CGAffineTransform(scaleX: scale, y: scale)
-            self.contentView.backgroundColor = bg
-        }
+        return bg ?? normalColor ?? .systemBackground
     }
     
     @objc private func openContextMenu(_ sender: UIGestureRecognizer) {
