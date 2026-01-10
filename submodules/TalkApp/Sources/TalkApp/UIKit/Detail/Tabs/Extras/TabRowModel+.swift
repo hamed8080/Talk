@@ -15,7 +15,7 @@ public extension TabRowModel {
             .background(Color.clear)
         let vc = UIHostingController(rootView: view)
         vc.modalPresentationStyle = .formSheet
-        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled ?? false ? .dark : .light
+        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkMode ? .dark : .light
         parentVC?.present(vc, animated: true)
     }
 }

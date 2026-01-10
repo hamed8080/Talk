@@ -77,8 +77,8 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     private func setupAppearance() {
         view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         view.backgroundColor = UIColor(named: "AppBackgroundPrimary") ?? .systemBackground
-        let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? false
-        overrideUserInterfaceStyle = isDarkModeEnabled ? .dark : .light
+        let isDarkMode = AppSettingsModel.restore().isDarkMode
+        overrideUserInterfaceStyle = isDarkMode ? .dark : .light
     }
     
     private func setupNavigationToolbar() {
