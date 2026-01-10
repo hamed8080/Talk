@@ -81,10 +81,7 @@ struct ThreadSearchMessages: View {
     }
     
     private var isDarkMode: Bool {
-        if AppSettingsModel.restore().isDarkModeEnabled == nil {
-            return colorScheme == .dark
-        }
-        return AppSettingsModel.restore().isDarkModeEnabled == true
+        AppSettingsModel.restore().isDarkMode 
     }
     
     private func onTap(message: Message) {

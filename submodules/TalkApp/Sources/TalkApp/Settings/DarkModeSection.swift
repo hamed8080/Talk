@@ -10,7 +10,7 @@ import TalkViewModels
 
 struct DarkModeSection: View {
     @Environment(\.colorScheme) var currentSystemScheme
-    @State var isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? false
+    @State var isDarkMode = AppSettingsModel.restore().isDarkMode
 
     var body: some View {
         HStack {
@@ -30,7 +30,7 @@ struct DarkModeSection: View {
             .frame(minWidth: 0, maxWidth: .infinity)
 
             Spacer()
-            Toggle("", isOn: $isDarkModeEnabled)
+            Toggle("", isOn: $isDarkMode)
                 .tint(Color.App.accent)
                 .frame(maxWidth: 64)
         }
@@ -41,16 +41,11 @@ struct DarkModeSection: View {
         .listRowInsets(.zero)
         .listRowBackground(Color.App.bgPrimary)
         .listRowSeparatorTint(Color.App.dividerPrimary)
-        .onChange(of: isDarkModeEnabled) { value in
+        .onChange(of: isDarkMode) { value in
             var model = AppSettingsModel.restore()
             model.isDarkModeEnabled = value
             AppState.shared.objectsContainer.navVM.splitVC?.view.window?.overrideUserInterfaceStyle = value ? .dark : .light
             model.save()
-        }
-        .onAppear {
-            if AppSettingsModel.restore().isDarkModeEnabled == nil {
-                isDarkModeEnabled = currentSystemScheme == .dark
-            }
         }
     }
 }

@@ -408,9 +408,14 @@ extension ThreadHistoryViewModel {
     public func moveToTime(_ time: UInt, _ messageId: Int, highlight: Bool = true, moveToBottom: Bool = false) async {
         /// 1- Move to a message locally if it exists.
         /// Check to see if the messageId is not nil or greater than zero if we are uploading.
-        if let uniqueId = canMoveToMessageLocally(messageId), messageId > 0 {
+        let message = messageInSection(messageId)
+        if let uniqueId = message?.uniqueId, messageId > 0 {
             showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
             moveToMessageLocally(uniqueId, messageId, moveToBottom, highlight, true)
+            return
+        } else if message?.id == messageId, messageId > 0 {
+            showCenterLoading(false) // To hide center loading if the uer click on reply privately header to jump back to the thread.
+            moveToMessageLocallyById(messageId, moveToBottom, highlight, true)
             return
         }
         
@@ -510,6 +515,13 @@ extension ThreadHistoryViewModel {
                                           highlight: highlight,
                                           position: moveToBottom ? .bottom : .top,
                                           animate: animate)
+    }
+    
+    private func moveToMessageLocallyById(_ messageId: Int, _ moveToBottom: Bool, _ highlight: Bool, _ animate: Bool = false) {
+        highlightVM.showHighlighted(messageId,
+                                    highlight: highlight,
+                                    position: moveToBottom ? .bottom : .top,
+                                    animate: animate)
     }
     
     // MARK: Scenario 9
@@ -1871,9 +1883,9 @@ extension ThreadHistoryViewModel {
     private func hasUnreadMessage() -> Bool {
         lastMessageVO()?.id ?? 0 > thread.lastSeenMessageId ?? 0 && thread.unreadCount ?? 0 > 0
     }
-
-    private func canMoveToMessageLocally(_ messageId: Int) -> String? {
-        return sections.message(for: messageId)?.message.uniqueId
+    
+    private func messageInSection(_ messageId: Int) -> HistoryMessageType? {
+        return sections.message(for: messageId)?.message
     }
 
     private func hasThreadNeverOpened() -> Bool {

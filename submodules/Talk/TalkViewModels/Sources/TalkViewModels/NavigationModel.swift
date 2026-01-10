@@ -43,7 +43,7 @@ public final class NavigationModel: ObservableObject {
         let injected = view.injectAllObjects()
         let vc = UIHostingController(rootView: injected)
         vc.modalPresentationStyle = .fullScreen
-        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled ?? false ? .dark : .light
+        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkMode ? .dark : .light
         splitVC?.present(vc, animated: true)
         pathsTracking.append(vc)
     }

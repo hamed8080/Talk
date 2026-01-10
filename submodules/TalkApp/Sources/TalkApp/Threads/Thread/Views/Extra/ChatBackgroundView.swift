@@ -36,13 +36,13 @@ class ChatBackgroundView: UIView {
 
     private func configure() {
         backgroundColor = UIColor(named: "bg_chat_color")
-        let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? (traitCollection.userInterfaceStyle == .dark)
+        let isDarkMode = AppSettingsModel.restore().isDarkMode
         
         imageView.image = UIImage(named: "chat_bg")
         imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = isDarkModeEnabled ? UIColor.white.withAlphaComponent(0.8) : .black
+        imageView.tintColor = isDarkMode ? UIColor.white.withAlphaComponent(0.8) : .black
         
-        gradinetLayer.colors = isDarkModeEnabled ? darkColors : lightColors
+        gradinetLayer.colors = isDarkMode ? darkColors : lightColors
         gradinetLayer.startPoint = .init(x: 0, y: 0)
         gradinetLayer.endPoint = .init(x: 0, y: 1)
         layer.addSublayer(gradinetLayer)

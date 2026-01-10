@@ -60,8 +60,8 @@ final class ForwardPickerViewController: UIViewController {
         view.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         view.backgroundColor = UIColor(named: "AppBackgroundPrimary") ?? .systemBackground
         
-        let isDarkModeEnabled = AppSettingsModel.restore().isDarkModeEnabled ?? false
-        let style: UIUserInterfaceStyle = isDarkModeEnabled ? .dark : .light
+        let isDarkMode = AppSettingsModel.restore().isDarkMode
+        let style: UIUserInterfaceStyle = isDarkMode ? .dark : .light
         overrideUserInterfaceStyle = style
         pageVC.overrideUserInterfaceStyle = style
         pageVC.view.overrideUserInterfaceStyle = style

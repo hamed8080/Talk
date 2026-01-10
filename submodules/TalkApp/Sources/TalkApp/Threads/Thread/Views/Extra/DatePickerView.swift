@@ -111,7 +111,7 @@ class UIDatePickerController: UIViewController {
     public var completion: ((Date) -> Void)?
 
     override var overrideUserInterfaceStyle: UIUserInterfaceStyle {
-        get { AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light }
+        get { AppSettingsModel.restore().isDarkMode == true ? .dark : .light }
         set { super.overrideUserInterfaceStyle = newValue }
     }
 

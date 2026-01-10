@@ -317,7 +317,7 @@ public class ThreadsTopToolbarView: UIStackView {
             }
         let vc = UIHostingController(rootView: rootView)
         vc.modalPresentationStyle = .formSheet
-        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled ?? false ? .dark : .light
+        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkMode ? .dark : .light
         (obj.threadsVM.delegate as? UIViewController)?.present(vc, animated: true)
     }
     

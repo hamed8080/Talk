@@ -515,6 +515,12 @@ extension ThreadViewController: HistoryScrollDelegate {
         }
     }
     
+    func scrollTo(messageId: Int, position: UITableView.ScrollPosition, animate: Bool = true) {
+        if let indexPath = sections.viewModelAndIndexPath(for: messageId)?.indexPath {
+            scrollTo(index: indexPath, position: position, animate: animate)
+        }
+    }
+    
     func reload(at: IndexPath) {
         tableView.reloadRows(at: [at], with: .fade)
     }

@@ -7,15 +7,14 @@
 
 import Foundation
 import ZipArchive
+import TalkModels
 
 @MainActor
 public class BundleManager {
     private let bundleName = "MyBundle.bundle"
-    private let bundleNameZipName = "MyBundle_v\(BundleManager.version).zip"
+    private let bundleNameZipName = "MyBundle_v\(Constants.version).zip"
     private let unpackedFolderName = "UnzippedFiles"
-    // https://github.com/hamed8080/bundle/archive/refs/tags/v1.101.zip
-    private let bundleURL = "aHR0cHM6Ly9naXRodWIuY29tL2hhbWVkODA4MC9idW5kbGUvYXJjaGl2ZS9yZWZzL3RhZ3MvdjEuMTAxLnppcA=="
-    private static let version = "1.101"
+    private let isLocalBundle = ProcessInfo.processInfo.environment["FORCE_LOCAL_BUNDLE"] == "1"
 
     public init(){}
 
@@ -70,7 +69,19 @@ public class BundleManager {
 
     // Download the bundle.
     private func dl() async throws -> URL {
-        guard let url = URL(string: bundleURL.fromBase64() ?? "") else { throw ManagerError.badURL }
+        if isLocalBundle {
+            return try await cop()
+        }
+
+        guard let url = URL(string: Constants.bundleURL.fromBase64() ?? "") else { throw ManagerError.badURL }
+        let req = URLRequest(url: url)
+        let downloadedFileURL = try await URLSession.shared.download(for: req).0
+        return downloadedFileURL
+    }
+    
+    // Copy local bundle
+    private func cop() async throws -> URL {
+        guard let url = URL(string: Constants.bundleLocalURL.fromBase64() ?? "") else { throw ManagerError.badURL }
         let req = URLRequest(url: url)
         let downloadedFileURL = try await URLSession.shared.download(for: req).0
         return downloadedFileURL
@@ -121,7 +132,7 @@ public class BundleManager {
     // Automatically update bundle if it's lower than the version we need
     public func shouldUpdate() async throws -> Bool {
         let userDefaultversion = UserDefaults.standard.string(forKey: "version")
-        if userDefaultversion != BundleManager.version {
+        if userDefaultversion != Constants.version {
             // Remove old unzip folder at Documents/UnzippedFiles/
             if let url = unpackedFolderPath() {
                 try? FileManager.default.removeItem(atPath: url.path())
@@ -139,7 +150,7 @@ public class BundleManager {
 
     private func setVersion() {
         // Store version number for the next launch
-        UserDefaults.standard.setValue(BundleManager.version, forKey: "version")
+        UserDefaults.standard.setValue(Constants.version, forKey: "version")
     }
     
     public func isBundleDownloaded() -> Bool {
