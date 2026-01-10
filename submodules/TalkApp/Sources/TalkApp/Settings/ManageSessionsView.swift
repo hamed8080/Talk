@@ -96,6 +96,7 @@ struct ManageSessionsView: View {
                 Spacer()
                 LottieView(animation: .named("dots_loading.json"))
                     .playing()
+                    .defaultColor()
                     .id(UUID())
                 Spacer()
             }

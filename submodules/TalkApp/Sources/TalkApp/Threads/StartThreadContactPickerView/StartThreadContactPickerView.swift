@@ -69,6 +69,7 @@ struct StartThreadContactPickerView: View {
                     if viewModel.isTypinginSearchString {
                         LottieView(animation: .named("dots_loading.json"))
                             .playing()
+                            .defaultColor()
                             .frame(height: 52)
                     } else if !viewModel.lazyList.isLoading {
                         Text("General.noResult")
@@ -109,6 +110,7 @@ struct StartThreadContactPickerView: View {
                 if viewModel.lazyList.isLoading {
                     LottieView(animation: .named("dots_loading.json"))
                         .playing()
+                        .defaultColor()
                         .frame(height: 52)
                 }
             }
@@ -134,7 +136,6 @@ struct StartThreadContactPickerView: View {
         }
     }
 }
-
 
 struct StartThreadContactPickerView_Previews: PreviewProvider {
     static var previews: some View {

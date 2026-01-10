@@ -18,6 +18,7 @@ struct DetailLoading: View {
             HStack {
                 Spacer()
                 LottieView(animation: .named("talk_logo_animation.json"))
+                    .defaultColor()
                     .id(UUID())
                     .frame(width: 52, height: 52)
                 Spacer()

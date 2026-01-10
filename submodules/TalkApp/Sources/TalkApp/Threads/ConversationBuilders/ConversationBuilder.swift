@@ -38,6 +38,7 @@ struct ConversationBuilder: View {
                             if viewModel.isTypinginSearchString {
                                 LottieView(animation: .named("dots_loading.json"))
                                     .playing()
+                                    .defaultColor()
                                     .frame(height: 52)
                             } else if !viewModel.lazyList.isLoading {
                                 Text("General.noResult")
@@ -104,8 +105,10 @@ struct ConversationBuilder: View {
             if viewModel.isCreateLoading {
                 LottieView(animation: .named("dots_loading.json"))
                     .playing()
+                    .defaultColor()
                     .id(UUID())
                     .frame(height: 52)
+                    .environment(\.colorScheme, .light)
             }
         }
         .onAppear {
@@ -289,6 +292,7 @@ struct EditCreatedConversationDetail: View {
             if viewModel.lazyList.isLoading {
                 LottieView(animation: .named("dots_loading.json"))
                     .playing()
+                    .defaultColor()
                     .id(UUID())
                     .frame(height: 52)
             }
