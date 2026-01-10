@@ -175,7 +175,7 @@ extension PickerButtonsView {
 
 extension PickerButtonsView {
     private func openTakeVideoPicker() {
-        let captureObject = CameraCapturer(isVideo: true) { [weak self] image, url, resources in
+        let captureObject = CameraCapturer() { [weak self] image, url, resources in
             if let image = image {
                 self?.onImageCaptured(image: image)
             } else if let url = url {

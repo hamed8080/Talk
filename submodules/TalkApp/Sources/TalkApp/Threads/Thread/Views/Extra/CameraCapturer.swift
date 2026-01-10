@@ -12,23 +12,18 @@ import UniformTypeIdentifiers
 import CoreServices
 
 class CameraCapturer: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    let isVideo: Bool
     let onImagePicked: (UIImage?, URL?, [PHAssetResource]?) -> Void
-    public var vc: UIImagePickerController
+    public let vc: UIImagePickerController = UIImagePickerController()
 
-    init(isVideo: Bool, onImagePicked: @escaping (UIImage?, URL?, [PHAssetResource]?) -> Void) {
-        self.isVideo = isVideo
+    init(onImagePicked: @escaping (UIImage?, URL?, [PHAssetResource]?) -> Void) {
         self.onImagePicked = onImagePicked
-        vc = UIImagePickerController()
         super.init()
         vc.delegate = self
         vc.sourceType = .camera
-        if isVideo {
-            if #available(iOS 15.0, *) {
-                vc.mediaTypes = [UTType.movie.identifier, UTType.image.identifier]
-            } else {
-                vc.mediaTypes = [kUTTypeMovie as String, kUTTypeImage as String]
-            }
+        if #available(iOS 15.0, *) {
+            vc.mediaTypes = [UTType.movie.identifier, UTType.image.identifier]
+        } else {
+            vc.mediaTypes = [kUTTypeMovie as String, kUTTypeImage as String]
         }
     }
 
