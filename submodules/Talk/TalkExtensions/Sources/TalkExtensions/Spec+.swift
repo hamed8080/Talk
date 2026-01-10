@@ -69,9 +69,11 @@ public extension Spec {
     }
     
     static func dl() async throws -> Spec {
-        // https://raw.githubusercontent.com/hamed8080/bundle/v1.101/Spec.json
-        guard let string = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2hhbWVkODA4MC9idW5kbGUvdjEuMTAxL1NwZWMuanNvbg==".fromBase64(),
-        let url = URL(string: string)
+        let prodString = Constants.specProdURL.fromBase64()
+        let localString = Constants.specLocalURL.fromBase64()
+        let isLocalBundle = ProcessInfo.processInfo.environment["FORCE_LOCAL_BUNDLE"] == "1"
+        let string = isLocalBundle ? localString : prodString
+        guard let url = URL(string: string ?? "")
         else { throw URLError.init(.badURL) }
         var req = URLRequest(url: url, timeoutInterval: 10.0)
         req.method = .get

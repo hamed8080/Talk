@@ -114,11 +114,7 @@ class ContactsTableViewHeaderCell: UITableViewCell {
     
     @objc private func onCreateContact() {
         if #available(iOS 16.4, *) {
-            let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
-            let isDarkModeStorage = AppSettingsModel.restore().isDarkModeEnabled == true
-            let systemDarModeIsEnabled = traitCollection.userInterfaceStyle == .dark
-            let isDarkMode = nilDarkMode ? systemDarModeIsEnabled : isDarkModeStorage
-            
+            let isDarkMode = AppSettingsModel.restore().isDarkMode
             let rootView = AddOrEditContactView()
                 .injectAllObjects()
                 .environment(\.colorScheme, isDarkMode ? .dark : .light)
@@ -135,11 +131,7 @@ class ContactsTableViewHeaderCell: UITableViewCell {
         
         builderVM.dismiss = false
         
-        let nilDarkMode = AppSettingsModel.restore().isDarkModeEnabled == nil
-        let isDarkModeStorage = AppSettingsModel.restore().isDarkModeEnabled == true
-        let systemDarModeIsEnabled = traitCollection.userInterfaceStyle == .dark
-        let isDarkMode = nilDarkMode ? systemDarModeIsEnabled : isDarkModeStorage
-        
+        let isDarkMode = AppSettingsModel.restore().isDarkMode
         let viewModel = AppState.shared.objectsContainer.contactsVM
         let rootView = ConversationBuilder()
             .environment(\.layoutDirection, Language.isRTL ? .rightToLeft : .leftToRight)

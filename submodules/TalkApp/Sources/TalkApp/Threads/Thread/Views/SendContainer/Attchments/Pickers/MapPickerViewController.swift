@@ -44,7 +44,7 @@ public final class MapPickerViewController: UIViewController, WKScriptMessageHan
     }
 
     private func configureViews() {
-        let style: UIUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled == true ? .dark : .light
+        let style: UIUserInterfaceStyle = AppSettingsModel.restore().isDarkMode ? .dark : .light
         overrideUserInterfaceStyle = style
         mapView.translatesAutoresizingMaskIntoConstraints = false
         mapView.showsUserLocation = true
