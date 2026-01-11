@@ -170,6 +170,14 @@ class MessageRowCalculators {
         calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
         //        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
         
+        if (sizes.forwardContainerWidth == .infinity || sizes.forwardContainerWidth == nil) && message.forwardInfo != nil && message.isImage {
+            sizes.imageWidth = ThreadViewModel.maxAllowedWidth
+        }
+        
+        if sizes.replyContainerWidth == nil && message.replyInfo != nil && message.isImage {
+            sizes.imageWidth = ThreadViewModel.maxAllowedWidth
+        }
+        
         if let attr = calculatedMessage.addOrRemoveParticipantsAttr {
             calculatedMessage.textRect = getRect(markdownTitle: attr, width: ThreadViewModel.maxAllowedWidth)
         } else if let attr = calculatedMessage.attributedString {
