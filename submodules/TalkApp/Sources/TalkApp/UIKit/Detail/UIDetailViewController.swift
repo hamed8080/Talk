@@ -1,5 +1,5 @@
 //
-//  UIDetailViewPageViewController.swift
+//  UIDetailViewController.swift
 //  TalkApp
 //
 //  Created by Hamed Hosseini on 11/11/25.
@@ -18,7 +18,7 @@ fileprivate enum DetailTableViewSection: Int, CaseIterable {
     case pageView = 1
 }
 
-final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelegate {
+final class UIDetailViewController: UIViewController, UIScrollViewDelegate {
     private let viewModel: ThreadDetailViewModel
     private let navigationBar: ThreadDetailTopToolbar
     private let topStaticView: ThreadDetailStaticTopView
@@ -52,7 +52,7 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        navVM.pushToLinkId(id: "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)")
+        navVM.pushToLinkId(id: "ThreadDetailView-\(viewModel.threadVM?.id ?? viewModel.thread?.id ?? 0)")
         if !viewHasEverAppeared {
             viewHasEverAppeared = true
             headerSectionView?.updateTabSelection(animated: false, selectedIndex: 0)
@@ -69,7 +69,7 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         let linkId = navVM.getLinkId() as? String ?? ""
-        if linkId == "ThreadDetailView-\(viewModel.threadVM?.id ?? 0)" {
+        if linkId == "ThreadDetailView-\(viewModel.threadVM?.id ?? viewModel.thread?.id ?? 0)" {
             viewModel.dismissBySwipe()
         }
     }
@@ -140,7 +140,7 @@ final class UIDetailViewPageViewController: UIViewController, UIScrollViewDelega
 }
 
 // MARK: - UITableView data source
-extension UIDetailViewPageViewController: UITableViewDataSource {
+extension UIDetailViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
         return DetailTableViewSection.allCases.count
     }
@@ -181,7 +181,7 @@ extension UIDetailViewPageViewController: UITableViewDataSource {
 }
 
 // MARK: - UITableView delegate
-extension UIDetailViewPageViewController: UITableViewDelegate {
+extension UIDetailViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard section == DetailTableViewSection.pageView.rawValue,
               let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: ScrollableTabViewSegmentsHeader.identifier) as? ScrollableTabViewSegmentsHeader
@@ -201,7 +201,7 @@ extension UIDetailViewPageViewController: UITableViewDelegate {
 }
 
 // MARK: - Handoff scrollView. Pin segmented tabs to top.
-extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
+extension UIDetailViewController: UIChildViewScrollDelegate {
     /// Calculate the Y offset at which the segmented header becomes pinned
     private func setParentScrollLimitter() {
         let section = DetailTableViewSection.pageView.rawValue
@@ -236,7 +236,7 @@ extension UIDetailViewPageViewController: UIChildViewScrollDelegate {
 }
 
 // MARK: - Row Selection.
-extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
+extension UIDetailViewController: TabRowItemOnSelectDelegate {
     func onSelect(item: TabRowModel) {
         item.onTap(viewModel: viewModel)
     }
@@ -257,7 +257,7 @@ extension UIDetailViewPageViewController: TabRowItemOnSelectDelegate {
 }
 
 // MARK: - Normal Helper methods
-extension UIDetailViewPageViewController {
+extension UIDetailViewController {
     private var isGroup: Bool {
        return viewModel.thread?.group == true
     }

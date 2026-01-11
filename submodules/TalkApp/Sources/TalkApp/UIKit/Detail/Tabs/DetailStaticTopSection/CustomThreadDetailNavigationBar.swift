@@ -138,12 +138,15 @@ extension CustomThreadDetailNavigationBar {
             let viewModel = viewModel,
             let editConversationVM = viewModel.editConversationViewModel
         else { return }
-        AppState.shared.objectsContainer.navVM.pushToLinkId(id: "DetailEditConversation-\(viewModel.thread?.id ?? 0)" )
+        let navId = "DetailEditConversation-\(viewModel.thread?.id ?? 0)"
+        AppState.shared.objectsContainer.navVM.pushToLinkId(id: navId)
         let view = EditGroup(threadVM: viewModel.threadVM)
             .environmentObject(editConversationVM)
             .navigationBarBackButtonHidden(true)
             .onDisappear {
-                AppState.shared.objectsContainer.navVM.popLinkId(id: "DetailEditConversation-\(viewModel.thread?.id ?? 0)")
+                /// We have to remove one item from the pathTrackings because we have pushed it one item to it with wrapAndPush.
+                AppState.shared.objectsContainer.navVM.popLastPathTracking()
+                AppState.shared.objectsContainer.navVM.popLinkId(id: navId)
             }
         AppState.shared.objectsContainer.navVM.wrapAndPush(view: view)
     }
@@ -153,14 +156,17 @@ extension CustomThreadDetailNavigationBar {
             let viewModel = viewModel,
             let participantVM = viewModel.participantDetailViewModel
         else { return }
-        AppState.shared.objectsContainer.navVM.pushToLinkId(id: "EditContact-\(participantVM.partnerContact?.id ?? 0)")
+        let navId = "EditContact-\(participantVM.partnerContact?.id ?? 0)"
+        AppState.shared.objectsContainer.navVM.pushToLinkId(id: navId)
         let view = EditContactInParticipantDetailView()
             .environmentObject(viewModel)
             .environmentObject(participantVM)
             .background(Color.App.bgSecondary)
             .navigationBarBackButtonHidden(true)
             .onDisappear {
-                AppState.shared.objectsContainer.navVM.popLinkId(id: "EditContact-\(participantVM.partnerContact?.id ?? 0)")
+                /// We have to remove one item from the pathTrackings because we have pushed it one item to it with wrapAndPush.
+                AppState.shared.objectsContainer.navVM.popLastPathTracking()
+                AppState.shared.objectsContainer.navVM.popLinkId(id: navId)
             }
         AppState.shared.objectsContainer.navVM.wrapAndPush(view: view)
     }

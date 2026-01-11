@@ -10,7 +10,7 @@ import TalkViewModels
 
 @MainActor
 final class DetailPageControllerManager: UIPageViewController {
-    public weak var vc: UIDetailViewPageViewController?
+    public weak var vc: UIDetailViewController?
     public private(set) var controllers: [UIViewController] = []
     private let viewModel: ThreadDetailViewModel
     public private(set) var selectedIndex: Int = 0
@@ -35,7 +35,7 @@ final class DetailPageControllerManager: UIPageViewController {
         }
     }
     
-    public func setupPageView(vc: UIDetailViewPageViewController) {
+    public func setupPageView(vc: UIDetailViewController) {
         self.vc = vc
         appendTabControllers()
         setTabControllersDelegate()
