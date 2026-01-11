@@ -461,10 +461,7 @@ class MessageRowCalculators {
         let summaries = reactions.reactionCounts?.sorted(by: {$0.count ?? 0 > $1.count ?? 0}) ?? []
         let myReaction = reactions.userReaction
         summaries.forEach { summary in
-            var countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
-            if summary.count ?? 0 > 99 {
-                countText = "99+";
-            }
+            var countText = reactionCountText(count: summary.count ?? 0)
             let emoji = summary.sticker?.emoji ?? ""
             let isMyReaction = myReaction?.reaction?.rawValue == summary.sticker?.rawValue
             let selectedEmojiTabId = "\(summary.sticker?.emoji ?? "all") \(countText)"
@@ -571,13 +568,22 @@ class MessageRowCalculators {
                                      _ emoji: String?) -> [ReactionRowsCalculated.Row] {
         var rows = calculated.rows
         rows[index].count = newValue
-        rows[index].countText = newValue.localNumber(locale: Language.preferredLocale) ?? ""
+        rows[index].countText = reactionCountText(count: newValue)
+        
         if wasMySelf {
             rows[index].isMyReaction = isMyReaction
             rows[index].myReactionId = isMyReaction ? myReactionId : nil
         }
         rows[index].selectedEmojiTabId = "\(emoji ?? "") \(newValue.localNumber(locale: Language.preferredLocale) ?? "")"
         return rows
+    }
+    
+    public class func reactionCountText(count: Int) -> String {
+        if count > 99 {
+            return "99+";
+        } else {
+            return count.localNumber(locale: Language.preferredLocale) ?? ""
+        }
     }
     
     class func calculateIsReplyImage(message: HistoryMessageType) -> Bool {
