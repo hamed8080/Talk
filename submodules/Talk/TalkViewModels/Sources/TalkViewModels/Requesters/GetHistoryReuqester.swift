@@ -89,7 +89,7 @@ public class GetHistoryReuqester {
     }
     
     private func calculateViewModels(_ messages: [Message]) async -> [MessageRowViewModel] {
-        guard let mainData = mainData else { return [] }
-        return await MessageRowCalculators.batchCalulate(messages, mainData: mainData, viewModel: viewModel)
+        guard let mainData = mainData, let viewModel = viewModel else { return [] }
+        return await MessageRowCalculators(messages: messages, mainData: mainData, threadViewModel: viewModel).batchCalulate()
     }
 }

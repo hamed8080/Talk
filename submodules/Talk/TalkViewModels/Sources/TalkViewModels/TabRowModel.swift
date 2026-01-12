@@ -143,7 +143,7 @@ extension TabRowModel {
     private func createAudioPlayerItem() async {
         if let url = fileURL, message.isAudio {
             let audioURL = AudioFileURLCalculator(fileURL: url, message: message).audioURL()
-            let item = await MessageRowCalculators.calculatePlayerItem(audioURL, message.fileMetaData, message)
+            let item = await MessagePlayerItemCalculator(message: message, url: audioURL, metadata: message.fileMetaData).playerItem()
             self.itemPlayer = item
         }
     }

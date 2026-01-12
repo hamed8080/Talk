@@ -1064,12 +1064,13 @@ extension ThreadHistoryViewModel {
                 /// Find next message of the user and set it as first message
                 if let next = sections.nextIndexPath(indexPath), sections[next.section].vms[next.row].message.ownerId == sections[indexPath.section].vms[indexPath.row].message.ownerId {
                     sections[next.section].vms[next.row].calMessage.isFirstMessageOfTheUser = true
-                    
-                    sections[next.section].vms[next.row].calMessage.groupMessageParticipantName = MessageRowCalculators.calculateGroupParticipantName(
+                    var calMessage = sections[next.section].vms[next.row].calMessage
+                    sections[next.section].vms[next.row].calMessage.groupMessageParticipantName = MessageGroupParticipantNameCalculator(
                         message: sections[next.section].vms[next.row].message,
-                        calculatedMessage: sections[next.section].vms[next.row].calMessage,
-                        thread: thread
-                    )
+                        isMine: calMessage.isMe,
+                        isFirstMessageOfTheUser: calMessage.isFirstMessageOfTheUser,
+                        conversation: thread
+                    ).participantName()
                     delegate?.reload(at: next)
                 }
             }
@@ -1912,8 +1913,9 @@ extension ThreadHistoryViewModel {
     }
     
     private func makeCalculateViewModelsFor(_ messages: [HistoryMessageType]) async -> [MessageRowViewModel] {
+        guard let viewModel = viewModel else { return [] }
         let mainData = getMainData()
-        return await MessageRowCalculators.batchCalulate(messages, mainData: mainData, viewModel: viewModel)
+        return await MessageRowCalculators(messages: messages, mainData: mainData, threadViewModel: viewModel).batchCalulate()
     }
     
     public var lastMessageIndexPath: IndexPath? {

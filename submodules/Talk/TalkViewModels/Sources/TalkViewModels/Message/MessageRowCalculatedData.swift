@@ -11,18 +11,9 @@ import TalkModels
 import Chat
 
 public struct MessageRowCalculatedData: @unchecked Sendable {
-    nonisolated(unsafe) public static var formatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        formatter.locale = Language.preferredLocale
-        return formatter
-    }()
-
-    public var isCalculated = false
     public var timeString: String = ""
     public var isMe: Bool = false
     public var fileMetaData: FileMetaData?
-    public var isEnglish = true
     public var isReplyImage: Bool = false
     public var callAttributedString: NSAttributedString?
     public var replyLink: String?
@@ -33,7 +24,6 @@ public struct MessageRowCalculatedData: @unchecked Sendable {
     public var addOrRemoveParticipantsAttr: NSAttributedString? = nil
     public var avatarColor: UIColor = .blue
     public var avatarSplitedCharaters = ""
-    public var isInTwoWeekPeriod: Bool = false
     public var replyFileName: String? = nil
     public var attributedString: NSAttributedString?
     public var rangeCodebackground: [Range<String.Index>]?

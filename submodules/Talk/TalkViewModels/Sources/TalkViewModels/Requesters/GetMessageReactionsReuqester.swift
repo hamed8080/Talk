@@ -75,16 +75,18 @@ public class GetMessageReactionsReuqester {
     
     private func handleEvent(_ event: ReactionEventTypes) async -> [ReactionRowsCalculated]? {
         if case .count(let resp) = event, resp.subjectId == threadId, resp.pop(prepend: KEY) != nil {
-            return await calculateReactions(resp.result ?? [])
+            let myId = AppState.shared.user?.id ?? -1
+            return await calculateReactions(resp.result ?? [], myId: myId)
         }
         return nil
     }
     
     @AppBackgroundActor
-    private func calculateReactions(_ msgsReactions: [ReactionCountList]) async -> [ReactionRowsCalculated] {
+    private func calculateReactions(_ msgsReactions: [ReactionCountList], myId: Int) async -> [ReactionRowsCalculated] {
         var cals: [ReactionRowsCalculated] = []
         for msgReaction in msgsReactions {
-            cals.append(MessageRowCalculators.calulateReactions(msgReaction, msgReaction.messageId ?? -1))
+            let msgId = msgReaction.messageId ?? 0
+            cals.append(MessageReactionCalculator(message: Message(id: msgId), myId: myId).calulateReactions(msgReaction))
         }
         return cals
     }
