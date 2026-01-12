@@ -241,3 +241,36 @@ public extension String {
                .replacingOccurrences(of: "&nbsp;", with: " ")
     }
 }
+
+public struct EmojiRange {
+    var value: ClosedRange<Int>
+    
+    public init(value: ClosedRange<Int>) {
+        self.value = value
+    }
+    
+    public func emojies() -> [String] {
+        var arr: [String] = []
+        for intValue in value.lowerBound...value.upperBound {
+            if let scalar = UnicodeScalar(intValue) {
+                arr.append(String(scalar))
+            }
+        }
+        return arr
+    }
+    
+    public static var allCases: [String: ClosedRange<Int>] {
+        var map: [String: ClosedRange<Int>] = [:]
+        map["emotiIcons"] = 0x1F600...0x1F64F  // Emoticons
+        map["misc"] = 0x1F300...0x1F5FF  // Misc Symbols and Pictographs
+        map["transport"] = 0x1F680...0x1F6FF  // Transport and Map
+        map["alhemical"] = 0x1F700...0x1F77F  // Alchemical Symbols
+        map["geometric"] = 0x1F780...0x1F7FF  // Geometric Shapes Extended
+        map["arrows"] = 0x1F800...0x1F8FF  // Supplemental Arrows-C
+        map["pictograph"] = 0x1F900...0x1F9FF  // Supplemental Symbols and Pictographs
+        map["chess"] = 0x1FA00...0x1FA6F  // Chess Symbols
+        map["flags"] = 0x1F1E6...0x1F1FF  // Flags
+        
+        return map
+    }
+}

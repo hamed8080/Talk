@@ -11,6 +11,7 @@ import TalkModels
 
 public final class SendContainerTextView: UIView, UITextViewDelegate {
     private var textView: UITextView = UITextView()
+    private var btnEmoji = UIImageButton(imagePadding: .init(all: 12))
     public var onTextChanged: ((String?) -> Void)?
     public var onHeightChange: ((CGFloat) -> Void)?
     private let placeholderLabel = UILabel()
@@ -45,6 +46,13 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.returnKeyType = .default
         textView.textAlignment = Language.isRTL ? .right : .left
         textView.backgroundColor = Color.App.bgSendInputUIColor
+    
+        btnEmoji.translatesAutoresizingMaskIntoConstraints = false
+        btnEmoji.imageView.image = UIImage(systemName: "face.smiling")
+        btnEmoji.action = { [weak self] in
+            self?.onEmojiTapped()
+        }
+        addSubview(btnEmoji)
         
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = Language.isRTL ? .right : .left
@@ -67,14 +75,19 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         
         NSLayoutConstraint.activate([
             heightConstraint,
-            textView.widthAnchor.constraint(equalTo: widthAnchor, constant: 0),
-            textView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            
+            btnEmoji.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -8),
+            btnEmoji.widthAnchor.constraint(equalToConstant: initSize),
+            btnEmoji.heightAnchor.constraint(equalToConstant: initSize),
+            btnEmoji.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 2.5),
+            
+            textView.leadingAnchor.constraint(equalTo: btnEmoji.trailingAnchor, constant: 4),
             textView.trailingAnchor.constraint(equalTo: trailingAnchor),
             textView.centerYAnchor.constraint(equalTo: centerYAnchor),
             textView.heightAnchor.constraint(equalTo: heightAnchor),
-            
-            placeholderLabel.widthAnchor.constraint(equalTo: widthAnchor, constant: 0),
-            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Language.isRTL ? -16 : 16),
+                        
+            placeholderLabel.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: Language.isRTL ? -16 : 16),
+            placeholderLabel.trailingAnchor.constraint(equalTo: textView.trailingAnchor, constant: -16),
             placeholderLabel.topAnchor.constraint(equalTo: topAnchor, constant: 2.5),
             placeholderLabel.heightAnchor.constraint(equalTo: heightAnchor),
         ])
@@ -209,5 +222,9 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     
     public func unfocus() {
         textView.resignFirstResponder()
+    }
+    
+    private func onEmojiTapped() {
+        
     }
 }
