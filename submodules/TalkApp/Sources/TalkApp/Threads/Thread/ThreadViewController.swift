@@ -24,7 +24,6 @@ final class ThreadViewController: UIViewController {
     private lazy var cancelAudioRecordingButton = CancelAudioRecordingButton(viewModel: viewModel)
     public private(set) lazy var topThreadToolbar = TopThreadToolbar(viewModel: viewModel)
     private let loadingManager = ThreadLoadingManager()
-    private var sendContainerBottomConstraint: NSLayoutConstraint?
     private var keyboardheight: CGFloat = 0
     private var hasExternalKeyboard = false
     private let emptyThreadView = EmptyThreadView()
@@ -49,6 +48,12 @@ final class ThreadViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    /// Computed properties
+    private var sendVM: SendContainerViewModel? { viewModel.sendContainerViewModel }
+    
+    /// Constraints
+    private var sendContainerBottomConstraint: NSLayoutConstraint?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureViews()
@@ -242,9 +247,11 @@ extension ThreadViewController: ThreadViewDelegate {
         if !value {
             viewModel.selectedMessagesViewModel.clearSelection()
         }
-        
-        tapGetsure.isEnabled = !value
+        setTapGesture(enable: !value)
         viewModel.selectedMessagesViewModel.setInSelectionMode(value)
+        if value {
+            viewModel.sendContainerViewModel.showEmojiKeybaord = false
+        }
         tableView.allowsMultipleSelection = value
         tableView.visibleCells.compactMap{$0 as? MessageBaseCell}.forEach { cell in
             cell.setInSelectionMode(value)
@@ -314,7 +321,7 @@ extension ThreadViewController: ThreadViewDelegate {
 
     func onMentionListUpdated() {
         sendContainer.updateMentionList()
-        tapGetsure.isEnabled = viewModel.mentionListPickerViewModel.mentionList.count == 0
+        setTapGesture(enable: viewModel.mentionListPickerViewModel.mentionList.count == 0)
     }
 
     func updateAvatar(image: UIImage, participantId: Int) {
@@ -411,6 +418,10 @@ extension ThreadViewController: ThreadViewDelegate {
     func lastMessageIndexPathIfVisible() -> IndexPath? {
         guard viewModel.scrollVM.isAtBottomOfTheList == true else { return nil }
         return tableView.indexPathsForVisibleRows?.last
+    }
+    
+    func setTapGesture(enable: Bool) {
+        tapGetsure.isEnabled = enable
     }
 }
 
@@ -812,7 +823,7 @@ extension ThreadViewController {
     }
     
     private func onSendHeightChanged(_ height: CGFloat) {
-        let isButtonsVisible = viewModel.sendContainerViewModel.getMode().type == .showButtonsPicker
+        let isButtonsVisible = sendVM?.getMode().type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
         let height = (height - safeAreaHeight) + keyboardheight + spaceLastMessage
@@ -828,7 +839,7 @@ extension ThreadViewController {
 
 extension ThreadViewController {
     private func showReplyOnOpen() {
-        if let replyMessage = viewModel.sendContainerViewModel.getDraftReplyMessage() {
+        if let replyMessage = sendVM?.getDraftReplyMessage() {
             self.viewModel.replyMessage = replyMessage
             openReplyMode(replyMessage)
         }

@@ -85,6 +85,7 @@ public final class MainSendButtons: UIView {
         multilineTextField.accessibilityIdentifier = "multilineTextFieldMainSendButtons"
         multilineTextField.setContentHuggingPriority(.required, for: .horizontal)
         multilineTextField.setContentCompressionResistancePriority(.required, for: .horizontal)
+        multilineTextField.threadVM = threadVM
         hStack.addArrangedSubview(multilineTextField)
         addSubview(hStack)
         
@@ -123,7 +124,7 @@ public final class MainSendButtons: UIView {
             animationView.topAnchor.constraint(equalTo: btnTrailing.topAnchor),
             animationView.bottomAnchor.constraint(equalTo: btnTrailing.bottomAnchor),
         ])
-
+        
         registerHeightChange()
         registerInternetConnection()
         
@@ -137,7 +138,7 @@ public final class MainSendButtons: UIView {
         // It's essential when we open up the thread for the first time in situation like we are forwarding/reply privately
         setButtonsIcons(mode: viewModel.getMode())
     }
-    
+
     private func registerInternetConnection() {
         appState.$connectionStatus
             .sink { [weak self] newState in

@@ -22,6 +22,7 @@ public final class SendContainerViewModel: ObservableObject {
     private let draftManager = DraftManager.shared
     public var onTextChanged: ((String?) -> Void)?
     private let RTLMarker = "\u{200f}"
+    @Published public var showEmojiKeybaord = false
 
     public init() {}
 
@@ -207,5 +208,10 @@ public final class SendContainerViewModel: ObservableObject {
     
     public func hasAttachment() -> Bool {
         viewModel?.attachmentsViewModel.attachments.count ?? 0 > 0
+    }
+
+    public func appendEmoji(_ emoji: String) {
+        setText(newValue: textMessage.appending(emoji))
+        onTextChanged?(textMessage)
     }
 }

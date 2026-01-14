@@ -8,16 +8,20 @@
 import SwiftUI
 import UIKit
 import TalkModels
+import TalkViewModels
 
 public final class SendContainerTextView: UIView, UITextViewDelegate {
     private var textView: UITextView = UITextView()
-    private var btnEmoji = UIImageButton(imagePadding: .init(all: 12))
+    private var btnEmoji = UIImageButton(imagePadding: .init(all: 0))
     public var onTextChanged: ((String?) -> Void)?
     public var onHeightChange: ((CGFloat) -> Void)?
     private let placeholderLabel = UILabel()
     private var heightConstraint: NSLayoutConstraint!
     private let initSize: CGFloat = 52
+    private let initSizeEmoji: CGFloat = 32
     private let RTLMarker = "\u{200f}"
+    public weak var threadVM: ThreadViewModel?
+    public var viewModel: SendContainerViewModel? { threadVM?.sendContainerViewModel }
     
     public init() {
         super.init(frame: .zero)
@@ -38,7 +42,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.textContainerInset = .init(top: 16, left: 10, bottom: 14, right: 10)
+        textView.textContainerInset = .init(top: 16, left: 2, bottom: 14, right: 10)
         textView.delegate = self
         textView.isEditable = true
         textView.isSelectable = true
@@ -48,7 +52,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         textView.backgroundColor = Color.App.bgSendInputUIColor
     
         btnEmoji.translatesAutoresizingMaskIntoConstraints = false
-        btnEmoji.imageView.image = UIImage(systemName: "face.smiling")
+        btnEmoji.imageView.image = UIImage(named: "emoji")
+        btnEmoji.tintColor = Color.App.textSecondaryUIColor
         btnEmoji.action = { [weak self] in
             self?.onEmojiTapped()
         }
@@ -76,12 +81,12 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
         NSLayoutConstraint.activate([
             heightConstraint,
             
-            btnEmoji.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -8),
-            btnEmoji.widthAnchor.constraint(equalToConstant: initSize),
-            btnEmoji.heightAnchor.constraint(equalToConstant: initSize),
-            btnEmoji.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 2.5),
+            btnEmoji.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2),
+            btnEmoji.widthAnchor.constraint(equalToConstant: initSizeEmoji),
+            btnEmoji.heightAnchor.constraint(equalToConstant: initSizeEmoji),
+            btnEmoji.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6.5),
             
-            textView.leadingAnchor.constraint(equalTo: btnEmoji.trailingAnchor, constant: 4),
+            textView.leadingAnchor.constraint(equalTo: btnEmoji.trailingAnchor, constant: 2),
             textView.trailingAnchor.constraint(equalTo: trailingAnchor),
             textView.centerYAnchor.constraint(equalTo: centerYAnchor),
             textView.heightAnchor.constraint(equalTo: heightAnchor),
@@ -155,8 +160,8 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     }
     
     private func calculateHeight() -> CGFloat {
-        let fittedSize = textView.sizeThatFits(CGSize(width: frame.size.width, height: CGFloat.greatestFiniteMagnitude)).height
-        /// initSize + 16 to check if we are in the new line or not to prevent a change in the height 
+        let fittedSize = textView.sizeThatFits(CGSize(width: frame.size.width - initSizeEmoji, height: CGFloat.greatestFiniteMagnitude)).height
+        /// initSize + 16 to check if we are in the new line or not to prevent a change in the height
         if fittedSize < initSize + 16 { return initSize }
         return min(max(fittedSize, initSize), 192)
     }
@@ -225,6 +230,14 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
     }
     
     private func onEmojiTapped() {
-        
+        let isShowing = viewModel?.showEmojiKeybaord == true
+        if isShowing {
+            threadVM?.delegate?.setTapGesture(enable: true)
+        }
+        viewModel?.showEmojiKeybaord.toggle()
+    }
+    
+    public func textViewDidBeginEditing(_ textView: UITextView) {
+        viewModel?.showEmojiKeybaord = false
     }
 }
