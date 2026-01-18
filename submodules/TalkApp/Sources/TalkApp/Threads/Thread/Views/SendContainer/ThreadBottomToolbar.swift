@@ -103,7 +103,7 @@ public class ThreadBottomToolbar: UIView {
             vStack.trailingAnchor.constraint(equalTo: trailingAnchor),
             
             emojiHeightConstraint,
-            emojiKeyboardView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            emojiKeyboardView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
             emojiKeyboardView.leadingAnchor.constraint(equalTo: leadingAnchor),
             emojiKeyboardView.trailingAnchor.constraint(equalTo: trailingAnchor),
             
@@ -249,7 +249,7 @@ extension ThreadBottomToolbar {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             emojiKeyboardView.initSections()
         }
-        emojiHeightConstraint?.constant = show ? 320 : 0
+        emojiHeightConstraint?.constant = show ? ConstantSizes.emojiKeyboardHeight : 0 
         UIView.animate(withDuration: 0.15) { [weak self] in
             self?.layoutIfNeeded()
         }

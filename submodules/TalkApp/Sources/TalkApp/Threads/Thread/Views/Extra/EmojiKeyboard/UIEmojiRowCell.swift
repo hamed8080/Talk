@@ -7,11 +7,11 @@
 
 import Foundation
 import UIKit
+import TalkViewModels
 
 final class UIEmojiRowCell: UICollectionViewCell {
     static let identifier: String = "UIEmojiRowCell"
     let label = UILabel()
-    private let margin: CGFloat = 4
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -25,20 +25,18 @@ final class UIEmojiRowCell: UICollectionViewCell {
     private func configure() {
         contentView.backgroundColor = .clear
         backgroundColor = .clear
-        layer.cornerRadius = contentView.frame.height / 2.0
-        layer.masksToBounds = false
         
         label.contentMode = .scaleAspectFit
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.normal(.largeTitle).withSize(38)
+        label.font = UIFont.normal(.largeTitle).withSize(ConstantSizes.emojiKeyboardLabelTextSize)
         label.textAlignment = .center
         contentView.addSubview(label)
 
         NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: margin),
-            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor , constant: -margin),
-            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: margin),
-            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -margin),
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: ConstantSizes.emojiKeyboardLabelMargin),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor , constant: -ConstantSizes.emojiKeyboardLabelMargin),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: ConstantSizes.emojiKeyboardLabelMargin),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -ConstantSizes.emojiKeyboardLabelMargin),
         ])
     }
 }

@@ -6,31 +6,37 @@
 //
 
 import UIKit
+import TalkViewModels
 
 class UIEmojiKeyboardViewFlowLayout: UICollectionViewCompositionalLayout {
     init() {
-        let sectionEdgeInset: CGFloat = 16
-        let numberOfItemsInRow: CGFloat = 8
-        let fraction = 1.0 / numberOfItemsInRow
-        
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(fraction), heightDimension: .fractionalHeight(1.0))
+        let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(ConstantSizes.emojiKeyboardCellWidth),
+                                              heightDimension: .absolute(ConstantSizes.emojiKeyboardCellHeight))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         item.edgeSpacing = .init(leading: .fixed(0), top: .fixed(0), trailing: .fixed(0), bottom: .fixed(0))
-        
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalWidth(fraction))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        group.edgeSpacing = .init(leading: .fixed(0), top: .fixed(0), trailing: .fixed(0), bottom: .fixed(0))
-        
-        let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = .init(top: 4, leading: sectionEdgeInset, bottom: 4, trailing: sectionEdgeInset)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .absolute(ConstantSizes.emojiKeyboardGroupWidth),
+                                               heightDimension: .absolute(ConstantSizes.emojiKeyboardGroupHeight))
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        group.edgeSpacing = .init(leading: .fixed(0), top: .fixed(ConstantSizes.emojiKeyboardHeaderHeight), trailing: .fixed(0), bottom: .fixed(0))
         
         /// Section Header
-        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(44))
-        let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+        let headerSize = NSCollectionLayoutSize(widthDimension: .estimated(120),
+                                                heightDimension: .absolute(ConstantSizes.emojiKeyboardHeaderHeight))
+        let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize,
+                                                                 elementKind: UICollectionView.elementKindSectionHeader,
+                                                                 alignment: .topLeading)
+        header.extendsBoundary = false
+        header.pinToVisibleBounds = true
         
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = .init(top: 0, leading: 0, bottom: 0, trailing: ConstantSizes.emojiKeyboardSectionSpaceTrailing)
         section.boundarySupplementaryItems = [header]
         
-        super.init(section: section)
+        let config = UICollectionViewCompositionalLayoutConfiguration()
+        config.scrollDirection = .horizontal
+        
+        super.init(section: section, configuration: config)
     }
     
     required init?(coder: NSCoder) {

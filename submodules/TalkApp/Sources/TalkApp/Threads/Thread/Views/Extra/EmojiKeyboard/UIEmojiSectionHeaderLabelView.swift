@@ -24,14 +24,13 @@ public final class UIEmojiSectionHeaderLabelView: UICollectionReusableView {
     private func configure() {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = Language.isRTL ? .right : .left
-        label.textColor = Color.App.textPrimaryUIColor
-        label.font = UIFont.normal(.largeTitle)
+        label.textColor = Color.App.textSecondaryUIColor
+        label.font = UIFont.bold(.body)
         addSubview(label)
 
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: centerYAnchor),
-            label.leadingAnchor.constraint(equalTo: leadingAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             label.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
     }

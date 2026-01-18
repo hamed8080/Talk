@@ -40,6 +40,7 @@ class UIEmojiKeyboardView: UIView {
         cv.allowsSelection = true
         cv.contentInset = .init(top: 0, left: 0, bottom: 0, right: 0)
         cv.showsHorizontalScrollIndicator = false
+        cv.showsVerticalScrollIndicator = false
         cv.backgroundColor = nil
         addSubview(cv)
 
@@ -70,7 +71,7 @@ class UIEmojiKeyboardView: UIView {
             if kind == UICollectionView.elementKindSectionHeader {
                 let reusableView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: UIEmojiSectionHeaderLabelView.identifier, for: indexPath) as! UIEmojiSectionHeaderLabelView
                 let section = self.sections[indexPath.section]
-                reusableView.label.text = section.title
+                reusableView.label.text = section.title.uppercased()
                 return reusableView
             }
             return nil

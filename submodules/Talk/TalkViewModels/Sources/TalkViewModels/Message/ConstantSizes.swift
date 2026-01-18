@@ -193,6 +193,18 @@ public struct ConstantSizes: Sendable {
     nonisolated(unsafe) public static let tabProgressButtonItemWidth: CGFloat = 42
     nonisolated(unsafe) public static let tabProgressButtonItemHeight: CGFloat = 42
     
+    /// Emoji Keyboard
+    nonisolated(unsafe) public static let emojiKeyboardNumberOfRows: CGFloat = 5
+    nonisolated(unsafe) public static let emojiKeyboardHeight: CGFloat = (emojiKeyboardNumberOfRows * emojiKeyboardCellHeight) + emojiKeyboardHeaderHeight
+    nonisolated(unsafe) public static let emojiKeyboardHeaderHeight: CGFloat = 20
+    nonisolated(unsafe) public static let emojiKeyboardLabelTextSize: CGFloat = 36
+    nonisolated(unsafe) public static let emojiKeyboardLabelMargin: CGFloat = 4
+    nonisolated(unsafe) public static let emojiKeyboardGroupWidth: CGFloat = emojiKeyboardCellWidth
+    nonisolated(unsafe) public static let emojiKeyboardGroupHeight: CGFloat = emojiKeyboardHeight - emojiKeyboardHeaderHeight
+    nonisolated(unsafe) public static let emojiKeyboardCellWidth: CGFloat = 52
+    nonisolated(unsafe) public static let emojiKeyboardCellHeight: CGFloat = 60
+    nonisolated(unsafe) public static let emojiKeyboardSectionSpaceTrailing: CGFloat = 36
+
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0
     public var replyContainerWidth: CGFloat?
