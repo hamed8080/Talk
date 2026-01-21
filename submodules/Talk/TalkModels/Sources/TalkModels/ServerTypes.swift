@@ -3,4 +3,5 @@ public enum ServerTypes: String, CaseIterable, Identifiable, Sendable {
     case main
     case sandbox
     case integration
+    case token
 }
