@@ -49,6 +49,17 @@ public final class LoginViewModel: ObservableObject {
         if selectedServerType == .integration {
             await integerationSSOLoing()
             return
+        } else if selectedServerType == .token {
+            let ssoToken = SSOTokenResponse(accessToken: text,
+                                            expiresIn: Int.max,
+                                            idToken: nil,
+                                            refreshToken: nil,
+                                            scope: nil,
+                                            tokenType: nil,
+                                            deviceUID: UUID().uuidString,
+                                            codeVerifier: nil)
+            await onSuccessToken(ssoToken)
+            return
         }
         let urlReq = makeHandshakeRequest()
         do {
@@ -124,6 +135,12 @@ public final class LoginViewModel: ObservableObject {
         if isSnadbox, var sandboxServer = sandboxServer {
             AppState.shared.spec = Spec(servers: currentSpec.servers,
                                         server: sandboxServer,
+                                        paths: currentSpec.paths,
+                                        subDomains: currentSpec.subDomains)
+        }
+        if selectedServerType == .token, let mainServer = currentSpec.servers.first(where: { $0.server == ServerTypes.main.rawValue }) {
+            AppState.shared.spec = Spec(servers: currentSpec.servers,
+                                        server: .init(socket: "wss://msg1.pod.ir/ws", server: mainServer),
                                         paths: currentSpec.paths,
                                         subDomains: currentSpec.subDomains)
         }

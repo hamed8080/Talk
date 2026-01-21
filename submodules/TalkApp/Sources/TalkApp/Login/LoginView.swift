@@ -30,27 +30,12 @@ struct LoginContentView: View {
                     .padding(.bottom, 40)
                     .frame(maxWidth: 420)
 
-                let key = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumberHint"
-                let placeholder = key.bundleLocalized()
                 
-                let topPlaceHolder = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumberTitle"
-                TextField(placeholder, text: $viewModel.text)
-                    .focused($isFocused)
-                    .keyboardType(.phonePad)
-                    .font(Font.normal(.body))
-                    .padding([.top, .bottom], 8)
-                    .frame(maxWidth: 420)
-                    .multilineTextAlignment(.leading)
-                    .applyAppTextfieldStyleWithLeadingView(
-                        topPlaceholder: topPlaceHolder.bundleLocalized(),
-                        isFocused: isFocused,
-                        forcedLayoutDirection: .leftToRight,
-                        leadingView: leadingViewPhoneNumber) { isFocused.toggle() }
-                    .onChange(of: viewModel.text) { newValue in
-                        if newValue.first == "0", viewModel.state == .login {
-                            viewModel.text = ""
-                        }
-                    }
+                if viewModel.selectedServerType == .token, EnvironmentValues.isTalkTest || EnvironmentValues.isDebug {
+                    tokenTextField
+                } else {
+                    textfield
+                }
 
                 if viewModel.isValidPhoneNumber == false {
                     ErrorView(error: "Errors.Login.invalidPhoneNumber")
@@ -125,6 +110,47 @@ struct LoginContentView: View {
                     .progressViewStyle(.circular)
             }
         }
+    }
+    
+    @ViewBuilder
+    private var textfield: some View {
+        let key = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumberHint"
+        let placeholder = key.bundleLocalized()
+        
+        let topPlaceHolder = viewModel.selectedServerType == .integration ? "Login.staticToken" : "Login.phoneNumberTitle"
+        TextField(placeholder, text: $viewModel.text)
+            .focused($isFocused)
+            .keyboardType(.phonePad)
+            .font(Font.normal(.body))
+            .padding([.top, .bottom], 8)
+            .frame(maxWidth: 420)
+            .multilineTextAlignment(.leading)
+            .applyAppTextfieldStyleWithLeadingView(
+                topPlaceholder: topPlaceHolder.bundleLocalized(),
+                isFocused: isFocused,
+                forcedLayoutDirection: .leftToRight,
+                leadingView: leadingViewPhoneNumber) { isFocused.toggle() }
+            .onChange(of: viewModel.text) { newValue in
+                if newValue.first == "0", viewModel.state == .login {
+                    viewModel.text = ""
+                }
+            }
+    }
+    
+    @ViewBuilder
+    private var tokenTextField: some View {
+        TextField("Paste your token here", text: $viewModel.text)
+            .focused($isFocused)
+            .keyboardType(.default)
+            .font(Font.normal(.body))
+            .padding(.all, 8)
+            .frame(maxWidth: 420)
+            .multilineTextAlignment(.leading)
+            .applyAppTextfieldStyleWithLeadingView(
+                topPlaceholder: "Paste your token here",
+                isFocused: isFocused,
+                forcedLayoutDirection: .leftToRight,
+                leadingView: EmptyView()) { isFocused.toggle() }
     }
     
     @ViewBuilder

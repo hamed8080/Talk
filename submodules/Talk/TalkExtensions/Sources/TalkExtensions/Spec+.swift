@@ -83,3 +83,21 @@ public extension Spec {
         return spec
     }
 }
+
+public extension Server {
+    
+    init(socket: String, server: Server) {
+        self = .init(server: server.server,
+                     socket: socket,
+                     sso: server.sso,
+                     social: server.social,
+                     file: server.file,
+                     serverName: server.serverName,
+                     talk: server.talk,
+                     talkback: server.talkback,
+                     log: server.log,
+                     neshan: server.neshan,
+                     neshanAPI: server.neshanAPI,
+                     panel: server.panel)
+    }
+}
