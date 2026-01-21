@@ -295,7 +295,8 @@ public final class ThreadDetailViewModel: ObservableObject {
 
     private func setupParticipantDetailViewModel(participant: Participant?) {
         if threadVM?.thread.group == true { return }
-        let partner = threadVM?.participantsViewModel.participants.first(where: {$0.auditor == false && $0.id != appState.user?.id})
+        let detailVM = navVM.detailViewModel(threadId: thread?.id ?? threadVM?.thread.id ?? -1)
+        let partner = detailVM?.participantsVM?.participants.first(where: {$0.auditor == false && $0.id != appState.user?.id})
         let threadP2PParticipant = navVM.navigationProperties.userToCreateThread
         let participant = participant ?? threadP2PParticipant ?? partner
         if let participant = participant {
@@ -418,7 +419,6 @@ public extension ThreadDetailViewModel {
         editConversationViewModel = nil
         participantDetailViewModel = nil
         threadVM = nil
-        threadVM?.participantsViewModel.clear()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.navVM.setParticipantToCreateThread(nil)
@@ -429,8 +429,12 @@ public extension ThreadDetailViewModel {
 extension ThreadDetailViewModel {
     private func makeTabs() {
         if let thread = thread {
+            let participantsVM = ParticipantsViewModel()
+            if let threadVM = threadVM {
+                participantsVM.setup(viewModel: threadVM)
+            }
             var tabs: [DetailTabProtocol] = [
-                DetailTab(title: "Thread.Tabs.members", id: .members, viewModel: threadVM?.participantsViewModel ?? .init()),
+                DetailTab(title: "Thread.Tabs.members", id: .members, viewModel: participantsVM),
                 DetailTab(title: "Thread.Tabs.photos", id: .pictures, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpacePicture, tabName: "Pictures")),
                 DetailTab(title: "Thread.Tabs.videos", id: .video, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpaceVideo, tabName: "Video")),
                 DetailTab(title: "Thread.Tabs.music",id: .music, viewModel: DetailTabDownloaderViewModel(conversation: thread, messageType: .podSpaceSound, tabName: "Music")),
@@ -463,6 +467,11 @@ extension ThreadDetailViewModel {
     }
 }
 
+extension ThreadDetailViewModel {
+    public var participantsVM: ParticipantsViewModel? {
+        tabs.first(where: { $0.viewModel is ParticipantsViewModel })?.viewModel as? ParticipantsViewModel
+    }
+}
 
 extension ThreadDetailViewModel {
     public func descriptionString() -> (String, String) {

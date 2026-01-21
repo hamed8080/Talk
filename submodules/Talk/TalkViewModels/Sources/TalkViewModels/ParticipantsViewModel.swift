@@ -61,6 +61,13 @@ public final class ParticipantsViewModel: ObservableObject {
     }
     
     func updateUI(animation: Bool, reloadSections: Bool) {
+        let snapshot = makeSnapshot(reloadSections: reloadSections)
+        
+        /// Apply
+        delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+    }
+    
+    public func makeSnapshot(reloadSections: Bool) -> NSDiffableDataSourceSnapshot<MembersListSection, MemberItem> {
         /// Create
         var snapshot = NSDiffableDataSourceSnapshot<MembersListSection, MemberItem>()
         
@@ -87,8 +94,7 @@ public final class ParticipantsViewModel: ObservableObject {
             snapshot.appendItems([.noResult], toSection: .noResult)
         }
         
-        /// Apply
-        delegate?.apply(snapshot: snapshot, animatingDifferences: animation)
+        return snapshot
     }
     
     private func image(for id: Int) -> UIImage? {

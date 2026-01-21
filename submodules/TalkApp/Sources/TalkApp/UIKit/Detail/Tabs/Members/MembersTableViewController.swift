@@ -167,6 +167,12 @@ extension MembersTableViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        /// Reject calling load more for add participant button or search text field
+        /// There is no way to fetch indexPath.row == 1 loadMore
+        let section = indexPath.section
+        if viewModel.thread?.group == true && section == MembersListSection.addParticipantButton.rawValue || section == MembersListSection.searchTextFields.rawValue {
+            return
+        }
         guard
             let conversation = dataSource.itemIdentifier(for: indexPath),
             indexPath.row >= viewModel.participants.count - 10

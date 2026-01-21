@@ -70,9 +70,9 @@ final class ReactionCountRowView: UIView, UIContextMenuInteractionDelegate {
         isUserInteractionEnabled = false
     }
 
-    func setValue(row: ReactionRowsCalculated.Row) {
+    func setValue(row: ReactionRowsCalculated.Row, isGroup: Bool) {
         self.row = row
-        let hideCountString = row.count == 1 && viewModel?.threadVM?.thread.group ?? false == false
+        let hideCountString = row.count == 1 && !isGroup
         let text = hideCountString ? "\(row.emoji)" : "\(row.emoji) \(row.countText)"
         reactionEmojiCount.text = text
         layer.borderColor = row.isMyReaction ? Color.App.accentUIColor?.cgColor : nil

@@ -484,15 +484,15 @@ public final class ThreadsViewModel: ObservableObject {
              */
             await calculateAppendSortAnimate(conversation)
         }
-        await insertIntoParticipantViewModel(response)
+        await insertIntoDetailViewModel(response)
         lazyList.setLoading(false)
     }
 
-    private func insertIntoParticipantViewModel(_ response: ChatResponse<Conversation>) async {
+    private func insertIntoDetailViewModel(_ response: ChatResponse<Conversation>) async {
         if let threadVM = navVM.viewModel(for: response.result?.id ?? -1) {
             let addedParticipants = response.result?.participants ?? []
-            threadVM.participantsViewModel.onAdded(addedParticipants)
-//            threadVM.animateObjectWillChange()
+            let detailVM = navVM.detailViewModel(threadId: threadVM.thread.id ?? -1)
+            detailVM?.participantsVM?.onAdded(addedParticipants)
         }
     }
 
@@ -784,11 +784,14 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func onLeftThread(_ response: ChatResponse<User>) {
+        guard let conversationId = response.subjectId else { return }
+        
         let isMe = response.result?.id == myId
-        let threadVM = navVM.viewModel(for: response.subjectId ?? -1)
+        let threadVM = navVM.viewModel(for: conversationId)
         let deletedUserId = response.result?.id
-        let participant = threadVM?.participantsViewModel.participants.first(where: {$0.id == deletedUserId})
-        if isMe, let conversationId = response.subjectId {
+        let participantsVM = navVM.detailViewModel(threadId: conversationId)?.participantsVM
+        let participant = participantsVM?.participants.first(where: {$0.id == deletedUserId})
+        if isMe {
             removeThread(.init(id: conversationId))
             
             /// Pop detail view and thread view at the same time
@@ -799,7 +802,7 @@ public final class ThreadsViewModel: ObservableObject {
                 navVM.remove(threadId: conversationId)
             }
         } else if let participant = participant {
-            threadVM?.participantsViewModel.removeParticipant(participant)
+            participantsVM?.removeParticipant(participant)
         }
     }
 

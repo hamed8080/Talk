@@ -29,7 +29,6 @@ public final class ThreadViewModel: ObservableObject {
     public var searchedMessagesViewModel: ThreadSearchMessagesViewModel = .init()
     public var selectedMessagesViewModel: ThreadSelectedMessagesViewModel = .init()
     public var unreadMentionsViewModel: ThreadUnreadMentionsViewModel = .init()
-    public var participantsViewModel: ParticipantsViewModel = .init()
     public var attachmentsViewModel: AttachmentsViewModel = .init()
     public var mentionListPickerViewModel: MentionListPickerViewModel = .init()
     public var sendContainerViewModel: SendContainerViewModel = .init()
@@ -119,7 +118,6 @@ public final class ThreadViewModel: ObservableObject {
         sendContainerViewModel.setup(viewModel: self)
         searchedMessagesViewModel.setup(viewModel: self)
         threadPinMessageViewModel.setup(viewModel: self)
-        participantsViewModel.setup(viewModel: self)
         historyVM.viewModel = self
         historyVM.setup(threadId: thread.id ?? -1)
         sendMessageViewModel.setup(viewModel: self)
@@ -299,7 +297,6 @@ public final class ThreadViewModel: ObservableObject {
         unsentMessagesViewModel.cancelAllObservers()
         searchedMessagesViewModel.cancelAllObservers()
         unreadMentionsViewModel.cancelAllObservers()
-        participantsViewModel.cancelAllObservers()
         mentionListPickerViewModel.cancelAllObservers()
         historyVM.cancelAllObservers()
         threadPinMessageViewModel.cancelAllObservers()
