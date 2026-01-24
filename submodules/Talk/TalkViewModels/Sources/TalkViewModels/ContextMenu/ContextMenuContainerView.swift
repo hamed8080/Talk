@@ -10,9 +10,10 @@ import UIKit
 import TalkModels
 
 @MainActor
+@objc
 public protocol ContextMenuDelegate: AnyObject {
     func showContextMenu(_ indexPath: IndexPath?, contentView: UIView)
-    func dismissContextMenu(indexPath: IndexPath?)
+    @objc optional func dismissContextMenu(indexPath: IndexPath?)
 }
 
 public class ContextMenuContainerView: UIView {
@@ -125,7 +126,7 @@ public class ContextMenuContainerView: UIView {
 
     @objc private func hideAndCall() {
         hide()
-        delegate?.dismissContextMenu(indexPath: indexPath)
+        delegate?.dismissContextMenu?(indexPath: indexPath)
     }
 
     @objc public func hide() {

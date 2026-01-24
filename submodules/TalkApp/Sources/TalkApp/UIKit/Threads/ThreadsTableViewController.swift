@@ -271,10 +271,6 @@ extension ThreadsTableViewController: ContextMenuDelegate {
         contextMenuContainer?.setContentView(contentView, indexPath: indexPath)
         contextMenuContainer?.show()
     }
-    
-    func dismissContextMenu(indexPath: IndexPath?) {
-        
-    }
 }
 
 extension ThreadsTableViewController: UITableViewDelegate {

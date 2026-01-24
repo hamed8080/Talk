@@ -171,10 +171,6 @@ extension VoicesTableViewController: ContextMenuDelegate {
         )
     }
     
-    func dismissContextMenu(indexPath: IndexPath?) {
-        
-    }
-    
     private var parentVC: UIViewController {
         return AppState.shared.objectsContainer.navVM.splitVC ?? self
     }
