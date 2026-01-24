@@ -334,8 +334,7 @@ struct SavedMessageSection: View {
                     let conversation = try await create()
                     storeInUserDefaults(conversation)
                     
-                    let vc = ThreadViewController()
-                    vc.viewModel = ThreadViewModel(thread: conversation)
+                    let vc = ThreadViewController(viewModel: ThreadViewModel(thread: conversation))
                     
                     AppState.shared.objectsContainer.navVM.appendUIKit(vc: vc, conversation: conversation)
                 } catch {

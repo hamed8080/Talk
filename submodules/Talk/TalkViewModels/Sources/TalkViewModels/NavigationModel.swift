@@ -153,7 +153,7 @@ public extension NavigationModel {
     }
     
     func switchFromThreadListUIKit(viewController: UIViewController, conversation: Conversation) {
-        presentedThreadViewModel?.viewModel?.cancelAllObservers()
+        presentedThreadViewModel?.viewModel.cancelAllObservers()
         popAllPathsAndClearSplitVCUIKit()
         appendUIKit(vc: viewController, conversation: conversation)
     }
@@ -200,7 +200,7 @@ public extension NavigationModel {
     }
     
     private func popUntilSameConversation(threadId: Int) {
-        if threadStack.contains(where: { $0.viewModel?.thread.id == threadId }) {
+        if threadStack.contains(where: { $0.viewModel.thread.id == threadId }) {
             if !pathsTracking.isEmpty {
                 pathsTracking.removeAll()
                 detailsStack.removeAll()
@@ -222,7 +222,7 @@ public extension NavigationModel {
 
     func remove(threadId: Int? = nil) {
         if threadId != nil {
-            presentedThreadViewModel?.viewModel?.cancelAllObservers()
+            presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
         removeUIKit()
         if let threadId = threadId, (pathsTracking.last as? ThreadViewModel)?.id == threadId {
@@ -232,8 +232,8 @@ public extension NavigationModel {
     }
 
     func cleanOnPop(threadId: Int) {
-        if threadId == presentedThreadViewModel?.viewModel?.thread.id {
-            presentedThreadViewModel?.viewModel?.cancelAllObservers()
+        if threadId == presentedThreadViewModel?.viewModel.thread.id {
+            presentedThreadViewModel?.viewModel.cancelAllObservers()
         }
         if let detailNavValue = pathsTracking.last as? ConversationDetailNavigationProtocol, threadId == detailNavValue.threadId {
             popLastPathTracking()

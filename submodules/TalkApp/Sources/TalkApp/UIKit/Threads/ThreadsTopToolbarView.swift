@@ -28,7 +28,10 @@ public class ThreadsTopToolbarView: UIStackView {
     private let player = ThreadNavigationPlayer(viewModel: nil)
     private let topRowStack = UIStackView()
     private let searchRowStack = UIStackView()
-    
+#if DEBUG
+    private var debugMenu = UIButton(type: .system)
+#endif
+
     /// Constraints
     private var heightConstraint: NSLayoutConstraint?
     
@@ -218,6 +221,48 @@ public class ThreadsTopToolbarView: UIStackView {
         
         player.isHidden = true
         searchRowStack.isHidden = true
+        
+        configureDebugButton()
+    }
+    
+    private func configureDebugButton() {
+#if DEBUG
+        var actions: [UIAction] = []
+        
+        let setTokenAction = UIAction(title: "Set token") { [weak self] _ in
+            let alert = UIAlertController(title: "Set token", message: "", preferredStyle: .alert)
+            alert.addTextField { textField in
+                textField.placeholder = "Enter token here..."
+            }
+            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+            
+            let confirmAction = UIAlertAction(title: "Confirm", style: .destructive) { _ in
+                let token = alert.textFields?.first?.text ?? ""
+                Task { @ChatGlobalActor in
+                    await ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: false)
+                }
+            }
+            
+            alert.addAction(cancelAction)
+            alert.addAction(confirmAction)
+            
+            self?.window?.rootViewController?.present(alert, animated: true)
+        }
+        actions.append(setTokenAction)
+        
+        let menu = UIMenu(children: actions)
+        debugMenu.translatesAutoresizingMaskIntoConstraints = false
+        debugMenu.setTitle("Debug options", for: .normal)
+        debugMenu.menu = menu
+        debugMenu.showsMenuAsPrimaryAction = true
+        addSubview(debugMenu)
+        
+        NSLayoutConstraint.activate([
+            debugMenu.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -16),
+            debugMenu.centerYAnchor.constraint(equalTo: searchButton.centerYAnchor),
+            debugMenu.heightAnchor.constraint(equalTo: searchButton.heightAnchor),
+        ])
+#endif
     }
 
     private func registerObservers() {

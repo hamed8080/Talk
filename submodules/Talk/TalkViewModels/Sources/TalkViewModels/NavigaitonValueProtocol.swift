@@ -15,7 +15,7 @@ public protocol NavigationTitleProtocol {
 
 @MainActor
 public protocol ConversationNavigationProtocol: NavigationTitleProtocol {
-    var viewModel: ThreadViewModel? { get set }
+    var viewModel: ThreadViewModel { get set }
     var threadId: Int? { get }
 }
 
@@ -26,7 +26,7 @@ public protocol ConversationDetailNavigationProtocol: NavigationTitleProtocol {
 }
 
 public extension ConversationNavigationProtocol {
-    var threadId: Int? { viewModel?.id }
+    var threadId: Int? { viewModel.id }
     
-    var navigationTitle: String { viewModel?.thread.computedTitle ?? "" }
+    var navigationTitle: String { viewModel.thread.computedTitle }
 }

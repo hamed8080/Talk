@@ -50,14 +50,7 @@ public final class LoginViewModel: ObservableObject {
             await integerationSSOLoing()
             return
         } else if selectedServerType == .token {
-            let ssoToken = SSOTokenResponse(accessToken: text,
-                                            expiresIn: Int.max,
-                                            idToken: nil,
-                                            refreshToken: nil,
-                                            scope: nil,
-                                            tokenType: nil,
-                                            deviceUID: UUID().uuidString,
-                                            codeVerifier: nil)
+            let ssoToken = SSOTokenResponse(token: text)
             await onSuccessToken(ssoToken)
             return
         }

@@ -200,13 +200,13 @@ public final class ThreadsViewModel: ObservableObject {
     
     private func userNeverOpennedArchivedList(id: Int?) -> Bool {
         let isArchiveListEmpty = archivesVM.threads.isEmpty
-        let samePresentedId = navVM.presentedThreadViewModel?.viewModel?.id == id
+        let samePresentedId = navVM.presentedThreadViewModel?.viewModel.id == id
         return isArchiveListEmpty && samePresentedId
     }
     
     private func updateActiveArchivConversation(newConversation: Conversation, messages: [Message]) {
         // Just update the active archived converstion.
-        let oldConversation = navVM.presentedThreadViewModel?.viewModel?.thread
+        let oldConversation = navVM.presentedThreadViewModel?.viewModel.thread
         updateActiveConversationOnNewMessage(messages, newConversation, oldConversation)
     }
 
@@ -759,7 +759,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
             let vm = navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
-                vm?.viewModel?.setThread(thread.toStruct())
+                vm?.viewModel.setThread(thread.toStruct())
             }
         }
     }
