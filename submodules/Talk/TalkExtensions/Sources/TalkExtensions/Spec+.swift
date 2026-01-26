@@ -58,39 +58,6 @@ public extension Spec {
             .build()
         return chatConfig
     }
-    
-    fileprivate static let key = "SPEC_KEY"
-    static func cachedSpec() -> Spec? {
-        return UserDefaults.standard.codableValue(forKey: Spec.key)
-    }
-    
-    static func storeSpec(_ spec: Spec) {
-        UserDefaults.standard.setValue(codable: spec, forKey: Spec.key)
-    }
-    
-    static func dl() async throws -> Spec {
-        let prodString = Constants.specProdURL.fromBase64()
-        let localString = Constants.specLocalURL.fromBase64()
-        let talkBackSpecString = Constants.specTalkBackURL.fromBase64()
-        let isTalkBackSpec = true
-        let isLocalBundle = ProcessInfo.processInfo.environment["FORCE_LOCAL_BUNDLE"] == "1"
-        let string = isTalkBackSpec ? talkBackSpecString : isLocalBundle ? localString : prodString
-        guard let url = URL(string: string ?? "")
-        else { throw URLError.init(.badURL) }
-        var req = URLRequest(url: url, timeoutInterval: 10.0)
-        req.method = .get
-        let (data, response) = await try URLSession.shared.data(req)
-        
-        let spec: Spec
-        if isTalkBackSpec {
-            let talkBackSpec = try JSONDecoder.instance.decode(TalkBackSpec.self, from: data)
-            spec = talkBackSpec.toSpec()
-        } else {
-            spec = try JSONDecoder.instance.decode(Spec.self, from: data)
-        }
-        storeSpec(spec)
-        return spec
-    }
 }
 
 public extension Server {
@@ -162,7 +129,6 @@ public extension Paths {
 
 public extension SubDomains {
     static let defaultSubdomains = SubDomains(core: "Y29yZS5wb2QuaXI=".fromBase64() ?? "", podspace: "cG9kc3BhY2UucG9kLmly".fromBase64() ?? "")
-    
 }
 
 fileprivate extension String {

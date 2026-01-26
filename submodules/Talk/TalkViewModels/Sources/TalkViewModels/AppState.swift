@@ -17,7 +17,7 @@ import TalkModels
 @MainActor
 public final class AppState: ObservableObject, Sendable {
     public static let shared = AppState()
-    public var spec: Spec = Spec.empty
+    public private(set) var spec: Spec = Spec.empty
     public private(set) var user: User?
     @Published public var callLogs: [URL]?
     private var cancelable: Set<AnyCancellable> = []
@@ -54,6 +54,10 @@ public final class AppState: ObservableObject, Sendable {
         
         NotificationCenter.windowMode.post(
             name: .windowMode, object: windowMode)
+    }
+    
+    public func setSpec(_ spec: Spec) {
+        self.spec = spec
     }
 }
 

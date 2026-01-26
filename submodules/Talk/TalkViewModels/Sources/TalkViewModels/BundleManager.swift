@@ -81,7 +81,7 @@ public class BundleManager {
     
     // Copy local bundle
     private func cop() async throws -> URL {
-        guard let url = URL(string: Constants.bundleLocalURL.fromBase64() ?? "") else { throw ManagerError.badURL }
+        guard let url = URL(string: Constants.bundleURL.fromBase64() ?? "") else { throw ManagerError.badURL }
         let req = URLRequest(url: url)
         let downloadedFileURL = try await URLSession.shared.download(for: req).0
         return downloadedFileURL

@@ -28,6 +28,7 @@ public class ThreadsTopToolbarView: UIStackView {
     private let player = ThreadNavigationPlayer(viewModel: nil)
     private let topRowStack = UIStackView()
     private let searchRowStack = UIStackView()
+    private let proxyButton = UIImageButton(imagePadding: .init(all: 12))
     
     /// Constraints
     private var heightConstraint: NSLayoutConstraint?
@@ -129,6 +130,17 @@ public class ThreadsTopToolbarView: UIStackView {
             self?.onUploadsTapped()
         }
         
+        proxyButton.translatesAutoresizingMaskIntoConstraints = false
+        proxyButton.imageView.image = UIImage(systemName: "checkmark.shield")
+        proxyButton.imageView.tintColor = Color.App.accentUIColor
+        proxyButton.imageView.contentMode = .scaleAspectFit
+        proxyButton.accessibilityIdentifier = "proxyButtonThreadsTopToolbarView"
+        proxyButton.isHidden = !TalkBackProxyViewModel.hasProxy()
+        proxyButton.isUserInteractionEnabled = TalkBackProxyViewModel.hasProxy()
+        proxyButton.action = { [weak self] in
+            self?.onProxyTapped()
+        }
+        
         topRowStack.axis = .horizontal
         topRowStack.alignment = .center
         topRowStack.distribution = .fill
@@ -139,6 +151,7 @@ public class ThreadsTopToolbarView: UIStackView {
         topRowStack.addArrangedSubview(connectionStatusLabel)
         topRowStack.addArrangedSubview(uploadsButton)
         topRowStack.addArrangedSubview(downloadsButton)
+        topRowStack.addArrangedSubview(proxyButton)
         topRowStack.addArrangedSubview(searchButton)
    
         filterUnreadMessagesButton.translatesAutoresizingMaskIntoConstraints = false
@@ -210,6 +223,9 @@ public class ThreadsTopToolbarView: UIStackView {
             uploadsButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             uploadsButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
+            proxyButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            proxyButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            
             searchTextField.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             filterUnreadMessagesButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
@@ -247,6 +263,11 @@ public class ThreadsTopToolbarView: UIStackView {
         
         NotificationCenter.default.publisher(for: Notification.Name("CLOSE_PLAYER")).sink { [weak self] notif in
             self?.onPlayerItemChanged(nil)
+        }
+        .store(in: &cancellableSet)
+        
+        NotificationCenter.default.publisher(for: Notification.Name(TalkBackProxyViewModel.didChangeNotificationKey)).sink { [weak self] notif in
+            self?.proxyButton.isHidden = !TalkBackProxyViewModel.hasProxy()
         }
         .store(in: &cancellableSet)
     }
@@ -301,6 +322,10 @@ public class ThreadsTopToolbarView: UIStackView {
         AppState.shared.objectsContainer.navVM.wrapAndPush(view: UploadsManagerListView())
     }
     
+    private func onProxyTapped() {
+        
+    }
+    
     private func onPlusTapped() {
         guard let obj = AppState.shared.objectsContainer else { return }
         obj.conversationBuilderVM.clear()
@@ -348,6 +373,7 @@ extension ThreadsTopToolbarView: UITextFieldDelegate {
     public func textFieldDidEndEditing(_ textField: UITextField, reason: UITextField.DidEndEditingReason) {
         onSearchTextChanged(newValue: textField.text ?? "")
     }
+    
     public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
