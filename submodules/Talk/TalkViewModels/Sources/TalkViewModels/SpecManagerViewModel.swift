@@ -28,7 +28,7 @@ public class SpecManagerViewModel {
     
     public func download() async throws -> Spec {
         let hasProxy = TalkBackProxyViewModel.hasProxy()
-        let hasEverCached = cachedSpec() != nil
+        let hasEverCached = hasEverCached()
         if !hasEverCached {
             return try await downloadInitPodsapceSpec()
         } else if hasProxy {
@@ -156,7 +156,7 @@ extension SpecManagerViewModel {
     
     public func fetchConfigsReconnectIfSocketHasChanged() async -> Spec? {
         /// We will not sending request if we have never fetched podspace public spec.
-        if cachedSpec() == nil { return nil }
+        if !hasEverCached() { return nil }
         
         let token = TokenManager.shared.getToken()
     
@@ -193,5 +193,9 @@ extension SpecManagerViewModel {
                 await self?.fetchConfigsReconnectIfSocketHasChanged()
             }
         })
+    }
+    
+    private func hasEverCached() -> Bool {
+        cachedSpec()?.server.socket.isEmpty == false
     }
 }
