@@ -175,13 +175,11 @@ struct ToolbarView<LeadingContentView: View, CenterContentView: View, TrailingCo
 struct NormalToolbarViewModifier<T, TrailingContentView: View>: ViewModifier {
     let title: String
     let type: T.Type?
-    let innerBack: Bool
     @ViewBuilder let trailingView: TrailingContentView?
 
-    public init(title: String, innerBack: Bool = false, type: T.Type? = nil, trailingView: TrailingContentView? = nil) {
+    public init(title: String, type: T.Type? = nil, trailingView: TrailingContentView? = nil) {
         self.title = title
         self.type = type
-        self.innerBack = innerBack
         self.trailingView = trailingView
     }
 
@@ -206,16 +204,16 @@ struct NormalToolbarViewModifier<T, TrailingContentView: View>: ViewModifier {
 
 extension View {
 
-    func normalToolbarView(title: String, innerBack: Bool = false) -> some View {
-        modifier(NormalToolbarViewModifier<Any, EmptyView>(title: title, innerBack: innerBack, type: nil, trailingView: nil))
+    func normalToolbarView(title: String) -> some View {
+        modifier(NormalToolbarViewModifier<Any, EmptyView>(title: title, type: nil, trailingView: nil))
     }
 
-    func normalToolbarView<T>(title: String, innerBack: Bool = false, type: T.Type) -> some View {
-        modifier(NormalToolbarViewModifier<T, EmptyView>(title: title, innerBack: innerBack, type: type, trailingView: nil))
+    func normalToolbarView<T>(title: String, type: T.Type) -> some View {
+        modifier(NormalToolbarViewModifier<T, EmptyView>(title: title, type: type, trailingView: nil))
     }
 
-    func normalToolbarView<T, TrailingContentView: View>(title: String, innerBack: Bool = false, type: T.Type, trailingView: TrailingContentView? = nil) -> some View {
-        modifier(NormalToolbarViewModifier(title: title, innerBack: innerBack, type: type, trailingView: trailingView))
+    func normalToolbarView<T, TrailingContentView: View>(title: String, type: T.Type, trailingView: TrailingContentView? = nil) -> some View {
+        modifier(NormalToolbarViewModifier(title: title, type: type, trailingView: trailingView))
     }
 }
 

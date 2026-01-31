@@ -28,6 +28,7 @@ public final class ObjectsContainer: ObservableObject {
     @Published public var sizeClassObserver = SizeClassObserver()
     @Published public var downloadsManager = DownloadsManager()
     @Published public var uploadsManager = UploadsManager()
+    @Published public var specManager = SpecManagerViewModel.shared
     public let contextMenuModel: ContextMenuModel = .init()
     public var chatRequestQueue = ChatRequestQueue()
 
@@ -36,6 +37,7 @@ public final class ObjectsContainer: ObservableObject {
 
     public init(delegate: ChatDelegate) {
         loginVM = LoginViewModel(delegate: delegate)
+        specManager.delegate = delegate
         NotificationCenter.message.publisher(for: .message)
             .compactMap { $0.object as? MessageEventTypes }
             .sink { [weak self] event in

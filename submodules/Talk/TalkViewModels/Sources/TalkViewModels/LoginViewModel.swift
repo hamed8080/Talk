@@ -11,6 +11,7 @@ import UIKit
 import TalkModels
 import TalkExtensions
 import SwiftUI
+import Combine
 
 @MainActor
 public final class LoginViewModel: ObservableObject {
@@ -33,10 +34,19 @@ public final class LoginViewModel: ObservableObject {
     @Published public var timerHasFinished = false
     @Published public var path: NavigationPath = .init()
     @Published public var showSuccessAnimation: Bool = false
-
+    private var cancellableSet: Set<AnyCancellable> = Set()
+    
     public init(delegate: ChatDelegate, session: URLSession = .shared) {
         self.delegate = delegate
         self.session = session
+        register()
+    }
+    
+    private func register() {
+        $selectedServerType.sink { [weak self] newValue in
+            self?.setDefaultServerOnSpecChange(newValue: newValue)
+        }
+        .store(in: &cancellableSet)
     }
 
     public func isPhoneNumberValid() -> Bool {
@@ -116,30 +126,47 @@ public final class LoginViewModel: ObservableObject {
     }
     
     private func onSuccessToken(_ ssoToken: SSOTokenResponse) async {
+        let spec: Spec = getSpec()
+        let token = ssoToken.accessToken ?? ""
         await TokenManager.shared.saveSSOToken(ssoToken: ssoToken)
-        createChatObject(token: ssoToken.accessToken ?? "")
+        createChatObject(spec: spec, token: token)
         state = .successLoggedIn
+        
+        /// This will be called only once on successfull login
+        /// This method is different than token refresh which might be called multiple times.
+        if let remoteSpec = try? await SpecManagerViewModel.shared.getConfigsOnToken() {
+            createChatObject(spec: remoteSpec, token: token)
+        }
     }
     
-    private func createChatObject(token: String) {
+    private func createChatObject(spec: Spec, token: String) {
+        let config = Spec.config(spec: spec, token: token)
+        UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
+    }
+    
+    private func getSpec() -> Spec {
         let isSnadbox = selectedServerType == .sandbox
         let currentSpec = AppState.shared.spec
         let sandboxServer = currentSpec.servers.first(where: { $0.server == ServerTypes.sandbox.rawValue })
+        
         if isSnadbox, var sandboxServer = sandboxServer {
-            AppState.shared.spec = Spec(servers: currentSpec.servers,
-                                        server: sandboxServer,
-                                        paths: currentSpec.paths,
-                                        subDomains: currentSpec.subDomains)
-        }
-        if selectedServerType == .token, let mainServer = currentSpec.servers.first(where: { $0.server == ServerTypes.main.rawValue }) {
-            AppState.shared.spec = Spec(servers: currentSpec.servers,
-                                        server: .init(socket: "wss://msg1.pod.ir/ws", server: mainServer),
-                                        paths: currentSpec.paths,
-                                        subDomains: currentSpec.subDomains)
+            return Spec(
+                servers: currentSpec.servers,
+                server: sandboxServer,
+                paths: currentSpec.paths,
+                subDomains: currentSpec.subDomains
+            )
         }
         
-        let config = Spec.config(spec: AppState.shared.spec, token: token)
-        UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: self.delegate)
+        if selectedServerType == .token, let mainServer = currentSpec.servers.first(where: { $0.server == ServerTypes.main.rawValue }) {
+            return Spec(
+                servers: currentSpec.servers,
+                server: .init(socket: mainServer.socket, server: mainServer),
+                paths: currentSpec.paths,
+                subDomains: currentSpec.subDomains
+            )
+        }
+        return AppState.shared.spec
     }
 
     public func verifyCode() async {
@@ -276,6 +303,15 @@ extension LoginViewModel {
         let sandboxServer = spec.servers.first(where: { $0.server == ServerTypes.sandbox.rawValue })
         let server: Server = isSandbox ? sandboxServer ?? defaultServer : defaultServer
         return "\(server.talkback)\(path)"
+    }
+    
+    private func setDefaultServerOnSpecChange(newValue: ServerTypes) {
+        let currentSpec = AppState.shared.spec
+        var defaultServer: Server
+        defaultServer = currentSpec.servers.first(where: { $0.server == newValue.rawValue }) ?? currentSpec.server
+        let newSpec = Spec(servers: currentSpec.servers, server: defaultServer, paths: currentSpec.paths, subDomains: currentSpec.subDomains)
+        SpecManagerViewModel.shared.store(newSpec)
+        AppState.shared.setSpec(newSpec)
     }
 }
 
