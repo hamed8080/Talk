@@ -20,7 +20,7 @@ public struct Constants: Sendable {
     
     /// Path of the configs in which it will be appended to base url of the talk back
     /// /api/talk/configs?platform=IOS
-    /// https:://talkback.sandpod.ir/api/talk/configs?platform=IOS
+    /// https://talkback.sandpod.ir/api/talk/configs?platform=IOS
     nonisolated(unsafe) public static let talkBackConfigsPath = "L2FwaS90YWxrL2NvbmZpZ3M/cGxhdGZvcm09SU9T"
     
     /// Bundle local URL

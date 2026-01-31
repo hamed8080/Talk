@@ -46,23 +46,21 @@ public class SpecManagerViewModel {
         firstAttempt = true
         let baseAddress = isSandbox() ? Constants.talkBackSandbox.fromBase64() ?? "" : Constants.talkBackProductionSpecURL.fromBase64() ?? ""
         let address = baseAddress
-        let token = token()
-        let spec = try await requestParseStore(string: address, token: token)
+        let spec = try await requestParseStore(string: address, parsePodspace: false, withToken: true)
         scheduleRefetchTimer()
         return spec
     }
     
     private func downloadDefaultSecondTalkBackSpec() async throws -> Spec {
         let address = isSandbox() ? Constants.talkBackSecondSandboxSpecURL.fromBase64() ?? "" : Constants.talkBackSecondSpecURL.fromBase64() ?? ""
-        let token = token()
-        let spec = try await requestParseStore(string: address, token: token)
+        let spec = try await requestParseStore(string: address, parsePodspace: false, withToken: true)
         scheduleRefetchTimer()
         return spec
     }
     
     private func downloadInitPodsapceSpec() async throws -> Spec {
         let address = Constants.podspacePublicSpec.fromBase64() ?? ""
-        let spec = try await requestParseStore(string: address, token: nil)
+        let spec = try await requestParseStore(string: address, parsePodspace: true, withToken: false)
         return spec
     }
     
@@ -70,25 +68,24 @@ public class SpecManagerViewModel {
         let baseAddress = TalkBackProxyViewModel.proxy() ?? ""
         let path = Constants.talkBackConfigsPath.fromBase64() ?? ""
         let address = "\(baseAddress)\(path)"
-        let token = token()
-        let spec = try await requestParseStore(string: address, token: token)
+        let spec = try await requestParseStore(string: address, parsePodspace: false, withToken: false)
         return spec
     }
     
-    private func requestParseStore(string: String, token: String?) async throws -> Spec {
-        let (data, _) = try await request(string: string, token: token)
-        let spec = try await parseResponse(data: data, parsePodspace: token == nil)
+    private func requestParseStore(string: String, parsePodspace: Bool, withToken: Bool) async throws -> Spec {
+        let (data, _) = try await request(string: string, withToken: withToken)
+        let spec = try await parseResponse(data: data, parsePodspace: parsePodspace)
         store(spec)
         return spec
     }
     
-    private func request(string: String, token: String?) async throws -> (data: Data, response: URLResponse) {
+    private func request(string: String, withToken: Bool) async throws -> (data: Data, response: URLResponse) {
         guard let url = URL(string: string)
         else { throw URLError.init(.badURL) }
         
         var req = URLRequest(url: url, timeoutInterval: 10.0)
         req.method = .get
-        if let token = token {
+        if withToken, let token = token() {
             req.allHTTPHeaderFields = ["Authorization": "Bearer \(token)"]
         }
         
@@ -124,10 +121,6 @@ public class SpecManagerViewModel {
         return UserDefaults.standard.codableValue(forKey: key)
     }
     
-    public func token() -> String? {
-        TokenManager.shared.getToken()
-    }
-    
     public func isSandbox() -> Bool {
         return cachedSpec()?.server.server == ServerTypes.sandbox.rawValue
     }
@@ -157,15 +150,12 @@ extension SpecManagerViewModel {
     public func fetchConfigsReconnectIfSocketHasChanged() async -> Spec? {
         /// We will not sending request if we have never fetched podspace public spec.
         if !hasEverCached() { return nil }
-        
-        let token = TokenManager.shared.getToken()
     
-        guard let spec = try? await refetchAndStoreConfigs(),
-              let token = token
+        guard let spec = try? await refetchAndStoreConfigs()
         else { return nil }
         if await !isCurrentSokectChanged() { return spec }
         
-        reconnect(token: token, spec: spec)
+        reconnect(spec: spec)
         return spec
     }
     
@@ -180,9 +170,14 @@ extension SpecManagerViewModel {
         }
     }
     
-    private func reconnect(token: String, spec: Spec) {
+    private func reconnect(spec: Spec) {
+        guard let token = token() else { return }
         let config = Spec.config(spec: spec, token: token)
         UserConfigManagerVM.instance.createChatObjectAndConnect(userId: nil, config: config, delegate: delegate)
+    }
+    
+    private func token() -> String? {
+        TokenManager.shared.getToken()
     }
     
     private func scheduleRefetchTimer() {

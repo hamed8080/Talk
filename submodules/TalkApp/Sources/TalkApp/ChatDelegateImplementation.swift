@@ -69,6 +69,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
             isDownloading = false
             networkObserver = nil
         } catch {
+            log("Error on download spec or bundle: \n\(error.localizedDescription)")
             isDownloading = false
             // Failed to download spec or bundle
             if retryCount < 3 {
@@ -252,6 +253,6 @@ public final class ChatDelegateImplementation: ChatDelegate {
     }
 
     private func log(_ string: String) {
-        Logger.log(title: "ChatDelegateImplementation.onLog", message: string)
+        Logger.log(title: "ChatDelegateImplementation", message: string)
     }
 }
