@@ -247,9 +247,10 @@ public final class ImageLoaderViewModel: ObservableObject {
     }
     
     private func getPaths() -> (images: String, files: String) {
-        let podspace = AppState.shared.spec.server.file
-        let images = "\(podspace)\(AppState.shared.spec.paths.podspace.download.images)"
-        let files = "\(podspace)\(AppState.shared.spec.paths.podspace.download.files)"
+        let spec = AppState.shared.spec
+        let podspace = spec.server.file
+        let images = "\(podspace)\(spec.paths.podspace.download.images)"
+        let files = "\(podspace)\(spec.paths.podspace.download.files)"
         return (images, files)
     }
 
@@ -348,6 +349,13 @@ extension ImageLoaderViewModel {
         let isEmptyContactString = contactName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let name = !isEmptyContactString ? contactName : contact.user?.name
         let config = ImageLoaderConfig(url: httpsImage, userName: String.splitedCharacter(name ?? ""))
+        self.init(config: config)
+    }
+    
+    convenience init(participant: Participant) {
+        let httpsImage = participant.image?.replacingOccurrences(of: "http://", with: "https://")
+        let userName = String.splitedCharacter(participant.name ?? participant.username ?? "")
+        let config = ImageLoaderConfig(url: httpsImage ?? "", userName: userName)
         self.init(config: config)
     }
 }

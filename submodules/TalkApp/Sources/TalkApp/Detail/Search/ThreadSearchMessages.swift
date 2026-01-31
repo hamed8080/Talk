@@ -47,6 +47,7 @@ struct ThreadSearchMessages: View {
                     if viewModel.isLoading {
                         LottieView(animation: .named(viewModel.searchedMessages.isEmpty ? "talk_logo_animation.json" : "dots_loading.json"))
                             .playing()
+                            .defaultColor()
                             .frame(height: 52)
                     } else if !viewModel.searchText.isEmpty && !viewModel.isLoading {
                         Text("General.nothingFound")
@@ -81,10 +82,7 @@ struct ThreadSearchMessages: View {
     }
     
     private var isDarkMode: Bool {
-        if AppSettingsModel.restore().isDarkModeEnabled == nil {
-            return colorScheme == .dark
-        }
-        return AppSettingsModel.restore().isDarkModeEnabled == true
+        AppSettingsModel.restore().isDarkMode 
     }
     
     private func onTap(message: Message) {

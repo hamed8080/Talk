@@ -47,6 +47,19 @@ public struct AppSettingsModel: Codable, Hashable, Sendable {
     }
 }
 
+public extension AppSettingsModel {
+    var isDarkMode: Bool {
+        guard let isDarkModeEnabled = isDarkModeEnabled
+        else {
+            /// System default selected dark mode
+            let view = AppState.shared.objectsContainer.navVM.rootVC?.view
+            let systemUserStyle = view?.traitCollection.userInterfaceStyle == .dark
+            return systemUserStyle
+        }
+        return isDarkModeEnabled
+    }
+}
+
 /// Automatic download settings.
 public struct AutomaticDownloadSettingModel: Codable, Sendable {
     public var downloadImages: Bool = false

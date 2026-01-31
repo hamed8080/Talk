@@ -27,7 +27,7 @@ struct MoveToFileContextMenuItemViewModifier<V: View>: ViewModifier {
             } menus: {
                 VStack {
                     ContextMenuButton(title: "General.showMessage".bundleLocalized(), image: "message.fill", bundle: Language.preferedBundle, isRTL: Language.isRTL) {
-                        rowModel.moveToMessage(viewModel)
+//                        rowModel.moveToMessage(viewModel)
                     }
                 }
                 .foregroundColor(.primary)

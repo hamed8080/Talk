@@ -14,6 +14,7 @@ import TalkModels
 struct AddParticipantsToThreadView: View {
     @EnvironmentObject var contactsVM: ContactsViewModel
     var onCompleted: (ContiguousArray<Contact>) -> Void
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         List {
@@ -66,6 +67,7 @@ struct AddParticipantsToThreadView: View {
         SubmitBottomButton(text: "General.add", enableButton: .constant(contactsVM.selectedContacts.count > 0), isLoading: .constant(false)) {
             onCompleted(contactsVM.selectedContacts)
             contactsVM.deselectContacts() // to clear for the next time
+            dismiss()
         }
     }
 

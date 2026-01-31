@@ -28,6 +28,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
         center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
         application.registerForRemoteNotifications()
         Messaging.messaging().delegate = self
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in}
+        
+        let forceLeitner = UserDefaults.standard.bool(forKey: SceneDelegate.L_FORCE)
+        if forceLeitner { return true }
         ChatDelegateImplementation.sharedInstance.initialize()
         ChatDelegateImplementation.sharedInstance.registerOnConnect()
         return true

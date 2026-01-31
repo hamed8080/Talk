@@ -58,26 +58,84 @@ public extension Spec {
             .build()
         return chatConfig
     }
+}
+
+public extension Server {
     
-    fileprivate static let key = "SPEC_KEY"
-    static func cachedSpec() -> Spec? {
-        return UserDefaults.standard.codableValue(forKey: Spec.key)
+    init(socket: String, server: Server) {
+        self = .init(server: server.server,
+                     socket: socket,
+                     sso: server.sso,
+                     social: server.social,
+                     file: server.file,
+                     serverName: server.serverName,
+                     talk: server.talk,
+                     talkback: server.talkback,
+                     log: server.log,
+                     neshan: server.neshan,
+                     neshanAPI: server.neshanAPI,
+                     panel: server.panel)
     }
-    
-    static func storeSpec(_ spec: Spec) {
-        UserDefaults.standard.setValue(codable: spec, forKey: Spec.key)
-    }
-    
-    static func dl() async throws -> Spec {
-        // https://raw.githubusercontent.com/hamed8080/bundle/v1.101/Spec.json
-        guard let string = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2hhbWVkODA4MC9idW5kbGUvdjEuMTAxL1NwZWMuanNvbg==".fromBase64(),
-        let url = URL(string: string)
-        else { throw URLError.init(.badURL) }
-        var req = URLRequest(url: url, timeoutInterval: 10.0)
-        req.method = .get
-        let (data, response) = await try URLSession.shared.data(req)
-        let spec = try JSONDecoder.instance.decode(Spec.self, from: data)
-        storeSpec(spec)        
-        return spec
+}
+
+public extension Paths {
+    static let defaultPaths = Paths(
+        social: .init(
+            listContacts: "/nzh/contact/contacts",
+            addContacts: "/nzh/addContacts",
+            updateContacts: "/nzh/contact/updateContact",
+            removeContacts: "/nzh/removeContacts"
+        ),
+        podspace: .init(
+            download: .init(
+                thumbnail: "/api/files/{hashCode}/thumbnail",
+                images: "/api/v2/images",
+                files: "/api/files"),
+            upload: .init(
+                images: "/api/images",
+                files: "/api/files",
+                usergroupsFiles: "/api/usergroups/{userGroupHash}/files",
+                usergroupsImages: "/api/usergroups/{userGroupHash}/images"
+            )
+        ),
+        neshan: .init(
+            reverse: "/reverse",
+            search: "/search",
+            routing: "/routing",
+            staticImage: "/static"
+        ),
+        sso: .init(
+            oauth: "/oauth2",
+            token: "/oauth2/token",
+            devices: "/oauth2/grants/devices",
+            authorize: "/oauth2/authorize",
+            clientId: "88413l69cd4051a039cf115ee4e073"
+        ),
+        talkBack: .init(
+            updateImageProfile: "/api/uploadImage",
+            opt: "/api/oauth2/otp",
+            refreshToken: "/api/oauth2/otp/refresh",
+            verify: "/api/oauth2/otp/verify",
+            authorize: "/api/oauth2/otp/authorize",
+            handshake: "/api/oauth2/otp/handshake"
+        ),
+        talk: .init(
+            join: "/join?tn=",
+            redirect: "talk://login"
+        ),
+        log: .init(talk: "/1m-http-server-test-chat"),
+        panel: .init(info: "/Users/Info"))
+}
+
+public extension SubDomains {
+    static let defaultSubdomains = SubDomains(core: "Y29yZS5wb2QuaXI=".fromBase64() ?? "", podspace: "cG9kc3BhY2UucG9kLmly".fromBase64() ?? "")
+}
+
+fileprivate extension String {
+    func fromBase64() -> String? {
+        guard let data = Data(base64Encoded: self) else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
     }
 }

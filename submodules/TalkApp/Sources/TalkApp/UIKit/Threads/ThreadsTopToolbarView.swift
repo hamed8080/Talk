@@ -28,6 +28,10 @@ public class ThreadsTopToolbarView: UIStackView {
     private let player = ThreadNavigationPlayer(viewModel: nil)
     private let topRowStack = UIStackView()
     private let searchRowStack = UIStackView()
+#if DEBUG
+    private var debugMenu = UIButton(type: .system)
+#endif
+    private let proxyButton = UIImageButton(imagePadding: .init(all: 12))
     
     /// Constraints
     private var heightConstraint: NSLayoutConstraint?
@@ -129,6 +133,17 @@ public class ThreadsTopToolbarView: UIStackView {
             self?.onUploadsTapped()
         }
         
+        proxyButton.translatesAutoresizingMaskIntoConstraints = false
+        proxyButton.imageView.image = UIImage(systemName: "checkmark.shield")
+        proxyButton.imageView.tintColor = Color.App.accentUIColor
+        proxyButton.imageView.contentMode = .scaleAspectFit
+        proxyButton.accessibilityIdentifier = "proxyButtonThreadsTopToolbarView"
+        proxyButton.isHidden = !TalkBackProxyViewModel.hasProxy()
+        proxyButton.isUserInteractionEnabled = TalkBackProxyViewModel.hasProxy()
+        proxyButton.action = { [weak self] in
+            self?.onProxyTapped()
+        }
+        
         topRowStack.axis = .horizontal
         topRowStack.alignment = .center
         topRowStack.distribution = .fill
@@ -139,6 +154,7 @@ public class ThreadsTopToolbarView: UIStackView {
         topRowStack.addArrangedSubview(connectionStatusLabel)
         topRowStack.addArrangedSubview(uploadsButton)
         topRowStack.addArrangedSubview(downloadsButton)
+        topRowStack.addArrangedSubview(proxyButton)
         topRowStack.addArrangedSubview(searchButton)
    
         filterUnreadMessagesButton.translatesAutoresizingMaskIntoConstraints = false
@@ -210,6 +226,9 @@ public class ThreadsTopToolbarView: UIStackView {
             uploadsButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             uploadsButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
+            proxyButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            proxyButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
+            
             searchTextField.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             filterUnreadMessagesButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
@@ -218,6 +237,48 @@ public class ThreadsTopToolbarView: UIStackView {
         
         player.isHidden = true
         searchRowStack.isHidden = true
+        
+        configureDebugButton()
+    }
+    
+    private func configureDebugButton() {
+#if DEBUG
+        var actions: [UIAction] = []
+        
+        let setTokenAction = UIAction(title: "Set token") { [weak self] _ in
+            let alert = UIAlertController(title: "Set token", message: "", preferredStyle: .alert)
+            alert.addTextField { textField in
+                textField.placeholder = "Enter token here..."
+            }
+            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+            
+            let confirmAction = UIAlertAction(title: "Confirm", style: .destructive) { _ in
+                let token = alert.textFields?.first?.text ?? ""
+                Task { @ChatGlobalActor in
+                    await ChatManager.activeInstance?.setToken(newToken: token, reCreateObject: false)
+                }
+            }
+            
+            alert.addAction(cancelAction)
+            alert.addAction(confirmAction)
+            
+            self?.window?.rootViewController?.present(alert, animated: true)
+        }
+        actions.append(setTokenAction)
+        
+        let menu = UIMenu(children: actions)
+        debugMenu.translatesAutoresizingMaskIntoConstraints = false
+        debugMenu.setTitle("Debug options", for: .normal)
+        debugMenu.menu = menu
+        debugMenu.showsMenuAsPrimaryAction = true
+        addSubview(debugMenu)
+        
+        NSLayoutConstraint.activate([
+            debugMenu.trailingAnchor.constraint(equalTo: proxyButton.leadingAnchor, constant: -16),
+            debugMenu.centerYAnchor.constraint(equalTo: searchButton.centerYAnchor),
+            debugMenu.heightAnchor.constraint(equalTo: searchButton.heightAnchor),
+        ])
+#endif
     }
 
     private func registerObservers() {
@@ -247,6 +308,11 @@ public class ThreadsTopToolbarView: UIStackView {
         
         NotificationCenter.default.publisher(for: Notification.Name("CLOSE_PLAYER")).sink { [weak self] notif in
             self?.onPlayerItemChanged(nil)
+        }
+        .store(in: &cancellableSet)
+        
+        NotificationCenter.default.publisher(for: Notification.Name(TalkBackProxyViewModel.didChangeNotificationKey)).sink { [weak self] notif in
+            self?.proxyButton.isHidden = !TalkBackProxyViewModel.hasProxy()
         }
         .store(in: &cancellableSet)
     }
@@ -301,6 +367,10 @@ public class ThreadsTopToolbarView: UIStackView {
         AppState.shared.objectsContainer.navVM.wrapAndPush(view: UploadsManagerListView())
     }
     
+    private func onProxyTapped() {
+        
+    }
+    
     private func onPlusTapped() {
         guard let obj = AppState.shared.objectsContainer else { return }
         obj.conversationBuilderVM.clear()
@@ -311,12 +381,13 @@ public class ThreadsTopToolbarView: UIStackView {
         let rootView = StartThreadContactPickerView()
             .environmentObject(obj.conversationBuilderVM)
             .environmentObject(obj.contactsVM)
+            .environment(\.colorScheme, traitCollection.userInterfaceStyle == .dark ? .dark : .light)
             .onDisappear {
                 obj.conversationBuilderVM.clear()
             }
         let vc = UIHostingController(rootView: rootView)
         vc.modalPresentationStyle = .formSheet
-        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkModeEnabled ?? false ? .dark : .light
+        vc.overrideUserInterfaceStyle = AppSettingsModel.restore().isDarkMode ? .dark : .light
         (obj.threadsVM.delegate as? UIViewController)?.present(vc, animated: true)
     }
     
@@ -347,6 +418,7 @@ extension ThreadsTopToolbarView: UITextFieldDelegate {
     public func textFieldDidEndEditing(_ textField: UITextField, reason: UITextField.DidEndEditingReason) {
         onSearchTextChanged(newValue: textField.text ?? "")
     }
+    
     public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)

@@ -26,6 +26,7 @@ public final class ThreadSendMessageViewModel {
     private var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
     private var delegate: ThreadViewDelegate? { viewModel?.delegate }
     private var historyVM: ThreadHistoryViewModel? { viewModel?.historyVM }
+    private var pendingManager: PendingManager { appState.objectsContainer.pendingManager }
     
     private var recorderVM: AudioRecordingViewModel { viewModel?.audioRecoderVM ?? .init() }
     private var model = SendMessageModel(threadId: -1)
@@ -355,8 +356,6 @@ public final class ThreadSendMessageViewModel {
 
     public func onCreateP2PThread(_ conversation: Conversation) {
         guard let conversationId = conversation.id else { return }
-        let navVM = AppState.shared.objectsContainer.navVM
-        
         if navVM.presentedThreadViewModel?.threadId == LocalId.emptyThread.rawValue {
             viewModel?.updateThreadId(conversationId)
             viewModel?.id = conversationId
@@ -399,19 +398,19 @@ public final class ThreadSendMessageViewModel {
             switch send {
             case .normal(let request):
                 message.send(request)
-                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
+                await pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .forward(let request):
                 message.send(request)
-                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
+                await pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .reply(let request):
                 message.reply(request)
-                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
+                await pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .replyPrivately(let request):
                 message.replyPrivately(request)
-                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
+                await pendingManager.append(uniqueId: request.uniqueId, request: request)
             case .edit(let request):
                 message.edit(request)
-                await AppState.shared.objectsContainer.pendingManager.append(uniqueId: request.uniqueId, request: request)
+                await pendingManager.append(uniqueId: request.uniqueId, request: request)
             }
         }
     }

@@ -6,64 +6,37 @@
 //
 
 import Foundation
-import SwiftUI
 import TalkModels
 import Chat
-import UIKit
-import AVFoundation
 import TalkExtensions
 import TalkFont
-
-public struct MainRequirements: Sendable {
-    let appUserId: Int?
-    let thread: Conversation?
-    let participantsColorVM: ParticipantsColorViewModel?
-    let isInSelectMode: Bool
-    let joinLink: String
-    
-    public init(appUserId: Int?, thread: Conversation?, participantsColorVM: ParticipantsColorViewModel?, isInSelectMode: Bool, joinLink: String) {
-        self.appUserId = appUserId
-        self.thread = thread
-        self.participantsColorVM = participantsColorVM
-        self.isInSelectMode = isInSelectMode
-        self.joinLink = joinLink
-    }
-}
 
 struct CalculatedDataResult {
     var calData: MessageRowCalculatedData
     var message: HistoryMessageType
 }
 
-class MessageRowCalculators {
+public final actor MessageRowCalculators {
+    private let mainData: MainRequirements
+    private let messages: [HistoryMessageType]
+    private let threadViewModel: ThreadViewModel
     
-    class func batchCalulate(_ messages: [HistoryMessageType],
-                             mainData: MainRequirements,
-                             viewModel: ThreadViewModel?) async -> [MessageRowViewModel] {
-        // 1- accumulate all data needed from the main thread
-        guard let viewModel = await viewModel else { return [] }
-        
-        // 2- Caculate All messages first concurrently withouth need to use a specific Thread / Actor
-        var msgsCal = await calculateWithGroup(messages, mainData)
-        
-        // 3- Calculate fileURL which requires ChatGlobalActor and participantColor where it requires HistoryActor
-        for (index, msgCal) in msgsCal.enumerated() {
-            let newData = await calculateColorAndFileURL(mainData: mainData,
-                                                         message: msgCal.message,
-                                                         calculatedMessage: msgCal.calData)
-            msgsCal[index].calData = newData
-        }
-        
-        
-        let viewModels = await createViewModels(msgsCal, viewModel)
-        return viewModels
+    public init(messages: [HistoryMessageType], mainData: MainRequirements, threadViewModel: ThreadViewModel) {
+        self.messages = messages
+        self.mainData = mainData        
+        self.threadViewModel = threadViewModel
     }
     
-    private class func calculateWithGroup(_ messages: [HistoryMessageType], _ mainData: MainRequirements) async -> [CalculatedDataResult] {
+    func batchCalulate() async -> [MessageRowViewModel] {
+        let dataResults = await calculateWithGroup()
+        return await createViewModels(dataResults)
+    }
+    
+    private func calculateWithGroup() async -> [CalculatedDataResult] {
         let msgsCal = await withTaskGroup(of: CalculatedDataResult.self) { group in
             for message in messages {
                 group.addTask {
-                    let calculatedData = await calculate(message: message, mainData: mainData, appendMessages: messages)
+                    let calculatedData = await self.calculate(message: message)
                     return CalculatedDataResult(calData: calculatedData, message: message)
                 }
             }
@@ -77,21 +50,22 @@ class MessageRowCalculators {
     }
    
     @MainActor
-    private class func createViewModels(_ msgsCal: [CalculatedDataResult], _ viewModel: ThreadViewModel) -> [MessageRowViewModel] {
+    private func createViewModels(_ results: [CalculatedDataResult]) -> [MessageRowViewModel] {
         var viewModels: [MessageRowViewModel] = []
-        for msgCal in msgsCal {
-            let vm = MessageRowViewModel(message: msgCal.message, viewModel: viewModel)
-            vm.calMessage = msgCal.calData
+        for result in results {
+            let vm = MessageRowViewModel(message: result.message, viewModel: threadViewModel)
+            vm.calMessage = result.calData
             if vm.calMessage.fileURL != nil {
-                let fileState = completionFileState(vm.fileState, msgCal.message.iconName)
+                let fileState = completionFileState(vm.fileState, result.message.iconName)
                 vm.setFileState(fileState, fileURL: nil)
             }
             viewModels.append(vm)
         }
         return viewModels
     }
-    
-    private class func completionFileState(_ oldState: MessageFileState, _ iconName: String?) -> MessageFileState {
+
+    @MainActor
+    private func completionFileState(_ oldState: MessageFileState, _ iconName: String?) -> MessageFileState {
         var fileState = oldState
         fileState.state = .completed
         fileState.showDownload = false
@@ -99,839 +73,137 @@ class MessageRowCalculators {
         return fileState
     }
     
-    nonisolated class func calculate(message: HistoryMessageType,
-                                     mainData: MainRequirements,
-                                     appendMessages: [HistoryMessageType] = []
-    ) async -> MessageRowCalculatedData {
+    func calculate(message: HistoryMessageType) async -> MessageRowCalculatedData {
         var calculatedMessage = MessageRowCalculatedData()
         var sizes = ConstantSizes()
-        var rowType = MessageViewRowType()
         let thread = mainData.thread
+        let isChannelType = thread?.type?.isChannelType == true
         
-        calculatedMessage.isMe = message.isMe(currentUserId: mainData.appUserId) || message is UploadProtocol
+        let isMine = message.isMe(currentUserId: mainData.appUserId) || message is UploadProtocol
+        let fileMetaData = message.fileMetaData /// decoding data so expensive if it will happen on the main thread.
         
+        let rowType = MessageRowTypeCalculator(
+            message: message,
+            isMine: isMine,
+            fileMetaData: fileMetaData,
+            joinLink: mainData.joinLink
+        ).rowType()
+        
+        calculatedMessage.isMe = isMine
         calculatedMessage.canShowIconFile = message.replyInfo?.messageType != .text && message.replyInfo?.deleted == false
-        calculatedMessage.isCalculated = true
-        calculatedMessage.fileMetaData = message.fileMetaData /// decoding data so expensive if it will happen on the main thread.
-        let imageResult = calculateImageSize(message: message, calculatedMessage: calculatedMessage)
+        calculatedMessage.fileMetaData = fileMetaData
+        let imageResult = MessageImageSizeCalculator(message: message, fileMetaData: calculatedMessage.fileMetaData, isImage: rowType.isImage).imageSize()
         sizes.imageWidth = imageResult?.width
         sizes.imageHeight = imageResult?.height
-        calculatedMessage.isReplyImage = calculateIsReplyImage(message: message)
-        calculatedMessage.replyLink = calculateReplyLink(message: message)
-        sizes.paddings.paddingEdgeInset = calculatePaddings(message: message, calculatedMessage: calculatedMessage)
+        
+        let replyCal = MessageReplyInfoCalculator(message: message, sizes: sizes, calculatedMessage: calculatedMessage, isImage: rowType.isImage)
+        calculatedMessage.isReplyImage = replyCal.calculateIsReplyImage()
+        calculatedMessage.replyLink = replyCal.replyLink()        
+        sizes.paddings.paddingEdgeInset = MessageEdgeInsetPaddingCalculator(message: message, calculatedMessage: calculatedMessage, isImage: rowType.isImage).edgeInset()
         calculatedMessage.avatarSplitedCharaters = String.splitedCharacter(message.participant?.name ?? message.participant?.username ?? "")
         
-        let isEditableOrNil = (message.editable == true || message.editable == nil)
-        calculatedMessage.canEdit = ( isEditableOrNil && calculatedMessage.isMe) || (isEditableOrNil && thread?.admin == true && thread?.type?.isChannelType == true && calculatedMessage.isMe)
-        if message.forwardInfo != nil {
-            calculatedMessage.canEdit = false
-        }
-        rowType.isMap = calculatedMessage.fileMetaData?.mapLink != nil || calculatedMessage.fileMetaData?.latitude != nil || (message as? UploadFileMessage)?.locationRequest != nil
-        let isFirstMessageOfTheUser = isFirstMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: mainData.thread?.type?.isChannelType == true)
-        calculatedMessage.isFirstMessageOfTheUser = thread?.group == true && isFirstMessageOfTheUser
-        calculatedMessage.isLastMessageOfTheUser = isLastMessageOfTheUserInsideAppending(message, appended: appendMessages, isChannelType: thread?.type?.isChannelType == true)
-        if let prefix = message.message?.prefix(5) {
-            calculatedMessage.isEnglish = String(prefix).naturalTextAlignment == .leading
-        }
+        calculatedMessage.canEdit = MessageCanEditCalculator(message: message, conversation: thread, isMine: isMine).canEdit()
+        
+        let firstOrLastCal = MessageFirstOrLastCalculator(message: message, appended: messages, isChannelType: isChannelType)
+        calculatedMessage.isFirstMessageOfTheUser = firstOrLastCal.isFirst()
+        calculatedMessage.isLastMessageOfTheUser = firstOrLastCal.isLast()
         
         let mapUploadText = (message as? UploadFileMessage)?.locationRequest?.textMessage
-        if let attributedString = calculateAttributedString(text: message.message ?? mapUploadText ?? "") {
+        if let attributedString = MessageAttributedStringCalculator(message: message).attributedString() {
             calculatedMessage.attributedString = attributedString
         }
-        calculatedMessage.rangeCodebackground = tripleGraveAccentRanges(text: calculatedMessage.attributedString?.string ?? "")
-        rowType.isPublicLink = message.isPublicLink(joinLink: mainData.joinLink)
-        rowType.isFile = message.isFileType && !rowType.isMap && !message.isImage && !message.isAudio && !message.isVideo
-        rowType.isReply = message.replyInfo != nil
+        calculatedMessage.rangeCodebackground = MessageTripleGraveAccentCalculator(message: message, pattern: "(?s)```\n(.*?)\n```").calculateRange(text: calculatedMessage.attributedString?.string ?? "")
         if let date = message.time?.date {
-            calculatedMessage.timeString = MessageRowCalculatedData.formatter.string(from: date)
+            calculatedMessage.timeString = MessageRowCalculators.hourFormatter.string(from: date)
         }
         
-        rowType.isSingleEmoji = isSingleEmoji(message)
-        rowType.isImage = !rowType.isMap && message.isImage
-        rowType.isVideo = message.isVideo
-        rowType.isAudio = message.isAudio
-        rowType.isForward = message.forwardInfo != nil
-        rowType.isUnSent = message.isUnsentMessage
-        rowType.hasText = !rowType.isSingleEmoji && calculateText(message: message) != nil
-        if mapUploadText != nil {
-            rowType.hasText = true
-        }
-        rowType.cellType = getCellType(message: message, isMe: calculatedMessage.isMe)
+        /// File Size/ Name/ Extension
+        calculatedMessage.computedFileSize = MessageFileSizeCalculator(message: message, fileMetaData: calculatedMessage.fileMetaData).calculate()
+        calculatedMessage.extName = MessageFileTypeExtensionCalculator(message: message, fileMetaData: calculatedMessage.fileMetaData).fileTypeString()
+        calculatedMessage.fileName = MessageFileNameCalculator(message: message, fileMetaData: calculatedMessage.fileMetaData).calculateFileName()
         
-        calculatedMessage.computedFileSize = calculateFileSize(message: message, calculatedMessage: calculatedMessage)
-        calculatedMessage.extName = calculateFileTypeWithExt(message: message, calculatedMessage: calculatedMessage)
-        calculatedMessage.fileName = calculateFileName(message: message, calculatedMessage: calculatedMessage)
-        calculatedMessage.addOrRemoveParticipantsAttr = calculateAddOrRemoveParticipantRow(message: message, calculatedMessage: calculatedMessage, appUserId: mainData.appUserId)
-        sizes.paddings.textViewPadding = calculateTextViewPadding(message: message)
-        calculatedMessage.replyFileName = calculateLocalizeReplyFileName(message: message)
-        calculatedMessage.groupMessageParticipantName = calculateGroupParticipantName(message: message, calculatedMessage: calculatedMessage, thread: mainData.thread)
-        sizes.replyContainerWidth = calculateReplyContainerWidth(message: message, calculatedMessage: calculatedMessage, sizes: sizes)
-        sizes.forwardContainerWidth = calculateForwardContainerWidth(rowType: rowType, sizes: sizes)
-        calculatedMessage.isInTwoWeekPeriod = calculateIsInTwoWeekPeriod(message: message)
-        //        calculatedMessage.textLayer = getTextLayer(markdownTitle: calculatedMessage.markdownTitle)
+        calculatedMessage.addOrRemoveParticipantsAttr = MessageAddOrRemoveParticipantCalculator(message: message, isMine: calculatedMessage.isMe, myId: mainData.appUserId).attribute()
+        sizes.paddings.textViewPadding = MessagePaddingCalculator(message: message, calculatedMessage: calculatedMessage).textViewEdgeInset()
+        
+        let replyInfoCal = MessageReplyInfoCalculator(message: message, sizes: sizes, calculatedMessage: calculatedMessage, isImage: rowType.isImage)
+        calculatedMessage.replyFileName = replyInfoCal.replyFileName()
+        calculatedMessage.groupMessageParticipantName = MessageGroupParticipantNameCalculator(
+            message: message,
+            isMine: calculatedMessage.isMe,
+            isFirstMessageOfTheUser: calculatedMessage.isFirstMessageOfTheUser,
+            conversation: thread)
+        .participantName()
+        sizes.replyContainerWidth = replyInfoCal.calculateContainerWidth()
+        sizes.forwardContainerWidth = MessageForwardCalculator(message: message, rowType: rowType, sizes: sizes).containerWidth()
+        // calculatedMessage.textLayer = MessageTextLayerCalculator(markdownTitle: attributedString).textLayer()
+        
+        if (sizes.forwardContainerWidth == .infinity || sizes.forwardContainerWidth == nil) && message.forwardInfo != nil && rowType.isImage {
+            sizes.imageWidth = ThreadViewModel.maxAllowedWidth
+        }
+        
+        if sizes.replyContainerWidth == nil && message.replyInfo != nil && rowType.isImage {
+            sizes.imageWidth = ThreadViewModel.maxAllowedWidth
+        }
         
         if let attr = calculatedMessage.addOrRemoveParticipantsAttr {
-            calculatedMessage.textRect = getRect(markdownTitle: attr, width: ThreadViewModel.maxAllowedWidth)
+            calculatedMessage.textRect = MessageGeneralRectCalculator(markdownTitle: attr, width: ThreadViewModel.maxAllowedWidth).rect()
         } else if let attr = calculatedMessage.attributedString {
             let width = calculatedMessage.isMe ? ThreadViewModel.maxAllowedWidthIsMe : ThreadViewModel.maxAllowedWidth
-            calculatedMessage.textRect = getRect(markdownTitle: attr, width: width)
+            calculatedMessage.textRect = MessageGeneralRectCalculator(markdownTitle: attr, width: width).rect()
         }
         
+        /// View Size/EdgeInset and Paddings
         let originalPaddings = sizes.paddings
-        sizes.paddings = calculateSpacingPaddings(message: message, calculatedMessage: calculatedMessage)
+        let paddingCal = MessagePaddingCalculator(message: message, calculatedMessage: calculatedMessage)
+        sizes.paddings = paddingCal.paddings()
         sizes.paddings.textViewPadding = originalPaddings.textViewPadding
         sizes.paddings.paddingEdgeInset = originalPaddings.paddingEdgeInset
         
         calculatedMessage.avatarColor = String.getMaterialColorByCharCode(str: message.participant?.name ?? message.participant?.username ?? "")
         calculatedMessage.state.isInSelectMode = mainData.isInSelectMode
         
-        calculatedMessage.callAttributedString = calculateCallText(message: message, myId: mainData.appUserId)
-        
-        sizes.minTextWidth = minimumTextWidthBasedOnTextRect(textWidth: calculatedMessage.textRect?.width ?? 0)
+        calculatedMessage.callAttributedString = MessagCallTextCalculator(message: message, myId: mainData.appUserId).attribute()
+        sizes.minTextWidth = MessageMinimumTextWidthCalculator(textWidth: calculatedMessage.textRect?.width ?? 0).minimum()
         
         calculatedMessage.rowType = rowType
-        let estimateHeight = calculateEstimatedHeight(id: message.id ?? 0, calculatedMessage, sizes, message.reactionableType)
+        let estimateHeight = MessageHeightEstimationCalculator(
+            message: message,
+            sizes: sizes,
+            rowType: rowType,
+            isFirstMessageOfTheUser: calculatedMessage.isFirstMessageOfTheUser,
+            isMine: calculatedMessage.isMe,
+            addOrRemoveParticipantsAttr: calculatedMessage.addOrRemoveParticipantsAttr,
+            textRect: calculatedMessage.textRect
+        ).estimate()
         sizes.estimatedHeight = estimateHeight
         calculatedMessage.sizes = sizes
         
+        /// Color of participant
+        calculatedMessage.participantColor = await MessageParticipantColorCalculator(
+            message: message,
+            participantsColorVM: mainData.participantsColorVM)
+        .color()
+        
+        /// Normal file file url
+        let fileURL = await MessageFilePathOnDiskCalculator(message: message).getFileURL()
+        calculatedMessage.fileURL = fileURL
+        
+        /// Audio file url
+        if let fileURL = fileURL, let url = MessagePlayerItemCalculator.audioURL(fileURL: fileURL, message: message, isAudio: rowType.isAudio) {
+            calculatedMessage.fileURL = url
+            let audioCal = MessagePlayerItemCalculator(message: message, url: url, metadata: calculatedMessage.fileMetaData)
+            calculatedMessage.avPlayerItem = await audioCal.playerItem()
+        }
+        
         return calculatedMessage
-    }
-    
-    class func calculateColorAndFileURL(mainData: MainRequirements, message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) async -> MessageRowCalculatedData {
-        var newCal = calculatedMessage
-        let color = await mainData.participantsColorVM?.color(for: message.participant?.id ?? -1)
-        newCal.participantColor = color ?? .clear
-        newCal.fileURL = await getFileURL(serverURL: message.url)
-        if newCal.rowType.isAudio, let message = message as? Message, let fileURL = newCal.fileURL {
-            let url = AudioFileURLCalculator(fileURL: fileURL, message: message).audioURL()
-            newCal.fileURL = url
-            newCal.avPlayerItem = await calculatePlayerItem(url, newCal.fileMetaData, message)
-        }
-        return newCal
-    }
-    
-    class func calculatePaddings(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> UIEdgeInsets {
-        let isReplyOrForward = (message.forwardInfo != nil || message.replyInfo != nil) && !message.isImage
-        let tailWidth: CGFloat = 6
-        let paddingLeading = isReplyOrForward ? (calculatedMessage.isMe ? 10 : 16) : (calculatedMessage.isMe ? 4 : 4 + tailWidth)
-        let paddingTrailing: CGFloat = isReplyOrForward ? (calculatedMessage.isMe ? 16 : 10) : (calculatedMessage.isMe ? 4 + tailWidth : 4)
-        let paddingTop: CGFloat = isReplyOrForward ? 10 : 4
-        let paddingBottom: CGFloat = 4
-        return UIEdgeInsets(top: paddingTop, left: paddingLeading, bottom: paddingBottom, right: paddingTrailing)
-    }
-    
-    class func calculateTextViewPadding(message: HistoryMessageType) -> UIEdgeInsets {
-        return UIEdgeInsets(top: !message.isImage && message.replyInfo == nil && message.forwardInfo == nil ? 6 : 0, left: 6, bottom: 0, right: 6)
-    }
-    
-    class func replySenderWidthWithIconOrImage(replyInfo: ReplyInfo, iconWidth: CGFloat, senderNameWidth: CGFloat) -> CGFloat {
-        let space: CGFloat = 1.5 + 32 /// 1.5 bar + 8 for padding + 8 for space between image and leading bar + 8 between image and sender name + 16 for padding
-        let senderNameWithImageSize = senderNameWidth + space + iconWidth
-        return senderNameWithImageSize
-    }
-    
-    class func messageContainerTextWidth(text: String, replyWidth: CGFloat, sizes: ConstantSizes) -> CGFloat {
-        let font = UIFont.normal(.body)
-        let textWidth = text.widthOfString(usingFont: font) + replyWidth
-        let minimumWidth: CGFloat = 128
-        let maxOriginal = max(minimumWidth, textWidth + sizes.paddings.paddingEdgeInset.left + sizes.paddings.paddingEdgeInset.right)
-        return maxOriginal
-    }
-    
-    class func replySenderWidthCalculation(replyInfo: ReplyInfo) -> CGFloat {
-        let senderNameText = replyInfo.participant?.contactName ?? replyInfo.participant?.name ?? ""
-        let senderFont = UIFont.bold(.caption)
-        let senderNameWidth = senderNameText.widthOfString(usingFont: senderFont)
-        return senderNameWidth
-    }
-    
-    class func replyStaticTextWidth() -> CGFloat {
-        let staticText = "Message.replyTo".bundleLocalized()
-        let font = UIFont.bold(.caption)
-        let width = staticText.widthOfString(usingFont: font) + 12
-        return width
-    }
-    
-    class func replyIconOrImageWidth(calculatedMessage: MessageRowCalculatedData) -> CGFloat {
-        let isReplyImageOrIcon = calculatedMessage.isReplyImage || calculatedMessage.canShowIconFile
-        return isReplyImageOrIcon ? 32 : 0
-    }
-    
-    class func calculateFileSize(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> String? {
-        let normal = message as? UploadFileMessage
-        let fileReq = normal?.uploadFileRequest
-        let imageReq = normal?.uploadImageRequest
-        let size = fileSizeOfURL(fileReq?.filePath) ?? fileReq?.data.count ?? imageReq?.data.count ?? 0
-        let uploadFileSize: Int64 = Int64(size)
-        let realServerFileSize = calculatedMessage.fileMetaData?.file?.size
-        let fileSize = (realServerFileSize ?? uploadFileSize).toSizeStringShort(locale: Language.preferredLocale)?.replacingOccurrences(of: "٫", with: ".")
-        return fileSize
-    }
-    
-    class func fileSizeOfURL(_ fileURL: URL?) -> Int? {
-        guard let fileURL = fileURL else { return nil }
-        let fileSize = try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int
-        return fileSize
-    }
-    
-    class func calculateFileTypeWithExt(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> String? {
-        let normal = message as? UploadFileMessage
-        let fileReq = normal?.uploadFileRequest
-        let imageReq = normal?.uploadImageRequest
-        
-        let uploadFileType = fileReq?.originalName ?? imageReq?.originalName
-        let serverFileType = calculatedMessage.fileMetaData?.file?.originalName
-        let split = (serverFileType ?? uploadFileType)?.split(separator: ".")
-        let ext = calculatedMessage.fileMetaData?.file?.extension ?? fileReq?.fileExtension ?? imageReq?.fileExtension
-        let lastSplit = String(split?.last ?? "")
-        let extensionName = (ext ?? lastSplit)
-        return extensionName.isEmpty ? nil : extensionName.uppercased()
-    }
-    
-    class func calculateAddOrRemoveParticipantRow(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData, appUserId: Int?) -> NSAttributedString? {
-        if ![.participantJoin, .participantLeft].contains(message.type) { return nil }
-        let date = Date(milliseconds: Int64(message.time ?? 0)).onlyLocaleTime
-        let string = "\(message.addOrRemoveParticipantString(meId: appUserId) ?? "") \(date)"
-        let attr = NSMutableAttributedString(string: string)
-        let isMeDoer = "General.you".bundleLocalized()
-        let doer = calculatedMessage.isMe ? isMeDoer : (message.participant?.name ?? "")
-        let doerRange = NSString(string: string).range(of: doer)
-        let allRange = NSRange(string.startIndex..., in: string)
-        attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: allRange)
-        attr.addAttributes([
-            NSAttributedString.Key.foregroundColor: UIColor(named: "accent") ?? .orange,
-            NSAttributedString.Key.font: UIFont.normal(.body)
-        ], range: doerRange)
-        return attr
-    }
-    
-    class func textForContianerCalculation(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> String {
-        let fileNameText = calculatedMessage.fileName ?? ""
-        let messageText = message.message?.prefix(150).replacingOccurrences(of: "\n", with: " ") ?? ""
-        let messageFileText = messageText.count > fileNameText.count ? messageText : fileNameText
-        return messageFileText
-    }
-    
-    class func replyPrimaryMessageFileIconWidth(calculatedMessage: MessageRowCalculatedData) -> CGFloat {
-        if calculatedMessage.fileName == nil || calculatedMessage.fileName?.isEmpty == true { return 0 }
-        return 32
-    }
-    
-    class func calculateReplyContainerWidth(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData, sizes: ConstantSizes) -> CGFloat? {
-        guard let replyInfo = message.replyInfo else { return nil }
-        
-        let staticReplyTextWidth = replyStaticTextWidth()
-        let text = textForContianerCalculation(message: message, calculatedMessage: calculatedMessage)
-        
-        
-        let replyWithIconWidth = replyPrimaryMessageFileIconWidth(calculatedMessage: calculatedMessage)
-        let textWidth = messageContainerTextWidth(text: text, replyWidth: replyWithIconWidth, sizes: sizes)
-        
-        let iconWidth = replyIconOrImageWidth(calculatedMessage: calculatedMessage)
-        let senderNameWidth = replySenderWidthCalculation(replyInfo: replyInfo)
-        
-        let senderNameWithIconOrImageInReply = replySenderWidthWithIconOrImage(replyInfo: replyInfo, iconWidth: iconWidth, senderNameWidth: senderNameWidth)
-        let maxWidthWithSender = max(textWidth + staticReplyTextWidth, senderNameWithIconOrImageInReply + staticReplyTextWidth)
-        
-        if !message.isImage, text.count < 60 {
-            return maxWidthWithSender
-        } else if !message.isImage, replyInfo.message?.count ?? 0 < text.count {
-            let maxAllowedWidth = min(maxWidthWithSender, ThreadViewModel.maxAllowedWidth)
-            return maxAllowedWidth
-        } else {
-            return nil
-        }
-    }
-    
-    class func calculateFileName(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> String? {
-        let fileName = calculatedMessage.fileMetaData?.file?.name
-        if fileName == "" || fileName == "blob", let originalName = calculatedMessage.fileMetaData?.file?.originalName {
-            return originalName
-        }
-        return fileName ?? message.uploadFileName()?.replacingOccurrences(of: ".\(message.uploadExt() ?? "")", with: "")
-    }
-    
-    class func calculateForwardContainerWidth(rowType: MessageViewRowType, sizes: ConstantSizes) -> CGFloat? {
-        if rowType.isMap {
-            return ConstantSizes.messageLocationWidth - 8
-        }
-        return .infinity
-    }
-    
-    class func calculateImageSize(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> CGSize? {
-        if message.isImage {
-            /// We use max to at least have a width, because there are times that maxWidth is nil.
-            let uploadMapSizeWidth = message is UploadFileMessage ? DownloadFileStateMediator.emptyImage.size.width : nil
-            let uploadMapSizeHeight = message is UploadFileMessage ? DownloadFileStateMediator.emptyImage.size.height : nil
-            let uploadImageReq = (message as? UploadFileMessage)?.uploadImageRequest
-            let imageWidth = CGFloat(calculatedMessage.fileMetaData?.file?.actualWidth ?? uploadImageReq?.wC ?? Int(uploadMapSizeWidth ?? 0))
-            let maxWidth = ThreadViewModel.maxAllowedWidth
-            /// We use max to at least have a width, because there are times that maxWidth is nil.
-            let imageHeight = CGFloat(calculatedMessage.fileMetaData?.file?.actualHeight ?? uploadImageReq?.hC ?? Int(uploadMapSizeHeight ?? 0))
-            let originalWidth: CGFloat = imageWidth
-            let originalHeight: CGFloat = imageHeight
-            var designerWidth: CGFloat = maxWidth
-            var designerHeight: CGFloat = maxWidth
-            let originalRatio: CGFloat = max(0, originalWidth / originalHeight) // To escape nan 0/0 is equal to nan
-            let designRatio: CGFloat = max(0, designerWidth / designerHeight) // To escape nan 0/0 is equal to nan
-            if originalRatio > designRatio {
-                designerHeight = max(0, designerWidth / originalRatio) // To escape nan 0/0 is equal to nan
-            } else {
-                designerWidth = designerHeight * originalRatio
-            }
-            let isSquare = originalRatio >= 1 && originalRatio <= 1.5
-            var newSizes = CGSize(width: 0, height: 0)
-            let hasText = message.message?.count ?? 0 > 1
-            
-            if originalWidth < designerWidth && originalHeight < designerHeight && !hasText {
-                let leadingMargin: CGFloat = 4
-                let trailingMargin: CGFloat = 4
-                let minWidth: CGFloat = 128 // 96 to draw image downloading label and progress button over image view
-                newSizes.width = max(leadingMargin + minWidth + trailingMargin, originalWidth)
-                newSizes.height = originalHeight
-            } else if hasText {
-                newSizes.width = maxWidth
-                newSizes.height = maxWidth
-            } else if isSquare {
-                newSizes.width = designerWidth
-                newSizes.height = designerHeight
-            } else {
-                newSizes.width = min(designerWidth * 1.5, maxWidth)
-                newSizes.height = min(designerHeight * 1.5, maxWidth)
-            }
-            
-            // We do this because if we got NAN as a result of 0 / 0 we have to prepare a value other than zero
-            // Because in maxWidth we can not say maxWidth is Equal zero and minWidth is equal 128
-            if newSizes.width == 0 {
-                newSizes.width = ThreadViewModel.maxAllowedWidth
-            }
-            let minWidth: CGFloat = 148 - 8 // It will prevent cutting progressView as much as possible.
-            if newSizes.width < minWidth {
-                newSizes.width = minWidth
-            }
-            
-            if newSizes.height <= 48 {
-                newSizes.height = 48
-            }
-            return newSizes
-        }
-        return nil
-    }
-    
-    class func calculateLocalizeReplyFileName(message: HistoryMessageType) -> String? {
-        guard let data = message.replyInfo?.metadata?.data(using: .utf8) else { return nil }
-        let fileMetadata = try? JSONDecoder().decode(FileMetaData.self, from: data)
-        return fileMetadata?.file?.originalName
-    }
-    
-    class func calculateIsInTwoWeekPeriod(message: HistoryMessageType) -> Bool {
-        let twoWeeksInMilliSeconds: UInt = 1_209_600_000
-        let now = UInt(Date().millisecondsSince1970)
-        let twoWeeksAfter = UInt(message.time ?? 0) + twoWeeksInMilliSeconds
-        if twoWeeksAfter > now {
-            return true
-        }
-        return false
-    }
-    
-    class func calculateGroupParticipantName(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData, thread: Conversation?) -> String? {
-        let canShowGroupName = !calculatedMessage.isMe && thread?.group == true && thread?.type?.isChannelType == false
-        && calculatedMessage.isFirstMessageOfTheUser
-        if canShowGroupName {
-            return message.participant?.contactName ?? message.participant?.name
-        }
-        return nil
-    }
-    
-    class func calculateReactionWidth(reactionText: String) -> CGFloat {
-        let width = reactionText.widthOfString(usingFont: UIFont.bold(.body)) + 16 + 4
-        return width
-    }
-    
-    class func calulateReactions(_ reactions: ReactionCountList, _ messageId: Int) -> ReactionRowsCalculated {
-        var rows: [ReactionRowsCalculated.Row] = []
-        let summaries = reactions.reactionCounts?.sorted(by: {$0.count ?? 0 > $1.count ?? 0}) ?? []
-        let myReaction = reactions.userReaction
-        summaries.forEach { summary in
-            var countText = summary.count?.localNumber(locale: Language.preferredLocale) ?? ""
-            if summary.count ?? 0 > 99 {
-                countText = "99+";
-            }
-            let emoji = summary.sticker?.emoji ?? ""
-            let isMyReaction = myReaction?.reaction?.rawValue == summary.sticker?.rawValue
-            let selectedEmojiTabId = "\(summary.sticker?.emoji ?? "all") \(countText)"
-            let width = calculateReactionWidth(reactionText: selectedEmojiTabId)
-            rows.append(.init(myReactionId: myReaction?.id,
-                              edgeInset: .defaultReaction,
-                              sticker: summary.sticker,
-                              emoji: emoji,
-                              countText: countText,
-                              count: summary.count ?? 0,
-                              isMyReaction: isMyReaction,
-                              selectedEmojiTabId: selectedEmojiTabId,
-                              width: width))
-        }
-        
-        // Move my reaction to the first item without sorting reactions
-        let myReactionRow = rows.first{$0.isMyReaction}
-        if let myReactionRow = myReactionRow {
-            rows.removeAll(where: {$0.isMyReaction})
-            rows.insert(myReactionRow, at: 0)
-        }
-        let myReactionSticker = myReaction?.reaction
-        return ReactionRowsCalculated(messageId: messageId, rows: rows)
-    }
-    
-    public class func reactionDeleted(_ calculated: ReactionRowsCalculated, _ reaction: Reaction, myId: Int) -> ReactionRowsCalculated {
-        var newCalculated = calculated
-        let wasMySelf = reaction.participant?.id == myId
-        if let index = newCalculated.rows.firstIndex(where: {$0.sticker?.rawValue == reaction.reaction?.rawValue}) {
-            newCalculated.rows = updateReaction(calculated,
-                                                index,
-                                                wasMySelf,
-                                                false,
-                                                nil,
-                                                newCalculated.rows[index].count - 1,
-                                                reaction.reaction?.emoji ?? "")
-            if newCalculated.rows[index].count == 0 {
-                newCalculated.rows.remove(at: index)
-            }
-        }
-        newCalculated.sortReactions()
-        return newCalculated
-    }
-    
-    public class func reactionAdded(_ calculated: ReactionRowsCalculated, _ reaction: Reaction, myId: Int) -> ReactionRowsCalculated {
-        var newCalculated = calculated
-        let wasMySelf = reaction.participant?.id == myId
-        if let index = calculated.rows.firstIndex(where: {$0.sticker?.rawValue == reaction.reaction?.rawValue}) {
-            newCalculated.rows = updateReaction(calculated,
-                                                index,
-                                                wasMySelf,
-                                                wasMySelf,
-                                                reaction.id,
-                                                calculated.rows[index].count + 1,
-                                                reaction.reaction?.emoji ?? "")
-        } else {
-            newCalculated.rows.append(ReactionRowsCalculated.Row.firstReaction(reaction, myId, reaction.reaction?.emoji ?? ""))
-        }
-        newCalculated.sortReactions()
-        return newCalculated
-    }
-    
-    public class func reactionReplaced(_ calculated: ReactionRowsCalculated, _ reaction: Reaction, myId: Int, oldSticker: Sticker) -> ReactionRowsCalculated {
-        let wasMySelf = reaction.participant?.id == myId
-        var newCalculated = calculated
-        /// Reduce old reaction
-        if let index = newCalculated.rows.firstIndex(where: {$0.sticker?.rawValue == oldSticker.rawValue}) {
-            let newValue = newCalculated.rows[index].count - 1
-            if newValue == 0 {
-                newCalculated.rows.remove(at: index)
-            } else {
-                newCalculated.rows = updateReaction(newCalculated,
-                                                    index,
-                                                    wasMySelf,
-                                                    false,
-                                                    reaction.id,
-                                                    newValue,
-                                                    oldSticker.emoji)
-            }
-        }
-        
-        /// Increase new reaction
-        if let index = newCalculated.rows.firstIndex(where: {$0.sticker?.rawValue == reaction.reaction?.rawValue}) {
-            newCalculated.rows = updateReaction(newCalculated,
-                                                index,
-                                                wasMySelf,
-                                                wasMySelf,
-                                                reaction.id,
-                                                newCalculated.rows[index].count + 1,
-                                                reaction.reaction?.emoji ?? "")
-        } else {
-            newCalculated.rows.append(ReactionRowsCalculated.Row.firstReaction(reaction, myId, reaction.reaction?.emoji ?? ""))
-        }
-        newCalculated.sortReactions()
-        return newCalculated
-    }
-    
-    public class func updateReaction(_ calculated: ReactionRowsCalculated,
-                                     _ index: Int,
-                                     _ wasMySelf: Bool,
-                                     _ isMyReaction: Bool,
-                                     _ myReactionId: Int?,
-                                     _ newValue: Int,
-                                     _ emoji: String?) -> [ReactionRowsCalculated.Row] {
-        var rows = calculated.rows
-        rows[index].count = newValue
-        rows[index].countText = newValue.localNumber(locale: Language.preferredLocale) ?? ""
-        if wasMySelf {
-            rows[index].isMyReaction = isMyReaction
-            rows[index].myReactionId = isMyReaction ? myReactionId : nil
-        }
-        rows[index].selectedEmojiTabId = "\(emoji ?? "") \(newValue.localNumber(locale: Language.preferredLocale) ?? "")"
-        return rows
-    }
-    
-    class func calculateIsReplyImage(message: HistoryMessageType) -> Bool {
-        if let replyInfo = message.replyInfo {
-            return [ChatModels.MessageType.picture, .podSpacePicture].contains(replyInfo.messageType)
-        }
-        return false
-    }
-    
-    class func calculateReplyLink(message: HistoryMessageType) -> String? {
-        if let replyInfo = message.replyInfo {
-            let metaData = replyInfo.metadata
-            if let data = metaData?.data(using: .utf8), let fileMetaData = try? JSONDecoder.instance.decode(FileMetaData.self, from: data) {
-                return fileMetaData.file?.link
-            }
-        }
-        return nil
-    }
-    
-    class func calculateSpacingPaddings(message: HistoryMessageType, calculatedMessage: MessageRowCalculatedData) -> MessagePaddings {
-        var paddings = MessagePaddings()
-        paddings.textViewSpacingTop = (calculatedMessage.groupMessageParticipantName != nil || message.replyInfo != nil || message.forwardInfo != nil) ? 10 : 0
-        paddings.replyViewSpacingTop = calculatedMessage.groupMessageParticipantName != nil ? 10 : 0
-        paddings.forwardViewSpacingTop = calculatedMessage.groupMessageParticipantName != nil ? 10 : 0
-        paddings.fileViewSpacingTop = (calculatedMessage.groupMessageParticipantName != nil || message.replyInfo != nil || message.forwardInfo != nil) ? 10 : 0
-        paddings.radioPadding = UIEdgeInsets(top: 0, left: calculatedMessage.isMe ? 8 : 0, bottom: 8, right: calculatedMessage.isMe ? 8 : 0)
-        paddings.mapViewSapcingTop =  (calculatedMessage.groupMessageParticipantName != nil || message.replyInfo != nil || message.forwardInfo != nil) ? 10 : 0
-        let hasAlreadyPadding = message.replyInfo != nil || message.forwardInfo != nil
-        let padding: CGFloat = hasAlreadyPadding ? 0 : 4
-        paddings.groupParticipantNamePadding = .init(top: padding, left: padding, bottom: 0, right: padding)
-        return paddings
-    }
-    
-    class func getCellType(message: HistoryMessageType, isMe: Bool) -> CellTypes {
-        let type = message.type
-        let isUploading = message is UploadProtocol
-        let isBareMessage = message.isTextMessageType || message.isUnsentMessage || isUploading
-        switch type {
-        case .endCall, .startCall:
-            return .call
-        case .participantJoin, .participantLeft:
-            return .participants
-        default:
-            if message is UnreadMessageProtocol {
-                return .unreadBanner
-            } else if isMe, isBareMessage {
-                return .meMessage
-            } else if !isMe, isBareMessage {
-                return .partnerMessage
-            }
-        }
-        return .unknown
-    }
-    
-    private class func calculateAttributedString(text: String) -> NSAttributedString? {
-        // Step 1: Convert all encoded text from the web version to normal signs.
-        let decodedText = text.convertedHTMLEncoding
-        
-        // Step 2: Add code blocks signs if there is any.
-        let text = decodedText.formatCodeBlocks()
-        
-        guard let mutableAttr = try? NSMutableAttributedString(string: text) else { return NSAttributedString() }
-        let range = (text.startIndex..<text.endIndex)
-        
-        mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
-        mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
-        mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
-        mutableAttr.addBold()
-        mutableAttr.addItalic()
-        mutableAttr.addStrikethrough()
-        
-        /// Add Space around all code text start with triple ``` and end with ```
-        tripleGraveAccentResults(mutableAttr.string, pattern: "(?s)```\n(.*?)\n```").forEach { result in
-            // Define paragraph style with leading padding
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.headIndent = 8 // Adds padding to all lines of the paragraph
-            paragraphStyle.firstLineHeadIndent = 8 // Adds padding to the first line
-            
-            mutableAttr.addAttribute(.paragraphStyle, value: paragraphStyle, range: result.range)
-        }
-        
-        /// Hide triple ``` by making them clear
-        /// We have to use ``mutableAttr.string`` instead of the ``text argument``,
-        /// because there is a chance the text contains both bold and triple grave accent in this case it will crash because bold will remove four **** sign therefore the index with ``text`` is bigger than mutableAttr.string.
-        tripleGraveAccentResults(mutableAttr.string, pattern: "```").forEach { result in
-            mutableAttr.addAttribute(.foregroundColor, value: UIColor.clear, range: result.range)
-            mutableAttr.addAttribute(.font, value: UIFont.name(name: "Menlo", .body), range: result.range)
-        }
-        
-        return NSAttributedString(attributedString: mutableAttr)
-    }
-    
-    private class func tripleGraveAccentResults(_ string: String, pattern: String) -> [NSTextCheckingResult] {
-        
-        let allRange = NSRange(location: 0, length: string.utf16.count)
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
-        let matches = regex.matches(in: string, range: allRange)
-        return matches
-    }
-    
-    class func tripleGraveAccentRanges(text: String) -> [Range<String.Index>]? {
-        let pattern = "(?s)```\n(.*?)\n```"
-        return tripleGraveAccentResults(text, pattern: pattern).compactMap({ Range($0.range, in: text) })
-    }
-    
-    class func calculateText(message: HistoryMessageType) -> String? {
-        if let text = message.message, !text.isEmpty {
-            return text
-        } else if let replyTextMessageUploadMessage = (message as? UploadFileMessage)?.replyRequest?.textMessage {
-          return replyTextMessageUploadMessage
-        } else {
-            return nil
-        }
-    }
-    
-    class func isLastMessageOfTheUserInsideAppending(_ message: HistoryMessageType, appended: [HistoryMessageType], isChannelType: Bool) -> Bool {
-        if isChannelType { return false }
-        if !message.reactionableType { return false }
-        let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
-        let nextIndex = index + 1
-        let isNextExist = appended.indices.contains(nextIndex)
-        if appended.count > 0, isNextExist {
-    
-            /// If user send a message between two system messages,
-            /// we have to mark this message as of the last message of the user.
-            if !appended[nextIndex].reactionableType { return true }
-    
-            /// If they are the same participant, it means the next message is still having the same user.
-            let isSameParticipant = appended[nextIndex].participant?.id == message.participant?.id
-            return !isSameParticipant
-        }
-        return true
-    }
-    
-    class func isFirstMessageOfTheUserInsideAppending(_ message: HistoryMessageType, appended: [HistoryMessageType], isChannelType: Bool) -> Bool {
-        if isChannelType == true { return false }
-        if !message.reactionableType { return false }
-        let index = appended.firstIndex(where: {$0.id == message.id}) ?? -2
-        let prevIndex = index - 1
-        let isPrevExist = appended.indices.contains(prevIndex)
-        if appended.count > 0, isPrevExist {
-            let isSameParticipant = appended[prevIndex].participant?.id == message.participant?.id
-            return !isSameParticipant
-        }
-        return true
-    }
-    
-    class func calculateCallText(message: HistoryMessageType, myId: Int?) -> NSAttributedString? {
-        if ![.endCall, .startCall].contains(message.type) { return nil }
-        guard let time = message.time else { return nil }
-        
-        let status = message.callHistory?.status
-        let isCallStarter = message.participant?.id == myId
-        
-        let isStarted = message.type == .startCall
-        let isMissed = status == .declined || status == .miss
-        let isCanceled = status == .canceled && isCallStarter
-        let isDeclined = status == .canceled && !isCallStarter
-        let isEnded = status == .ended
-        
-        let attr = NSMutableAttributedString()
-        let imageName = isStarted ? "phone.fill" : isMissed ? "phone.arrow.up.right.fill" : "phone.down.fill"
-        let image = UIImage(systemName: imageName)?.withRenderingMode(.alwaysTemplate).withTintColor(isStarted ? .green : .red) ?? UIImage()
-        let imgAttachment = NSTextAttachment(image: image)
-        let attachmentAttribute = NSAttributedString(attachment: imgAttachment)
-        attr.append(attachmentAttribute)
-        
-        let date = Date(milliseconds: Int64(isStarted ? (message.callHistory?.startTime ?? time) : (message.callHistory?.endTime ?? time)))
-        let hour = MessageRowCalculatedData.formatter.string(from: date)
-        
-        var formattedString = ""
-        if isStarted || isMissed || isCanceled {
-            let key = isStarted ? "Thread.callAccepted" : isMissed ? "Thread.callMissed" : "Thread.callCanceled"
-            formattedString = String(format: key.bundleLocalized(), hour)
-        } else if isDeclined {
-            let decliner = message.participant?.name ?? ""
-            let cancelText = "Thread.callDeclined".bundleLocalized()
-            formattedString = String(format: cancelText, decliner, hour)
-        } else if isEnded {
-            let duration = (message.callHistory?.endTime ?? 0) - (message.callHistory?.startTime ?? 0)
-            let seconds = duration / 1000
-            let durationString = seconds.timerStringTripleSection(locale: Language.preferredLocale) ?? ""
-            
-            let endText = "Thread.callEnded".bundleLocalized()
-            formattedString = String(format: endText, hour, durationString)
-        }
-        
-        let textAttr = NSMutableAttributedString(string: " \(formattedString)")
-        attr.append(textAttr)
-        return attr
-    }
-    
-    @ChatGlobalActor
-    public class func getFileURL(serverURL: URL?) -> URL? {
-        if let url = serverURL {
-            if ChatManager.activeInstance?.file.isFileExist(url) == false { return nil }
-            let fileURL = ChatManager.activeInstance?.file.filePath(url)
-            return fileURL
-        }
-        return nil
-    }
-
-//    class func getTextLayer(markdownTitle: NSAttributedString?) -> CATextLayer? {
-//        if let attributedString = markdownTitle {
-//            let textLayer = CATextLayer()
-//            textLayer.frame.size = getRect(markdownTitle: attributedString, width: ThreadViewModel.maxAllowedWidth)?.size ?? .zero
-//            textLayer.string = attributedString
-//            textLayer.backgroundColor = UIColor.clear.cgColor
-//            textLayer.alignmentMode = .right
-//            return textLayer
-//        }
-//        return nil
-//    }
-    
-    class func isSingleEmoji(_ message: HistoryMessageType) -> Bool {
-        message.message?.isEmoji == true && message.message?.isEmpty == false && message.replyInfo == nil && message.message?.count ?? 0 == 1
-    }
-    
-    class func getRect(markdownTitle: NSAttributedString, width: CGFloat) -> CGRect? {
-        let ts = NSTextStorage(attributedString: markdownTitle)
-        let size = CGSize(width: width, height: CGFloat.greatestFiniteMagnitude)
-        let tc = NSTextContainer(size: size)
-        tc.lineFragmentPadding = 0.0
-        let lm = NSLayoutManager()
-        lm.addTextContainer(tc)
-        ts.addLayoutManager(lm)
-        lm.glyphRange(forBoundingRect: CGRect(origin: .zero, size: size), in: tc)
-        let rect = lm.usedRect(for: tc)
-        return rect
-    }
-    
-    class func calculateEstimatedHeight(id: Int, _ calculatedMessage: MessageRowCalculatedData, _ sizes: ConstantSizes, _ isReactionable: Bool) -> CGFloat {
-        if calculatedMessage.rowType.cellType == .call {
-            return ConstantSizes.messageCallEventCellHeight
-        } else if calculatedMessage.rowType.cellType == .participants, let attr = calculatedMessage.addOrRemoveParticipantsAttr {
-            let horizontalPadding: CGFloat = ConstantSizes.messageParticipantsEventCellLableHorizontalPadding * 2
-            let drawableWidth = ThreadViewModel.threadWidth - (ConstantSizes.messageParticipantsEventCellWidthRedaction + horizontalPadding)
-            let height = (getRect(markdownTitle: attr, width: drawableWidth)?.height ?? 0)
-            return height + (ConstantSizes.messageParticipantsEventCellLableVerticalPadding) + (ConstantSizes.messageParticipantsEventCellMargin * 2)
-        } else if calculatedMessage.rowType.isSingleEmoji {
-            return ConstantSizes.messageSingleEmojiViewHeight
-        } else if calculatedMessage.rowType.cellType == .unreadBanner {
-            return ConstantSizes.messageUnreadBubbleCellHeight
-        }
-        
-        let containerMargin: CGFloat = calculatedMessage.isFirstMessageOfTheUser ? ConstantSizes.messageContainerStackViewBottomMarginForLastMeesageOfTheUser : ConstantSizes.messageContainerStackViewBottomMargin
-        
-        var estimatedHeight: CGFloat = 0
-        
-        /// Stack layout marging for both top and bottom
-        let margin: CGFloat = ConstantSizes.messageContainerStackViewMargin * 2
-        
-        estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        
-        estimatedHeight += containerMargin
-        estimatedHeight += margin
-        
-        /// Group participant name height
-        if calculatedMessage.isFirstMessageOfTheUser && !calculatedMessage.isMe {
-            estimatedHeight += ConstantSizes.groupParticipantNameViewHeight
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isReply {
-            estimatedHeight += ConstantSizes.messageReplyInfoViewHeight
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isForward {
-            estimatedHeight += ConstantSizes.messageForwardInfoViewHeight
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isImage {
-            estimatedHeight += sizes.imageHeight ?? 0
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isVideo {
-            estimatedHeight += ConstantSizes.messageVideoViewHeight
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isAudio {
-            estimatedHeight += ConstantSizes.messageAudioViewFileNameHeight
-            estimatedHeight += ConstantSizes.messageAudioViewMargin
-            
-            estimatedHeight += ConstantSizes.messageAudioViewMargin
-            estimatedHeight += ConstantSizes.messageAudioViewFileWaveFormHeight
-            
-            estimatedHeight += ConstantSizes.messageAudioViewPlaybackSpeedHeight
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isFile {
-            estimatedHeight += ConstantSizes.messageFileViewHeight
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.isMap {
-            estimatedHeight += ConstantSizes.messageLocationHeight // static inside MessageRowCalculatedData
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        if calculatedMessage.rowType.hasText {
-            estimatedHeight += calculatedMessage.textRect?.height ?? 0
-            estimatedHeight += ConstantSizes.messageContainerStackViewStackSpacing
-        }
-       
-        /// Footer height
-        /// Reactions are not part of the estimation.
-        if isReactionable {
-            estimatedHeight += ConstantSizes.messageFooterViewHeight
-            estimatedHeight += margin
-            estimatedHeight += containerMargin
-            estimatedHeight += id == 0 ? 0 : ConstantSizes.messageContainerStackViewStackSpacing
-        }
-        
-        return estimatedHeight
-    }
-    
-    public class func calculatePlayerItem(_ url: URL?, _ metadata: FileMetaData?, _ message: Message) async -> AVAudioPlayerItem? {
-        guard let url = url,
-              let asset = try? AVAsset(url: url)
-        else { return nil }
-        let convrtedURL = message.convertedFileURL
-        let convertedExist = FileManager.default.fileExists(atPath: convrtedURL?.path() ?? "")
-        let assetMetadata = try? await asset.load(.commonMetadata)
-        let artworkMetadata = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtwork.rawValue })
-        let artistName = assetMetadata?.first(where: { $0.commonKey?.rawValue == AVMetadataKey.commonKeyArtist.rawValue }) as? String
-        return AVAudioPlayerItem(messageId: message.id ?? -1,
-                                 duration: Double(CMTimeGetSeconds(asset.duration)),
-                                 fileURL: url,
-                                 ext: convertedExist ? "mp4" : metadata?.file?.mimeType?.ext,
-                                 title: metadata?.file?.originalName ?? metadata?.name ?? "",
-                                 subtitle: metadata?.file?.originalName ?? "",
-                                 artworkMetadata: artworkMetadata,
-                                 artistName: artistName
-        )
-    }
-    
-    public class func minimumTextWidthBasedOnTextRect(textWidth: CGFloat) -> CGFloat {
-        /// Padding around the text is essential, unless it will move every even small texts to the second line
-        let paddingAroundText = (ConstantSizes.messageContainerStackViewPaddingAroundTextView * 2)
-        let miTextWidth = min(ThreadViewModel.maxAllowedWidth - paddingAroundText, max(ConstantSizes.messageContainerStackViewMinWidth, textWidth + paddingAroundText))
-        return miTextWidth
     }
 }
 
-extension AVMetadataItem: @unchecked Sendable {}
-
-extension String {
-    func formatCodeBlocks() -> String {
-        let pattern = "```\\n?(.*?)\\n?```" // Match ``` and capture content between them
-        let regex = try! NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) // Allows multiline match
-        
-        let formattedText = regex.stringByReplacingMatches(
-            in: self,
-            options: [],
-            range: NSRange(self.startIndex..., in: self),
-            withTemplate: "\n```\n$1\n```\n" // Ensure newline before and add two spaces inside
-        )
-        return formattedText
-    }
+extension MessageRowCalculators {
+    nonisolated(unsafe) public static var hourFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        formatter.locale = Language.preferredLocale
+        return formatter
+    }()
 }

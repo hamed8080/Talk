@@ -90,8 +90,10 @@ struct DetailTopButtonsSection: View {
             .popover(isPresented: $showPopover, attachmentAnchor: .point(.bottom), arrowEdge: .top) {
                 VStack(alignment: .leading, spacing: 0) {
                     if let thread = thread {
-                        UserActionMenu(showPopover: $showPopover, participant: participant, thread: thread.toClass())
-                            .environmentObject(AppState.shared.objectsContainer.threadsVM)
+                        UserActionMenu(participant: participant, thread: thread.toClass()) {
+                            showPopover = false
+                        }
+                        .environmentObject(AppState.shared.objectsContainer.threadsVM)
                     }
                 }
                 .environment(\.locale, Locale.current)
@@ -129,7 +131,11 @@ struct DetailTopButtonsSection: View {
     }
     
     private var deletableParticipantContact: Participant? {
-        viewModel.participantDetailViewModel?.participant ?? emptyThreadContantParticipant()
+        let participant = viewModel.participantDetailViewModel?.participant
+        if participant != nil && participant?.contactId == nil {
+            return nil
+        }
+        return participant ?? emptyThreadContantParticipant()
     }
     
     private func emptyThreadContantParticipant() -> Participant? {
@@ -139,9 +145,16 @@ struct DetailTopButtonsSection: View {
         return emptyThreadParticipnat
     }
     
+    private func isFakeConversation() -> Bool {
+        viewModel.thread?.id == LocalId.emptyThread.rawValue
+    }
+    
+    private func firstThreadPartnerParticipant() -> Participant? {
+        viewModel.thread?.participants?.first
+    }
+    
     private func emptyThreadParticipant() -> Participant? {
-        let isEmptyThread = viewModel.thread?.id == LocalId.emptyThread.rawValue
-        return isEmptyThread ? viewModel.thread?.participants?.first : nil
+        return isFakeConversation() ? firstThreadPartnerParticipant() : nil
     }
     
     private func onAddContactTapped() {

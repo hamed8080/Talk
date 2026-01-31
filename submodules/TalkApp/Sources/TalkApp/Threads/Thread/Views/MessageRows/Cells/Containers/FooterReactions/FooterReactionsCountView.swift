@@ -86,8 +86,9 @@ final class FooterReactionsCountView: UIStackView {
         /// Index is stable inside reactionStack and it is 0...4
         reactionStack.arrangedSubviews.enumerated().forEach { index, view in
             if index < rows.count, let rowView = view as? ReactionCountRowView {
+                let isGroup = (viewModel.threadVM?.thread.group ?? false) == true
                 rowView.setIsHidden(false)
-                rowView.setValue(row: rows[index])
+                rowView.setValue(row: rows[index], isGroup: isGroup)
                 rowView.backgroundColor = viewModel.calMessage.isMe ? Color.App.bgChatMeDarkUIColor : Color.App.bgChatUserDarkUIColor
                 rowView.viewModel = viewModel
             } else {

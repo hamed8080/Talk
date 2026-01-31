@@ -20,9 +20,11 @@ public final class TokenManager: ObservableObject {
     public nonisolated static let ssoTokenCreateDate = "ssoTokenCreateDate"
     public let session: URLSession
     public var isInFetchingRefreshToken = false
+    private var currentToken: String? = nil
     
     private init(session: URLSession = .shared) {
         self.session = session
+        currentToken = getSSOTokenFromUserDefaults()?.accessToken
         Task { [weak self] in
             await self?.startRefreshTokenTimerWhenIsInForeground()
         }
@@ -67,7 +69,7 @@ public final class TokenManager: ObservableObject {
         return urlReq
     }
     
-    private func otpURLrequest(refreshToken: String, keyId: String) async throws -> URLRequest {
+    private func refreshTokenRequest(refreshToken: String, keyId: String) async throws -> URLRequest {
         let spec = AppState.shared.spec
         let address = "\(spec.server.talkback)\(spec.paths.talkBack.refreshToken)"
         guard let url = URL(string: address) else { throw URLError.init(.badURL) }
@@ -95,7 +97,7 @@ public final class TokenManager: ObservableObject {
         else { return }
         do {
             let refreshToken = ssoTokenModel.refreshToken ?? ""
-            let urlReq = try await otpURLrequest(refreshToken: refreshToken, keyId: keyId)
+            let urlReq = try await refreshTokenRequest(refreshToken: refreshToken, keyId: keyId)
             let tuple = try await session.data(for: urlReq)
             if let resp = tuple.1 as? HTTPURLResponse, resp.statusCode >= 400 && resp.statusCode < 500 {
                 throw AppErrors.revokedToken
@@ -164,6 +166,7 @@ public final class TokenManager: ObservableObject {
         UserConfigManagerVM.instance.updateToken(ssoToken)
         await refreshCreateTokenDate()
         await saveSSOTokenInUserDefaults(ssoToken: ssoToken)
+        currentToken = ssoToken.accessToken
         setIsLoggedIn(isLoggedIn: true)
     }
     
@@ -231,6 +234,10 @@ public final class TokenManager: ObservableObject {
         }
     }
 #endif
+    
+    public func getToken() -> String? {
+        currentToken
+    }
     
     private func log(_ message: String) {
         Logger.log(title: "ArchiveThreadsViewModel", message: message)

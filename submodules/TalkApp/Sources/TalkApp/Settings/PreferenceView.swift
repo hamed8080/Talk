@@ -30,6 +30,9 @@ struct PreferenceView: View {
                 .listRowInsets(.zero)
                 .listRowSeparator(.hidden)
             SaveScrollPositionSection()
+            TalkBackProxySection()
+                .listRowInsets(.zero)
+                .listRowSeparator(.hidden)
             if EnvironmentValues.isTalkTest {
                 StickyHeaderSection(header: "", height: 0.5)
                     .listRowInsets(.zero)

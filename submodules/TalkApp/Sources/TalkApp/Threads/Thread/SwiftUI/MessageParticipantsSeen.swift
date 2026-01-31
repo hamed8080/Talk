@@ -45,6 +45,7 @@ struct MessageParticipantsSeen: View {
             if viewModel.isLoading {
                 LottieView(animation: .named(viewModel.participants.isEmpty ? "talk_logo_animation.json" : "dots_loading.json"))
                     .playing()
+                    .defaultColor()
                     .frame(height: 52)
             }
         }

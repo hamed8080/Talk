@@ -71,9 +71,12 @@ public final class ThreadsViewModel: ObservableObject {
     internal let LEAVE_KEY: String
 
     // MARK: Computed properties
-    var navVM: NavigationModel { AppState.shared.objectsContainer.navVM }
-    private var myId: Int { AppState.shared.user?.id ?? -1 }
-    private var archivesVM: ThreadsViewModel { AppState.shared.objectsContainer.archivesVM }
+    private var appState: AppState { AppState.shared }
+    internal var navVM: NavigationModel { appState.objectsContainer.navVM }
+    private var myId: Int { appState.user?.id ?? -1 }
+    private var threadsVM: ThreadsViewModel { AppState.shared.objectsContainer.threadsVM }
+    private var archivesVM: ThreadsViewModel { appState.objectsContainer.archivesVM }
+    private var overlayVM: AppOverlayViewModel { AppState.shared.objectsContainer.appOverlayVM }
 
     public init(isArchive: Bool, isForwardList: Bool? = nil) {
         self.isArchive = isArchive
@@ -197,13 +200,13 @@ public final class ThreadsViewModel: ObservableObject {
     
     private func userNeverOpennedArchivedList(id: Int?) -> Bool {
         let isArchiveListEmpty = archivesVM.threads.isEmpty
-        let samePresentedId = navVM.presentedThreadViewModel?.viewModel?.id == id
+        let samePresentedId = navVM.presentedThreadViewModel?.viewModel.id == id
         return isArchiveListEmpty && samePresentedId
     }
     
     private func updateActiveArchivConversation(newConversation: Conversation, messages: [Message]) {
         // Just update the active archived converstion.
-        let oldConversation = navVM.presentedThreadViewModel?.viewModel?.thread
+        let oldConversation = navVM.presentedThreadViewModel?.viewModel.thread
         updateActiveConversationOnNewMessage(messages, newConversation, oldConversation)
     }
 
@@ -471,7 +474,7 @@ public final class ThreadsViewModel: ObservableObject {
 
         if isArchive {
             /// Append to ArchiveViewModels
-            await AppState.shared.objectsContainer.archivesVM.calculateAppendSortAnimate(conversation)
+            await archivesVM.calculateAppendSortAnimate(conversation)
         } else if isMyselfAdded || isChannel {
             /*
              * Append to ThreadsViewModel itself
@@ -481,15 +484,15 @@ public final class ThreadsViewModel: ObservableObject {
              */
             await calculateAppendSortAnimate(conversation)
         }
-        await insertIntoParticipantViewModel(response)
+        await insertIntoDetailViewModel(response)
         lazyList.setLoading(false)
     }
 
-    private func insertIntoParticipantViewModel(_ response: ChatResponse<Conversation>) async {
+    private func insertIntoDetailViewModel(_ response: ChatResponse<Conversation>) async {
         if let threadVM = navVM.viewModel(for: response.result?.id ?? -1) {
             let addedParticipants = response.result?.participants ?? []
-            threadVM.participantsViewModel.onAdded(addedParticipants)
-//            threadVM.animateObjectWillChange()
+            let detailVM = navVM.detailViewModel(threadId: threadVM.thread.id ?? -1)
+            detailVM?.participantsVM?.onAdded(addedParticipants)
         }
     }
 
@@ -756,7 +759,7 @@ public final class ThreadsViewModel: ObservableObject {
             /// This is essential to use correct lastMessageSeenId moving between pin message and jump to down button.
             let vm = navVM.presentedThreadViewModel
             if vm?.threadId == thread.id {
-                vm?.viewModel?.setThread(thread.toStruct())
+                vm?.viewModel.setThread(thread.toStruct())
             }
         }
     }
@@ -781,11 +784,14 @@ public final class ThreadsViewModel: ObservableObject {
     }
 
     func onLeftThread(_ response: ChatResponse<User>) {
+        guard let conversationId = response.subjectId else { return }
+        
         let isMe = response.result?.id == myId
-        let threadVM = navVM.viewModel(for: response.subjectId ?? -1)
+        let threadVM = navVM.viewModel(for: conversationId)
         let deletedUserId = response.result?.id
-        let participant = threadVM?.participantsViewModel.participants.first(where: {$0.id == deletedUserId})
-        if isMe, let conversationId = response.subjectId {
+        let participantsVM = navVM.detailViewModel(threadId: conversationId)?.participantsVM
+        let participant = participantsVM?.participants.first(where: {$0.id == deletedUserId})
+        if isMe {
             removeThread(.init(id: conversationId))
             
             /// Pop detail view and thread view at the same time
@@ -796,7 +802,7 @@ public final class ThreadsViewModel: ObservableObject {
                 navVM.remove(threadId: conversationId)
             }
         } else if let participant = participant {
-            threadVM?.participantsViewModel.removeParticipant(participant)
+            participantsVM?.removeParticipant(participant)
         }
     }
 
@@ -1019,7 +1025,6 @@ extension ThreadsViewModel {
             
             archive(threadId)
             let imageView = UIImageView(image: UIImage(systemName: "tray.and.arrow.up"))
-            let overlayVM = AppState.shared.objectsContainer.appOverlayVM
             overlayVM.dismissToastImmediately() /// Dismiss if there is any other toast in progress
             
             overlayVM.toast(leadingView: imageView,
@@ -1060,7 +1065,6 @@ extension ThreadsViewModel {
     }
     
     func onArchive(_ response: ChatResponse<Int>) async {
-        let threadsVM = AppState.shared.objectsContainer.threadsVM
         guard let id = response.result else { return }
         
         if let index = threadsVM.threads.firstIndex(where: { $0.id == id }) {

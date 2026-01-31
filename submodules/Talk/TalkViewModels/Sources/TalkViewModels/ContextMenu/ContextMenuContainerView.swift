@@ -10,9 +10,10 @@ import UIKit
 import TalkModels
 
 @MainActor
+@objc
 public protocol ContextMenuDelegate: AnyObject {
     func showContextMenu(_ indexPath: IndexPath?, contentView: UIView)
-    func dismissContextMenu(indexPath: IndexPath?)
+    @objc optional func dismissContextMenu(indexPath: IndexPath?)
 }
 
 public class ContextMenuContainerView: UIView {
@@ -21,13 +22,13 @@ public class ContextMenuContainerView: UIView {
     let contentView = UIView()
     var indexPath: IndexPath?
     private weak var delegate: ContextMenuDelegate?
-    private var vc: UIViewController? { delegate as? UIViewController }
+    private weak var vc: UIViewController?
     private var contentViewHeightConstraint: NSLayoutConstraint?
 
-    public init(delegate: ContextMenuDelegate) {
+    public init(delegate: ContextMenuDelegate, vc: UIViewController? = nil) {
         self.delegate = delegate
-        let vc = delegate as? UIViewController
-        let frame = vc?.navigationController?.view.frame ?? vc?.view.frame ?? .zero
+        self.vc = vc ?? delegate as? UIViewController
+        let frame = self.vc?.navigationController?.view.frame ?? vc?.view.frame ?? .zero
         self.scrollView = UIScrollView(frame: frame)
         super.init(frame: frame)
         setupView()
@@ -125,7 +126,7 @@ public class ContextMenuContainerView: UIView {
 
     @objc private func hideAndCall() {
         hide()
-        delegate?.dismissContextMenu(indexPath: indexPath)
+        delegate?.dismissContextMenu?(indexPath: indexPath)
     }
 
     @objc public func hide() {

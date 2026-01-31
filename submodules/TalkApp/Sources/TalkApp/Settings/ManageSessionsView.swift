@@ -26,7 +26,7 @@ struct ManageSessionsView: View {
         .font(Font.normal(.subheadline))
         .background(Color.App.bgPrimary)
         .listStyle(.plain)
-        .normalToolbarView(title: "Settings.ManageSessions.title", innerBack: true, type: String.self)
+        .normalToolbarView(title: "Settings.ManageSessions.title", type: String.self)
         .animation(.easeInOut, value: viewModel.sessions.count)
         .animation(.easeInOut, value: viewModel.isLoading)
         .task {
@@ -96,6 +96,7 @@ struct ManageSessionsView: View {
                 Spacer()
                 LottieView(animation: .named("dots_loading.json"))
                     .playing()
+                    .defaultColor()
                     .id(UUID())
                 Spacer()
             }

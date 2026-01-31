@@ -15,7 +15,7 @@ import TalkUI
 
 @MainActor
 final class ThreadViewController: UIViewController {
-    var viewModel: ThreadViewModel?
+    var viewModel: ThreadViewModel
     public var tableView: UIHistoryTableView!
     private let tapGetsure = UITapGestureRecognizer()
     public lazy var sendContainer = ThreadBottomToolbar(viewModel: viewModel)
@@ -32,20 +32,29 @@ final class ThreadViewController: UIViewController {
     private lazy var dimView = DimView()
     public var contextMenuContainer: ContextMenuContainerView!
     private var isViewControllerVisible: Bool = true
-    private var sections: ContiguousArray<MessageSection> { viewModel?.historyVM.sections ?? [] }
+    private var sections: ContiguousArray<MessageSection> { viewModel.historyVM.sections ?? [] }
     private var animatingKeyboard = false
     private var hasEverViewAppeared = false
     
     /// After appending a row while this view is disappeard and return back to this view like adding a participant.
     /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
     private var shouldScrollToBottomAtReapperance = false
-
+    
+    init(viewModel: ThreadViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureViews()
         registerKeyboard()
-        viewModel?.delegate = self
-        viewModel?.historyVM.delegate = self
+        viewModel.delegate = self
+        viewModel.historyVM.delegate = self
         showReplyOnOpen()
         startCenterAnimation(true)
     }
@@ -59,7 +68,7 @@ final class ThreadViewController: UIViewController {
             hasEverViewAppeared = true
             Task { [weak self] in
                 guard let self = self else { return }
-                await viewModel?.historyVM.start()
+                await viewModel.historyVM.start()
             }
         }
     }
@@ -67,21 +76,21 @@ final class ThreadViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         
-        shouldScrollToBottomAtReapperance = viewModel?.scrollVM.isAtBottomOfTheList == true
+        shouldScrollToBottomAtReapperance = viewModel.scrollVM.isAtBottomOfTheList == true
         isViewControllerVisible = false
         
         /// Clean up navigation if we are moving backward, not forward.
-        AppState.shared.objectsContainer.navVM.popOnDisappearIfNeeded(viewController: self, id: viewModel?.id ?? -1)
+        AppState.shared.objectsContainer.navVM.popOnDisappearIfNeeded(viewController: self, id: viewModel.id)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewModel?.historyVM.setThreashold(view.bounds.height * 2.5)
+        viewModel.historyVM.setThreashold(view.bounds.height * 2.5)
         contextMenuContainer = ContextMenuContainerView(delegate: self)
         
         /// After appending a row while this view is disappeard and return back to this view like adding a participant.
         /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
-        if shouldScrollToBottomAtReapperance == true, let indexPath = viewModel?.historyVM.lastMessageIndexPath {
+        if shouldScrollToBottomAtReapperance == true, let indexPath = viewModel.historyVM.lastMessageIndexPath {
             tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
             shouldScrollToBottomAtReapperance = false
         }
@@ -105,7 +114,8 @@ final class ThreadViewController: UIViewController {
     }
 }
 
-extension ThreadViewController: ConversationNavigationProtocol { }
+extension ThreadViewController: ConversationNavigationProtocol {
+}
 
 // MARK: Configure Views
 extension ThreadViewController {
@@ -215,7 +225,7 @@ extension ThreadViewController: ThreadViewDelegate {
     
     func onUnreadCountChanged() {
 #if DEBUG
-        print("onUnreadCountChanged \(viewModel?.thread.unreadCount ?? 0)")
+        print("onUnreadCountChanged \(viewModel.thread.unreadCount)")
 #endif
         moveToBottom.updateUnreadCount()
     }
@@ -230,25 +240,25 @@ extension ThreadViewController: ThreadViewDelegate {
 
     func setSelection(_ value: Bool) {
         if !value {
-            viewModel?.selectedMessagesViewModel.clearSelection()
+            viewModel.selectedMessagesViewModel.clearSelection()
         }
         
         tapGetsure.isEnabled = !value
-        viewModel?.selectedMessagesViewModel.setInSelectionMode(value)
+        viewModel.selectedMessagesViewModel.setInSelectionMode(value)
         tableView.allowsMultipleSelection = value
         tableView.visibleCells.compactMap{$0 as? MessageBaseCell}.forEach { cell in
             cell.setInSelectionMode(value)
         }
         
         // Assure that the previous resuable rows items are in select mode or not
-        for indexPath in viewModel?.historyVM.prevouisVisibleIndexPath() ?? [] {
+        for indexPath in viewModel.historyVM.prevouisVisibleIndexPath() {
             if let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell {
                 cell.setInSelectionMode(value)
             }
         }
 
         // Assure that the next resuable rows items are in select mode or not
-        for indexPath in viewModel?.historyVM.nextVisibleIndexPath() ?? [] {
+        for indexPath in viewModel.historyVM.nextVisibleIndexPath() ?? [] {
             if let cell = tableView.cellForRow(at: indexPath) as? MessageBaseCell {
                 cell.setInSelectionMode(value)
             }
@@ -269,7 +279,7 @@ extension ThreadViewController: ThreadViewDelegate {
 
     func lastMessageAppeared(_ appeared: Bool) {
         self.moveToBottom.show(!appeared)
-        if self.viewModel?.scrollVM.isAtBottomOfTheList == true {
+        if self.viewModel.scrollVM.isAtBottomOfTheList == true {
             self.tableView.tableFooterView = nil
         }
     }
@@ -304,7 +314,7 @@ extension ThreadViewController: ThreadViewDelegate {
 
     func onMentionListUpdated() {
         sendContainer.updateMentionList()
-        tapGetsure.isEnabled = viewModel?.mentionListPickerViewModel.mentionList.count == 0
+        tapGetsure.isEnabled = viewModel.mentionListPickerViewModel.mentionList.count == 0
     }
 
     func updateAvatar(image: UIImage, participantId: Int) {
@@ -399,7 +409,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
     
     func lastMessageIndexPathIfVisible() -> IndexPath? {
-        guard viewModel?.scrollVM.isAtBottomOfTheList == true else { return nil }
+        guard viewModel.scrollVM.isAtBottomOfTheList == true else { return nil }
         return tableView.indexPathsForVisibleRows?.last
     }
 }
@@ -439,9 +449,9 @@ extension ThreadViewController: BottomToolbarDelegate {
         if message != nil {
             focusOnTextView(focus: true)
         }
-        viewModel?.replyMessage = message as? Message
+        viewModel.replyMessage = message as? Message
         sendContainer.openReplyMode(message)
-        viewModel?.scrollVM.disableExcessiveLoading()
+        viewModel.scrollVM.disableExcessiveLoading()
         scrollTo(uniqueId: message?.uniqueId ?? "", messageId: message?.id ?? -1, position: hasExternalKeyboard ? .none : .middle)
     }
 
@@ -466,7 +476,7 @@ extension ThreadViewController: BottomToolbarDelegate {
 extension ThreadViewController {
     func openForwardPicker(messages: [Message]) {
         let vc = ForwardPickerViewController { [weak self] (conversation, contact) in
-            self?.viewModel?.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
+            self?.viewModel.sendMessageViewModel.openDestinationConversationToForward(conversation, contact, messages)
         } onDisappear: { [weak self] in
             self?.isViewControllerVisible = true
         }
@@ -478,7 +488,7 @@ extension ThreadViewController {
     func openMoveToDatePicker() {
         AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(
             DatePickerWrapper(hideControls: false) { [weak self] date in
-                self?.viewModel?.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
+                self?.viewModel.historyVM.moveToTimeByDate(time: UInt(date.millisecondsSince1970))
                 AppState.shared.objectsContainer.appOverlayVM.dialogView = nil
             }
             .frame(width: AppState.shared.windowMode.isInSlimMode ? 310 : 320, height: 420)
@@ -501,7 +511,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool = true) {
         if tableView.numberOfSections == 0 { return }
         if tableView.numberOfRows(inSection: index.section) < index.row + 1 { return }
-        viewModel?.scrollVM.didEndScrollingAnimation = false
+        viewModel.scrollVM.didEndScrollingAnimation = false
         tableView.scrollToRow(at: index, at: position, animated: animate)
         
         if isViewControllerVisible == true {
@@ -511,6 +521,12 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     func scrollTo(uniqueId: String, messageId: Int, position: UITableView.ScrollPosition, animate: Bool = true) {
         if let indexPath = sections.findIncicesBy(uniqueId: uniqueId, id: messageId) {
+            scrollTo(index: indexPath, position: position, animate: animate)
+        }
+    }
+    
+    func scrollTo(messageId: Int, position: UITableView.ScrollPosition, animate: Bool = true) {
+        if let indexPath = sections.viewModelAndIndexPath(for: messageId)?.indexPath {
             scrollTo(index: indexPath, position: position, animate: animate)
         }
     }
@@ -530,7 +546,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
     
     private func moveTolastMessageIfVisible() {
-        if viewModel?.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel?.lastMessageVO()?.id)?.indexPath {
+        if viewModel.scrollVM.isAtBottomOfTheList == true, let indexPath = sections.viewModelAndIndexPath(for: viewModel.lastMessageVO()?.id)?.indexPath {
             scrollTo(index: indexPath, position: .bottom)
         }
     }
@@ -577,11 +593,11 @@ extension ThreadViewController: HistoryScrollDelegate {
         tableView.endUpdates()
         
         if let scrollToIndexPath = scrollTo, let at = at {
-            viewModel?.scrollVM.didEndScrollingAnimation = false
+            viewModel.scrollVM.didEndScrollingAnimation = false
             tableView.scrollToRow(at: scrollToIndexPath, at: at, animated: animate)
         }
         
-        viewModel?.selectedMessagesViewModel.reSelectTableView()
+        viewModel.selectedMessagesViewModel.reSelectTableView()
     }
     
     func insertedWithContentOffsset(_ sections: IndexSet, _ rows: [IndexPath]) {
@@ -613,7 +629,7 @@ extension ThreadViewController: HistoryScrollDelegate {
             // 3. Adjust content offset to preserve visual position
             tableView.setContentOffset(CGPoint(x: previousOffset.x, y: previousOffset.y + heightDifference), animated: false)
             
-            viewModel?.selectedMessagesViewModel.reSelectTableView()
+            viewModel.selectedMessagesViewModel.reSelectTableView()
         }
     }
     
@@ -645,7 +661,7 @@ extension ThreadViewController: HistoryScrollDelegate {
     
     private func performBatchUpdateForReactions(_ indexPaths: [IndexPath], completion: @escaping () -> Void) {
         log("update reactions")
-        let wasAtBottom = viewModel?.scrollVM.isAtBottomOfTheList == true
+        let wasAtBottom = viewModel.scrollVM.isAtBottomOfTheList == true
         tableView.performBatchUpdates { [weak self] in
             guard let self = self else {
                 return
@@ -656,7 +672,7 @@ extension ThreadViewController: HistoryScrollDelegate {
                 }
             }
             if wasAtBottom {
-                viewModel?.scrollVM.scrollToBottom()
+                viewModel.scrollVM.scrollToBottom()
             }
         } completion: { [weak self] completed in
             if completed {
@@ -748,7 +764,7 @@ extension ThreadViewController {
         keyboardAnimationTransaction(notif, show: true)
         
         /// Prevent overlaping with the text container if the thread is empty.
-        if viewModel?.historyVM.sections.isEmpty == true {
+        if viewModel.historyVM.sections.isEmpty == true {
             view.bringSubviewToFront(sendContainer)
         }
     }
@@ -796,7 +812,7 @@ extension ThreadViewController {
     }
     
     private func onSendHeightChanged(_ height: CGFloat) {
-        let isButtonsVisible = viewModel?.sendContainerViewModel.getMode().type == .showButtonsPicker
+        let isButtonsVisible = viewModel.sendContainerViewModel.getMode().type == .showButtonsPicker
         let safeAreaHeight = (isButtonsVisible ? 0 : view.safeAreaInsets.bottom)
         let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
         let height = (height - safeAreaHeight) + keyboardheight + spaceLastMessage
@@ -812,8 +828,8 @@ extension ThreadViewController {
 
 extension ThreadViewController {
     private func showReplyOnOpen() {
-        if let replyMessage = viewModel?.sendContainerViewModel.getDraftReplyMessage() {
-            self.viewModel?.replyMessage = replyMessage
+        if let replyMessage = viewModel.sendContainerViewModel.getDraftReplyMessage() {
+            self.viewModel.replyMessage = replyMessage
             openReplyMode(replyMessage)
         }
     }

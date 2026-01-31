@@ -12,7 +12,7 @@ struct DetailTarilingToolbarViews: View {
     @EnvironmentObject var viewModel: ThreadDetailViewModel
 
     var body: some View {
-        if viewModel.canShowEditConversationButton == true {
+        if viewModel.canShowEditConversationButton() == true {
             DetailEditConversationButton()
         } else if let viewModel = viewModel.participantDetailViewModel {
             DetailEditContactButton()

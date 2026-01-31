@@ -80,8 +80,7 @@ public final class ManageSessionsViewModel: ObservableObject {
         }
     }
     
-    @ChatGlobalActor
     private func getToken() async -> String {
-        return await ChatManager.activeInstance?.config.token ?? ""
+        return TokenManager.shared.getToken() ?? ""
     }
 }

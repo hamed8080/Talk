@@ -81,4 +81,11 @@ final class ThreadHighlightViewModel {
         }
         delegate?.scrollTo(uniqueId: uniqueId, messageId: messageId, position: position, animate: animate)
     }
+    
+    public func showHighlighted(_ messageId: Int, highlight: Bool = true, position: UITableView.ScrollPosition = .bottom, animate: Bool = false) {
+        if highlight {
+            setHighlight(messageId)
+        }
+        delegate?.scrollTo(messageId: messageId, position: position, animate: animate)
+    }
 }

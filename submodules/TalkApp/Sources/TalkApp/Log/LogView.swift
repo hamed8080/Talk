@@ -79,6 +79,7 @@ struct LogView: View {
         if viewModel.isFiltering {
             LottieView(animation: .named("dots_loading.json"))
                 .playing()
+                .defaultColor()
                 .frame(height: 52)
         }
     }

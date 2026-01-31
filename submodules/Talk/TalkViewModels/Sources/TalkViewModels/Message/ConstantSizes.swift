@@ -189,6 +189,10 @@ public struct ConstantSizes: Sendable {
     /// Reactions
     nonisolated(unsafe) public static let moreReactionButtonWidth: CGFloat = 42
     
+    /// Tabs
+    nonisolated(unsafe) public static let tabProgressButtonItemWidth: CGFloat = 42
+    nonisolated(unsafe) public static let tabProgressButtonItemHeight: CGFloat = 42
+    
     public var paddings = MessagePaddings()
     public var estimatedHeight: CGFloat = 0
     public var replyContainerWidth: CGFloat?

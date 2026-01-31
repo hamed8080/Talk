@@ -20,6 +20,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     private var cancellableSet = Set<AnyCancellable>()
     private let dt1 = "T_DT1"
     private let dt2 = "T_DT2"
+    
+    /// Force to run letiner even on the main application
+    public static let L_FORCE = "L_FORCE"
+    
+    // MARK: - Computed properties
+    private var appState: AppState { AppState.shared }
+    private var navVM: NavigationModel { appState.objectsContainer.navVM }
+    private var tokenManager: TokenManager { TokenManager.shared }
 
     func scene(_ scene: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -27,7 +35,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         let local = LeitnerBoxLoginViewModel.lo()
         let buildName = Bundle.main.infoDictionary?.first(where: {$0.key == "BuildAppName"})?.value as? String
-        if buildName == "LeitnerBox" {
+        let forceLeitner = UserDefaults.standard.bool(forKey: SceneDelegate.L_FORCE)
+        if buildName == "LeitnerBox" || forceLeitner {
             runLeitnerBox(scene)
         } else if local {
             runT(scene)
@@ -54,7 +63,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     // Run AppStore version
     private func runT(_ scene: UIScene) {
         guard LeitnerBoxLoginViewModel.lo() else { return }
-        TokenManager.shared.initSetIsLogin()
+        tokenManager.initSetIsLogin()
         if let windowScene = scene as? UIWindowScene {
             setupRoot(windowScene: windowScene)
         }
@@ -63,7 +72,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     
     // Run Sibche version.
     private func runS(_ scene: UIScene) {
-        TokenManager.shared.initSetIsLogin()
+        tokenManager.initSetIsLogin()
         if let windowScene = scene as? UIWindowScene {
             setupRoot(windowScene: windowScene)
         }
@@ -109,7 +118,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
             let _ = ObjectsContainer(delegate: ChatDelegateImplementation.sharedInstance)
         }
         
-        if TokenManager.shared.isLoggedIn {
+        if tokenManager.isLoggedIn {
             window.rootViewController = SplitViewController(style: .doubleColumn)
         } else {
             let loginCompletion = { [weak self] in
@@ -132,21 +141,21 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else { return }
         if let threadId = url.widgetThreaId {
-            AppState.shared.objectsContainer.navVM.createAndAppend(conversation: .init(id: threadId))
+            navVM.createAndAppend(conversation: .init(id: threadId))
         } else if let userName = url.openThreadUserName {
             Task {
-                try await AppState.shared.objectsContainer.navVM.openThreadWith(userName: userName)
+                try await navVM.openThreadWith(userName: userName)
             }
         } else if let decodedOpenURL = url.decodedOpenURL {
-            let talk = AppState.shared.spec.server.talk
-            let talkJoin = "\(talk)\(AppState.shared.spec.paths.talk.join)"
+            let talk = appState.spec.server.talk
+            let talkJoin = "\(talk)\(appState.spec.paths.talk.join)"
             if decodedOpenURL.absoluteString.contains(talkJoin) {
                 /// Show join to public group dialog
                 let publicName = decodedOpenURL.absoluteString.replacingOccurrences(of: talkJoin, with: "").replacingOccurrences(of: "\u{200f}", with: "")
-                AppState.shared.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(publicGroupName: publicName))
+                appState.objectsContainer.appOverlayVM.dialogView = AnyView(JoinToPublicConversationDialog(publicGroupName: publicName))
             } else {
                 /// Open up the browser
-                AppState.shared.objectsContainer.navVM.openURL(url: decodedOpenURL)
+                navVM.openURL(url: decodedOpenURL)
             }
         }
     }
@@ -162,27 +171,27 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
 //        AppState.shared.updateWindowMode()
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
-        AppState.shared.lifeCycleState = .active
+        appState.lifeCycleState = .active
     }
 
     func sceneWillResignActive(_: UIScene) {
         // Called when the scene will move from an active state to an inactive state.
         // This may occur due to temporary interruptions (ex. an incoming phone call).
-        AppState.shared.updateWindowMode()
-        AppState.shared.lifeCycleState = .inactive
+        appState.updateWindowMode()
+        appState.lifeCycleState = .inactive
     }
 
     func sceneWillEnterForeground(_: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
-        AppState.shared.lifeCycleState = .foreground
+        appState.lifeCycleState = .foreground
     }
 
     func sceneDidEnterBackground(_: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
-        AppState.shared.lifeCycleState = .background
+        appState.lifeCycleState = .background
         Task { [weak self] in
             await self?.scheduleAppRefreshToken()
         }
@@ -208,7 +217,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
     }
 
     private func scheduleAppRefreshToken() async {
-        if let ssoToken = await TokenManager.shared.getSSOTokenFromUserDefaultsAsync(), let createDate = TokenManager.shared.getCreateTokenDate() {
+        if let ssoToken = await tokenManager.getSSOTokenFromUserDefaultsAsync(), let createDate = tokenManager.getCreateTokenDate() {
             let timeToStart = createDate.advanced(by: Double(ssoToken.expiresIn - 50)).timeIntervalSince1970 - Date().timeIntervalSince1970
             let request = BGAppRefreshTaskRequest(identifier: "\(Bundle.main.bundleIdentifier!).refreshToken")
             request.earliestBeginDate = Date(timeIntervalSince1970: timeToStart)
@@ -227,7 +236,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
             guard let self = self else { return }
             log("Start a new Task in handleTaskRefreshToken method")
             do {
-                try await TokenManager.shared.getNewTokenWithRefreshToken()
+                try await tokenManager.getNewTokenWithRefreshToken()
                 await scheduleAppRefreshToken() /// Reschedule again when user receive a token.
             } catch {
                 if let error = error as? AppErrors, error == AppErrors.revokedToken {

@@ -187,8 +187,7 @@ extension ThreadsSearchTableViewController: UIThreadsSearchViewControllerDelegat
     }
     
     func createThreadViewController(conversation: Conversation) -> UIViewController {
-        let vc = ThreadViewController()
-        vc.viewModel = ThreadViewModel(thread: conversation)
+        let vc = ThreadViewController(viewModel: ThreadViewModel(thread: conversation))
         return vc
     }
 }
@@ -205,12 +204,11 @@ extension ThreadsSearchTableViewController: UITableViewDelegate {
                 try await AppState.shared.objectsContainer.navVM.openThread(contact: contact)
             }
         case .conversation(let conversation):
-            if let threadVC = threadVC, threadVC.viewModel?.thread.id == conversation.id {
+            if let threadVC = threadVC, threadVC.viewModel.thread.id == conversation.id {
                 // Do nothing if the user tapped on the same conversation on iPadOS row.
                 return
             }
-            let vc = ThreadViewController()
-            vc.viewModel = ThreadViewModel(thread: conversation.toStruct())
+            let vc = ThreadViewController(viewModel: ThreadViewModel(thread: conversation.toStruct()))
             
             // Check if container is iPhone navigation controller or iPad split view container or on iPadOS we are in a narrow window
             if splitViewController?.isCollapsed == true {

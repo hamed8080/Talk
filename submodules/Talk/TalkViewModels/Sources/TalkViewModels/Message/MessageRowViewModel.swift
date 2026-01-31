@@ -44,9 +44,13 @@ public final class MessageRowViewModel: @preconcurrency Identifiable, @preconcur
     
     @AppBackgroundActor
     public func recalculate(appendMessages: [HistoryMessageType] = [], mainData: MainRequirements) async {
-        var calMessage = await MessageRowCalculators.calculate(message: message, mainData: mainData, appendMessages: appendMessages)
-        calMessage = await MessageRowCalculators.calculateColorAndFileURL(mainData: mainData, message: message, calculatedMessage: calMessage)
-        
+        guard let viewModel = await threadVM else { return }
+        var calMessage = await MessageRowCalculators(
+            messages: appendMessages,
+            mainData: mainData,
+            threadViewModel: viewModel
+        ).calculate(message: message)
+
         var fileState = await fileState
         if calMessage.fileURL != nil {
             fileState.state = .completed
@@ -197,15 +201,30 @@ public extension MessageRowViewModel {
     }
     
     func reactionDeleted(_ reaction: Reaction) {
-        reactionsModel = MessageRowCalculators.reactionDeleted(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1)
+        let myId = AppState.shared.user?.id ?? -1
+        let calculator = MessageReactionCalculator(
+            message: Message(id: message.id ?? -1),
+            myId: myId
+        )
+        reactionsModel = calculator.reactionDeleted(reactionsModel, reaction)
     }
     
     func reactionAdded(_ reaction: Reaction) {
-        reactionsModel = MessageRowCalculators.reactionAdded(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1)
+        let myId = AppState.shared.user?.id ?? -1
+        let calculator = MessageReactionCalculator(
+            message: Message(id: message.id ?? -1),
+            myId: myId
+        )
+        reactionsModel = calculator.reactionAdded(reactionsModel, reaction)
     }
     
     func reactionReplaced(_ reaction: Reaction, oldSticker: Sticker) {
-        reactionsModel = MessageRowCalculators.reactionReplaced(reactionsModel, reaction, myId: AppState.shared.user?.id ?? -1, oldSticker: oldSticker)
+        let myId = AppState.shared.user?.id ?? -1
+        let calculator = MessageReactionCalculator(
+            message: Message(id: message.id ?? -1),
+            myId: myId
+        )
+        reactionsModel = calculator.reactionReplaced(reactionsModel, reaction, oldSticker: oldSticker)
     }
 
     func canReact() -> Bool {

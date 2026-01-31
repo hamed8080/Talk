@@ -229,8 +229,7 @@ extension ThreadsTableViewController: UIThreadsViewControllerDelegate {
     }
     
     func createThreadViewController(conversation: Conversation) -> UIViewController {
-        let vc = ThreadViewController()
-        vc.viewModel = ThreadViewModel(thread: conversation)
+        let vc = ThreadViewController(viewModel: ThreadViewModel(thread: conversation))
         return vc
     }
     
@@ -271,10 +270,6 @@ extension ThreadsTableViewController: ContextMenuDelegate {
         contextMenuContainer?.setContentView(contentView, indexPath: indexPath)
         contextMenuContainer?.show()
     }
-    
-    func dismissContextMenu(indexPath: IndexPath?) {
-        
-    }
 }
 
 extension ThreadsTableViewController: UITableViewDelegate {
@@ -282,13 +277,12 @@ extension ThreadsTableViewController: UITableViewDelegate {
         guard let conversation = dataSource.itemIdentifier(for: indexPath) else { return }
         let secondaryVC = splitViewController?.viewController(for: .secondary) as? UINavigationController
         let threadVC = secondaryVC?.viewControllers.last as? ThreadViewController
-        if let threadVC = threadVC, threadVC.viewModel?.thread.id == conversation.id {
+        if let threadVC = threadVC, threadVC.viewModel.thread.id == conversation.id {
             // Do nothing if the user tapped on the same conversation on iPadOS row.
             return
         }
         
-        let vc = ThreadViewController()
-        vc.viewModel = ThreadViewModel(thread: conversation.toStruct())
+        let vc = ThreadViewController(viewModel: ThreadViewModel(thread: conversation.toStruct()))
             
         // Check if container is iPhone navigation controller or iPad split view container or on iPadOS we are in a narrow window
         if splitViewController?.isCollapsed == true {

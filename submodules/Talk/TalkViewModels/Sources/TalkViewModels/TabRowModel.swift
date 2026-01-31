@@ -16,7 +16,6 @@ public final class TabRowModel: ObservableObject {
     public let message: Message
     public nonisolated let id: Int
     
-    @Published public var shareDownloadedFile = false
     @Published public var state: MessageFileState = MessageFileState()
     @Published public var degree: Double = 0
     @Published public var fileName: String = ""
@@ -30,7 +29,7 @@ public final class TabRowModel: ObservableObject {
     
     private var cancellableSet = Set<AnyCancellable>()
     private var timer: Timer?
-    public private(set) var playerVM: VideoPlayerViewModel?
+    public var playerVM: VideoPlayerViewModel?
     public private(set) var tempShareURL: URL?
     public private(set) var metadata: FileMetaData?
     public private(set) var fileURL: URL?
@@ -88,12 +87,10 @@ public final class TabRowModel: ObservableObject {
                     manager.toggleDownloading(message: message)
                 }
             } else if state.state == .completed {
-                if message.isVideo {
-                    showFullScreenPlayer()
-                } else if message.isAudio {
+                if message.isAudio {
                     await playAudio(viewModel)
                 } else {
-                    await showShareFileSheet()
+                    await makeTempURL()
                 }
             }
         }
@@ -146,21 +143,8 @@ extension TabRowModel {
     private func createAudioPlayerItem() async {
         if let url = fileURL, message.isAudio {
             let audioURL = AudioFileURLCalculator(fileURL: url, message: message).audioURL()
-            let item = await MessageRowCalculators.calculatePlayerItem(audioURL, message.fileMetaData, message)
+            let item = await MessagePlayerItemCalculator(message: message, url: audioURL, metadata: message.fileMetaData).playerItem()
             self.itemPlayer = item
-        }
-    }
-}
-
-/// Video
-extension TabRowModel {
-    private func showFullScreenPlayer() {
-        guard let fileURL = fileURL else { return }
-        playerVM = VideoPlayerViewModel(fileURL: fileURL, ext: message.fileMetaData?.file?.mimeType?.ext)
-        playerVM?.toggle()
-        playerVM?.animateObjectWillChange()
-        DispatchQueue.main.async { [weak self] in
-            self?.showFullScreen = true
         }
     }
 }
@@ -168,13 +152,13 @@ extension TabRowModel {
 /// Files
 extension TabRowModel {
     @AppBackgroundActor
-    private func showShareFileSheet() async {
+    public func makeTempURL() async -> URL {
         _ = await message.makeTempURL()
         let tempURL = message.tempURL
         await MainActor.run {
             self.tempShareURL = tempURL
-            shareDownloadedFile.toggle()
         }
+        return tempURL
     }
 }
 
@@ -256,19 +240,6 @@ extension TabRowModel {
     }
 }
 
-/// Move to the Message
-extension TabRowModel {
-    public func moveToMessage(_ detailVM: ThreadDetailViewModel) {
-        let historyVM = detailVM.threadVM?.historyVM
-        historyVM?.cancelTasks()
-        let task: Task<Void, any Error> = Task { [weak self] in
-            guard let self = self else { return }
-            detailVM.dismisByMoveToAMessage()
-            await historyVM?.moveToTime(message.time ?? 0, message.id ?? -1, highlight: true)
-        }
-    }
-}
-
 /// Notification state change
 extension TabRowModel {
     private func registerNotifications(messageId: Int) {
@@ -284,7 +255,12 @@ extension TabRowModel {
     }
     
     private func onStateChange(_ state: MessageFileState) async {
+        /// Update last UI state, the line below won't trigger a sink call after assingning it to a new whole value.
+        self.state.state = state.state
+
+        /// Keep the last state
         self.state = state
+        
         if state.state == .completed || state.state == .paused || state.state == .error {
             stopRotationTimer()
             await createAudioPlayerItem()
