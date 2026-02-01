@@ -35,7 +35,7 @@ class ChatBackgroundView: UIView {
     }
 
     private func configure() {
-        backgroundColor = UIColor(named: "bg_chat_color")
+        backgroundColor = UIColor(named: "background_view_chat")
         let isDarkMode = AppSettingsModel.restore().isDarkMode
         
         imageView.image = UIImage(named: "chat_bg")

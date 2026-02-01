@@ -17,11 +17,15 @@ let package = Package(
             name: "LeitnerBoxApp",
             targets: ["LeitnerBoxApp"]),
     ],
-    dependencies: [.package(path: "../FFMpegKitContainer")],
+    dependencies: [
+        .package(path: "../FFMpegKitContainer"),
+        .package(path: "../SDK/Chat/submodules/Additive"),
+    ],
     targets: [
         .target(
             name: "LeitnerBoxApp",
             dependencies: [
+                .product(name: "Additive", package: "Additive"),
                 .product(name: "FFMpegKitContainer", package: "FFMpegKitContainer")
             ],
             resources: [.process("Resources")]

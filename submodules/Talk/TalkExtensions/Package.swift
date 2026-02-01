@@ -16,13 +16,15 @@ let package = Package(
             targets: ["TalkExtensions"]),
     ],
     dependencies: [
-        .package(path: "../TalkModels")
+        .package(path: "../TalkModels"),
+        .package(path: "../TalkFont")
     ],
     targets: [
         .target(
             name: "TalkExtensions",
             dependencies: [
-                "TalkModels"
+                "TalkModels",
+                "TalkFont"
             ]
         ),
         .testTarget(

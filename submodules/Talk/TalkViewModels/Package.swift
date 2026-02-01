@@ -21,7 +21,8 @@ let package = Package(
         .package(path: "../../FFMpegKitContainer"),
         .package(url: "https://github.com/ZipArchive/ZipArchive", exact: "2.5.5"),
         .package(url: "https://github.com/dmrschmidt/DSWaveformImage", exact: "14.2.1"),
-        .package(url: "https://github.com/airbnb/lottie-ios", exact: "4.5.2")
+        .package(url: "https://github.com/airbnb/lottie-ios", exact: "4.5.2"),
+        .package(path: "../ActionableContextMenu"),
     ],
     targets: [
         .target(
@@ -29,6 +30,7 @@ let package = Package(
             dependencies: [
                 "TalkModels",
                 "TalkExtensions",
+                "ActionableContextMenu",
                 .product(name: "ZipArchive", package: "ZipArchive"),
                 .product(name: "DSWaveformImage", package: "DSWaveformImage"),
                 .product(name: "Lottie", package: "lottie-ios"),

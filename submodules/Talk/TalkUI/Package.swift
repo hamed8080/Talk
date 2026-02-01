@@ -22,6 +22,7 @@ let package = Package(
         .package(path: "../TalkViewModels"),
         .package(path: "../ImageEditor"),
         .package(path: "../TalkFont"),
+        .package(path: "../ActionableContextMenu"),
     ],
     targets: [
         .target(
@@ -32,7 +33,8 @@ let package = Package(
                 "TalkExtensions",
                 "TalkViewModels",
                 "ImageEditor",
-                "TalkFont"
+                "TalkFont",
+                "ActionableContextMenu"
             ]
         ),
         .testTarget(

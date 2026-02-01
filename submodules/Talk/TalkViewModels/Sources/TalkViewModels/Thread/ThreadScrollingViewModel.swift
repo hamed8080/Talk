@@ -13,7 +13,7 @@ import TalkModels
 public actor DeceleratingBackgroundActor {}
 
 @globalActor public actor DeceleratingActor: GlobalActor {
-    public static var shared = DeceleratingBackgroundActor()
+    public static let shared = DeceleratingBackgroundActor()
 }
 
 @MainActor
