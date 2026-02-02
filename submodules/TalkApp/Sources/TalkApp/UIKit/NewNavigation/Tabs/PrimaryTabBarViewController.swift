@@ -51,6 +51,13 @@ class PrimaryTabBarViewController: UIViewController {
         tabBar.translatesAutoresizingMaskIntoConstraints = false
         tabBar.items = tabs
         tabBar.delegate = self
+        
+       
+        if let appearance = makeTabbarApperance() {
+            tabBar.standardAppearance = appearance
+            tabBar.scrollEdgeAppearance = appearance
+        }
+        
         tabBar.accessibilityIdentifier = "tabBarPrimaryTabBarViewController"
         
         container.translatesAutoresizingMaskIntoConstraints = false
@@ -74,10 +81,9 @@ class PrimaryTabBarViewController: UIViewController {
             touchBlockerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             touchBlockerView.topAnchor.constraint(equalTo: tabBar.topAnchor),
             
-            tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0),
+            tabBar.bottomAnchor.constraint(equalTo: isIos26() ? view.bottomAnchor : view.safeAreaLayoutGuide.bottomAnchor),
             tabBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tabBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            tabBar.heightAnchor.constraint(equalToConstant: ConstantSizes.bottomToolbarSize),
             
             container.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
             container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -90,8 +96,35 @@ class PrimaryTabBarViewController: UIViewController {
         registerWindowChange()
     }
     
-    @objc private func changeTab() {
-        switch tabBar.selectedItem?.tag {
+    private func makeTabbarApperance() -> UITabBarAppearance? {
+        if #available(iOS 15.0, *) {
+            let appearance = UITabBarAppearance()
+            appearance.configureWithDefaultBackground()
+            
+            let itemAppearance = UITabBarItemAppearance(style: .stacked)
+            
+            // Increase vertical spacing between SF Symbol and title
+            itemAppearance.normal.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 4)
+            itemAppearance.selected.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 4)
+            itemAppearance.normal.titleTextAttributes = [.font: UIFont.normal(.body)]
+            
+            appearance.stackedLayoutAppearance = itemAppearance
+            
+            return appearance
+        }
+        
+        return nil
+    }
+    
+    private func isIos26() -> Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        }
+        return false
+    }
+    
+    private func changeTab(selectedTag: Int?) {
+        switch selectedTag {
         case 0: switchTo(contactsVC)
         case 1: switchTo(chatsVC)
         case 2: switchTo(settingsVC)
@@ -167,6 +200,6 @@ class PrimaryTabBarViewController: UIViewController {
 
 extension PrimaryTabBarViewController: UITabBarDelegate {
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        changeTab()
+        changeTab(selectedTag: item.tag)
     }
 }
