@@ -104,9 +104,9 @@ class PrimaryTabBarViewController: UIViewController {
             let itemAppearance = UITabBarItemAppearance(style: .stacked)
             
             // Increase vertical spacing between SF Symbol and title
-            itemAppearance.normal.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 4)
-            itemAppearance.selected.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 4)
-            itemAppearance.normal.titleTextAttributes = [.font: UIFont.normal(.body)]
+            itemAppearance.normal.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 8)
+            itemAppearance.selected.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 8)
+            itemAppearance.normal.titleTextAttributes = [.font: UIFont.normal(.caption)]
             
             appearance.stackedLayoutAppearance = itemAppearance
             

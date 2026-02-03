@@ -74,7 +74,11 @@ public final class ChatDelegateImplementation: ChatDelegate {
             // Failed to download spec or bundle
             if retryCount < 3 {
                 retryCount += 1
+                log("Retry downloading bundle or spec for: \(retryCount)")
                 await dlReload(manager: manager)
+            } else {
+                isDownloading = false
+                log("Failed to download bundle or spec after 3 times!")
             }
         }
     }

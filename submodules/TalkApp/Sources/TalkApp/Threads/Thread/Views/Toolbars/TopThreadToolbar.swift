@@ -78,8 +78,8 @@ public final class TopThreadToolbar: UIStackView {
         navBarView.accessibilityIdentifier = "navBarViewTopThreadToolbar"
         addArrangedSubview(navBarView)
         NSLayoutConstraint.activate([
-            navBarView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            navBarView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),           
+            navBarView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
+            navBarView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: 0),           
         ])
     }
 

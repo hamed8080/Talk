@@ -157,42 +157,42 @@ public class CustomConversationNavigationBar: UIView {
             await setSplitedText()
         }
 
-        centerYTitleConstraint = titleLabel.centerYAnchor.constraint(equalTo: detailViewButton.centerYAnchor, constant: 0)
+        centerYTitleConstraint = titleLabel.centerYAnchor.constraint(equalTo: detailViewButton.safeAreaLayoutGuide.centerYAnchor, constant: 0)
         centerYTitleConstraint.identifier = "centerYTitleConstraintCustomConversationNavigationBar"
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 64),
 
-            backButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            backButton.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
             backButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             backButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             backButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            fullScreenButton.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 0),
+            fullScreenButton.leadingAnchor.constraint(equalTo: backButton.safeAreaLayoutGuide.trailingAnchor, constant: 0),
             fullScreenButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             fullScreenButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             
             detailViewButton.topAnchor.constraint(equalTo: topAnchor),
             detailViewButton.bottomAnchor.constraint(equalTo: bottomAnchor),
-            detailViewButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: 0),
+            detailViewButton.trailingAnchor.constraint(equalTo: searchButton.safeAreaLayoutGuide.leadingAnchor, constant: 0),
 
             threadImageButton.topAnchor.constraint(equalTo: detailViewButton.topAnchor, constant: 4),
             threadImageButton.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: -4),
             threadImageButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth + 8),
-            threadImageButton.leadingAnchor.constraint(equalTo: detailViewButton.leadingAnchor),
+            threadImageButton.leadingAnchor.constraint(equalTo: detailViewButton.safeAreaLayoutGuide.leadingAnchor),
 
-            threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.centerXAnchor),
-            threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.centerYAnchor),
+            threadTitleSupplementary.centerXAnchor.constraint(equalTo: threadImageButton.safeAreaLayoutGuide.centerXAnchor),
+            threadTitleSupplementary.centerYAnchor.constraint(equalTo: threadImageButton.safeAreaLayoutGuide.centerYAnchor),
 
-            titleLabel.leadingAnchor.constraint(equalTo: threadImageButton.trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: detailViewButton.trailingAnchor, constant: -4),
+            titleLabel.leadingAnchor.constraint(equalTo: threadImageButton.safeAreaLayoutGuide.trailingAnchor, constant: 8),
+            titleLabel.trailingAnchor.constraint(equalTo: detailViewButton.safeAreaLayoutGuide.trailingAnchor, constant: -4),
             centerYTitleConstraint,
             titleLabel.heightAnchor.constraint(equalToConstant: 16),
 
-            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.safeAreaLayoutGuide.leadingAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: -4),
             subtitleLabel.bottomAnchor.constraint(equalTo: detailViewButton.bottomAnchor, constant: 4),
             
-            searchButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+            searchButton.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -4),
             searchButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             searchButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             searchButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
@@ -202,7 +202,7 @@ public class CustomConversationNavigationBar: UIView {
         fullScreenButtonWidthConstraint?.isActive = showFullScreenButton
         fullScreenButtonWidthConstraint?.constant = 42
         
-        detailViewButtonLeadingConstraint = detailViewButton.leadingAnchor.constraint(equalTo: showFullScreenButton ? fullScreenButton.trailingAnchor : backButton.trailingAnchor, constant: 2)
+        detailViewButtonLeadingConstraint = detailViewButton.safeAreaLayoutGuide.leadingAnchor.constraint(equalTo: showFullScreenButton ? fullScreenButton.trailingAnchor : backButton.safeAreaLayoutGuide.trailingAnchor, constant: 2)
         detailViewButtonLeadingConstraint?.isActive = true
         detailViewButtonLeadingConstraint?.constant = showFullScreenButton ? 8 : 2
         
@@ -219,7 +219,7 @@ public class CustomConversationNavigationBar: UIView {
         revokeButton.addTarget(self, action: #selector(revokeButtonTapped), for: .touchUpInside)
         addSubview(revokeButton)
         NSLayoutConstraint.activate([
-            revokeButton.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor, constant: -8),
+            revokeButton.trailingAnchor.constraint(equalTo: searchButton.safeAreaLayoutGuide.leadingAnchor, constant: -8),
             revokeButton.widthAnchor.constraint(equalToConstant: 64),
             revokeButton.bottomAnchor.constraint(equalTo: bottomAnchor),
             revokeButton.topAnchor.constraint(equalTo: topAnchor),

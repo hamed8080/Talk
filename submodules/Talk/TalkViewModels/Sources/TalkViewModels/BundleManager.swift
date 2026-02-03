@@ -74,7 +74,7 @@ public class BundleManager {
         }
 
         guard let url = URL(string: Constants.bundleURL.fromBase64() ?? "") else { throw ManagerError.badURL }
-        let req = URLRequest(url: url)
+        let req = URLRequest(url: url, timeoutInterval: 10.0)
         let downloadedFileURL = try await URLSession.shared.download(for: req).0
         return downloadedFileURL
     }

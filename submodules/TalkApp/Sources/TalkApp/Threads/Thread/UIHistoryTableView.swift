@@ -53,6 +53,12 @@ class UIHistoryTableView: UITableView {
         let bgView = ChatBackgroundView(frame: .zero)
         backgroundView = bgView
         backgroundColor = Color.App.bgPrimaryUIColor
+        if #available(iOS 26.0, *) {
+            topEdgeEffect.isHidden = true
+            bottomEdgeEffect.isHidden = true
+            rightEdgeEffect.isHidden = true
+            leftEdgeEffect.isHidden = true
+        }
     }
     
     private func log(_ string: String) {

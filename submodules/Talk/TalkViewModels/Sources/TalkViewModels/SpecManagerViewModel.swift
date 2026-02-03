@@ -28,7 +28,7 @@ public class SpecManagerViewModel {
     
     public func download() async throws -> Spec {
         let hasProxy = TalkBackProxyViewModel.hasProxy()
-        let hasEverCached = hasEverCached()
+        let hasEverCached = cachedSpec() != nil
         if !hasEverCached {
             return try await downloadInitPodsapceSpec()
         } else if hasProxy {
@@ -118,7 +118,9 @@ public class SpecManagerViewModel {
     }
     
     public func cachedSpec() -> Spec? {
-        return UserDefaults.standard.codableValue(forKey: key)
+        let spec: Spec? = UserDefaults.standard.codableValue(forKey: key)
+        if spec == nil || spec?.server.socket.isEmpty == true { return nil }
+        return spec
     }
     
     public func isSandbox() -> Bool {
@@ -149,7 +151,7 @@ extension SpecManagerViewModel {
     
     public func fetchConfigsReconnectIfSocketHasChanged() async -> Spec? {
         /// We will not sending request if we have never fetched podspace public spec.
-        if !hasEverCached() { return nil }
+        if cachedSpec() == nil { return nil }
     
         guard let spec = try? await refetchAndStoreConfigs()
         else { return nil }
@@ -188,9 +190,5 @@ extension SpecManagerViewModel {
                 await self?.fetchConfigsReconnectIfSocketHasChanged()
             }
         })
-    }
-    
-    private func hasEverCached() -> Bool {
-        cachedSpec()?.server.socket.isEmpty == false
     }
 }

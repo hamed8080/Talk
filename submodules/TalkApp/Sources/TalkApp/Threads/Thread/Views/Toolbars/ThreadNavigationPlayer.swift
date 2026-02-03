@@ -97,28 +97,28 @@ class ThreadNavigationPlayer: UIView {
 
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
-            playButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            playButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -2),
+            playButton.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
+            playButton.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor, constant: -2),
             playButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             titleLabel.leadingAnchor.constraint(equalTo: playButton.trailingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: timerLabel.leadingAnchor, constant: -4),
-            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor),
             
-            closeButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            closeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -8),
+            closeButton.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor),
             closeButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
             timerLabel.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -4),
-            timerLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            timerLabel.centerYAnchor.constraint(equalTo: safeAreaLayoutGuide.centerYAnchor),
             /// This prevents it from getting so small and the title wobbles a lot.
             timerLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: ToolbarButtonItem.buttonWidth),
             
-            progress.leadingAnchor.constraint(equalTo: leadingAnchor),
-            progress.trailingAnchor.constraint(equalTo: trailingAnchor),
-            progress.widthAnchor.constraint(equalTo: widthAnchor),
+            progress.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
+            progress.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
+            progress.widthAnchor.constraint(equalTo: safeAreaLayoutGuide.widthAnchor),
             progress.heightAnchor.constraint(equalToConstant: 1),
-            progress.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -1),
+            progress.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -1),
         ])
     }
 
@@ -257,29 +257,4 @@ class ThreadNavigationPlayer: UIView {
         closeButton.tintColor = color
         closeButton.imageView.tintColor = color
     }
-}
-
-struct NavigationPlayerWrapper: UIViewRepresentable {
-    @Environment(\.layoutDirection) var layoutDirection
-
-    func makeUIView(context: Context) -> UIView {
-        let playerView = ThreadNavigationPlayer(viewModel: nil)
-        playerView.semanticContentAttribute = layoutDirection == .rightToLeft ? .forceRightToLeft : .forceLeftToRight
-        playerView.register()
-       
-        /// A wrapper to fix the width and content semantic of a view
-        let wrapper = UIView()
-        playerView.translatesAutoresizingMaskIntoConstraints = false
-        wrapper.addSubview(playerView)
-        
-        NSLayoutConstraint.activate([
-            playerView.leadingAnchor.constraint(equalTo: wrapper.leadingAnchor),
-            playerView.trailingAnchor.constraint(equalTo: wrapper.trailingAnchor),
-            playerView.topAnchor.constraint(equalTo: wrapper.topAnchor),
-            playerView.bottomAnchor.constraint(equalTo: wrapper.bottomAnchor),
-        ])
-        return wrapper
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {}
 }

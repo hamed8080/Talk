@@ -71,18 +71,18 @@ public class CustomThreadDetailNavigationBar: UIView {
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 64),
 
-            backButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            backButton.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
             backButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
             backButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
             backButton.widthAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
             
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titleLabel.centerXAnchor.constraint(equalTo: safeAreaLayoutGuide.centerXAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             titleLabel.trailingAnchor.constraint(equalTo: editGroupOrContactButton.leadingAnchor, constant: -8),
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             titleLabel.heightAnchor.constraint(equalToConstant: 16),
             
-            editGroupOrContactButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            editGroupOrContactButton.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -8),
             editGroupOrContactButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             editGroupOrContactButton.heightAnchor.constraint(equalToConstant: ToolbarButtonItem.buttonWidth),
         ])

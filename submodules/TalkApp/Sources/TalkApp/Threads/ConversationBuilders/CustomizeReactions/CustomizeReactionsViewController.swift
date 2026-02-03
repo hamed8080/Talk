@@ -74,16 +74,16 @@ final class CustomizeReactionsViewController: UIViewController {
         heightSubmitConstraint = btnSubmit.heightAnchor.constraint(greaterThanOrEqualToConstant: 64)
         NSLayoutConstraint.activate([
             cv.topAnchor.constraint(equalTo: view.topAnchor),
-            cv.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            cv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            cv.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            cv.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             cv.heightAnchor.constraint(equalTo: view.heightAnchor),
 
             toolbarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             toolbarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             toolbarView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
 
-            btnSubmit.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            btnSubmit.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            btnSubmit.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            btnSubmit.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             heightSubmitConstraint,
             btnSubmit.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0),
         ])

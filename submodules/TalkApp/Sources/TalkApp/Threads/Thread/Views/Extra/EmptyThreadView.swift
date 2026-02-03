@@ -91,9 +91,9 @@ public final class EmptyThreadView: UIView {
         parent.addSubview(self)
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalTo: vStack.heightAnchor),
-            leadingAnchor.constraint(equalTo: parent.leadingAnchor),
-            trailingAnchor.constraint(equalTo: parent.trailingAnchor),
-            centerYAnchor.constraint(equalTo: parent.centerYAnchor),
+            leadingAnchor.constraint(equalTo: parent.safeAreaLayoutGuide.leadingAnchor),
+            trailingAnchor.constraint(equalTo: parent.safeAreaLayoutGuide.trailingAnchor),
+            centerYAnchor.constraint(equalTo: parent.safeAreaLayoutGuide.centerYAnchor),
         ])
     }
 

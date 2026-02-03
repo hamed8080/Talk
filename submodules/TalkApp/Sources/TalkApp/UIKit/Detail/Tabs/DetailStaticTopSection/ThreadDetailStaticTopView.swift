@@ -56,15 +56,15 @@ public class ThreadDetailStaticTopView: UIStackView {
         addArrangedSubview(secondSeparator)
         
         NSLayoutConstraint.activate([
-            topSection.leadingAnchor.constraint(equalTo: leadingAnchor),
+            topSection.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
             
             firstSeparator.heightAnchor.constraint(equalToConstant: 10),
-            firstSeparator.leadingAnchor.constraint(equalTo: leadingAnchor),
-            firstSeparator.trailingAnchor.constraint(equalTo: trailingAnchor),
+            firstSeparator.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
+            firstSeparator.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
             
             secondSeparator.heightAnchor.constraint(equalToConstant: 10),
-            secondSeparator.leadingAnchor.constraint(equalTo: leadingAnchor),
-            secondSeparator.trailingAnchor.constraint(equalTo: trailingAnchor),
+            secondSeparator.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
+            secondSeparator.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
         ])
     }
     
@@ -97,10 +97,10 @@ public class ThreadDetailStaticTopView: UIStackView {
             addSubview(separator)
             separator.isHidden = viewModel?.thread?.group == true
             NSLayoutConstraint.activate([
-                cellPhoneNumberView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                cellPhoneNumberView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
                 separator.bottomAnchor.constraint(equalTo: cellPhoneNumberView.bottomAnchor, constant: 8),
-                separator.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-                separator.trailingAnchor.constraint(equalTo: trailingAnchor),
+                separator.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                separator.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
             ])
         }
         
@@ -121,10 +121,10 @@ public class ThreadDetailStaticTopView: UIStackView {
             addSubview(separator)
             separator.isHidden = viewModel?.thread?.group == true
             NSLayoutConstraint.activate([
-                userNameView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                userNameView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
                 separator.bottomAnchor.constraint(equalTo: userNameView.bottomAnchor, constant: 8),
-                separator.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-                separator.trailingAnchor.constraint(equalTo: trailingAnchor),
+                separator.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                separator.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
             ])
         }
         
@@ -142,7 +142,7 @@ public class ThreadDetailStaticTopView: UIStackView {
         if publicLinkView.superview == nil {
             addArrangedSubview(publicLinkView)
             NSLayoutConstraint.activate([
-                publicLinkView.leadingAnchor.constraint(equalTo: leadingAnchor)
+                publicLinkView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor)
             ])
         }
         
@@ -160,7 +160,7 @@ public class ThreadDetailStaticTopView: UIStackView {
         if descriptionView.superview == nil {
             addArrangedSubview(descriptionView)
             NSLayoutConstraint.activate([
-                descriptionView.leadingAnchor.constraint(equalTo: leadingAnchor)
+                descriptionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor)
             ])
         }
         
@@ -174,7 +174,7 @@ public class ThreadDetailStaticTopView: UIStackView {
         if buttonsRowView.superview == nil {
             addArrangedSubview(buttonsRowView)
             NSLayoutConstraint.activate([
-                buttonsRowView.leadingAnchor.constraint(equalTo: leadingAnchor)
+                buttonsRowView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor)
             ])
         }
     }

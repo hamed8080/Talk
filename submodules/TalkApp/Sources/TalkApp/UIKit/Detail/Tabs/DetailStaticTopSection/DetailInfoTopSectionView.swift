@@ -100,8 +100,8 @@ class DetailInfoTopSectionView: UIView {
     
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            stack.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             
             avatar.widthAnchor.constraint(equalToConstant: 64),

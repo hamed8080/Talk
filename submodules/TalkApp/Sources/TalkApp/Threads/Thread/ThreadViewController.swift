@@ -132,9 +132,9 @@ extension ThreadViewController {
         loadingManager.configureLoadings(parent: view, tableView: tableView)
         let vStackOverlayButtonsConstraint: NSLayoutConstraint
         if Language.isRTL {
-            vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: ConstantSizes.vStackButtonsLeadingMargin)
+            vStackOverlayButtonsConstraint = vStackOverlayButtons.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: ConstantSizes.vStackButtonsLeadingMargin)
         } else {
-            vStackOverlayButtonsConstraint = vStackOverlayButtons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -ConstantSizes.vStackButtonsLeadingMargin)
+            vStackOverlayButtonsConstraint = vStackOverlayButtons.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -ConstantSizes.vStackButtonsLeadingMargin)
         }
         
         sendContainerBottomConstraint = sendContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -151,9 +151,9 @@ extension ThreadViewController {
             sendContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             sendContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             sendContainerBottomConstraint!,
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
