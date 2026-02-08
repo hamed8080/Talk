@@ -41,6 +41,21 @@ public extension NSMutableAttributedString {
             }
         }
     }
+    
+    func addPhoneURL(_ color: UIColor = .blue) {
+        if let phoneRegex = NSRegularExpression.phoneRegEx {
+            let allRange = NSRange(string.startIndex..., in: string)
+            phoneRegex.enumerateMatches(in: string, range: allRange) { (result, flag, _) in
+                if let range = result?.range, let urlRange = Range(range, in: string) {
+                    let phoneNumberString = String(string[urlRange])
+                    if let url = NSURL(string: "phoneNumber:url?phoneNumber=\(phoneNumberString)") {
+                        let attributedList = linkColorAttributes(color: color, link: url)
+                        addAttributes(attributedList, range: range)
+                    }
+                }
+            }
+        }
+    }
 
     func addUserColor(_ color: UIColor = .blue) {
         if let userRegex = NSRegularExpression.userRegEx {

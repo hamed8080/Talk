@@ -146,6 +146,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDele
             Task {
                 try await navVM.openThreadWith(userName: userName)
             }
+        } else if let phoneNumber = url.decodedPhoneNumberURL {
+            navVM.showPhoneNumberAlert(phoneNumber: phoneNumber)
         } else if let decodedOpenURL = url.decodedOpenURL {
             let talk = appState.spec.server.talk
             let talkJoin = "\(talk)\(appState.spec.paths.talk.join)"

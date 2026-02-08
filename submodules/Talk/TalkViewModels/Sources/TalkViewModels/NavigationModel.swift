@@ -511,3 +511,40 @@ public extension NavigationModel {
         splitVC?.present(vc, animated: true)
     }
 }
+
+public extension NavigationModel {
+    func showPhoneNumberAlert(phoneNumber: String) {
+        guard let vc = splitVC else { return }
+        let alertVC = UIAlertController(title: phoneNumber, message: "", preferredStyle: .actionSheet)
+        var actions: [UIAlertAction] = []
+        
+        let callAction = UIAlertAction(title: "General.callPhoneNumber".bundleLocalized(), style: .default) { _ in
+            if let url = URL(string: "tel://\(phoneNumber)") {
+                if UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url)
+                }
+            }
+        }
+        
+        let sendSMSAction = UIAlertAction(title: "General.sendSMSPhoneNumber".bundleLocalized(), style: .default) { _ in
+            if let url = URL(string: "sms:\(phoneNumber)") {
+                UIApplication.shared.open(url)
+            }
+        }
+        
+        let copyAction = UIAlertAction(title: "General.copyPhoneNumber".bundleLocalized(), style: .default) { _ in
+            UIPasteboard.general.string = phoneNumber
+        }
+        
+        let cancelAction = UIAlertAction(title: "General.cancel".bundleLocalized(), style: .cancel)
+        
+        actions.append(callAction)
+        actions.append(sendSMSAction)
+        actions.append(copyAction)
+        actions.append(cancelAction)
+        for action in actions {
+            alertVC.addAction(action)
+        }
+        vc.present(alertVC, animated: true)
+    }
+}

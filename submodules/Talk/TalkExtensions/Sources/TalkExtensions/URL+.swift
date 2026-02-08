@@ -33,6 +33,12 @@ public extension URL {
         else { return nil }
         return decodedURL
     }
+    
+    var decodedPhoneNumberURL: String? {
+        if !absoluteString.contains("phoneNumber") { return nil }
+        let phoneNumber = absoluteString.replacingOccurrences(of: "phoneNumber:url?phoneNumber=", with: "")
+        return phoneNumber
+    }
 
     private func properSchemeURL(_ decodedString: String) -> URL? {
         if scheme == nil || !containsAllowedScheme(decodedString) {

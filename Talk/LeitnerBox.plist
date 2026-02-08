@@ -2,12 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BuildAppName</key>
-	<string>LeitnerBox</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).rft</string>
 	</array>
+	<key>BuildAppName</key>
+	<string>LeitnerBox</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -35,6 +35,7 @@
 			<array>
 				<string>showUser</string>
 				<string>openURL</string>
+				<string>phoneNumber</string>
 			</array>
 		</dict>
 		<dict>

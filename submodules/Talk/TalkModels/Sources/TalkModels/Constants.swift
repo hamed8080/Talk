@@ -8,7 +8,7 @@
 import Foundation
 
 public struct Constants: Sendable {
-    nonisolated(unsafe) public static let version = "1.102"
+    nonisolated(unsafe) public static let version = "1.103"
     
     /// TalkBack sandbox URL
     /// https://talkback2.pod.ir
@@ -24,9 +24,9 @@ public struct Constants: Sendable {
     nonisolated(unsafe) public static let talkBackConfigsPath = "L2FwaS90YWxrL2NvbmZpZ3M/cGxhdGZvcm09SU9T"
     
     /// Bundle local URL
-    /// v1.102
-    /// https://podspace.pod.ir/api/files/B9ORLAYJAGV44T29
-    nonisolated(unsafe) public static let bundleURL = "aHR0cHM6Ly9wb2RzcGFjZS5wb2QuaXIvYXBpL2ZpbGVzL0I5T1JMQVlKQUdWNDRUMjk="
+    /// v1.103
+    /// https://podspace.pod.ir/api/files/JFREY2QWPFHOCCJ6
+    nonisolated(unsafe) public static let bundleURL = "aHR0cHM6Ly9wb2RzcGFjZS5wb2QuaXIvYXBpL2ZpbGVzL0pGUkVZMlFXUEZIT0NDSjY="
     
     /// TalkBack main 1 config URL
     /// https://talkback2.pod.ir/api/talk/auth/configs?platform=IOS

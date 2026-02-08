@@ -31,6 +31,7 @@ public final class MessageAttributedStringCalculator {
         
         mutableAttr.addDefaultTextColor(UIColor(named: "text_primary") ?? .white)
         mutableAttr.addUserColor(UIColor(named: "accent") ?? .orange)
+        mutableAttr.addPhoneURL(UIColor(named: "accent") ?? .orange)
         mutableAttr.addLinkColor(UIColor(named: "text_secondary") ?? .gray)
         mutableAttr.addBold()
         mutableAttr.addItalic()
