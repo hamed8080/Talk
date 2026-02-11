@@ -47,6 +47,8 @@ class UIHistoryTableView: UITableView {
         sectionHeaderTopPadding = 0
         showsVerticalScrollIndicator = false
         insetsContentViewsToSafeArea = true
+        contentInset = .zero
+        contentInsetAdjustmentBehavior = .never
         ConversationHistoryCellFactory.registerCellsAndHeader(self)
         translatesAutoresizingMaskIntoConstraints = false
         accessibilityIdentifier = "tableViewThreadViewController"

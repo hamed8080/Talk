@@ -17,22 +17,21 @@ import TalkUI
 final class ThreadViewController: UIViewController {
     var viewModel: ThreadViewModel
     public var tableView: UIHistoryTableView!
-    private let tapGetsure = UITapGestureRecognizer()
     public lazy var sendContainer = ThreadBottomToolbar(viewModel: viewModel)
     private lazy var moveToBottom = MoveToBottomButton(viewModel: viewModel)
     private lazy var unreadMentionsButton = UnreadMenitonsButton(viewModel: viewModel)
     private lazy var cancelAudioRecordingButton = CancelAudioRecordingButton(viewModel: viewModel)
     public private(set) lazy var topThreadToolbar = TopThreadToolbar(viewModel: viewModel)
     private let loadingManager = ThreadLoadingManager()
-    private var keyboardheight: CGFloat = 0
-    private var hasExternalKeyboard = false
+    var keyboardManager: HistoryKeyboarHeightManager!
+    var contentInsetManager: HistoryContentInsetManager!
+    var tapGestureManager: HistoryTapGestureManager!
     private let emptyThreadView = EmptyThreadView()
     private let vStackOverlayButtons = UIStackView()
     private lazy var dimView = DimView()
     public var contextMenuContainer: ContextMenuContainerView!
-    private var isViewControllerVisible: Bool = true
+    var isViewControllerVisible: Bool = true
     private var sections: ContiguousArray<MessageSection> { viewModel.historyVM.sections ?? [] }
-    private var animatingKeyboard = false
     private var hasEverViewAppeared = false
     
     /// After appending a row while this view is disappeard and return back to this view like adding a participant.
@@ -52,12 +51,14 @@ final class ThreadViewController: UIViewController {
     private var sendVM: SendContainerViewModel? { viewModel.sendContainerViewModel }
     
     /// Constraints
-    private var sendContainerBottomConstraint: NSLayoutConstraint?
+    var sendContainerBottomConstraint: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         configureViews()
-        registerKeyboard()
+        keyboardManager = HistoryKeyboarHeightManager(controller: self)
+        contentInsetManager = HistoryContentInsetManager(controller: self)
+        tapGestureManager = HistoryTapGestureManager(controller: self)
         viewModel.delegate = self
         viewModel.historyVM.delegate = self
         showReplyOnOpen()
@@ -103,8 +104,8 @@ final class ThreadViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if keyboardheight == 0 {
-            updateContentInset(methodName: "viewDidLayoutSubviews")
+        if keyboardManager.getKeyboardHeight() == 0 {
+            contentInsetManager.updateContentInset(methodName: "viewDidLayoutSubviews")
         }
     }
 
@@ -162,7 +163,6 @@ extension ThreadViewController {
     
     private func configureTableView() {
         tableView = UIHistoryTableView(viewModel: viewModel)
-        tableView.contentInset = .zero
         view.addSubview(tableView)
     }
     
@@ -177,8 +177,8 @@ extension ThreadViewController {
         sendContainer.onUpdateHeight = { [weak self] (height: CGFloat) in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                self.onSendHeightChanged(height)
-                if self.animatingKeyboard == false {
+                self.contentInsetManager.updateContentInset(methodName: "onSendHeightChanged")
+                if self.keyboardManager.animatingKeyboard == false {
                     self.moveTolastMessageIfVisible()
                 }
             }
@@ -419,7 +419,7 @@ extension ThreadViewController: ThreadViewDelegate {
     }
     
     func setTapGesture(enable: Bool) {
-        tapGetsure.isEnabled = enable
+        tapGestureManager.setEnable(enable)
     }
 }
 
@@ -461,7 +461,8 @@ extension ThreadViewController: BottomToolbarDelegate {
         viewModel.replyMessage = message as? Message
         sendContainer.openReplyMode(message)
         viewModel.scrollVM.disableExcessiveLoading()
-        scrollTo(uniqueId: message?.uniqueId ?? "", messageId: message?.id ?? -1, position: hasExternalKeyboard ? .none : .middle)
+        let scrollPosition: UITableView.ScrollPosition = keyboardManager.hasExternalKeyboard ? .none : .middle
+        scrollTo(uniqueId: message?.uniqueId ?? "", messageId: message?.id ?? -1, position: scrollPosition)
     }
 
     func focusOnTextView(focus: Bool) {
@@ -747,99 +748,12 @@ extension ThreadViewController: HistoryScrollDelegate {
     }
 }
 
-// MARK: Keyboard apperance
-extension ThreadViewController {
-    private func registerKeyboard() {
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { [weak self] notif in
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                self.willShowKeyboard(notif: notif)
-            }
-        }
-
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { [weak self] notif in
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                self.willHidekeyboard(notif: notif)
-            }
-        }
-        tapGetsure.addTarget(self, action: #selector(hideKeyboard))
-        tapGetsure.isEnabled = true
-        view.addGestureRecognizer(tapGetsure)
-    }
-    
-    private func willShowKeyboard(notif: Notification) {
-        if isViewControllerVisible == false { return }
-        keyboardAnimationTransaction(notif, show: true)
-        
-        /// Prevent overlaping with the text container if the thread is empty.
-        if viewModel.historyVM.sections.isEmpty == true {
-            view.bringSubviewToFront(sendContainer)
-        }
-    }
-    
-    private func willHidekeyboard(notif: Notification) {
-        if isViewControllerVisible == false { return }
-        keyboardAnimationTransaction(notif, show: false)
-    }
-    
-    private func keyboardAnimationTransaction(_ notif: Notification, show: Bool) {
-        guard let tuple = notif.extractDurationAndAnimation() else { return }
-        hasExternalKeyboard = tuple.rect.height <= 69
-        keyboardheight = show ? tuple.rect.height : 0
-        sendContainerBottomConstraint?.constant = show ? -keyboardheight : keyboardheight
-        
-        /// Disable onHeightChanged callback for the send container
-        /// to manipulate the content inset during the animation
-        animatingKeyboard = true
-        let indexPath = lastMessageIndexPathIfVisible()
-        
-        UIView.animate(withDuration: tuple.duration, delay: 0.0, options: tuple.opt) {
-            /// Animate layout sendContainerBottomConstraint changes.
-            /// It should be done on it's superView to animate
-            self.view.layoutIfNeeded()
-            
-            // Scroll within the transaction block
-            if let indexPath = indexPath {
-                /// Animation parameter should be always set to false
-                /// unless it won't animate as we expect in a UIView.animate block.
-                self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
-            }
-        } completion: { completed in
-            if completed {
-                self.animatingKeyboard = false
-            }
-        }
-    }
-    
-    private func onSendHeightChanged(_ height: CGFloat) {
-        updateContentInset(methodName: "onSendHeightChanged")
-    }
-
-    @objc private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
-
 extension ThreadViewController {
     private func showReplyOnOpen() {
         if let replyMessage = sendVM?.getDraftReplyMessage() {
             self.viewModel.replyMessage = replyMessage
             openReplyMode(replyMessage)
         }
-    }
-}
-
-extension Notification: @unchecked @retroactive Sendable {
-    func extractDurationAndAnimation() -> (duration: Double, opt: UIView.AnimationOptions, rect: CGRect)? {
-        if let rect = userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-           let animationCurve = userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
-           let duration = userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-        {
-            let opt = UIView.AnimationOptions(rawValue: animationCurve << 16)
-            return (duration, opt, rect)
-        }
-        return nil
     }
 }
 
@@ -850,68 +764,3 @@ extension ThreadViewController {
     }
 }
 
-/// ContentInset
-extension ThreadViewController {
-    
-    private func updateContentInset(methodName: String) {
-        /// Order do matter firstly we need to calculate bottom then we use calculated bottom constant.
-        setBottomContentInset()
-        setTopContentInset()
-        tableView.scrollIndicatorInsets = tableView.contentInset
-        printContentInset(methodName: methodName)
-    }
-    
-    private func bottomContainerHeight() -> CGFloat {
-        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
-        let height = sendContainer.bounds.height
-        return keyboardheight + height + spaceLastMessage - view.safeAreaInsets.bottom
-    }
-    
-    private func isContentSmallerThanHeight() -> Bool {
-        let bottom = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
-        return tableView.contentSize.height < tableView.frame.height - (bottom + topToolbarHeight())
-    }
-    
-    private func topToolbarHeight() -> CGFloat {
-        topThreadToolbar.bounds.height + view.safeAreaInsets.top
-    }
-    
-    private func diffTableViewContentSizeAndFrameHeight() -> CGFloat {
-        return tableView.frame.height - bottomContainerHeight() - topToolbarHeight() - tableView.contentSize.height
-    }
-    
-    private func setTopContentInset() {
-        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
-        let isSmaller = isContentSmallerThanHeight()
-        let topToolbarInset = topToolbarHeight()
-        let top = isSmaller ? diffTableViewContentSizeAndFrameHeight() : topToolbarInset
-        if tableView.contentInset.top != top {
-            tableView.contentInset.top = top
-        }
-    }
-    
-    private func setBottomContentInset() {
-        let isSmaller = isContentSmallerThanHeight()
-        let bottom = isSmaller ? 0 : bottomContainerHeight()
-        if tableView.contentInset.bottom != bottom {
-            tableView.contentInset.bottom = bottom
-        }
-    }
-    
-    private func printContentInset(methodName: String) {
-        log(
-            """
-[CONTENT_INSET] in \(methodName)
-TableView ContentInset: \(tableView.contentInset)
-TableView ContentSize: \(tableView.contentSize)
-TableView Frame: \(tableView.frame)
-View top safe area : \(view.safeAreaInsets.top)
-View bottom safe area : \(view.safeAreaInsets.bottom)
-TopThreadToolbar Bounds: \(topThreadToolbar.bounds)
-TopThreadToolbar Frame: \(topThreadToolbar.frame)
-SendContainer Bounds: \(sendContainer.bounds)
-SendContainer Frame: \(sendContainer.frame)\n
-"""
-        )
-    }
-}
