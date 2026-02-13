@@ -64,7 +64,7 @@ class HistoryKeyboarHeightManager {
         /// Disable onHeightChanged callback for the send container
         /// to manipulate the content inset during the animation
         animatingKeyboard = true
-        let indexPath = vc.lastMessageIndexPathIfVisible()
+        let indexPath = vc.delegateObject.lastMessageIndexPathIfVisible()
         
         UIView.animate(withDuration: tuple.duration, delay: 0.0, options: tuple.opt) {
             /// Animate layout sendContainerBottomConstraint changes.

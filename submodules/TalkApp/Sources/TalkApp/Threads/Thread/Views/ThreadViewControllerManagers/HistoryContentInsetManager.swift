@@ -36,7 +36,7 @@ class HistoryContentInsetManager {
         }
     }
     
-    private func bottomContainerHeight() -> CGFloat {
+    func bottomContainerHeight() -> CGFloat {
         let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
         let height = vc.sendContainer.bounds.height
         return keyboardHeight + height + spaceLastMessage

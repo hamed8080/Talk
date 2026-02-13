@@ -244,7 +244,7 @@ extension UIHistoryTableView {
             y: contentOffset.y,
             width: bounds.width,
             height: bounds.height
-        ).inset(by: safeAreaInsets).inset(by: .init(top: topInset, left: 0, bottom: bottomInset, right: 0))
+        ).inset(by: .init(top: topInset, left: 0, bottom: bottomInset, right: 0))
         
         return visibleRect.contains(cellRect)
     }
