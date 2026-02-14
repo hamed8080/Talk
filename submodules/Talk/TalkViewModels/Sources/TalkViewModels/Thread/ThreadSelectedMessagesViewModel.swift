@@ -57,7 +57,7 @@ public final class ThreadSelectedMessagesViewModel {
 
     private func deselectTableView(vm: MessageRowViewModel) {
         if let indexPath = viewModel?.historyVM.sections.indexPath(for: vm) {
-            viewModel?.delegate?.tb.deselectRow(at: indexPath, animated: false)
+            viewModel?.delegate?.tableView.deselectRow(at: indexPath, animated: false)
         }
     }
     
@@ -76,11 +76,11 @@ public final class ThreadSelectedMessagesViewModel {
                 
                 /// First, we have to reload the row and
                 /// then try to select the row to force call the setValues
-                viewModel?.delegate?.tb.reloadRows(at: [indexPath], with: .none)
+                viewModel?.delegate?.tableView.reloadRows(at: [indexPath], with: .none)
                 
                 /// After reload we can make sure that the viewModel has been set and
                 /// Now we can select the row
-                viewModel?.delegate?.tb.selectRow(at: indexPath, animated: false, scrollPosition: .none)
+                viewModel?.delegate?.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
             }
         }
     }

@@ -1250,7 +1250,7 @@ extension ThreadHistoryViewModel {
     public func willDisplay(_ indexPath: IndexPath) async {
         /// To set the initial state of the move to bottom visibility once opening the thread.
         if !isFetchedServerFirstResponse,
-           let tb = delegate?.tb,
+           let tb = delegate?.tableView,
            !tb.isDragging && !tb.isDecelerating,
            !isLastMessageVisible(),
            isSectionAndRowExist(indexPath)
@@ -2050,7 +2050,7 @@ extension ThreadHistoryViewModel {
         if hasBeenDisconnectedEver { return }
         
         let vm = objc.threadsVM.saveScrollPositionVM
-        guard let threadId = viewModel?.id, let tb = delegate?.tb else { return }
+        guard let threadId = viewModel?.id, let tb = delegate?.tableView else { return }
         vm.saveScrollPosition(threadId: threadId, message: message, topOffset: tb.contentOffset.y)
     }
 }

@@ -19,7 +19,6 @@ class ThreadHistoryDelegateImplentation: ThreadViewDelegate {
 }
 
 extension ThreadHistoryDelegateImplentation {
-    private var tableView: UIHistoryTableView { vc.tableView }
     private var viewModel: ThreadViewModel { vc.viewModel }
     private var sendContainer: ThreadBottomToolbar { vc.sendContainer }
     private var sections: ContiguousArray<MessageSection> { viewModel.historyVM.sections }
@@ -40,7 +39,8 @@ extension ThreadHistoryDelegateImplentation {
 
 // MARK: Scrolling to
 extension ThreadHistoryDelegateImplentation: HistoryScrollDelegate {
-    var tb: UITableView { tableView }
+    var tableView: UITableView { vc.tableView }
+    private var historyTableView: UIHistoryTableView { vc.tableView }
     
     func emptyStateChanged(isEmpty: Bool) {
         showEmptyThread(show: isEmpty)
@@ -256,7 +256,7 @@ extension ThreadHistoryDelegateImplentation: HistoryScrollDelegate {
     
     func isCellFullyVisible(at indexPath: IndexPath, bottomPadding: CGFloat) -> Bool {
         let bottom = vc.contentInsetManager.bottomContainerHeight()
-        return tableView.isCellFullyVisible(indexPath, topInset: tableView.contentInset.top, bottomInset: bottom)
+        return historyTableView.isCellFullyVisible(indexPath, topInset: tableView.contentInset.top, bottomInset: bottom)
     }
     
     /// Call this method to update the geometry of the previous last message
@@ -398,7 +398,7 @@ extension ThreadHistoryDelegateImplentation {
     }
 
     func edited(_ indexPath: IndexPath) {
-        if let cell = tableView.baseCell(indexPath) {
+        if let cell = historyTableView.baseCell(indexPath) {
             tableView.performBatchUpdates {
                 cell.edited()
             }
@@ -406,25 +406,25 @@ extension ThreadHistoryDelegateImplentation {
     }
 
     func pinChanged(_ indexPath: IndexPath, pin: Bool) {
-        if let cell = tableView.baseCell(indexPath) {
+        if let cell = historyTableView.baseCell(indexPath) {
             cell.pinChanged(pin: pin)
         }
     }
 
     func sent(_ indexPath: IndexPath) {
-        if let cell = tableView.baseCell(indexPath) {
+        if let cell = historyTableView.baseCell(indexPath) {
             cell.sent()
         }
     }
 
     func delivered(_ indexPath: IndexPath) {
-        if let cell = tableView.baseCell(indexPath) {
+        if let cell = historyTableView.baseCell(indexPath) {
             cell.delivered()
         }
     }
 
     func seen(_ indexPath: IndexPath) {
-        if let cell = tableView.baseCell(indexPath) {
+        if let cell = historyTableView.baseCell(indexPath) {
             cell.seen()
         }
     }
@@ -446,7 +446,7 @@ extension ThreadHistoryDelegateImplentation {
     }
 
     func setHighlightRowAt(_ indexPath: IndexPath, highlight: Bool) {
-        if let cell = tableView.baseCell(indexPath) {
+        if let cell = historyTableView.baseCell(indexPath) {
             cell.setHighlight()
         } else if let cell = tableView.cellForRow(at: indexPath) as? CallEventCell {
             cell.setHighlight(highlight: highlight)

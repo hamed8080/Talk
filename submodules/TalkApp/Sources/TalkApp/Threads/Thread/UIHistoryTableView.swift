@@ -109,12 +109,16 @@ extension UIHistoryTableView: UITableViewDelegate {
         let row = sections[indexPath.section].vms[indexPath.row]
 #if DEBUG
         if abs(row.calMessage.sizes.estimatedHeight - cell.bounds.height) > 10 {
-            log("[HEIGHT][WILL_DISPLAY] Need improvement in calculation id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "")")
+            let message = row.message.message ?? ""
+            let messageId = row.message.id ?? 0
+            let estimateHeight = row.calMessage.sizes.estimatedHeight
+            let bounds = cell.bounds.height
+            log("[HEIGHT][WILL_DISPLAY] Need improvement in calculation id: \(messageId), bounds: \(bounds), estimated height: \(estimateHeight), text: \(message)")
         }
 #endif
         row.calMessage.sizes.estimatedHeight = cell.bounds.height
 #if DEBUG
-        log("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) heigth: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
+        log("[HEIGHT][WILL_DISPLAY] id: \(row.message.id ?? 0) height: \(row.calMessage.sizes.estimatedHeight) text:\(row.message.message ?? "") type: \(row.message.type ?? .unknown)")
 #endif
         Task { [weak self] in
             await self?.viewModel?.historyVM.willDisplay(indexPath)
