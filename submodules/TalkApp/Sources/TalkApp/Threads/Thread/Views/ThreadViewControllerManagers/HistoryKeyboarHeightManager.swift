@@ -61,6 +61,10 @@ class HistoryKeyboarHeightManager {
         keyboardheight = show ? tuple.rect.height : 0
         vc.sendContainerBottomConstraint?.constant = show ? -keyboardheight : keyboardheight
         
+        if show, !vc.contentInsetManager.isContentSmallerThanHeight() {
+            self.vc.contentInsetManager.updateContentInset(methodName: "keyboardAnimationTransaction")
+        }
+        
         /// Disable onHeightChanged callback for the send container
         /// to manipulate the content inset during the animation
         animatingKeyboard = true

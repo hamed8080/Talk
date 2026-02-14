@@ -42,7 +42,7 @@ class HistoryContentInsetManager {
         return keyboardHeight + height + spaceLastMessage
     }
     
-    private func isContentSmallerThanHeight() -> Bool {
+    public func isContentSmallerThanHeight() -> Bool {
         if vc.viewModel.historyVM.sections.isEmpty {
             return false
         }
