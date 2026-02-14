@@ -57,6 +57,7 @@ final class ThreadViewController: UIViewController {
         keyboardManager = HistoryKeyboarHeightManager(controller: self)
         contentInsetManager = HistoryContentInsetManager(controller: self)
         tapGestureManager = HistoryTapGestureManager(controller: self)
+        tapGestureManager.addTapGesture()
         viewModel.delegate = delegateObject
         viewModel.historyVM.delegate = delegateObject
         delegateObject.showReplyOnOpen()
@@ -90,7 +91,7 @@ final class ThreadViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         viewModel.historyVM.setThreashold(view.bounds.height * 2.5)
-        contextMenuContainer = ContextMenuContainerView(delegate: delegateObject)
+        contextMenuContainer = ContextMenuContainerView(delegate: delegateObject, vc: self)
         
         /// After appending a row while this view is disappeard and return back to this view like adding a participant.
         /// UITableView does not scroll to the row with scrollToRow method if it is not in the current presented view controller.
@@ -102,7 +103,7 @@ final class ThreadViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if keyboardManager.getKeyboardHeight() == 0 {
+        if !keyboardManager.isKeyboardVisible() {
             contentInsetManager.updateContentInset(methodName: "viewDidLayoutSubviews")
         }
     }
@@ -175,7 +176,6 @@ extension ThreadViewController {
         sendContainer.onUpdateHeight = { [weak self] (height: CGFloat) in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                self.contentInsetManager.updateContentInset(methodName: "onSendHeightChanged")
                 if self.keyboardManager.animatingKeyboard == false {
                     self.delegateObject.moveTolastMessageIfVisible()
                 }

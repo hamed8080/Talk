@@ -25,7 +25,7 @@ extension MessageContainerStackView {
         let viewModel = model.viewModel
 
         let menu = CustomMenu()
-        menu.contexMenuContainer = (viewModel.threadVM?.delegate as? ThreadViewController)?.contextMenuContainer
+        menu.contexMenuContainer = (viewModel.threadVM?.delegate?.viewController as? ThreadViewController)?.contextMenuContainer
         
         if let message = message as? Message {
             let isDeletable = DeleteMessagesViewModelModel.isDeletable(isMe: viewModel.calMessage.isMe, message: message, thread: threadVM?.thread)

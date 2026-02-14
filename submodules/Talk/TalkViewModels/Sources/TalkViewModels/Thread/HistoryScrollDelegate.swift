@@ -12,6 +12,7 @@ import Chat
 
 @MainActor
 public protocol HistoryScrollDelegate: AnyObject, HistoryEmptyDelegate, Sendable {
+    var viewController: UIViewController { get }
     var tableView: UITableView { get }
     func scrollTo(index: IndexPath, position: UITableView.ScrollPosition, animate: Bool)
     func scrollTo(uniqueId: String, messageId: Int, position: UITableView.ScrollPosition, animate: Bool)

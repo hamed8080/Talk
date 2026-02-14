@@ -42,7 +42,7 @@ public final class CustomizeReactionsToolbar: UIView {
         backButton.imageView.semanticContentAttribute = Language.isRTL ? .forceRightToLeft : .forceLeftToRight
         backButton.accessibilityIdentifier = "backButtonCustomizeReactionsToolbar"
         backButton.action = { [weak self] in
-            (self?.viewModel?.delegate as? UIViewController)?.navigationController?.popViewController(animated: true)
+            (self?.viewModel?.delegate?.viewController)?.navigationController?.popViewController(animated: true)
         }
 
         addSubview(backButton)

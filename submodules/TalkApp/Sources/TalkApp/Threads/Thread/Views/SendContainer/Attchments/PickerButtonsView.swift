@@ -20,7 +20,7 @@ public final class PickerButtonsView: UIStackView {
     private let btnContact = AttchmentButton(title: "General.contact", image: "person.2.crop.square.stack.fill")
     private let btnCamera = AttchmentButton(title: "General.camera", image: "camera.fill")
     private weak var threadVM: ThreadViewModel?
-    private var vc: UIViewController? { threadVM?.delegate as? UIViewController }
+    private var vc: UIViewController? { threadVM?.delegate?.viewController }
     private let documentPicker = DocumnetPickerViewController()
     private var cameraCapturer: CameraCapturer?
     private let galleryPicker = GallleryMediaPickerViewController()
@@ -186,7 +186,7 @@ extension PickerButtonsView {
         if captureObject.isCameraAccessDenied() {
             showPermissionDialog()
         } else {
-            (threadVM?.delegate as? UIViewController)?.present(captureObject.vc, animated: true)
+            (threadVM?.delegate?.viewController)?.present(captureObject.vc, animated: true)
         }
     }
     

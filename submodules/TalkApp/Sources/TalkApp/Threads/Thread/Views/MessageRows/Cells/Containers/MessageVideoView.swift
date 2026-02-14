@@ -245,7 +245,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     }
     
     private func enterFullScreen() {
-        guard let rootVC = viewModel?.threadVM?.delegate as? UIViewController else { return }
+        guard let rootVC = viewModel?.threadVM?.delegate?.viewController else { return }
         
         configureAudioSessionForPlayback()
         
@@ -287,7 +287,7 @@ final class MessageVideoView: UIView, @preconcurrency AVPlayerViewControllerDele
     }
 
     private func addPlayerViewToView() {
-        let rootVC = viewModel?.threadVM?.delegate as? UIViewController
+        let rootVC = viewModel?.threadVM?.delegate?.viewController
         if let rootVC = rootVC, let playerVC = playerVC, let view = playerVC.view {
             view.translatesAutoresizingMaskIntoConstraints = false
             self.insertSubview(view, at: 0)

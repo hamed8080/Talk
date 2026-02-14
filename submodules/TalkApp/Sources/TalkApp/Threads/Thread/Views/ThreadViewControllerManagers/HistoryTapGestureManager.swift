@@ -19,7 +19,7 @@ class HistoryTapGestureManager {
     }
     
     func addTapGesture() {
-        tapGetsure.addTarget(self, action: #selector(vc.keyboardManager.hideKeyboard))
+        tapGetsure.addTarget(vc.keyboardManager, action: #selector(vc.keyboardManager.hideKeyboard))
         tapGetsure.isEnabled = true
         view.addGestureRecognizer(tapGetsure)
     }

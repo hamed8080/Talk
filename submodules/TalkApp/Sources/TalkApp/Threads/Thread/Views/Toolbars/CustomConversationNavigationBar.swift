@@ -240,7 +240,7 @@ public class CustomConversationNavigationBar: UIView {
         let detailViewModel = ThreadDetailViewModel()
         detailViewModel.setup(threadVM: viewModel)
         let detailVC = UIDetailViewController(viewModel: detailViewModel)
-        let navigationController = (viewModel.delegate as? ThreadViewController)?.navigationController
+        let navigationController = (viewModel.delegate?.viewController as? ThreadViewController)?.navigationController
         
         AppState.shared.objectsContainer.navVM.appendThreadDetailUIKit(vc: detailVC,
                                                                        navigationController: navigationController,
@@ -413,7 +413,7 @@ public class CustomConversationNavigationBar: UIView {
             
             let vc = UIHostingController(rootView: rootView)
             vc.modalPresentationStyle = .fullScreen
-            (viewModel.delegate as? UIViewController)?.present(vc, animated: true)
+            (viewModel.delegate?.viewController)?.present(vc, animated: true)
         }
     }
     

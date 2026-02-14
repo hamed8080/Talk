@@ -43,12 +43,15 @@ class HistoryContentInsetManager {
     }
     
     private func isContentSmallerThanHeight() -> Bool {
+        if vc.viewModel.historyVM.sections.isEmpty {
+            return false
+        }
         let bottom = sendContainer.bounds.height - sendContainer.safeAreaInsets.bottom
         return tableView.contentSize.height < tableView.frame.height - (bottom + topToolbarHeight())
     }
     
     private func topToolbarHeight() -> CGFloat {
-        topThreadToolbar.bounds.height + view.safeAreaInsets.top
+        topThreadToolbar.bounds.height
     }
     
     private func diffTableViewContentSizeAndFrameHeight() -> CGFloat {
@@ -69,23 +72,23 @@ class HistoryContentInsetManager {
     }
     
     private func setTopContentInset() {
-        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
         let isSmaller = isContentSmallerThanHeight()
         let topToolbarInset = topToolbarHeight()
-        let top = isSmaller ? diffTableViewContentSizeAndFrameHeight() : topToolbarInset
+        /// We use contentInsetAdjustmentBehavior = .automatic in UIHistoryTableView
+        /// so safearea content inset for top and bottom will be calculated automatically and we have to make sure to remove it.
+        let topSafeArea = view.safeAreaInsets.top
+        let top = isSmaller ? diffTableViewContentSizeAndFrameHeight() - topSafeArea : topToolbarInset - topSafeArea
         if tableView.contentInset.top != top {
             tableView.contentInset.top = top
         }
     }
     
     private func setBottomContentInset() {
-        let isSmaller = isContentSmallerThanHeight()
-        let spaceLastMessage = ConstantSizes.spaceLastMessageAndBottomContainer
-        var bottom = isSmaller ? 0 : bottomContainerHeight()
-        var isKeyboardVisible = keyboardHeight > 0
-        if isKeyboardVisible, isSmaller {
-            bottom = bottomContainerHeight() + view.safeAreaInsets.bottom
-        }
+        let bottomHeight = bottomContainerHeight()
+        /// We use contentInsetAdjustmentBehavior = .automatic in UIHistoryTableView
+        /// so safearea content inset for top and bottom will be calculated automatically and we have to make sure to remove it.
+        let bottomSafeArea = view.safeAreaInsets.bottom
+        let bottom = bottomHeight - bottomSafeArea
         if tableView.contentInset.bottom != bottom {
             tableView.contentInset.bottom = bottom
         }

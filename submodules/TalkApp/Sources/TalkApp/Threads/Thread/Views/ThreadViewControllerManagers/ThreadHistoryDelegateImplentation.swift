@@ -40,6 +40,7 @@ extension ThreadHistoryDelegateImplentation {
 // MARK: Scrolling to
 extension ThreadHistoryDelegateImplentation: HistoryScrollDelegate {
     var tableView: UITableView { vc.tableView }
+    var viewController: UIViewController { vc }
     private var historyTableView: UIHistoryTableView { vc.tableView }
     
     func emptyStateChanged(isEmpty: Bool) {

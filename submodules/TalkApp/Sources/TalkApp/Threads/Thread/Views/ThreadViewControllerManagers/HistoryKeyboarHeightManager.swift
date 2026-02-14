@@ -76,6 +76,7 @@ class HistoryKeyboarHeightManager {
                 /// Animation parameter should be always set to false
                 /// unless it won't animate as we expect in a UIView.animate block.
                 self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+                self.vc.contentInsetManager.updateContentInset(methodName: "keyboardAnimationTransaction")
             }
         } completion: { completed in
             if completed {
@@ -102,6 +103,10 @@ class HistoryKeyboarHeightManager {
             return (duration, opt, rect)
         }
         return nil
+    }
+    
+    public func isKeyboardVisible() -> Bool {
+        return keyboardheight != 0
     }
 }
 

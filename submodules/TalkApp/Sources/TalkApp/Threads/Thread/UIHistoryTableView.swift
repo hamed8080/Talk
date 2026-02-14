@@ -48,7 +48,9 @@ class UIHistoryTableView: UITableView {
         showsVerticalScrollIndicator = false
         insetsContentViewsToSafeArea = true
         contentInset = .zero
-        contentInsetAdjustmentBehavior = .never
+        /// Do not set this property to never,
+        /// if so rows in the table view will be automatically sized and they will get incorrect height.
+        contentInsetAdjustmentBehavior = .automatic
         ConversationHistoryCellFactory.registerCellsAndHeader(self)
         translatesAutoresizingMaskIntoConstraints = false
         accessibilityIdentifier = "tableViewThreadViewController"
