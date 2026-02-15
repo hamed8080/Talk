@@ -235,6 +235,7 @@ public final class SendContainerTextView: UIView, UITextViewDelegate {
             threadVM?.delegate?.setTapGesture(enable: true)
         }
         viewModel?.showEmojiKeybaord.toggle()
+        btnEmoji.tintColor = viewModel?.showEmojiKeybaord == true ? Color.App.accentUIColor : Color.App.textSecondaryUIColor
     }
     
     public func textViewDidBeginEditing(_ textView: UITextView) {

@@ -249,9 +249,16 @@ extension ThreadBottomToolbar {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             emojiKeyboardView.initSections()
         }
-        emojiHeightConstraint?.constant = show ? ConstantSizes.emojiKeyboardHeight : 0 
-        UIView.animate(withDuration: 0.15) { [weak self] in
-            self?.layoutIfNeeded()
+        emojiHeightConstraint?.constant = show ? ConstantSizes.emojiKeyboardHeight : 0
+        let vc = viewModel?.delegate?.viewController as? ThreadViewController
+        vc?.contentInsetManager.updateContentInset(methodName: "showEmojiKeyboard")
+        
+        let opt: UIView.AnimationOptions = [.curveEaseInOut, .preferredFramesPerSecond60, .allowAnimatedContent]
+        UIView.animate(withDuration: 0.15, delay: 0.0, options: opt) { [weak self] in
+            guard let self = self else { return }
+ 
+            layoutIfNeeded()
+            vc?.view.layoutIfNeeded()
         }
     }
 }
