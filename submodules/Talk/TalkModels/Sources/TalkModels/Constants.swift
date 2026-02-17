@@ -58,11 +58,9 @@ public struct Constants: Sendable {
     nonisolated(unsafe) public static let panel = "aHR0cHM6Ly9wYW5lbC5wb2QuaXI="
     
     /// Socket main address
-    /// wss://msg1.pod.ir/ws
     nonisolated(unsafe) public static let socket = "d3NzOi8vbXNnMS5wb2QuaXIvd3M="
     
     /// Socket sandbox address
-    /// wss://api.sandpod.ir/ws
     nonisolated(unsafe) public static let socketSandbox = "d3NzOi8vYXBpLnNhbmRwb2QuaXIvd3M="
     
     /// File server main address
