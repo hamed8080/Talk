@@ -15,6 +15,7 @@ import SwiftUI
 @_exported import TalkExtensions
 @_exported import TalkUI
 @_exported import Logger
+import LeitnerBoxApp
 
 @MainActor
 public final class ChatDelegateImplementation: ChatDelegate {
@@ -24,6 +25,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
     private var isDownloading = false
     
     public func initialize() {
+        if !LeitnerBoxLoginViewModel.lo() { return }
         let manager = BundleManager.init()
         let specManager = SpecManagerViewModel.shared
         let cachedSpec = specManager.cachedSpec()
@@ -243,6 +245,7 @@ public final class ChatDelegateImplementation: ChatDelegate {
     }
     
     public func registerOnConnect() {
+        if !LeitnerBoxLoginViewModel.lo() { return }
         networkObserver = nil
         networkObserver = NetworkAvailabilityFactory.create()
         networkObserver?.onNetworkChange = { [weak self] isConnected in

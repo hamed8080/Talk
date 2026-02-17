@@ -9,6 +9,7 @@ import UIKit
 import TalkApp
 import FirebaseCore
 import FirebaseMessaging
+import LeitnerBoxApp
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
