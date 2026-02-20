@@ -1,5 +1,5 @@
 {
-  "originHash" : "28c48f44001bef68a834307514a1c5f7076fa188aa2001b3a72bc9042cd2f209",
+  "originHash" : "f05a79b57cb04d2b2882c64183d5ea9509e8266a0d3796e2ae99eff53a4f736c",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "61b85103a1aeed8218f17c794687781505fbbef5",
         "version" : "11.2.0"
-      }
-    },
-    {
-      "identity" : "dswaveformimage",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/dmrschmidt/DSWaveformImage",
-      "state" : {
-        "revision" : "89300494dab28d7c9718148ec0b5936b9dfd8c81",
-        "version" : "14.2.1"
       }
     },
     {
@@ -110,15 +101,6 @@
       }
     },
     {
-      "identity" : "lottie-ios",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/airbnb/lottie-ios",
-      "state" : {
-        "revision" : "a004050748dc197c56256a14dca49a035d74726c",
-        "version" : "4.5.2"
-      }
-    },
-    {
       "identity" : "nanopb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/nanopb.git",
@@ -134,15 +116,6 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
-      }
-    },
-    {
-      "identity" : "ziparchive",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/ZipArchive/ZipArchive",
-      "state" : {
-        "revision" : "79d4dc9729096c6ad83dd3cee2b9f354d1b4ab7b",
-        "version" : "2.5.5"
       }
     }
   ],

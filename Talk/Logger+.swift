@@ -6,17 +6,17 @@
 //
 
 import Foundation
-import Logger
+//import Logger
 import Spec
 
-extension Logger {
-    fileprivate static let config: LoggerConfig = {
-        let config = LoggerConfig(
-            spec: Spec.empty,
-            prefix: "TALK",
-            isDebuggingLogEnabled: true)
-        return config
-    }()
-    
-    static let logger = Logger(config: config)
-}
+//extension Logger {
+//    fileprivate static let config: LoggerConfig = {
+//        let config = LoggerConfig(
+//            spec: Spec.empty,
+//            prefix: "TALK",
+//            isDebuggingLogEnabled: true)
+//        return config
+//    }()
+//    
+//    static let logger = Logger(config: config)
+//}

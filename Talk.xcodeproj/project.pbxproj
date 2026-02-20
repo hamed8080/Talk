@@ -33,10 +33,7 @@
 		AC64B77B2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
 		AC64B77C2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
 		AC64B77D2ECC950B009524EC /* dots_loading.json in Resources */ = {isa = PBXBuildFile; fileRef = AC64B7792ECC950B009524EC /* dots_loading.json */; };
-		AC7408932D777A81009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408922D777A81009217C8 /* TalkApp */; };
-		AC7408952D777A86009217C8 /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC7408942D777A86009217C8 /* TalkApp */; };
 		AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */; };
-		AC90FBA72E1C2D4000890CDA /* TalkApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA62E1C2D4000890CDA /* TalkApp */; };
 		AC90FBA82E1C2D9100890CDA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0570CBA12AAEE98D001832E9 /* SceneDelegate.swift */; };
 		AC90FBAA2E1C2DA000890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */; };
 		AC90FBAC2E1C2DA500890CDA /* LeitnerBoxApp in Frameworks */ = {isa = PBXBuildFile; productRef = AC90FBAB2E1C2DA500890CDA /* LeitnerBoxApp */; };
@@ -129,7 +126,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC7408952D777A86009217C8 /* TalkApp in Frameworks */,
 				05D493932B21FF3800508472 /* PhotosUI.framework in Frameworks */,
 				ACDC0A122EAF5C3E0094A423 /* FirebaseMessaging in Frameworks */,
 				ACDC0A102EAF5C3E0094A423 /* FirebaseCore in Frameworks */,
@@ -141,7 +137,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC7408932D777A81009217C8 /* TalkApp in Frameworks */,
 				05D493922B21FF3100508472 /* PhotosUI.framework in Frameworks */,
 				ACDC0A0E2EAF5C350094A423 /* FirebaseMessaging in Frameworks */,
 				ACDC0A0C2EAF5C350094A423 /* FirebaseCore in Frameworks */,
@@ -164,7 +159,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				ACDC0A0A2EAF5C290094A423 /* FirebaseMessaging in Frameworks */,
-				AC90FBA72E1C2D4000890CDA /* TalkApp in Frameworks */,
 				ACDC0A082EAF5C290094A423 /* FirebaseCore in Frameworks */,
 				AC90FBA52E1C2D3800890CDA /* LeitnerBoxApp in Frameworks */,
 			);
@@ -259,7 +253,6 @@
 			);
 			name = "Talk-Sibche";
 			packageProductDependencies = (
-				AC7408942D777A86009217C8 /* TalkApp */,
 				AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */,
 				ACDC0A0F2EAF5C3E0094A423 /* FirebaseCore */,
 				ACDC0A112EAF5C3E0094A423 /* FirebaseMessaging */,
@@ -283,7 +276,6 @@
 			);
 			name = "Talk-Test";
 			packageProductDependencies = (
-				AC7408922D777A81009217C8 /* TalkApp */,
 				AC90FBAB2E1C2DA500890CDA /* LeitnerBoxApp */,
 				ACDC0A0B2EAF5C350094A423 /* FirebaseCore */,
 				ACDC0A0D2EAF5C350094A423 /* FirebaseMessaging */,
@@ -329,7 +321,6 @@
 			name = "Talk-AppStore";
 			packageProductDependencies = (
 				AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */,
-				AC90FBA62E1C2D4000890CDA /* TalkApp */,
 				ACDC0A072EAF5C290094A423 /* FirebaseCore */,
 				ACDC0A092EAF5C290094A423 /* FirebaseMessaging */,
 			);
@@ -374,7 +365,6 @@
 			);
 			mainGroup = 0570CB0E2AAEE02A001832E9;
 			packageReferences = (
-				AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */,
 				ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */,
 				ACDC0A062EAF5C000094A423 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
@@ -868,7 +858,7 @@
 				CODE_SIGN_ENTITLEMENTS = Talk/LeitnerBox.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = T26BL3Z92T;
 				ENABLE_ON_DEMAND_RESOURCES = "$(__IS_NOT_MACOS)";
@@ -921,7 +911,7 @@
 				CODE_SIGN_ENTITLEMENTS = Talk/LeitnerBox.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"Talk/Preview Content\"";
 				DEVELOPMENT_TEAM = T26BL3Z92T;
 				ENABLE_ON_DEMAND_RESOURCES = "$(__IS_NOT_MACOS)";
@@ -1028,10 +1018,6 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = submodules/LeitnerBox;
 		};
-		AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = submodules/TalkApp;
-		};
 		ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = submodules/LeitnerBox;
@@ -1060,25 +1046,10 @@
 			package = AC27F3B82EC6ED25008305C5 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
 			productName = LeitnerBoxApp;
 		};
-		AC7408922D777A81009217C8 /* TalkApp */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;
-			productName = TalkApp;
-		};
-		AC7408942D777A86009217C8 /* TalkApp */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;
-			productName = TalkApp;
-		};
 		AC90FBA42E1C2D3800890CDA /* LeitnerBoxApp */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ACE77E862E1C2BBA00450E13 /* XCLocalSwiftPackageReference "submodules/LeitnerBox" */;
 			productName = LeitnerBoxApp;
-		};
-		AC90FBA62E1C2D4000890CDA /* TalkApp */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AC7408912D777A76009217C8 /* XCLocalSwiftPackageReference "submodules/TalkApp" */;
-			productName = TalkApp;
 		};
 		AC90FBA92E1C2DA000890CDA /* LeitnerBoxApp */ = {
 			isa = XCSwiftPackageProductDependency;
