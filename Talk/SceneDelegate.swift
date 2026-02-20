@@ -11,7 +11,7 @@ import BackgroundTasks
 //import TalkApp
 import LeitnerBoxApp
 import Combine
-import Logger
+//import Logger
 
 @MainActor
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate, UIApplicationDelegate {

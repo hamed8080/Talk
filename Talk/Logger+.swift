@@ -7,7 +7,7 @@
 
 import Foundation
 //import Logger
-import Spec
+//import Spec
 
 //extension Logger {
 //    fileprivate static let config: LoggerConfig = {
