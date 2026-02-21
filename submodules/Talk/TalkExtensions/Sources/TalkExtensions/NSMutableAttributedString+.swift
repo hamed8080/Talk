@@ -48,7 +48,7 @@ public extension NSMutableAttributedString {
             phoneRegex.enumerateMatches(in: string, range: allRange) { (result, flag, _) in
                 if let range = result?.range, let urlRange = Range(range, in: string) {
                     let phoneNumberString = String(string[urlRange])
-                    if let url = NSURL(string: "phoneNumber:url?phoneNumber=\(phoneNumberString)") {
+                    if let url = NSURL(string: "phoneNumber:url?phoneNumber=\(phoneNumberString.replaceRTLNumbers())") {
                         let attributedList = linkColorAttributes(color: color, link: url)
                         addAttributes(attributedList, range: range)
                     }
