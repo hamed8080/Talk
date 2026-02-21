@@ -170,7 +170,11 @@ extension MembersTableViewController: UITableViewDelegate {
         /// Reject calling load more for add participant button or search text field
         /// There is no way to fetch indexPath.row == 1 loadMore
         let section = indexPath.section
-        if viewModel.thread?.group == true && section == MembersListSection.addParticipantButton.rawValue || section == MembersListSection.searchTextFields.rawValue {
+        let isAdmin = viewModel.thread?.admin == true
+        let isGroup = viewModel.thread?.group == true
+        let isAddButton = section == MembersListSection.addParticipantButton.rawValue
+        let isSearchField = section == MembersListSection.searchTextFields.rawValue
+        if isAdmin && isGroup && (isAddButton || isSearchField) {
             return
         }
         guard

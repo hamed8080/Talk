@@ -247,7 +247,7 @@ public final class ParticipantsViewModel: ObservableObject {
     }
 
     public func loadMore() async {
-        if await !lazyList.canLoadMore() { return }
+        if await !lazyList.canLoadMore() || participants.isEmpty { return }
         lazyList.prepareForLoadMore()
         await getParticipants()
     }
